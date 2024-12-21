@@ -68,7 +68,7 @@
 
 
      
-    function searchForProduct(){
+    function searchForProduct(id_customer){
 
         let reference = $('#productReference').val();
 
@@ -77,6 +77,7 @@
             url: '{{route("oriflame.getProductInfo")}}',
             data: {
                 reference: reference,
+                id_customer: $('#selected_customer').val(),
                 _token: "{{ csrf_token() }}",
             },
             success: function(response) {
@@ -90,23 +91,6 @@
                     $('#productReference').val('');
                     $('#productReference').focus();
                 }
-                /**
-                if(response.type == 'list'){
-                    $('#customersList').replaceWith(response.html);
-                    $('#customerOrderInfo').css('display', 'none');                    
-                    $('#orderDetails').css('display', 'none');
-                }
-
-                if(response.type == 'details'){
-                    $('#customerOrderInfo').replaceWith(response.html);
-                    $('#customersList').css('display', 'none');
-
-                    $('#orderDetails').css('display', 'block');
-                }
-                    **/
-
-
-                //$('#newRow').replaceWith(response);
             }       
         });
 

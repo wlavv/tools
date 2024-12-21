@@ -8,7 +8,7 @@
 
     <div class="row">
         @include("customTools.oriflame.includes.counters")
-        <div class="col-lg-6">    
+        <div class="col-lg-12">    
             <div class="navbar navbar-light customPanel">
                 <table class="table table-striped table-hover text-center">
                     <tr>
@@ -18,10 +18,19 @@
                         <td>TOTAL</td>
                         <td>ORDER DATE</td>
                     </tr>
+                    @foreach($orders AS $order)
+                    <tr>
+                        <td>{{$order->id_customer}}</td>
+                        <td>EMAIL</td>
+                        <td>{{$order->current_sate}}</td>
+                        <td>{{$order->total}}</td>
+                        <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
+                    </tr>
+                    @endforeach
                 </table>
             </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-12">
             <div class="navbar navbar-light customPanel" id="newOrderContainer" style="display: none;">
                 @include("customTools.oriflame.includes.newOrder")
             </div> 

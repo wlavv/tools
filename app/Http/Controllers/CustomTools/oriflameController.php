@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\prestashop\customer;
+use App\Models\prestashop\orders;
 
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -26,6 +27,7 @@ class oriflameController extends Controller
     public function index(){
 
         $data = [
+            'orders'        => orders::getOrders(),
             'actions'       => $this->actions,
             'breadcrumbs'   => $this->breadcrumbs,
             'panels'        => $this->panels()
@@ -100,8 +102,11 @@ class oriflameController extends Controller
                 'reference' => $request->reference,
                 'title' => $title,
                 'thumb' => $thumb,
-                'price' => $price
+                'price' => $price,
+                'id_customer' => $request->id_customer
             ];
+
+            orders::addProduct($product);
         }
 
         if(count($product) > 0){
