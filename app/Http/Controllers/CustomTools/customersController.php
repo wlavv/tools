@@ -36,9 +36,7 @@ class customersController extends Controller
     }
 
     private function panels(){
-
         return [];
-
     }
 
     public function store(Request $request){ 
@@ -48,11 +46,12 @@ class customersController extends Controller
     
     public function edit(string $id_customer){
         $customer = customer::getToEdit( $id_customer );
-        return view('customTools/customers/includes/edit', compact('customer'));
+        $customer['update'] = route('customers.update', $customer->id_customer);
+        return $customer;
     }
 
     public function update(Request $request, string $id){ 
-        customer::updateRegiser($request);
+        customer::updateRegister($request, $id);
         return back();
     }
 
@@ -62,6 +61,5 @@ class customersController extends Controller
     
     public function active(Request $request){ 
         customer::active($request->id, $request->active);
-    }
-    
+    }  
 }

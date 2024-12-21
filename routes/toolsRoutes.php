@@ -17,3 +17,4 @@ Route::post( 'sales/oriflame/order/product',            [oriflameController::cla
 
 Route::resources([ 'sales/customers'=>                  customersController::class]);
 Route::post( 'sales/customers/active',                  [customersController::class, 'active'])->name('customers.active');
+Route::put('sales/customers/{id}',                      [customersController::class, 'update']);

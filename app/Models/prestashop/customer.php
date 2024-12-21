@@ -36,8 +36,8 @@ class customer extends Model
         return customer::where('id_customer', $id_customer)->first();
     }
 
-    public static function updateRegiser($data){
-        return customer::where('id_customer', $data->id_customer)->update(
+    public static function updateRegister($data, $id){
+        return customer::where('id_customer', $id)->update(
             [
                 'firstname' => $data->firstname,
                 'lastname'  => $data->lastname,
