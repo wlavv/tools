@@ -4,7 +4,6 @@
 
         $('#customerForm').prop('action', '{{route("customers.store")}}');
 
-
         const element = document.getElementById('spanMethod');
             
         if (element){

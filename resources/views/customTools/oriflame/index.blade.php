@@ -7,64 +7,7 @@
 
 
     <div class="row">
-        <div class="col-lg-6">
-            <div class="row">
-                <div class="col-md-3 col-sm-3">
-                    <div class="navbar navbar-light customPanel">
-                        <div class="card-counter primary">
-                            <i class="fa fa-code-fork"></i>
-                            <div class="count-numbers">1000</div>
-                            <div class="count-name">Orders</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-3">
-                    <div class="navbar navbar-light customPanel">
-                        <div class="card-counter info">
-                            <i class="fa fa-boxes-packing"></i>
-                            <span class="count-numbers">12</span>
-                            <span class="count-name">Open</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-3">
-                    <div class="navbar navbar-light customPanel">
-                        <div class="card-counter success">
-                            <i class="fa fa-truck-fast"></i>
-                            <span class="count-numbers">2312</span>
-                            <span class="count-name">Shipped</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-3">
-                    <div class="navbar navbar-light customPanel">
-                        <div class="card-counter danger">
-                            <i class="fa fa-xmark"></i>
-                            <span class="count-numbers">104</span>
-                            <span class="count-name">Cancelled</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="navbar navbar-light customPanel">
-                <div class="row">                
-                    <div class="col-lg-4"></div>
-                    <div class="col-lg-4"></div>
-                    <div class="col-lg-4">
-                        <button class="btn btn-success float-end" type="button" style="padding: 12px" onclick="newOrder()">
-                            <i class="fa-solid fa-cart-plus" style="font-size: 30px;"></i>
-                            <br>
-                            <div style="margin-top: 10px;">NEW ORDER</div>
-                        </button>                        
-                    </div>
-                </div>
-            </div>           
-        </div>
+        @include("customTools.oriflame.includes.counters")
         <div class="col-lg-6">    
             <div class="navbar navbar-light customPanel">
                 <table class="table table-striped table-hover text-center">

@@ -41,21 +41,19 @@
   }
 
   .card-counter .count-numbers{
-    position: absolute;
     right: 35px;
     top: 20px;
     font-size: 32px;
-    display: block;
+    display: contents;
   }
 
   .card-counter .count-name{
-    position: absolute;
     right: 35px;
     top: 65px;
     font-style: italic;
     text-transform: capitalize;
     opacity: 0.5;
-    display: block;
+    display: inline-block;
     font-size: 18px;
   }
 
