@@ -31,4 +31,5 @@ return [
     'customers' => 'customers',
     'customers.index' => 'customers',
     
+    'oriflame.list' => 'Oriflame'
 ];

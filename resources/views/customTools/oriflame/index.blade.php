@@ -7,7 +7,7 @@
 
 
     <div class="row">
-        @include("customTools.oriflame.includes.counters")
+        @include("customTools.oriflame.includes.counters", [ 'counters' => $kpi])
         <div class="col-lg-12">    
             <div class="navbar navbar-light customPanel">
                 <table class="table table-striped table-hover text-center">
@@ -18,6 +18,7 @@
                         <td>TOTAL</td>
                         <td>ORDER DATE</td>
                     </tr>
+                    @if(count($orders) > 0)
                     @foreach($orders AS $order)
                     <tr>
                         <td>{{$order->id_customer}}</td>
@@ -27,6 +28,13 @@
                         <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
                     </tr>
                     @endforeach
+                    @else
+                    <tr>
+                        <td colspan="5">
+                            <div class="alert alert-warning" role="alert" style="margin: 10px;"> NO ORDERS FOR SELECTED STATE </div>
+                        </td>
+                    </tr>
+                    @endif
                 </table>
             </div>
         </div>

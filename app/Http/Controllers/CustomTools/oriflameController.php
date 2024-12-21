@@ -28,6 +28,21 @@ class oriflameController extends Controller
 
         $data = [
             'orders'        => orders::getOrders(),
+            'kpi'           => orders::getCounters(),
+            'actions'       => $this->actions,
+            'breadcrumbs'   => $this->breadcrumbs,
+            'panels'        => $this->panels()
+        ];
+        
+        return View::make('customTools/oriflame/index')->with($data);
+
+    }
+
+    public function list($current_state){
+
+        $data = [
+            'orders'        => orders::getOrders($current_state),
+            'kpi'           => orders::getCounters(),
             'actions'       => $this->actions,
             'breadcrumbs'   => $this->breadcrumbs,
             'panels'        => $this->panels()

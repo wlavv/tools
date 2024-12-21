@@ -25,9 +25,24 @@ class orders extends Model
         return $this->hasMany(orders_details::class, "id_order", 'id_order');
     }
 
-    public static function getOrders(){
-        return orders::get();
+    public static function getOrders($current_state = 0){
+
+        if($current_state == 0) return orders::get();
+
+        return orders::where('current_state', $current_state)->get();
     }
+
+    public static function getCounters(){
+
+        return [
+            'all' => orders::count(),
+            'open' => orders::where('current_state', 1)->count(),
+            'closed' => orders::where('current_state', 2)->count(),
+            'shipped' => orders::where('current_state', 3)->count(),
+            'cancelled' => orders::where('current_state', 4)->count(),
+        ];
+    }
+    
 
     public static function addProduct($data){
 
