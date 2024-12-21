@@ -1,0 +1,1 @@
+{{date_format($date, ( isset($format) ) ? $format : 'Y-m-d')}}
