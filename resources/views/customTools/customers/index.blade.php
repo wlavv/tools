@@ -31,7 +31,7 @@
                             <td> @include('includes.utilities.email',  [ 'email' => $customer->email ])</td>
                             <td> @include('includes.utilities.phone',  [ 'id_customer' => $customer->id_customer, 'phone' => $customer->phone ])</td>
                             <td><span class="desktop"> @include('includes.utilities.date',   [ 'date' => date_create($customer->created_at) ])</span></td>
-                            <td onclick="editCustomerContainer({{ $customer->id_customer }}, '{{ route('customers.edit', $customer->id_customer) }}')"> <i class="fa-solid fa-pen" style="color: orange;"></i> </td>
+                            <td onclick="editCustomerContainer({{ $customer->id_customer }}, '{{ route('customers.edit', $customer->id_customer) }}')"> <i class="fa-solid fa-pen" style="color: orange;font-size: 22px;"></i> </td>
                         </tr>
                         <tr id="whatsappContainer_{{$customer->id_customer}}" id="whatsappContainer" style="display: none;">
                             <td colspan="7">

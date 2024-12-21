@@ -1,1 +1,1 @@
-<i class="fa-solid fa-trash"  style="color: red; cursor: pointer;" onclick="removeItem('{{$route}}')"></i>
+<i class="fa-solid fa-trash"  style="color: red; cursor: pointer;font-size: 22px;" onclick="removeItem('{{$route}}')"></i>
