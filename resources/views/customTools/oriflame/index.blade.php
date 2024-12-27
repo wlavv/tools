@@ -24,7 +24,14 @@
                         <td>{{$order->id_customer}}</td>
                         <td>EMAIL</td>
                         <td>{{$order->current_sate}}</td>
-                        <td>{{$order->total}}</td>
+                        <td>{{$order->total}} €</td>
+                        <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
+                    </tr>
+                    <tr style="display: none" id="orderDetail_{{$order->id_customer}}">
+                        <td>{{$order->id_customer}}</td>
+                        <td>EMAIL</td>
+                        <td>{{$order->current_sate}}</td>
+                        <td>{{$order->total}} €</td>
                         <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
                     </tr>
                     @endforeach

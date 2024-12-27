@@ -16,8 +16,8 @@ return [
     'sales' => 'sales',
     'sales.index' => 'sales',
 
-        'oriflame' => 'Oriflame',
-        'oriflame.index' => 'Oriflame',
+    'oriflame' => 'Oriflame',
+    'oriflame.index' => 'Oriflame',
     
     'logistics' => 'logistics',
     'logistics.index' => 'logistics',
@@ -31,5 +31,8 @@ return [
     'customers' => 'customers',
     'customers.index' => 'customers',
     
-    'oriflame.list' => 'Oriflame'
+    'oriflame.list' => 'Oriflame',
+
+    'order' => 'Order',
+    'list'  => 'list'
 ];

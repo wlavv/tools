@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\prestashop;
+namespace App\Models\webToolsManager;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Config;
 
-class orders_details extends Model
+class wt_orders_details extends Model
 {   
     use HasFactory;
     protected $fillable = ['name'];
     public $timestamps = false;
+    protected $primaryKey = 'id_order_details';
 
     public function __construct()
     {
@@ -21,7 +22,7 @@ class orders_details extends Model
 
     public static function addProduct($id_order, $data){
 
-        $row = new orders_details();
+        $row = new wt_orders_details();
 
         $row->id_order = $id_order;
         $row->id_product = '';

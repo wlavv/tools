@@ -34,7 +34,7 @@
 
         $.ajax({
             type: 'POST',
-            url: '{{route("oriflame.getCustomerInfo")}}',
+            url: '{{route("customer.getCustomerInfo")}}',
             data: {
                 customer: customer,
                 _token: "{{ csrf_token() }}",

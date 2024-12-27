@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Models\prestashop;
+namespace App\Models\webToolsManager;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class customer extends Model
+class wt_customer extends Model
 {
     use HasFactory;
     protected $fillable = ['name'];
     public $timestamps = false;
 
-    public function __construct(){ }
+    public function __construct(){
+        $this->table = env('DB2_prefix')."customers";
+     }
 
     public static function addNew($data){
-        $customer = new customer();
+        $customer = new wt_customer();
         $customer->firstname = $data->firstname;
         $customer->lastname = $data->lastname;
         $customer->email = $data->email;
@@ -25,19 +27,19 @@ class customer extends Model
     }
 
     public static function active($id_customer, $active){
-        return customer::where('id_customer', $id_customer)->update(['active' => $active]);
+        return wt_customer::where('id_customer', $id_customer)->update(['active' => $active]);
     }
 
     public static function destroy($id_customer){
-        return customer::where('id_customer', $id_customer)->delete();
+        return wt_customer::where('id_customer', $id_customer)->delete();
     }
 
     public static function getToEdit($id_customer){
-        return customer::where('id_customer', $id_customer)->first();
+        return wt_customer::where('id_customer', $id_customer)->first();
     }
 
     public static function updateRegister($data, $id){
-        return customer::where('id_customer', $id)->update(
+        return wt_customer::where('id_customer', $id)->update(
             [
                 'firstname' => $data->firstname,
                 'lastname'  => $data->lastname,
@@ -48,7 +50,7 @@ class customer extends Model
     }
 
     public static function getCustomer($tag){
-        return customer::where('id_customer', $tag)->orWhere('email', 'LIKE', '%' . $tag . '%')->orWhere('phone', 'LIKE', '%' . $tag . '%')->get();
+        return wt_customer::where('id_customer', $tag)->orWhere('email', 'LIKE', '%' . $tag . '%')->orWhere('phone', 'LIKE', '%' . $tag . '%')->get();
     }
     
     

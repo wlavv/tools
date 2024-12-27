@@ -9,57 +9,60 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
-use App\Models\prestashop\customer;
+use App\Models\webToolsManager\wt_customer;
 
-class customersController extends Controller
-{
-    public $actions;
-    public $breadcrumbs;
+class customersController extends customToolsController{
     
-    public function __construct()
-    {
-        $this->breadcrumbs[] = [ 'name' =>  'sales', 'url' => route('sales.index')];
-        $this->breadcrumbs[] = [ 'name' =>  'customers', 'url' => route('customers.index')];
-    }
-
     public function index(){
-
-        $data = [
-            'actions'       => $this->actions,
-            'breadcrumbs'   => $this->breadcrumbs,
-            'panels'        => $this->panels(),
-            'customers'     => customer::get()
-        ];
-        
-        return View::make('customTools/customers/index')->with($data);
-
-    }
-
-    private function panels(){
-        return [];
+        $this->setViewData( [ 'customers' => wt_customer::get() ] );
+        return View::make('customTools/customers/index')->with( $this->viewData );
     }
 
     public function store(Request $request){ 
-        customer::addNew($request);
+        wt_customer::addNew($request);
         return back();
     }
     
     public function edit(string $id_customer){
-        $customer = customer::getToEdit( $id_customer );
+        $customer = wt_customer::getToEdit( $id_customer );
         $customer['update'] = route('customers.update', $customer->id_customer);
         return $customer;
     }
 
     public function update(Request $request, string $id){ 
-        customer::updateRegister($request, $id);
+        wt_customer::updateRegister($request, $id);
         return back();
     }
 
     public function destroy(string $id){ 
-        customer::destroy($id);
+        wt_customer::destroy($id);
     }
     
     public function active(Request $request){ 
-        customer::active($request->id, $request->active);
-    }  
+        wt_customer::active($request->id, $request->active);
+    } 
+
+    public function getCustomerInfo(Request $request){
+
+        $customer = wt_customer::getCustomer($request->customer);
+
+        if(count($customer) == 1){
+            return [
+                'type' => 'details',
+                'html' => view('customTools/customers/customerDetails', compact('customer'))->render()
+            ];
+        }
+
+        if(count($customer) >  1){
+            return [
+                'type' => 'list',
+                'html' => view('customTools/customers/customersList', compact('customer'))->render()
+            ];
+        }
+
+        return [
+            'type' => 'none',
+            'html' => view('customTools/customers/noCustomer')->render()
+        ];
+    } 
 }

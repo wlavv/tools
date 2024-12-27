@@ -41,17 +41,17 @@ class salesController extends Controller
 
         return [
             [
+                'url' => route('customers.index'),
+                'name' => 'Customers',
+                'image' => null,            
+                'icon' => 'fa-user'            
+            ],
+            [
                 'url' => route('oriflame.index'),
                 'name' => 'Oriflame',
                 'image' => '<img src="/admin/images/oriflame.png" style="width: 80px;margin-bottom: 10px;">',            
                 'icon' => null            
             ],
-            [
-                'url' => route('customers.index'),
-                'name' => 'Customers',
-                'image' => null,            
-                'icon' => 'fa-user'            
-            ]
         ];
     }
 }

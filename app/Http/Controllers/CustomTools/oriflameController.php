@@ -8,93 +8,34 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
-use App\Models\prestashop\customer;
-use App\Models\prestashop\orders;
+use App\Models\webToolsManager\wt_customer;
+use App\Models\webToolsManager\wt_orders;
 
 use Symfony\Component\DomCrawler\Crawler;
 
-class oriflameController extends Controller
+class oriflameController extends customToolsController
 {
-    public $actions;
-    public $breadcrumbs;
-    
-    public function __construct()
-    {
-        $this->breadcrumbs[] = [ 'name' =>  'sales', 'url' => route('sales.index')];
-        $this->breadcrumbs[] = [ 'name' =>  'oriflame', 'url' => route('oriflame.index')];
-    }
 
     public function index(){
 
         $data = [
-            'orders'        => orders::getOrders(),
-            'kpi'           => orders::getCounters(),
-            'actions'       => $this->actions,
-            'breadcrumbs'   => $this->breadcrumbs,
-            'panels'        => $this->panels()
+            'orders' => wt_orders::getOrders(),
+            'kpi'    => wt_orders::getCounters()
         ];
         
-        return View::make('customTools/oriflame/index')->with($data);
-
+        $this->setViewData($data);
+        return View::make('customTools/oriflame/index')->with( $this->viewData );
     }
 
     public function list($current_state){
 
         $data = [
-            'orders'        => orders::getOrders($current_state),
-            'kpi'           => orders::getCounters(),
-            'actions'       => $this->actions,
-            'breadcrumbs'   => $this->breadcrumbs,
-            'panels'        => $this->panels()
-        ];
-        
-        return View::make('customTools/oriflame/index')->with($data);
-
-    }
-
-    private function panels(){
-
-        return [
-            'openOrder' => ''
+            'orders' => wt_orders::getOrders($current_state),
+            'kpi'    => wt_orders::getCounters(),
         ];
 
-    }
-
-
-    public function create(){ }
-    public function store(Request $request){ }
-    public function show(string $id){ }
-    public function edit(string $id){ }
-    public function update(Request $request, string $id){ }
-    public function destroy(string $id){ }
-
-    
-    public function displayOrder(){
-        return view('customTools/oriflame/includes/displayOrder');
-    }
-
-    public function getCustomerInfo(Request $request){
-
-        $customer = customer::getCustomer($request->customer);
-
-        if(count($customer) == 1){
-            return [
-                'type' => 'details',
-                'html' => view('customTools/oriflame/includes/customer/customerDetails', compact('customer'))->render()
-            ];
-        }
-
-        if(count($customer) >  1){
-            return [
-                'type' => 'list',
-                'html' => view('customTools/oriflame/includes/customer/customersList', compact('customer'))->render()
-            ];
-        }
-
-        return [
-            'type' => 'none',
-            'html' => view('customTools/oriflame/includes/customer/noCustomer')->render()
-        ];
+        $this->setViewData($data);
+        return View::make('customTools/oriflame/index')->with( $this->viewData );
     }
 
     public function getProductInfo(Request $request){
@@ -110,6 +51,9 @@ class oriflameController extends Controller
 
         $price = $crawler->filter('[data-testid="Presentation-product-detail-prices-current-price"]')->text();
 
+        $price = str_replace(' €', '', $price);
+        $price = (float)str_replace(',', '.', $price);
+
         $product = [];
 
         if($title != 0){
@@ -121,7 +65,7 @@ class oriflameController extends Controller
                 'id_customer' => $request->id_customer
             ];
 
-            orders::addProduct($product);
+            wt_orders::addProduct($product);
         }
 
         if(count($product) > 0){
