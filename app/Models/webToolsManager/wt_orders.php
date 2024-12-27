@@ -17,21 +17,24 @@ class wt_orders extends Model
     public $timestamps = true;
     protected $primaryKey = 'id_order';
 
-
     public function __construct()
     {
         $this->table = env('DB2_prefix')."orders";
     }
+    
+    public function customer(){
+        return $this->hasOne(wt_customer::class, "id_customer", 'id_customer');
+    }
 
-    public function order_detail(){
+    public function order_details(){
         return $this->hasMany(wt_orders_details::class, "id_order", 'id_order');
     }
 
     public static function getOrders($current_state = 0){
 
-        if($current_state == 0) return wt_orders::get();
+        if($current_state == 0) return wt_orders::with('customer', 'order_details.product')->get();
 
-        return wt_orders::where('current_state', $current_state)->get();
+        return wt_orders::with('customer', 'order_details.product')->where('current_state', $current_state)->get();
     }
 
     public static function getCounters(){

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Config;
 
+use App\Models\webToolsManager\wt_product;
+
 class wt_orders_details extends Model
 {   
     use HasFactory;
@@ -20,12 +22,17 @@ class wt_orders_details extends Model
         $this->table = env('DB2_prefix')."order_details";
     }
 
+    public function product()
+    {
+        return $this->hasOne(wt_product::class, 'id_product', 'id_product');
+    }
+
     public static function addProduct($id_order, $data){
 
         $row = new wt_orders_details();
 
         $row->id_order = $id_order;
-        $row->id_product = '';
+        $row->id_product = $data['id_product'];
         $row->id_product_attribute = '';
         $row->reference = $data['reference'];
         $row->unitary_price = $data['price'];

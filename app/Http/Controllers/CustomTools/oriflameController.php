@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\webToolsManager\wt_customer;
 use App\Models\webToolsManager\wt_orders;
+use App\Models\webToolsManager\wt_product;
 
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -18,6 +19,7 @@ class oriflameController extends customToolsController
 
     public function index(){
 
+        $order = new wt_orders();
         $data = [
             'orders' => wt_orders::getOrders(),
             'kpi'    => wt_orders::getCounters()
@@ -64,6 +66,8 @@ class oriflameController extends customToolsController
                 'price' => $price,
                 'id_customer' => $request->id_customer
             ];
+
+            $product['id_product'] = wt_product::addProduct($product);
 
             wt_orders::addProduct($product);
         }

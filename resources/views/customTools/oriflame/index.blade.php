@@ -19,22 +19,41 @@
                         <td>ORDER DATE</td>
                     </tr>
                     @if(count($orders) > 0)
-                    @foreach($orders AS $order)
-                    <tr>
-                        <td>{{$order->id_customer}}</td>
-                        <td>EMAIL</td>
-                        <td>{{$order->current_sate}}</td>
-                        <td>{{$order->total}} €</td>
-                        <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
-                    </tr>
-                    <tr style="display: none" id="orderDetail_{{$order->id_customer}}">
-                        <td>{{$order->id_customer}}</td>
-                        <td>EMAIL</td>
-                        <td>{{$order->current_sate}}</td>
-                        <td>{{$order->total}} €</td>
-                        <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
-                    </tr>
-                    @endforeach
+                        @foreach($orders AS $order)
+                        <tr onclick="$('.rowsDetails').css('display', 'none'); $('#orderDetail_{{$order->id_customer}}').toggle()">
+                            <td>{{$order->customer->firstname}} {{$order->customer->lastname}}</td>
+                            <td>{{$order->customer->email}}</td>
+                            <td>{{$order->current_sate}}</td>
+                            <td>{{$order->total}} €</td>
+                            <td> @include('includes.utilities.date',   [ 'date' => date_create($order->created_at) ])</td>
+                        </tr>
+                        <tr class="rowsDetails" style="display: none;background-color: #FFF;--bs-table-bg: #FFF;" id="orderDetail_{{$order->id_customer}}">
+                            <td style="background-color: #FFF;--bs-table-bg: #FFF;"></td>
+                            <td colspan="3">
+                                <table class="table table-hover text-center" style="background-color: #FFF;--bs-table-bg: #FFF;">
+                                    <tr>
+                                        <td>IMAGE</td>
+                                        <td>REFERENCE</td>
+                                        <td>NAME</td>
+                                        <td>QUANTITY</td>
+                                        <td>UNITARY</td>
+                                        <td>TOTAL</td>
+                                    </tr>
+                                    @foreach($order->order_details AS $detail)
+                                        <tr>
+                                            <td><img class="imageHover" src="{{$detail->product->image}}" style="width: 50px;"></td>
+                                            <td>{{$detail->reference}}</td>
+                                            <td>{{$detail->product->name}}</td>
+                                            <td>{{$detail->quantity}}</td>
+                                            <td>{{$detail->unitary_price}} €</td>
+                                            <td>{{$detail->price}} €</td>
+                                        </tr>
+                                    @endforeach
+                                </table>
+                            </td>
+                            <td style="background-color: #FFF;--bs-table-bg: #FFF;"></td>
+                        </tr>
+                        @endforeach
                     @else
                     <tr>
                         <td colspan="5">
@@ -57,7 +76,7 @@
 
     <style>
         .imageHover:hover{ 
-            transform: scale(10);
+            transform: scale(5);
             border: 1px solid #999;
             transition: -webkit-transform 0.3s ease-in-out;
             transition: transform 0.3s ease-in-out;

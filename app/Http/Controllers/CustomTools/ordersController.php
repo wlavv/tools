@@ -19,7 +19,7 @@ class ordersController extends customToolsController
     public function index(){
 
         $data = [
-            'orders' => wt_orders::getOrders(),
+            'orders' => wt_orders::customer()->order_details()->getOrders(),
             'kpi'    => wt_orders::getCounters()
         ];
         
@@ -30,7 +30,7 @@ class ordersController extends customToolsController
     public function list($current_state){
 
         $data = [
-            'orders' => wt_orders::getOrders($current_state),
+            'orders' => wt_orders::customer()->order_details()->getOrders($current_state),
             'kpi'    => wt_orders::getCounters(),
         ];
 
