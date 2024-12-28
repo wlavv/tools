@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\webToolsManager\wt_customer;
 use App\Models\webToolsManager\wt_orders;
 use App\Models\webToolsManager\wt_product;
+use App\Models\webToolsManager\wt_orders_details;
 
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -40,6 +41,12 @@ class oriflameController extends customToolsController
         return View::make('customTools/oriflame/index')->with( $this->viewData );
     }
 
+    public function getOrderProducts(Request $request){
+
+        $order = wt_orders::with('order_details.product')->where('id_customer', $request->id_customer)->where('current_state', 1)->first();
+        return view('customTools/oriflame/includes/product/order', compact('order'))->render();
+    }
+
     public function getProductInfo(Request $request){
 
         $html = file_get_contents( 'https://pt.oriflame.com/products/product?code=' . $request->reference );
@@ -64,12 +71,13 @@ class oriflameController extends customToolsController
                 'title' => $title,
                 'thumb' => $thumb,
                 'price' => $price,
-                'id_customer' => $request->id_customer
+                'id_customer' => $request->id_customer,
+                'quantity' => 1
             ];
 
             $product['id_product'] = wt_product::addProduct($product);
 
-            wt_orders::addProduct($product);
+            $product['id_order'] = wt_orders::addProduct($product);
         }
 
         if(count($product) > 0){
@@ -84,5 +92,18 @@ class oriflameController extends customToolsController
             'html' => view('customTools/oriflame/includes/product/noProduct')->render()
         ];
     }
+
+    public function updateProductQuantity(Request $request){
+        return wt_orders_details::updateQuantity($request->id_order, $request->id_product, $request->quantity );
+    }
+
+    public function removeProduct(Request $request){
+        return wt_orders_details::removeProduct($request->id_order, $request->id_product );
+    }
+
+    public function changeOrderStatus(Request $request){
+        return wt_orders::changeOrderStatus($request->id_order, $request->id_status );
+    }
+
     
 }

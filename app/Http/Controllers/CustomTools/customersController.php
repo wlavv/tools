@@ -49,6 +49,8 @@ class customersController extends customToolsController{
         if(count($customer) == 1){
             return [
                 'type' => 'details',
+                'id_customer' => $customer[0]->id_customer,
+                'email' => $customer[0]->email,
                 'html' => view('customTools/customers/customerDetails', compact('customer'))->render()
             ];
         }

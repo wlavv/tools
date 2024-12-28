@@ -13,6 +13,10 @@ Route::resources([ 'sales/oriflame/order/new'=>         oriflameController::clas
 Route::post( 'sales/oriflame/order/show',               [oriflameController::class, 'displayOrder'])->name('oriflame.displayOrder');
 Route::post( 'sales/oriflame/order/product',            [oriflameController::class, 'getProductInfo'])->name('oriflame.getProductInfo');
 Route::get(  'sales/oriflame/order/list/{status}',      [oriflameController::class, 'list'])->name('oriflame.list');
+Route::post(  'sales/oriflame/order/change/status',     [oriflameController::class, 'changeOrderStatus'])->name('oriflame.changeOrderStatus');
+Route::post( 'sales/oriflame/order/products/added',     [oriflameController::class, 'getOrderProducts'])->name('oriflame.getOrderProducts');
+Route::post( 'sales/oriflame/order/products/update',    [oriflameController::class, 'updateProductQuantity'])->name('oriflame.updateProductQuantity');
+Route::post( 'sales/oriflame/order/products/remove',    [oriflameController::class, 'removeProduct'])->name('oriflame.removeProduct');
 
 
 

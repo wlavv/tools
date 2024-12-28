@@ -1,10 +1,11 @@
 <script>
 
     function newOrder(){
-
         $('#orderContainer').css('display', 'none');
+        $('#orders_list').css('display', 'none');
+        $('#kpi').css('display', 'none');       
         $('#newOrderContainer').css('display', 'block');
-
+        $('#customer').focus();
     }
 
     function displayOrder(){
@@ -21,7 +22,6 @@
         });
 
     }
-
     
     function setCustomer(email){
         $('#customer').val(email);
@@ -55,17 +55,42 @@
 
                 if(response.type == 'details'){
                     $('#customerOrderInfo').replaceWith(response.html);
+                    $('#customer').val(response.email);
                     $('#customersList').css('display', 'none');
 
-                    $('#orderDetails').css('display', 'block');
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{route("oriflame.getOrderProducts")}}',
+                        data: {
+                            id_customer: response.id_customer,
+                            _token: "{{ csrf_token() }}",
+                        },
+                        success: function(response) {
+                            $('#orderDetails').replaceWith(response);  
+                        }     
+                    });
                 }
-
             }       
         });
 
     }
 
+    function updateProductQuantity(id_order, id_product, reference){
 
+        $.ajax({
+            type: 'POST',
+            url: '{{route("oriflame.updateProductQuantity")}}',
+            data: {
+                id_order: id_order,
+                id_product: id_product,
+                quantity: $('#quantity_' + reference).val(),
+                _token: "{{ csrf_token() }}",
+            },
+            success: function(response) {
+            }     
+        });
+
+    }
 
      
     function searchForProduct(id_customer){
@@ -96,7 +121,49 @@
 
     }
 
-function removeRow(reference){
-    $('#tr_' + reference).remove();
+function removeRow(id_order, id_product, reference){
+
+    Swal.fire({
+        icon: "error",
+        title: "Confirm deletion of this record?",
+        showDenyButton: false,
+        showCancelButton: true,
+        confirmButtonText: "REMOVE"
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            $.ajax({
+                type: 'POST',
+                url: '{{route("oriflame.removeProduct")}}',
+                data: {
+                    id_order: id_order,
+                    id_product: id_product,
+                    _token: "{{ csrf_token() }}",
+                },
+                success: function(response) {
+                    $('#tr_' + reference).remove();
+                }     
+            });
+        }
+    });
+
 }
+
+function changeOrderStatus(id_order, id_status){
+
+    $.ajax({
+        type: 'POST',
+        url: '{{route("oriflame.changeOrderStatus")}}',
+        data: {
+            id_order: id_order,
+            id_status: id_status,
+            _token: "{{ csrf_token() }}",
+        },
+        success: function(response) {
+            location.reload();
+        }     
+    });
+}
+
+
 </script>

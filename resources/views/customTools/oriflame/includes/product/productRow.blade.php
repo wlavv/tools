@@ -14,12 +14,12 @@
             <input name="name[]" type="hidden" id="name_{{$product['reference']}}" value="{{$product['title']}}">
         </div>
         <div style="margin-top: 10px;">
-            <input name="quantity[]" type="number" id="quantity_{{$product['reference']}}" value="1" style="text-align: center; width: 80px;"> X {{$product['price']}} €
+            <input name="quantity[]" type="number" id="quantity_{{$product['reference']}}" value="1" style="text-align: center; width: 80px;"  onblur="updateProductQuantity({{$product['id_order']}}, {{$product['id_product']}}, {{$product['reference']}})" type="number" > X {{$product['price']}} €
             <input type="hidden" id="price_{{$product['reference']}}" value="{{str_replace(' €', '', $product['price'])}}">
         </div>
     </td>
     <td style="vertical-align: middle;"> 
-        <i class="fa-solid fa-xmark" style="color: red; font-size: 22px;" onclick="removeRow('{{$product['reference']}}')"></i>
+        <i class="fa-solid fa-xmark" style="color: red; font-size: 22px;" onclick="removeRow({{$product['id_order']}}, {{$product['id_product']}}, '{{$product['reference']}}')"></i>
      </td>
 </tr>
 <tr id="newRow" style="display: none;">

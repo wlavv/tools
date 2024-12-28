@@ -36,9 +36,5 @@
                 </table>
             </div>
         </div>
-    </div>
-    <div class="col-lg-12" style="text-align: center;" id="createOrderButton"> 
-        <button type="button" class="btn btn-success" style="margin: 20px auto; display: none;">CREATE ORDER</button>
-    </div>   
-
+    </div> 
 </div>

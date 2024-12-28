@@ -1,5 +1,5 @@
 <div class="col-lg-12">
-    <div class="navbar navbar-light customPanel">
+    <div class="navbar navbar-light customPanel" id="kpi">
         <div class="row">
             <div class="col-lg-2 col-md-3 col-sm-6 col-6">
                 <div class="card-counter dark" onclick="window.location.href = '{{route('oriflame.list', 1)}}';">
@@ -22,9 +22,9 @@
             </div>
             <div class="col-lg-2 col-md-3 col-sm-6 col-6">
                 <div class="card-counter primary" onclick="window.location.href = '{{route('oriflame.list', 2)}}';">
-                    <div style="width: 80px;float: left;"> <i class="fa fa-code-fork"></i> </div>
+                    <div style="width: 80px;float: left;"> <i class="fa fa-box"></i> </div>
                     <div style="width: calc( 100% - 80px); float: left;padding: 10px 0;">
-                        <div class="count-numbers">{{$counters['cancelled']}}</div>
+                        <div class="count-numbers">{{$counters['closed']}}</div>
                         <br><div class="count-name">Orders</div>
                     </div>
                 </div>

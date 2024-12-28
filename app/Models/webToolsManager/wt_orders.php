@@ -65,6 +65,7 @@ class wt_orders extends Model
 
         wt_orders_details::addProduct($id_order, $data);
 
+        return $id_order;
     }
 
     public static function createOrder($id_customer, $price){
@@ -78,4 +79,26 @@ class wt_orders extends Model
 
         return $newOrder->id_order;
     }
+
+    public static function updateOrderTotal($id_order){
+
+        $total = 0;
+
+        $products = wt_orders_details::getProductOfOrder($id_order);
+
+        foreach($products AS $product){
+            $total += $product->quantity * $product->unitary_price;
+        }
+
+        $order = wt_orders::where('id_order', $id_order)->first();
+        $order->total = $total;
+        $order->update();
+
+    }
+
+    public static function changeOrderStatus($id_order, $id_status){
+        $order = wt_orders::where('id_order', $id_order)->update([ 'current_state' => $id_status]);
+        return 1;
+    }
+    
 }

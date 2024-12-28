@@ -8,6 +8,10 @@ class customToolsController extends Controller
 {
     protected $viewData = array();
 
+    public function __construct(){ 
+        $this->middleware('auth');
+    }
+
     public function setViewData($options, $variableName = null)
     {
         
