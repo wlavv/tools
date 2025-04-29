@@ -30,10 +30,10 @@
                 </a>
             </div>
             @if(auth()->user()->id == 1)
-            <div class="text-center mobileMenuItem @if(Route::is('logistics.index') ) active-link @endif"> 
-                <a class="nav-link uppercase" href="{{ route('logistics.index') }}">
-                    <div><i class="fa-solid fa-box @if(Route::is('logistics.index') ) active-link-icon @endif" style="font-size: 40px;"></i></div>
-                    <div class="sideMenuText"> {{ __('menu.logistics') }}</div>
+            <div class="text-center mobileMenuItem @if(Route::is('tasks.index') ) active-link @endif"> 
+                <a class="nav-link uppercase" href="{{ route('tasks.index') }}">
+                    <div><i class="fa-solid fa-box @if(Route::is('tasks.index') ) active-link-icon @endif" style="font-size: 40px;"></i></div>
+                    <div class="sideMenuText"> {{ __('menu.tasks') }}</div>
                 </a> 
             </div>
             @endif
@@ -82,7 +82,6 @@
 
 }
 
-#mainMenuMobileContainer{ float: right;}
 #openMobileMenuTrigger{ text-align: center; }
 #openMobileMenuTrigger:hover{ text-align: center; background-color: #ccc; }
 

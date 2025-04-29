@@ -37,7 +37,7 @@
             @else
                 @auth
                     <div class="mainContainer">
-                        <div class="navbar navbar-light shadow-sm" style="background-color: #ededed;border: 1px solid #ddd;padding: 0; margin-top: 0;">
+                        <div class="navbar navbar-light shadow-sm top_container">
                             <div style="display: contents;">
                                 <div style="width: 100%; background-color: #ccc; border-bottom: 1px solid #999;">
                                     <div id="extraMenu" class="text-center" style="height: auto; margin-bottom: 10px;height: 30px; float: right;display:none;"> 
@@ -65,20 +65,24 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="mainMenuMobileContainer">
+                            <div id="mainMenuMobile"> @include('includes.mobileMenu') </div>
+                        </div>
+                        <div id="mainContentView" style="width: calc( 100% - 170px); float: right;margin-top: 105px;">
+                            @if( isset( $accessList) )
+                                @include("includes.accessList", $accessList)
+                            @endif
 
-                        @if( isset( $accessList) )
-                            @include("includes.accessList", $accessList)
-                        @endif
+                            @if( isset( $counters) )
+                                <div class="row">
+                                    @foreach( $counters AS $counter)
+                                        @include("includes.counters", $counter)
+                                    @endforeach
+                                </div>
+                            @endif
 
-                        @if( isset( $counters) )
-                            <div class="row">
-                                @foreach( $counters AS $counter)
-                                    @include("includes.counters", $counter)
-                                @endforeach
-                            </div>
-                        @endif
-                        
-                        <div id="mainContentView"> @yield('content') </div>
+                            @yield('content') 
+                        </div>
                     </div>
                 @endauth
             @endguest

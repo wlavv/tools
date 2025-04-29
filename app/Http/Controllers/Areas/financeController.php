@@ -28,12 +28,24 @@ class financeController extends Controller
         $data = [
             'counters'      => [],
             'panels'        => [],
-            'accessList'    => [],
-            'actions'       => $this->actions,
+            'accessList'    => $this->accessList(),
+            /**'actions'       => $this->actions,**/
             'breadcrumbs'   => $this->breadcrumbs,
         ];
 
         return View::make('areas/finance/index')->with($data);
+    }
+
+    public function accessList(){
+
+        return [
+            [
+                'url' => route('budget.index'),
+                'name' => 'Budget',
+                'image' => null,            
+                'icon' => 'fa-solid fa-euro-sign'            
+            ],
+        ];
     }
 
 }

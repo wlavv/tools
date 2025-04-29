@@ -34,5 +34,19 @@ return [
     'oriflame.list' => 'Oriflame',
 
     'order' => 'Order',
-    'list'  => 'list'
+    'list'  => 'list',
+
+    'budget.index' => 'Budget',
+    'budget' => 'Budget',
+
+    'tasks.index' => 'Tasks',
+    'tasks' => 'Tasks',
+
+    'tasks.getMonthInfo' => 'RESULTADO DO MÊS',
+
+    'mtg.index' => 'MAGIC THE GATHERING',
+    'Magic the Gathering' => 'MAGIC THE GATHERING',
+    'mtg.showSet' => 'MAGIC THE GATHERING SET',
+    'mtg.showSet_info' => ':set'
+    
 ];

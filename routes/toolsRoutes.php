@@ -4,10 +4,20 @@
 //Use App\Http\Controllers\CustomTools\uploadsController;
 Use App\Http\Controllers\CustomTools\oriflameController;
 Use App\Http\Controllers\CustomTools\customersController;
+Use App\Http\Controllers\CustomTools\budgetController;
+Use App\Http\Controllers\CustomTools\tasksController;
+
+Route::resources([ 'finance/budget'=>                   budgetController::class]);
+
+Route::post('/taks/update', [TasksController::class, 'updateDone'])->name('tasks.updateDone');
+Route::get('/taks/calendar/{year}/{month}', [TasksController::class, 'getMonthInfo'])->name('tasks.getMonthInfo');
+
+
 
 //Route::post( 'customTools/uploads/upload',              [uploadsController::class, 'upload'])->name('uploads.upload');
 
 //Route::resources([ 'customTools/uploads'=>              uploadsController::class]);
+Route::resources([ 'tasks'=>                            tasksController::class]);
 Route::resources([ 'sales/oriflame'=>                   oriflameController::class]);
 Route::resources([ 'sales/oriflame/order/new'=>         oriflameController::class]);
 Route::post( 'sales/oriflame/order/show',               [oriflameController::class, 'displayOrder'])->name('oriflame.displayOrder');

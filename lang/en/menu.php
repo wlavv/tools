@@ -4,7 +4,7 @@ return [
     'dashboard' => 'Dashboard',
     'admin' => 'Admin',
     'finance' => 'Finance',
-    'logistics' => 'Logistics',
+    'tasks' => 'Tasks',
     'marketing' => 'Marketing',
     'customer support' => 'Support',
     'sales' => 'SALES',
