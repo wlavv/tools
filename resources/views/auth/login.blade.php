@@ -7,7 +7,7 @@
             <div class="card">
                 <div class="card-header" style="@guest display: block;text-align: center;padding: 10px; @endif">
                     <a class="navbar-brand" href="https://www.webtools-manager.com/" target="_blank">
-                        <img src="/admin/images/logo.png" style="width: 250px">
+                        <img src="/admin/images/logo.png?t={{rand()}}" style="width: 250px">
                     </a>
                 </div>
 
