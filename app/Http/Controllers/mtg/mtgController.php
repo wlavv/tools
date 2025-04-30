@@ -105,7 +105,6 @@ class mtgController extends Controller
 
         if ($binary === false) return response()->json(['error' => 'Imagem inválida'], 400);
 
-
         $temp = public_path('images/mtg/tdm/1.jpg');
 
         $imageHashTemp = new ImageHash();
