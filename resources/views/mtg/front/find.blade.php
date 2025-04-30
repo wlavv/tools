@@ -43,6 +43,7 @@
         <div id="info">⌛ A iniciar...</div>
     </div>
 
+    <!-- Carregar OpenCV.js -->
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
     <script>
         const video = document.getElementById('video');
@@ -50,24 +51,41 @@
         const ctx = canvas.getContext('2d');
         const info = document.getElementById('info');
 
-        function log(msg) {
-            console.log(msg);
-            info.innerText = msg;
+        // Função para garantir que OpenCV está completamente carregado
+        function checkOpenCV() {
+            if (cv && cv.Mat) {
+                console.log("OpenCV carregado com sucesso!");
+                initialize();
+            } else {
+                console.log("Aguardando OpenCV...");
+                setTimeout(checkOpenCV, 100);
+            }
         }
 
+        // Função que inicia o fluxo de captura de vídeo e processamento
+        function initialize() {
+            startVideo();
+            processVideo();
+        }
+
+        // Função para iniciar a captura de vídeo
         function startVideo() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
                 .then(stream => {
                     video.srcObject = stream;
                     video.onloadedmetadata = () => {
                         video.play();
-                        processVideo();
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
                     };
-                }).catch(err => {
-                    log("Erro câmara: " + err);
+                })
+                .catch(err => {
+                    console.error("Erro ao acessar a câmera: ", err);
+                    info.innerText = "Erro ao acessar a câmera.";
                 });
         }
 
+        // Função para processar o vídeo e realizar a detecção
         function processVideo() {
             let src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let gray = new cv.Mat();
@@ -78,54 +96,50 @@
             const FPS = 10;
 
             function detect() {
-                try {
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    src.data.set(imageData.data);
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                src.data.set(imageData.data);
 
-                    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                    cv.Canny(gray, edges, 75, 150);
-                    cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
+                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+                cv.Canny(gray, edges, 75, 150);
+                cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
 
-                    // Limpar canvas
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.strokeStyle = "red";
-                    ctx.lineWidth = 2;
+                // Limpar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 2;
 
-                    let found = false;
+                let found = false;
 
-                    for (let i = 0; i < contours.size(); i++) {
-                        let cnt = contours.get(i);
-                        let approx = new cv.Mat();
-                        cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                // Iterar sobre os contornos encontrados
+                for (let i = 0; i < contours.size(); i++) {
+                    let cnt = contours.get(i);
+                    let approx = new cv.Mat();
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
 
-                        if (approx.rows === 4 && cv.contourArea(approx) > 10000) {
-                            // Desenha contorno
-                            let points = [];
-                            for (let j = 0; j < 4; j++) {
-                                let pt = approx.data32S.slice(j * 2, j * 2 + 2);
-                                points.push({ x: pt[0], y: pt[1] });
-                            }
-
-                            ctx.beginPath();
-                            ctx.moveTo(points[0].x, points[0].y);
-                            for (let j = 1; j < 4; j++) ctx.lineTo(points[j].x, points[j].y);
-                            ctx.closePath();
-                            ctx.stroke();
-
-                            found = true;
-                            approx.delete();
-                            break;
+                    if (approx.rows === 4 && cv.contourArea(approx) > 10000) {
+                        // Desenha o contorno da carta detectada
+                        let points = [];
+                        for (let j = 0; j < 4; j++) {
+                            let pt = approx.data32S.slice(j * 2, j * 2 + 2);
+                            points.push({ x: pt[0], y: pt[1] });
                         }
 
+                        ctx.beginPath();
+                        ctx.moveTo(points[0].x, points[0].y);
+                        for (let j = 1; j < 4; j++) ctx.lineTo(points[j].x, points[j].y);
+                        ctx.closePath();
+                        ctx.stroke();
+
+                        found = true;
                         approx.delete();
+                        break;
                     }
 
-                    log(found ? "✅ Carta detetada!" : "🔍 A procurar carta...");
-                } catch (err) {
-                    console.error(err);
-                    log("❌ Erro: " + err);
+                    approx.delete();
                 }
+
+                info.innerText = found ? "✅ Carta detectada!" : "🔍 A procurar carta...";
 
                 setTimeout(detect, 1000 / FPS);
             }
@@ -133,18 +147,8 @@
             detect();
         }
 
-        // Esperar pelo carregamento do OpenCV
-        function waitForOpenCV() {
-            if (cv && cv.Mat) {
-                log("✅ OpenCV carregado!");
-                startVideo();
-            } else {
-                log("⌛ A aguardar OpenCV...");
-                setTimeout(waitForOpenCV, 100);
-            }
-        }
-
-        waitForOpenCV();
+        // Chama a função para verificar o carregamento do OpenCV
+        checkOpenCV();
     </script>
 </body>
 </html>
