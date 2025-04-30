@@ -3,163 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <title>MTG Card Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
         body {
             background: black;
-            margin: 0;
-            overflow: hidden;
             color: white;
             font-family: Arial, sans-serif;
-        }
-
-        #container {
-            position: relative;
-            width: 500px;
-            height: 700px;
-            margin: 20px auto;
-        }
-
-        video, canvas {
-            position: absolute;
-            width: 500px;
-            height: 700px;
+            margin: 0;
+            overflow: hidden;
         }
 
         #info {
             position: absolute;
-            bottom: 10px;
+            top: 10px;
             left: 10px;
             background: rgba(0,0,0,0.7);
             padding: 8px;
             border-radius: 4px;
-            z-index: 10;
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <video id="video" autoplay muted playsinline></video>
-        <canvas id="canvas"></canvas>
-        <div id="info">⌛ A iniciar...</div>
-    </div>
+    <div id="info">⌛ A iniciar...</div>
 
-    <!-- Carregar OpenCV.js -->
-    <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const info = document.getElementById('info');
+        let video;
+        let info;
+        let contours = [];
 
-        // Função para garantir que OpenCV está completamente carregado
-        function checkOpenCV() {
-            if (typeof cv === 'undefined') {
-                setTimeout(checkOpenCV, 100);  // Verifica a cada 100ms se o OpenCV foi carregado
-                return;
-            }
-            console.log("OpenCV carregado com sucesso!");
-            initialize();  // Chama a função para iniciar quando o OpenCV estiver disponível
+        function setup() {
+            createCanvas(640, 480);
+            video = createCapture(VIDEO);
+            video.size(width, height);
+            video.hide(); // Oculta o elemento de vídeo
+
+            info = select('#info');
+            info.html("🔍 A procurar carta...");
+
+            // Inicializa a detecção
+            frameRate(10);
         }
 
-        // Função que inicia o fluxo de captura de vídeo e processamento
-        function initialize() {
-            startVideo();
-            processVideo();
-        }
+        function draw() {
+            image(video, 0, 0); // Exibe o vídeo na tela
+            let img = get(); // Captura o quadro atual
+            img.filter(GRAY); // Converte para escala de cinza
 
-        // Função para iniciar a captura de vídeo
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                    };
-                })
-                .catch(err => {
-                    console.error("Erro ao acessar a câmera: ", err);
-                    info.innerText = "Erro ao acessar a câmera.";
+            // Detecta os contornos na imagem
+            contours = detectContours(img);
+
+            if (contours.length > 0) {
+                info.html("✅ Carta detectada!");
+                stroke(255, 0, 0);
+                noFill();
+                beginShape();
+                contours.forEach(c => {
+                    vertex(c.x, c.y);
                 });
-        }
-
-        // Função para processar o vídeo e realizar a detecção
-        function processVideo() {
-            const FPS = 10;
-
-            function detect() {
-                // Capturar o quadro do vídeo para o canvas
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                // Obter dados da imagem do canvas
-                let frame = cv.matFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
-
-                // Converter para escala de cinza
-                let gray = new cv.Mat();
-                cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY);
-
-                // Detectar bordas com Canny
-                let edges = new cv.Mat();
-                cv.Canny(gray, edges, 75, 150);
-
-                // Encontrar contornos
-                let contours = new cv.MatVector();
-                let hierarchy = new cv.Mat();
-                cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
-
-                // Limpar canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 2;
-
-                let found = false;
-
-                // Iterar sobre os contornos encontrados
-                for (let i = 0; i < contours.size(); i++) {
-                    let cnt = contours.get(i);
-                    let approx = new cv.Mat();
-                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-
-                    if (approx.rows === 4 && cv.contourArea(approx) > 10000) {
-                        // Desenha o contorno da carta detectada
-                        let points = [];
-                        for (let j = 0; j < 4; j++) {
-                            let pt = approx.data32S.slice(j * 2, j * 2 + 2);
-                            points.push({ x: pt[0], y: pt[1] });
-                        }
-
-                        ctx.beginPath();
-                        ctx.moveTo(points[0].x, points[0].y);
-                        for (let j = 1; j < 4; j++) ctx.lineTo(points[j].x, points[j].y);
-                        ctx.closePath();
-                        ctx.stroke();
-
-                        found = true;
-                        approx.delete();
-                        break;
-                    }
-
-                    approx.delete();
-                }
-
-                info.innerText = found ? "✅ Carta detectada!" : "🔍 A procurar carta...";
-
-                // Libera os recursos da imagem
-                frame.delete();
-                gray.delete();
-                edges.delete();
-                contours.delete();
-                hierarchy.delete();
-
-                setTimeout(detect, 1000 / FPS);
+                endShape(CLOSE);
+            } else {
+                info.html("🔍 A procurar carta...");
             }
-
-            detect();
         }
 
-        // Chama a função para verificar o carregamento do OpenCV
-        checkOpenCV();
+        // Função para detectar contornos usando o P5.js
+        function detectContours(img) {
+            let contours = [];
+            img.loadPixels();
+            for (let y = 0; y < img.height; y++) {
+                for (let x = 0; x < img.width; x++) {
+                    let index = (x + y * img.width) * 4;
+                    let r = img.pixels[index];
+                    let g = img.pixels[index + 1];
+                    let b = img.pixels[index + 2];
+
+                    if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
+                        contours.push(createVector(x, y)); // Se encontrar um contorno, armazena o ponto
+                    }
+                }
+            }
+            return contours;
+        }
     </script>
 </body>
 </html>
