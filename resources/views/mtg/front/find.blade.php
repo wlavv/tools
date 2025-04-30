@@ -93,9 +93,8 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-                // Criando a Mat a partir dos dados da imagem
-                let src = new cv.Mat(canvas.height, canvas.width, cv.CV_8UC4);
-                src.data.set(imageData.data);  // Atribui os dados do canvas à Mat
+                // Criando a Mat a partir dos dados da imagem com cv.matFromImageData()
+                let src = cv.matFromImageData(imageData);  // Agora usando o método correto para criar a Mat
 
                 let gray = new cv.Mat();
                 let edges = new cv.Mat();
