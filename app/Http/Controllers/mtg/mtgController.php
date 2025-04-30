@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\mtg\mtg_sets;
 use App\Models\mtg\mtg_cards;
 
+use Jenssegers\ImageHash\Hash;
 use Jenssegers\ImageHash\ImageHash;
 use Jenssegers\ImageHash\Implementations\PerceptualHash;
 use Intervention\Image\ImageManagerStatic as Image;
@@ -124,8 +125,12 @@ class mtgController extends Controller
         $candidates = mtg_cards::where('hash', 'like', $prefix . '%')->limit(200)->get();
     
         foreach ($candidates as $card) {
-            $distance = $hasher->distanceHex($userHash, $card->hash);
-    
+
+            $distance = $hasher->distance(
+                Hash::fromHex($userHash),
+                Hash::fromHex($card->hash)
+            );
+            
             if ($distance < $bestDistance) {
                 $bestDistance = $distance;
                 $bestMatch = $card;
