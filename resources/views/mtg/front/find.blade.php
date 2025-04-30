@@ -53,9 +53,8 @@
             info = select('#info');
             info.html("🔍 A procurar carta...");
 
-            // Inicializa a detecção
-            //frameRate(10);
-            frameRate(0.01);
+            frameRate(10);
+
         }
 
         function draw() {
@@ -94,12 +93,7 @@
 
                 // Envia a imagem recortada para o servidor via AJAX
 
-                setTimeout(() => {
-                    sendImageToServer(croppedImageCanvas);
-                    }, 5000);
-
-
-                    /**sendImageToServer(croppedImageCanvas);**/
+                sendImageToServer(croppedImageCanvas);
             } else {
                 info.html("🔍 A procurar carta...");
             }
