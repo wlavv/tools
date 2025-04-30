@@ -110,7 +110,7 @@ class mtgController extends Controller
         if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
 
         try {
-            $imageHash = \ImageHash::hash($image); 
+            $imageHash = ImageHash::hash($image); 
             $inputHash = $imageHash->toHex();  
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
