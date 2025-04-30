@@ -86,18 +86,17 @@
 
         // Função para processar o vídeo e realizar a detecção
         function processVideo() {
-            let src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-            let gray = new cv.Mat();
-            let edges = new cv.Mat();
-            let contours = new cv.MatVector();
-            let hierarchy = new cv.Mat();
-
+            // Usando o método correto para criar a Mat a partir do vídeo
             const FPS = 10;
 
             function detect() {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                src.data.set(imageData.data);
+                let src = cv.matFromImageData(imageData);  // Criação de Mat a partir da imagem do canvas
+                let gray = new cv.Mat();
+                let edges = new cv.Mat();
+                let contours = new cv.MatVector();
+                let hierarchy = new cv.Mat();
 
                 cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
                 cv.Canny(gray, edges, 75, 150);
@@ -139,6 +138,13 @@
                 }
 
                 info.innerText = found ? "✅ Carta detectada!" : "🔍 A procurar carta...";
+
+                // Libera os recursos da imagem
+                src.delete();
+                gray.delete();
+                edges.delete();
+                contours.delete();
+                hierarchy.delete();
 
                 setTimeout(detect, 1000 / FPS);
             }
