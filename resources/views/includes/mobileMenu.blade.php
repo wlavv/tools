@@ -108,8 +108,6 @@
 <script>
 
 function openMobileMenu(closed){
-
-    alert(closed);
     
     if(closed==1){
         $('#openMobileMenuTrigger').replaceWith('<div id="openMobileMenuTrigger" onclick="openMobileMenu(0)"><i class="fa-solid fa-chevron-up"></i></div>')
