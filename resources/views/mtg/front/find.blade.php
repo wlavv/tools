@@ -53,13 +53,12 @@
 
         // Função para garantir que OpenCV está completamente carregado
         function checkOpenCV() {
-            if (cv && cv.Mat) {
-                console.log("OpenCV carregado com sucesso!");
-                initialize();
-            } else {
-                console.log("Aguardando OpenCV...");
-                setTimeout(checkOpenCV, 100);
+            if (typeof cv === 'undefined') {
+                setTimeout(checkOpenCV, 100);  // Verifica a cada 100ms se o OpenCV foi carregado
+                return;
             }
+            console.log("OpenCV carregado com sucesso!");
+            initialize();  // Chama a função para iniciar quando o OpenCV estiver disponível
         }
 
         // Função que inicia o fluxo de captura de vídeo e processamento
