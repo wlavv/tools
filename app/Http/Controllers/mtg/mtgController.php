@@ -110,6 +110,17 @@ class mtgController extends Controller
         }
 
         // Salvar a imagem temporariamente
+        $tempImagePath_ = public_path('images/mtg/tdm/1.jpg');
+        file_put_contents($tempImagePath_, $binary);
+
+        // Gerar o pHash
+        $imageHash_ = new ImageHash();
+        echo $pHash_ = $imageHash_->hash($tempImagePath_);
+
+
+
+
+        // Salvar a imagem temporariamente
         $tempImagePath = storage_path('app/public/temp_image.jpg');
         file_put_contents($tempImagePath, $binary);
 
@@ -118,7 +129,7 @@ class mtgController extends Controller
         $pHash = $imageHash->hash($tempImagePath);
 
         // Verificar se o pHash já existe no banco de dados
-        $card = mtg_cards::where('phash', $pHash)->first();
+        $card = mtg_cards::where('hash', $pHash)->first();
 
         if ($card) {
             return response()->json(['found' => true, 'card' => $card, 'pHash' => $pHash]);
