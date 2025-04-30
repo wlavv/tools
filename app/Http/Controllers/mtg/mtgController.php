@@ -97,49 +97,63 @@ class mtgController extends Controller
         
     }
     
-    public function findCardFromBase64(Request $request)
-    {
-        $request->validate([
-            'base64_image' => 'required|string',
-        ]);
-    
-        $base64 = $request->input('base64_image');
-        $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
-        $binary = base64_decode($base64);
-    
-        if ($binary === false) {
-            return response()->json(['error' => 'Imagem inválida'], 400);
+    public function findCardFromBase64(Request $request){
+
+        if (!$request->has('base64_image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
+
+        $base64Image = $request->input('base64_image');
+        
+        try {
+            $imageHash = ImageHash::hashFromBase64($base64Image);
+            $inputHash = $imageHash->toHex();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
         }
-    
-        // Gera o pHash da imagem do usuário
-        $imageHash = new \Jenssegers\ImageHash\ImageHash();
-        $userHash = $imageHash->hash($binary);
-        $userHashHex = $userHash->toHex();
-        $userPrefix = substr($userHashHex, 0, 8); // Pegue os primeiros 8 caracteres
-    
-        // Buscar cartas no banco com base no prefixo usando LIKE
-        $cards = mtg_cards::where('hash', 'LIKE', $userPrefix . '%')->get();
-    
-        $foundMatch = false;
-        $bestMatch = null;
-        $lowestDistance = PHP_INT_MAX;
-    
-        foreach ($cards as $card) {
-            $distance = $this->hammingDistance($userHashHex, $card->hash);
-    
-            if ($distance < $lowestDistance) {
-                $bestMatch = $card;
-                $lowestDistance = $distance;
-            }
+
+        $card = $this->compareHashes($inputHash);
+
+        if ($card) {
+            return response()->json([
+                'message' => 'Carta encontrada!',
+                'card' => [
+                    'id' => $card->id,
+                    'name' => $card->name,
+                    'set_code' => $card->set_code,
+                    'collector_number' => $card->collector_number,
+                    'image_url' => $card->image_url,
+                    'price' => $card->price,
+                ]
+            ]);
+        } else {
+            return response()->json(['error' => 'Carta não encontrada.'], 404);
         }
-    
-        // Se encontramos uma correspondência
-        if ($lowestDistance <= 10) { // Se a distância for pequena o suficiente
-            $foundMatch = true;
-        }
-    
-        // Retorna a resposta
-        return response()->json(['found' => $foundMatch, 'card' => $bestMatch]);
     }
     
+    public function hammingDistance($hash1, $hash2){
+
+        if (strlen($hash1) !== strlen($hash2)) return false;
+
+        $distance = 0;
+        for ($i = 0; $i < strlen($hash1); $i++) {
+            if ($hash1[$i] !== $hash2[$i]) $distance++;
+        }
+
+        return $distance;
+    }
+
+    public function compareHashes($inputHash){
+
+        $userPrefix = substr($inputHash, 0, 8);
+
+        $cards = mtg_cards::where('hash', 'LIKE', $userPrefix . '%')->get();
+
+        foreach ($cards as $card) {
+            $distance = $this->hammingDistance($inputHash, $card->hash);
+
+            if ($distance < 10) return $card;
+        }
+
+        return null;
+    }
+
 }
