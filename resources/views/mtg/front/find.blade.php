@@ -54,7 +54,8 @@
             info.html("🔍 A procurar carta...");
 
             // Inicializa a detecção
-            frameRate(10);
+            //frameRate(10);
+            frameRate(0.01);
         }
 
         function draw() {
