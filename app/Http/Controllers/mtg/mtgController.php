@@ -95,66 +95,83 @@ class mtgController extends Controller
     
             return View::make('mtg/front/find')->with($data);
         
-    }
-
-    public function findCardFromBase64(Request $request)
+    }public function findCardFromBase64(Request $request)
     {
-        $imageBase64 = $request->input('base64_image');
+        $request->validate([
+            'base64_image' => 'required|string',
+        ]);
     
-        if (!$imageBase64) {
-            return response()->json(['error' => 'Imagem não fornecida.'], 400);
+        $base64 = $request->input('base64_image');
+        $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
+        $binary = base64_decode($base64);
+    
+        if ($binary === false) {
+            return response()->json(['error' => 'Imagem inválida'], 400);
         }
     
-        // Extrai e converte a imagem
-        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageBase64));
-        $tempFile = tempnam(sys_get_temp_dir(), 'img');
-        file_put_contents($tempFile, $imageData);
+        $userHash = ImageHash::hash($binary); // Gera o pHash da imagem do usuário
+        $userHashHex = $userHash->toHex(); // Converte o pHash para hexadecimal
     
-        // Gera o pHash da imagem
-        $hasher = new ImageHash(new PerceptualHash());
-        $userHash = $hasher->hash($tempFile)->toHex(); // Ex: "94796b677ade68cf"
-        unlink($tempFile); // Remove o ficheiro temporário
-    
-        // Define prefixo para pré-filtragem (p.ex. 4 hex digits = 16 bits)
-        $prefix = substr($userHash, 0, 4);
-        $maxDistance = 12; // Tolerância ajustável
+        // Paginação: Limitar a busca a 100 cartas por vez para evitar carregar tudo na memória
+        $perPage = 100;
+        $page = 1; // Página inicial
+        $foundMatch = false;
         $bestMatch = null;
-        $bestDistance = 999;
+        $lowestDistance = PHP_INT_MAX;
     
-        // Busca candidatos com prefixo semelhante
-        $candidates = mtg_cards::where('hash', 'like', $prefix . '%')->limit(200)->get();
+        do {
+            // Filtra as cartas com base no set ou nome para reduzir o número de resultados
+            $cards = mtg_cards::where('set_code', 'set_code_example') // Exemplo de filtro
+                ->skip(($page - 1) * $perPage)
+                ->take($perPage)
+                ->get();
     
-        foreach ($candidates as $card) {
-
-            $distance = $hasher->distance(
-                Hash::fromHex($userHash),
-                Hash::fromHex($card->hash)
-            );
-            
-            if ($distance < $bestDistance) {
-                $bestDistance = $distance;
-                $bestMatch = $card;
+            foreach ($cards as $card) {
+                // Comparar o pHash gerado com o pHash da carta no banco de dados
+                $distance = $this->hammingDistance($userHashHex, $card->hash); // Comparar diretamente os pHashes
+    
+                // Se encontrarmos uma carta mais próxima, atualizamos o melhor match
+                if ($distance < $lowestDistance) {
+                    $bestMatch = $card;
+                    $lowestDistance = $distance;
+                }
             }
     
-            if ($bestDistance <= $maxDistance) break; // Match aceitável encontrado
+            // Se já encontramos uma correspondência próxima o suficiente, podemos parar
+            if ($lowestDistance <= 10) { // Limite de tolerância para considerar como correspondente
+                $foundMatch = true;
+                break;
+            }
+    
+            // Avançar para a próxima página de resultados
+            $page++;
+    
+        } while (count($cards) > 0); // Continuar até não haver mais cartas para comparar
+    
+        // Se encontramos uma correspondência
+        if ($foundMatch) {
+            return response()->json(['found' => true, 'card' => $bestMatch]);
         }
     
-        if ($bestMatch && $bestDistance <= $maxDistance) {
-            return response()->json([
-                'pHash' => $userHash,
-                'card_name' => $bestMatch->name,
-                'set_code' => $bestMatch->set_code,
-                'collector_number' => $bestMatch->collector_number,
-                'distance' => $bestDistance,
-                'image_url' => $bestMatch->image_url
-            ]);
-        }
-    
-        return response()->json([
-            'pHash' => $userHash,
-            'message' => 'Nenhuma carta compatível encontrada',
-            'distance' => $bestDistance
-        ], 404);
+        return response()->json(['found' => false]);
     }
+    
+    // Função para calcular a distância Hamming entre dois hashes
+    public function hammingDistance($hex1, $hex2)
+    {
+        $bin1 = hex2bin($hex1); // Converte o hash hexadecimal para binário
+        $bin2 = hex2bin($hex2);
+    
+        // Calcula a distância Hamming
+        $distance = 0;
+        for ($i = 0; $i < strlen($bin1); $i++) {
+            if ($bin1[$i] !== $bin2[$i]) {
+                $distance++;
+            }
+        }
+    
+        return $distance;
+    }
+    
 
 }
