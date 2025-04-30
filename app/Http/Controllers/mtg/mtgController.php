@@ -96,22 +96,34 @@ class mtgController extends Controller
 
     public function findCardFromBase64(Request $request)
     {
-        $request->validate([
-            'base64_image' => 'required|string',
-        ]);
-    
+
+        $request->validate([ 'base64_image' => 'required|string' ]);
+
         $base64 = $request->input('base64_image');
         $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
         $binary = base64_decode($base64);
-    
-        if ($binary === false) {
-            return response()->json(['error' => 'Imagem inválida'], 400);
-        }
-    
-        $hash = hash('sha256', $binary);
-    
-        $card = mtg_cards::where('hash', $hash)->first();
-    
+
+        if ($binary === false) return response()->json(['error' => 'Imagem inválida'], 400);
+
+
+        $temp = public_path('images/mtg/tdm/1.jpg');
+
+        $imageHashTemp = new ImageHash();
+
+        echo $pHash = $imageHashTemp->hash($temp);
+
+
+        $tempImagePath = storage_path('app/public/temp_image.jpg');
+        file_put_contents($tempImagePath, $binary);
+
+        $imageHash = new ImageHash();
+
+        echo $pHash = $imageHash->hash($tempImagePath);
+
+        $card = mtg_card::where('hash', $pHash)->first();
+
+        dd($card);
+
         if ($card) {
             return response()->json(['found' => true, 'card' => $card]);
         } else {

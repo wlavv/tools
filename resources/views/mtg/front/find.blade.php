@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MTG Card Tracker com pHash</title>
+    <title>MTG Card Tracker with pHash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/blockhash@1.0.3/blockhash.js"></script>
     <style>
         body {
             background: black;
@@ -22,78 +21,82 @@
             padding: 8px;
             border-radius: 4px;
         }
+
+        #croppedImage {
+            position: absolute;
+            top: 300px;
+            left: 10px;
+            border: 2px solid white;
+            background: rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body>
     <div id="info">⌛ A iniciar...</div>
+    <div id="croppedImage"></div>
 
     <script>
         let video;
         let info;
         let contours = [];
+        let croppedImageElement = document.getElementById('croppedImage');
+        let croppedImageCanvas;
 
         function setup() {
             createCanvas(640, 480);
             video = createCapture(VIDEO);
             video.size(width, height);
-            video.hide();
+            video.hide(); // Oculta o elemento de vídeo
 
             info = select('#info');
             info.html("🔍 A procurar carta...");
 
+            // Inicializa a detecção
             frameRate(10);
         }
 
         function draw() {
-            image(video, 0, 0);
-            let img = get();
-            img.filter(GRAY);
+            image(video, 0, 0); // Exibe o vídeo na tela
+            let img = get(); // Captura o quadro atual
+            img.filter(GRAY); // Converte para escala de cinza
 
+            // Detecta os contornos na imagem
             contours = detectContours(img);
 
             if (contours.length > 0) {
-                stroke(255, 0, 0);
-                noFill();
-                beginShape();
+                info.html("✅ Carta detectada!");
+                stroke(255, 0, 0);  // Define a cor da borda como vermelho
+                noFill();           // Não preenche a área da carta
+                beginShape();       // Inicia o desenho da borda
                 contours.forEach(c => {
                     vertex(c.x, c.y);
                 });
-                endShape(CLOSE);
+                endShape(CLOSE);    // Finaliza o desenho da borda
 
+                // Calcula o bounding box (caixa de limite) para o crop
                 let minX = Math.min(...contours.map(c => c.x));
                 let maxX = Math.max(...contours.map(c => c.x));
                 let minY = Math.min(...contours.map(c => c.y));
                 let maxY = Math.max(...contours.map(c => c.y));
 
+                // Realiza o crop na imagem
                 let croppedImage = img.get(minX, minY, maxX - minX, maxY - minY);
 
-                // Copia para um canvas HTML para gerar a hash
-                let croppedCanvas = document.createElement('canvas');
-                croppedCanvas.width = croppedImage.width;
-                croppedCanvas.height = croppedImage.height;
-                let ctx = croppedCanvas.getContext('2d');
-
-                croppedImage.loadPixels();
-                let imageData = ctx.createImageData(croppedImage.width, croppedImage.height);
-                for (let i = 0; i < imageData.data.length; i++) {
-                    imageData.data[i] = croppedImage.pixels[i];
+                // Cria uma nova imagem cropped e a exibe na tela
+                if (!croppedImageCanvas) {
+                    croppedImageCanvas = createGraphics(maxX - minX, maxY - minY);
                 }
-                ctx.putImageData(imageData, 0, 0);
+                croppedImageCanvas.image(croppedImage, 0, 0);
+                image(croppedImageCanvas, 10, 300); // Exibe a imagem cortada
 
-                let imgElement = new Image();
-                imgElement.onload = () => {
-                    getPerceptualHash(imgElement).then(hash => {
-                        info.html(`✅ Carta detectada!<br>Hash: ${hash}`);
-                        console.log("pHash:", hash);
-                    });
-                };
-                imgElement.src = croppedCanvas.toDataURL();
-                noLoop(); // Evita repetição enquanto hash é gerada
+                // Envia a imagem recortada para o servidor via AJAX
+                sendImageToServer(croppedImageCanvas);
             } else {
                 info.html("🔍 A procurar carta...");
             }
         }
 
+        // Função para detectar contornos usando o P5.js
         function detectContours(img) {
             let contours = [];
             img.loadPixels();
@@ -104,23 +107,32 @@
                     let g = img.pixels[index + 1];
                     let b = img.pixels[index + 2];
 
-                    if (r < 80 && g < 80 && b < 80) {
-                        contours.push(createVector(x, y));
+                    if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
+                        contours.push(createVector(x, y)); // Se encontrar um contorno, armazena o ponto
                     }
                 }
             }
             return contours;
         }
 
-        async function getPerceptualHash(imgElement) {
-            const canvas = document.createElement('canvas');
-            canvas.width = imgElement.width;
-            canvas.height = imgElement.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(imgElement, 0, 0);
+        // Função para enviar a imagem recortada para o servidor
+        function sendImageToServer(croppedImageCanvas) {
+            croppedImageCanvas.loadPixels();
+            let imageData = croppedImageCanvas.get();
 
-            const hash = blockhash.bmvbhash(canvas, 16);
-            return hash;
+            // Cria um FormData para enviar a imagem via AJAX
+            const formData = new FormData();
+            formData.append('image', imageData.canvas.toDataURL('image/jpeg')); // Envia a imagem como base64
+
+            fetch('upload.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('info').innerText = 'pHash da carta: ' + data.pHash;
+            })
+            .catch(error => console.error('Erro ao enviar imagem:', error));
         }
     </script>
 </body>
