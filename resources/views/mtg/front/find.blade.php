@@ -86,7 +86,12 @@
                 if (!croppedImageCanvas) {
                     croppedImageCanvas = createGraphics(maxX - minX, maxY - minY);
                 }
+
+                // Aplica a máscara para mostrar apenas a carta
+                croppedImageCanvas.clear();
                 croppedImageCanvas.image(croppedImage, 0, 0);
+
+                // Exibe a imagem cortada com a máscara aplicada
                 image(croppedImageCanvas, 10, 300); // Exibe a imagem cortada
             } else {
                 info.html("🔍 A procurar carta...");
