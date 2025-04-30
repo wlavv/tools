@@ -13,6 +13,8 @@ use Jenssegers\ImageHash\ImageHash;
 use Jenssegers\ImageHash\Implementations\PerceptualHash;
 use Intervention\Image\ImageManagerStatic as Image;
 
+use Illuminate\Support\Str;
+
 class mtgController extends Controller
 {
     public $actions;
@@ -96,34 +98,58 @@ class mtgController extends Controller
 
     public function findCardFromBase64(Request $request)
     {
-        $request->validate([
-            'base64_image' => 'required|string',
-        ]);
-
-        // Recupera a imagem base64
-        $base64 = $request->input('base64_image');
-        $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
-        $binary = base64_decode($base64);
-
-        if ($binary === false) {
-            return response()->json(['error' => 'Imagem inválida'], 400);
+        $imageBase64 = $request->input('base64_image');
+    
+        if (!$imageBase64) {
+            return response()->json(['error' => 'Imagem não fornecida.'], 400);
         }
-
-        // Salvar a imagem temporariamente
-        $tempImagePath = storage_path('app/public/temp_image.jpg');
-        file_put_contents($tempImagePath, $binary);
-
-        // Gerar o pHash
-        $imageHash = new ImageHash();
-        $pHash = $imageHash->hash($tempImagePath);
-
-        $card = mtg_cards::where('hash', $pHash)->first();
-
-        if ($card) {
-            return response()->json(['found' => true, 'card' => $card, 'pHash' => $pHash]);
-        } else {
-            return response()->json(['found' => false, 'pHash' => $pHash]);
+    
+        // Extrai e converte a imagem
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageBase64));
+        $tempFile = tempnam(sys_get_temp_dir(), 'img');
+        file_put_contents($tempFile, $imageData);
+    
+        // Gera o pHash da imagem
+        $hasher = new ImageHash(new PerceptualHash());
+        $userHash = $hasher->hash($tempFile)->toHex(); // Ex: "94796b677ade68cf"
+        unlink($tempFile); // Remove o ficheiro temporário
+    
+        // Define prefixo para pré-filtragem (p.ex. 4 hex digits = 16 bits)
+        $prefix = substr($userHash, 0, 4);
+        $maxDistance = 12; // Tolerância ajustável
+        $bestMatch = null;
+        $bestDistance = 999;
+    
+        // Busca candidatos com prefixo semelhante
+        $candidates = mtg_cards::where('hash', 'like', $prefix . '%')->limit(200)->get();
+    
+        foreach ($candidates as $card) {
+            $distance = $hasher->distanceHex($userHash, $card->hash);
+    
+            if ($distance < $bestDistance) {
+                $bestDistance = $distance;
+                $bestMatch = $card;
+            }
+    
+            if ($bestDistance <= $maxDistance) break; // Match aceitável encontrado
         }
+    
+        if ($bestMatch && $bestDistance <= $maxDistance) {
+            return response()->json([
+                'pHash' => $userHash,
+                'card_name' => $bestMatch->name,
+                'set_code' => $bestMatch->set_code,
+                'collector_number' => $bestMatch->collector_number,
+                'distance' => $bestDistance,
+                'image_url' => $bestMatch->image_url
+            ]);
+        }
+    
+        return response()->json([
+            'pHash' => $userHash,
+            'message' => 'Nenhuma carta compatível encontrada',
+            'distance' => $bestDistance
+        ], 404);
     }
 
 }

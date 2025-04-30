@@ -137,7 +137,7 @@
                 success: function(response) {
                     $('#info').text('pHash da carta: ' + response.pHash);
 
-                    const delay = response.exists === true ? 5000 : 1000;
+                    const delay = response.exists === true ? 5000 : 3000;
 
                     setTimeout(() => {
                         canSend = true; // Libera nova requisição após o delay
@@ -150,7 +150,7 @@
 
                     setTimeout(() => {
                         canSend = true;
-                    }, 1000);
+                    }, 3000);
 
                 }
             });
