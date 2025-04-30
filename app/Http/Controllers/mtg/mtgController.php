@@ -43,6 +43,8 @@ class mtgController extends Controller
         }
         **/
 
+        mtg_cards::updateCardsFromSet(836, 'mrd');
+
         $data = [ 
             'breadcrumbs'=> $this->breadcrumbs,
             'sets' => mtg_sets::getByReleasedDate()

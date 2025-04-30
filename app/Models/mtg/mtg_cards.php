@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
+use Jenssegers\ImageHash\ImageHash;
+use Jenssegers\ImageHash\Implementations\PerceptualHash;
+use Intervention\Image\ImageManagerStatic as Image;
+
 class mtg_cards extends Model
 {   
     use HasFactory;
@@ -91,6 +95,8 @@ class mtg_cards extends Model
                     // Cria o diretório para as imagens
                     if (!file_exists($savePath)) mkdir($savePath, 0755, true);
     
+                    $hasher = new ImageHash(new PerceptualHash()); // Instância do pHash
+
                     $imageContent = false;
                     $hash_image = '';
     
@@ -98,11 +104,13 @@ class mtg_cards extends Model
                     if (isset($card['image_uris']['normal'])) {
                         $imageContent = file_get_contents($card['image_uris']['normal']);
                         file_put_contents($savePath . '/' . $filename, $imageContent);
-                        $hash_image = hash('sha256', $imageContent);
+                        //$hash_image = hash('sha256', $imageContent);
+                        $hash_image = (string) $hasher->hash($savePath . '/' . $filename);
                     } elseif (isset($card['card_faces'][0]['image_uris']['normal'])) {
                         $imageContent = file_get_contents($card['card_faces'][0]['image_uris']['normal']);
                         file_put_contents($savePath . '/' . $filename, $imageContent);
-                        $hash_image = hash('sha256', $imageContent);
+                        //$hash_image = hash('sha256', $imageContent);
+                        $hash_image = (string) $hasher->hash($savePath . '/' . $filename);
                     }
     
                     // Atualiza ou cria a carta no banco de dados
