@@ -15,7 +15,10 @@ use App\Http\Controllers\mtg\mtgController;
 
 /** MTG **/
 Route::resources([ 'mtg'            => mtgController::class]);
-Route::get('/mtg/showSet/{code}',   [mtgController::class, 'showSet'])->name('mtg.showSet');
+Route::get('/mtg/showSet/{code}/{sub_set?}',   [mtgController::class, 'showSet'])->name('mtg.showSet');
+
+Route::get('/mtg/front/find',   [mtgController::class, 'findCard'])->name('mtg.findCard');
+Route::post('/mtg/find-card-base64', [mtgController::class, 'findCardFromBase64'])->name('mtg.findCardFromBase64');
 
 /** AREAS **/
 Route::resources([ 'home'           => dashboardController::class       ]);

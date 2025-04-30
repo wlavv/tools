@@ -12,7 +12,7 @@ class mtg_sets extends Model
 {   
     use HasFactory;
 
-    protected $fillable = [ 'external_id', 'set_code', 'set_name', 'set_type', 'released_at', 'card_count', 'printed_size', 'digital', 'nonfoil_only', 'foil_only', 'icon_svg_uri', 'scryfall_uri', 'search_uri', 'json_uri' ];
+    protected $fillable = [ 'external_id', 'set_code', 'sub_set_code', 'set_name', 'set_type', 'released_at', 'card_count', 'printed_size', 'digital', 'nonfoil_only', 'foil_only', 'icon_svg_uri', 'scryfall_uri', 'search_uri', 'json_uri' ];
 
     public $timestamps = true;
     protected $primaryKey = 'id';
@@ -35,12 +35,32 @@ class mtg_sets extends Model
             }
 
             $data = $response->json();
+
             foreach ($data['data'] as $set) {
+
+                $set_code = ( isset( $set['parent_set_code'] ) ) ? $set['parent_set_code'] : $set['code'];
+
+                if($set_code == 'con') $set_code = $set_code.'s';
+                $filename = $set_code . '.svg';
+
+                $path = '/images/mtg/' . $set_code . '/logo';
+                $savePath = public_path('/images/mtg/' . $set_code . '/logo');
+
+                // Cria o diretório para as imagens
+                if (!file_exists($savePath)) mkdir($savePath, 0755, true);
+
+                $imageContent = false;
+                $hash_image = '';
+
+                $imageContent = file_get_contents( $set['icon_svg_uri'] );
+
+                file_put_contents($savePath . '/' . $filename, $imageContent);
 
                 mtg_sets::updateOrCreate(
                     ['external_id' => $set['id']],
                     [
-                        'set_code' => $set['code'],
+                        'set_code' => ( isset( $set['parent_set_code'] ) ) ? $set['parent_set_code'] : $set['code'],
+                        'sub_set_code' => $set['code'],
                         'set_name' => $set['name'],
                         'set_type' => $set['set_type'] ?? null,
                         'released_at' => $set['released_at'] ?? null,
@@ -49,7 +69,7 @@ class mtg_sets extends Model
                         'digital' => $set['digital'],
                         'foil_only' => $set['foil_only'],
                         'nonfoil_only' => $set['nonfoil_only'],
-                        'icon_svg_uri' => $set['icon_svg_uri'] ?? null,
+                        'icon_svg_uri' => $path . '/' . $filename,
                         'scryfall_uri' => $set['scryfall_uri'] ?? null,
                         'search_uri' => $set['search_uri'] ?? null,
                         'json_uri' => $set['uri'] ?? null,
@@ -93,12 +113,20 @@ class mtg_sets extends Model
         return $allCards;
     }
 
+    public static function countSubSet($set_code){
+        return mtg_sets::where('set_code', $set_code)->count();
+    }
+
     public static function getSet($set_code){
-        return mtg_sets::where('set_code', $set_code)->first();
+        return mtg_sets::where('sub_set_code', $set_code)->first();
     }
 
     public static function getByReleasedDate(){
-        return mtg_sets::where('active', 1)->orderBy('released_at', 'DESC')->get();
+        return mtg_sets::where('active', 1)->whereColumn('set_code', 'sub_set_code')->groupBy('set_code')->orderBy('released_at', 'DESC')->get();
+    }
+
+    public static function getByReleasedDateWithSetCode($set_code){
+        return mtg_sets::where('active', 1)->where('set_code', $set_code)->orderBy('released_at', 'DESC')->get();
     }
 
 }

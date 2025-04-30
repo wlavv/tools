@@ -85,7 +85,8 @@ class mtg_cards extends Model
                         $colorGroup = 'C';
                     }
     
-                    $savePath = public_path('images/mtg/' . $set_code);
+                    $path = 'images/mtg/' . $set_code;
+                    $savePath = public_path( $path );
     
                     // Cria o diretório para as imagens
                     if (!file_exists($savePath)) mkdir($savePath, 0755, true);
@@ -118,7 +119,7 @@ class mtg_cards extends Model
                             'power' => $card['power'] ?? null,
                             'toughness' => $card['toughness'] ?? null,
                             'flavor_text' => $card['flavor_text'] ?? null,
-                            'image_url' => $card['image_uris']['normal'] ?? null,
+                            'image_url' => '/' . $path . '/' . $filename,
                             'set_code' => $set_code,
                             'set_id' => $set_id,
                             'price' => 0.05,
@@ -162,4 +163,20 @@ class mtg_cards extends Model
     public static function getCardsBySet($set_code){
         return self::where('set_code', $set_code)->orderBy('collector_number')->get();
     }
+    
+    public static function getCounters($set_code){
+
+        return (object)[
+            'all'           => self::where('set_code', $set_code)->count(),
+            'white'         => self::where('set_code', $set_code)->where('color_group', 1)->count(),
+            'blue'          => self::where('set_code', $set_code)->where('color_group', 2)->count(),
+            'black'         => self::where('set_code', $set_code)->where('color_group', 3)->count(),
+            'red'           => self::where('set_code', $set_code)->where('color_group', 4)->count(),
+            'green'         => self::where('set_code', $set_code)->where('color_group', 5)->count(),
+            'multicolor'    => self::where('set_code', $set_code)->where('color_group', 6)->count(),
+            'colorless'     => self::where('set_code', $set_code)->where('color_group', 7)->count(),
+        ];
+
+    }
+
 }
