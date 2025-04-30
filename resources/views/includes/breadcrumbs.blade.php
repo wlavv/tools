@@ -1,4 +1,4 @@
-<a class="navbar-brand sideMenuLogo" href="https://www.webtools-manager.com/" target="_blank" style="padding: 0;margin: 0 35px;display: inline-flex;">
+<a class="navbar-brand sideMenuLogo" href="https://www.webtools-manager.com/" target="_blank">
     <img src="/admin/images/logo.png" style="width: 75px; @guest display: none; @endif">
 </a>
 <div style="display: inline-block;padding: 0;">

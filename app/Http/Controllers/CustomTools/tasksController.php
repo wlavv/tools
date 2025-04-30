@@ -48,10 +48,16 @@ class tasksController extends Controller
 
     public function getMonthInfo($year, $month)
     {
-
         $calendar = wt_tasks_done::getTasksOf($year, $month);
 
-        return view('areas.tasks.calendar', compact('calendar', 'year', 'month'));
+        $this->breadcrumbs[] = [ 'name' =>  'tasks', 'url' => route('tasks.index')];
+        $this->breadcrumbs[] = [ 'name' =>  'tasks', 'url' => route('tasks.index')];
+
+        $data = [
+            'breadcrumbs'   => $this->breadcrumbs,
+        ];
+
+        return view('areas.tasks.calendar', compact('data', 'calendar', 'year', 'month'));
     }
     
 }

@@ -54,6 +54,8 @@ li.nav-item > a:hover { color: dodgerblue; }
     width: 150px; float: left;background-color: #ededed;height: calc(100% - 87px); position: fixed;margin-top: 87px; z-index: 1;
 }
 
+.sideMenuLogo{padding: 0;margin: 0 35px;display: inline-flex; }
+
 @media (max-width: 768px) {
 
     #mainMenuMobileContainer{ width: 0 ; float: none; margin-top: 10px; display: ruby;}
@@ -63,18 +65,21 @@ li.nav-item > a:hover { color: dodgerblue; }
     
     #openMobileMenuContainer{ display: block; margin-top: 5px;}
     #openMobileMenuTrigger{ padding: 10px 0 5px 0; border-top: 1px solid #bbb;}
-    .mobileMenuItem { width: 33%;float: left;height: 85px; padding: 15px; border: 1px solid #ddd; }
+    .mobileMenuItem { width: 33%;float: left;height: 85px; padding: 15px; border: 1px solid #ddd; background-color: #FFF; }
 
     .mainContainer > .top_container{ background-color: #ededed;border: 1px solid #ddd;padding: 0; margin-top: 0; display: contents;width: 100%; }
 
     .mobile{ display: block; }
     .desktop{ display: none; }
 
-    #breadcrumbs{ text-align: center; }
+    .sideMenuLogo{ display: none;}
+    #breadcrumbs{ text-align: center; padding-top: 10px;}
     #breadcrumbs_h3 { padding-left: 0; }
     #breadcrumbs_ul { padding-left: 0; }
 
 }
+
+
 #mainMenuMobile{ display: block; }
 .mainContainer{ width: calc(100% - 2px); float: left; height: 100%; }
 .sideMenuUL{ margin-top: 10px;display: inline-block; width: 70px; }
