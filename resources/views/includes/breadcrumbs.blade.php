@@ -1,9 +1,9 @@
-<a class="navbar-brand sideMenuLogo" href="https://www.webtools-manager.com/" target="_blank" style="padding: 0;margin: 0 20px;display: inline-flex;">
+<a class="navbar-brand sideMenuLogo" href="https://www.webtools-manager.com/" target="_blank" style="padding: 0;margin: 0 35px;display: inline-flex;">
     <img src="/admin/images/logo.png" style="width: 75px; @guest display: none; @endif">
 </a>
-<div style="display: inline-block;padding: 0;text-align: left;">
+<div style="display: inline-block;padding: 0;">
         <div>
-            <h3 style="padding-left: 20px;text-transform: uppercase;">                            
+            <h3 id="breadcrumbs_h3">                            
                 @if( isset($breadcrumb['params']))
                     {{ __('breadcrumbs.' . Route::currentRouteName(), $breadcrumb['params']) }}                            
                 @else             
@@ -11,7 +11,7 @@
                 @endif
             </h3>
         </div>
-    <ul style="list-style: none;padding-left: 20px; margin-bottom: 0; display: inline-flex;">
+    <ul id="breadcrumbs_ul">
         <li> <a href="{{route('dashboard.index')}}" style="text-transform: uppercase;color: #666;text-decoration: none;">{{ __('breadcrumbs.home') }} </a> </li>
         @if(isset($breadcrumbs[0]))<li> <span> <i class="fa fa-chevron-right" style="color: dodgerblue; margin: 0 10px;"></i> </span> </li> @endif
         @if(isset($breadcrumbs) && (count($breadcrumbs) > 0) )

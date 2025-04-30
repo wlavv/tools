@@ -61,14 +61,14 @@
                                     </div>
                                 </div>
                                 <div style="width: 100%;">
-                                    <div style="width: 65%; float: left;"  id="breadcrumbs">  @include('includes.breadcrumbs') </div>
+                                    <div style="width: 65%; float: left;background: #ededed;"  id="breadcrumbs">  @include('includes.breadcrumbs') </div>
                                 </div>
                             </div>
                         </div>
                         <div id="mainMenuMobileContainer">
                             <div id="mainMenuMobile"> @include('includes.mobileMenu') </div>
                         </div>
-                        <div id="mainContentView" style="width: calc( 100% - 170px); float: right;margin-top: 105px;">
+                        <div id="mainContentView" style="width: calc( 100% - 170px); float: right;margin-top: 90px;">
                             @if( isset( $accessList) )
                                 @include("includes.accessList", $accessList)
                             @endif

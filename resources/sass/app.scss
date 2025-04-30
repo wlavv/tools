@@ -70,6 +70,10 @@ li.nav-item > a:hover { color: dodgerblue; }
     .mobile{ display: block; }
     .desktop{ display: none; }
 
+    #breadcrumbs{ text-align: center; }
+    #breadcrumbs_h3 { padding-left: 0; }
+    #breadcrumbs_ul { padding-left: 0; }
+
 }
 #mainMenuMobile{ display: block; }
 .mainContainer{ width: calc(100% - 2px); float: left; height: 100%; }
@@ -79,6 +83,10 @@ li.nav-item > a:hover { color: dodgerblue; }
 .mobileMenuItem{ width: 150px; float: left; height: 85px; padding: 15px 15px; border-bottom: 1px solid #ddd; }
 #desktopAction{ display: none; }
 #breadcrumbs{ width: 100% !important; }
+
+#breadcrumbs_h3{ text-transform: uppercase;margin-left: 10px; }
+#breadcrumbs_ul{ list-style: none;margin-bottom: 0; display: inline-flex;padding-left: 10px; }
+
 .apps_icon_container{ width: 27%; float: left; height: 120px; }
 .logisticsActionLabel{ line-height: 1; }
 #mobileAction{ display: block; }
