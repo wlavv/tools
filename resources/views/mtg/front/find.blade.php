@@ -78,8 +78,8 @@
         }
 
         function captureLoop() {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = 750;
+            canvas.height = 1050;
 
             // Desenha o vídeo no canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -104,8 +104,8 @@
 
                 // Captura a região da carta
                 const cardCanvas = document.createElement('canvas');
-                cardCanvas.width = width;
-                cardCanvas.height = height;
+                cardCanvas.width = 750;
+                cardCanvas.height = 1050;
                 const cardCtx = cardCanvas.getContext('2d');
 
                 // Ajusta o foco para a carta
