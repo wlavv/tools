@@ -38,8 +38,8 @@
 
         // Proporção de carta MTG: 63.5mm x 88.9mm ≈ 1:1.4
         const CARD_RATIO = 1.4;
-        const CARD_DISPLAY_WIDTH = 300; // largura que usaremos no ecrã
-        const CARD_DISPLAY_HEIGHT = CARD_DISPLAY_WIDTH * CARD_RATIO;
+        const CARD_WIDTH_MM = 63.5; // largura real da carta em mm
+        const CARD_HEIGHT_MM = 88.9; // altura real da carta em mm
 
         async function startCamera() {
             try {
@@ -59,6 +59,15 @@
             }
         }
 
+        // Função para calcular o tamanho da carta na tela com base na proporção
+        function getCardDimensions() {
+            // Vamos usar a largura do vídeo como referência para calcular a altura
+            const videoAspectRatio = video.videoWidth / video.videoHeight;
+            const cardDisplayWidth = 300; // largura da carta em pixels (fixa)
+            const cardDisplayHeight = cardDisplayWidth * CARD_HEIGHT_MM / CARD_WIDTH_MM; // ajusta altura proporcionalmente
+            return { cardDisplayWidth, cardDisplayHeight };
+        }
+
         function captureLoop() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -69,22 +78,23 @@
             // Limpa o overlay a cada loop
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
-            // Calcula posição central da carta
-            const cardX = (canvas.width - CARD_DISPLAY_WIDTH) / 2;
-            const cardY = (canvas.height - CARD_DISPLAY_HEIGHT) / 2;
+            // Calcula o tamanho e a posição da carta
+            const { cardDisplayWidth, cardDisplayHeight } = getCardDimensions();
+            const cardX = (canvas.width - cardDisplayWidth) / 2;
+            const cardY = (canvas.height - cardDisplayHeight) / 2;
 
-            // Desenha o retângulo de contorno com medidas exatas
+            // Desenha o retângulo de contorno com as dimensões exatas da carta
             overlayCtx.strokeStyle = 'red'; // Cor da borda
             overlayCtx.lineWidth = 1; // Largura da borda
-            overlayCtx.strokeRect(cardX, cardY, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT); // Desenha a borda
+            overlayCtx.strokeRect(cardX, cardY, cardDisplayWidth, cardDisplayHeight); // Desenha a borda
 
             // Captura apenas a região da carta
             const cardCanvas = document.createElement('canvas');
-            cardCanvas.width = CARD_DISPLAY_WIDTH;
-            cardCanvas.height = CARD_DISPLAY_HEIGHT;
+            cardCanvas.width = cardDisplayWidth;
+            cardCanvas.height = cardDisplayHeight;
 
             const cardCtx = cardCanvas.getContext('2d');
-            cardCtx.drawImage(video, cardX, cardY, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT, 0, 0, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT);
+            cardCtx.drawImage(video, cardX, cardY, cardDisplayWidth, cardDisplayHeight, 0, 0, cardDisplayWidth, cardDisplayHeight);
 
             const imageDataURL = cardCanvas.toDataURL('image/jpeg');
 
