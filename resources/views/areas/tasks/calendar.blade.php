@@ -9,10 +9,10 @@
 <div class="bg-gray-100 rounded-lg shadow mb-6 p-4">
     <h2 class="text-xl font-bold mb-4 text-center">Calendário de Tarefas - {{ $month }}/{{ $year }}</h2>
         @foreach ($calendar as $day => $users)
-            <div class="m-5 bg-white rounded-md shadow-sm">
-                <h3 class="text-lg font-semibold p-1 text-center" style="margin: 5px; border-bottom: 1px solid #bbb;">{{ \Carbon\Carbon::parse($day)->format('d/m/Y') }}</h3>
+            <div class="bg-white rounded-md shadow-sm" style=" border-bottom: 1px solid #bbb;">
+                <h3 class="text-lg font-semibold p-1" style="margin: 5px;cursor: pointer;" onclick="$('.tasks_collapses').hide('slow');$('#collapse_{{ \Carbon\Carbon::parse($day)->format('dmY') }}').show('slow');">{{ \Carbon\Carbon::parse($day)->format('d') }} | <span style="color: dodgerblue;text-transform: capitalize"> {{ \Carbon\Carbon::parse($day)->translatedFormat('l') }}</span></h3>
                 <div class="grid md:grid-cols-2 gap-4">
-                    <div class="row">
+                    <div class="row tasks_collapses" id="collapse_{{ \Carbon\Carbon::parse($day)->format('dmY') }}" style="display: none;">
                         @foreach ($users as $user => $tasks)
                             <div class="col-lg-3">
                                 <div class="p-3">
@@ -20,9 +20,7 @@
                                     <ul class="space-y-1" style="padding-left: 0;">
                                         @foreach ($tasks as $task)
                                             <li class="flex justify-between items-center text-sm" style="list-style: none;">
-                                                <span class="{{ $task['done'] ? 'text-green-600' : 'text-red-600' }}"> 
-                                                    {{ $task['done'] ? '✅' : '❌' }} 
-                                                </span>
+                                                <span class="{{ $task['done'] ? 'text-green-600' : 'text-red-600' }}"> {{ $task['done'] ? '✅' : '❌' }} </span>
                                                 <span>{{ $task['name'] }}</span>
                                                 <span class="flex items-center gap-2" style="float: right;">
                                                     @if ($task['type'] == 2)
