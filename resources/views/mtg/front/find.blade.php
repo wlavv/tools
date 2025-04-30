@@ -71,86 +71,92 @@
     </div>
 
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
-    <script>
-        const video = document.getElementById('video');
-        const overlay = document.getElementById('overlay');
-        const overlayCtx = overlay.getContext('2d');
-        const infoBox = document.getElementById('info');
+<script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const overlayCtx = overlay.getContext('2d');
+    const infoBox = document.getElementById('info');
 
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    setTimeout(checkOpenCVLoaded, 500);
-                };
-            } catch (err) {
-                console.error('Erro ao aceder à câmara:', err);
-            }
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error('Erro ao aceder à câmara:', err);
         }
+    }
 
-        function checkOpenCVLoaded() {
-            if (typeof cv === 'undefined' || !cv.ready) {
-                infoBox.innerText = 'A carregar OpenCV...';
-                setTimeout(checkOpenCVLoaded, 200);
-            } else {
-                infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
-                detectLoop();
-            }
-        }
+    function detectLoop() {
+        try {
+            const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            const cap = new cv.VideoCapture(video);
+            cap.read(src);
 
-        function detectLoop() {
-            try {
-                const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
-                const cap = new cv.VideoCapture(video);
-                cap.read(src);
+            let dst = new cv.Mat();
+            let gray = new cv.Mat();
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
 
-                let dst = new cv.Mat();
-                let gray = new cv.Mat();
-                let contours = new cv.MatVector();
-                let hierarchy = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
+            cv.Canny(gray, dst, 75, 200);
+            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
-                cv.Canny(gray, dst, 75, 200);
-                cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
-                overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            let found = false;
+            for (let i = 0; i < contours.size(); i++) {
+                let cnt = contours.get(i);
+                let approx = new cv.Mat();
+                cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                if (approx.rows === 4 && cv.contourArea(approx) > 5000) {
+                    found = true;
+                    overlayCtx.beginPath();
+                    overlayCtx.strokeStyle = 'red';
+                    overlayCtx.lineWidth = 3;
 
-                let found = false;
-                for (let i = 0; i < contours.size(); i++) {
-                    let cnt = contours.get(i);
-                    let approx = new cv.Mat();
-                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-                    if (approx.rows === 4 && cv.contourArea(approx) > 5000) {
-                        found = true;
-                        overlayCtx.beginPath();
-                        overlayCtx.strokeStyle = 'red';
-                        overlayCtx.lineWidth = 3;
-
-                        for (let j = 0; j < 4; j++) {
-                            const pt1 = approx.data32S[j * 2];
-                            const pt2 = approx.data32S[j * 2 + 1];
-                            const ptNext1 = approx.data32S[((j + 1) % 4) * 2];
-                            const ptNext2 = approx.data32S[((j + 1) % 4) * 2 + 1];
-                            overlayCtx.moveTo(pt1, pt2);
-                            overlayCtx.lineTo(ptNext1, ptNext2);
-                        }
-                        overlayCtx.stroke();
-                        approx.delete();
-                        break;
+                    for (let j = 0; j < 4; j++) {
+                        const pt1 = approx.data32S[j * 2];
+                        const pt2 = approx.data32S[j * 2 + 1];
+                        const ptNext1 = approx.data32S[((j + 1) % 4) * 2];
+                        const ptNext2 = approx.data32S[((j + 1) % 4) * 2 + 1];
+                        overlayCtx.moveTo(pt1, pt2);
+                        overlayCtx.lineTo(ptNext1, ptNext2);
                     }
+                    overlayCtx.stroke();
                     approx.delete();
+                    break;
                 }
-
-                infoBox.innerText = found ? "Carta detetada!" : "Nenhuma carta detetada.";
-                src.delete(); dst.delete(); gray.delete(); contours.delete(); hierarchy.delete();
-            } catch (err) {
-                console.error('Erro no processamento OpenCV:', err);
+                approx.delete();
             }
 
-            setTimeout(detectLoop, 2000);
+            infoBox.innerText = found ? "Carta detetada!" : "Nenhuma carta detetada.";
+            src.delete(); dst.delete(); gray.delete(); contours.delete(); hierarchy.delete();
+        } catch (err) {
+            console.error('Erro no processamento OpenCV:', err);
         }
+
+        setTimeout(detectLoop, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await startCamera();
+
+        // Espera pelo carregamento do OpenCV.js
+        if (typeof cv === 'undefined') {
+            infoBox.innerText = 'A carregar OpenCV...';
+            const checkOpenCV = setInterval(() => {
+                if (typeof cv !== 'undefined' && typeof cv.imread !== 'undefined') {
+                    clearInterval(checkOpenCV);
+                    infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
+                    detectLoop();
+                }
+            }, 100);
+        } else {
+            infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
+            detectLoop();
+        }
+    });
 
         document.addEventListener('DOMContentLoaded', startCamera);
     </script>
