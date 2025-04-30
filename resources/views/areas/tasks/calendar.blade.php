@@ -6,8 +6,8 @@
     $monthlyTotals = [];
 @endphp
 
-<div class="bg-gray-100 rounded-lg shadow mb-6 p-4">
-    <div class="bg-white rounded-md shadow-sm" style="margin-bottom: 10px;">
+<div class="bg-gray-100 rounded-lg mb-6">
+    <div class="bg-white rounded-md shadow-sm" style="margin: 10px 0;">
         <h2 class="text-xl font-bold mb-4 text-center" style="padding: 5px;">Calendário de Tarefas - {{ $month }}/{{ $year }}</h2>
     </div>
     @foreach ($calendar as $day => $users)
