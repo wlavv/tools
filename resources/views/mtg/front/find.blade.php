@@ -54,13 +54,13 @@
 
             if (contours.length > 0) {
                 info.html("✅ Carta detectada!");
-                stroke(255, 0, 0);
-                noFill();
-                beginShape();
+                stroke(255, 0, 0);  // Define a cor da borda como vermelho
+                noFill();           // Não preenche a área da carta
+                beginShape();       // Inicia o desenho da borda
                 contours.forEach(c => {
                     vertex(c.x, c.y);
                 });
-                endShape(CLOSE);
+                endShape(CLOSE);    // Finaliza o desenho da borda
             } else {
                 info.html("🔍 A procurar carta...");
             }
