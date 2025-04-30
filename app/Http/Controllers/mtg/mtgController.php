@@ -132,7 +132,9 @@ class mtgController extends Controller
                     'price' => $card->price,
                     'card_hash' => $card->hash,
                     'scan_hash' => $inputHash,
-                    'imageHash' => $imageHash
+                    'imageHash' => $imageHash,
+                    'base64Image' => $base64Image,
+                    'imageData' => $imageData
                 ]
             ]);
         } else {
