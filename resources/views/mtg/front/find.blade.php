@@ -2,188 +2,149 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MTG Card Detection</title>
+    <title>MTG Card Tracker</title>
     <style>
         body {
-            background-color: black;
+            background: black;
+            margin: 0;
+            overflow: hidden;
             color: white;
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            position: relative;
         }
 
         #container {
             position: relative;
             width: 500px;
             height: 700px;
+            margin: 20px auto;
         }
 
-        #video {
-            width: 500px;
-            height: 700px;
-            object-fit: cover;
-            border: 1px solid white;
-        }
-
-        #overlay {
+        video, canvas {
             position: absolute;
-            top: 0;
-            left: 0;
             width: 500px;
             height: 700px;
-            pointer-events: none;
-            z-index: 2;
         }
 
         #info {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            z-index: 3;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-            max-width: 300px;
-        }
-
-        #logo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 3;
-            width: 200px;
-            height: auto;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 8px;
+            border-radius: 4px;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <img id="logo" src="https://1000logos.net/wp-content/uploads/2022/10/Magic-The-Gathering-logo-500x325.png" alt="MTG Logo">
-        <video id="video" autoplay playsinline muted></video>
-        <canvas id="overlay" width="500" height="700"></canvas>
-        <div id="info">Carregando...</div>
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div id="info">⌛ A iniciar...</div>
     </div>
+
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
-<script>
-    const video = document.getElementById('video');
-    const overlay = document.getElementById('overlay');
-    const overlayCtx = overlay.getContext('2d');
-    const infoBox = document.getElementById('info');
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const info = document.getElementById('info');
 
-    async function startCamera() {
-        try {
-            infoBox.innerText = '🟡 A iniciar câmara...';
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                infoBox.innerText = '🟢 Câmara pronta. A carregar OpenCV...';
-                waitForOpenCV();
-            };
-        } catch (err) {
-            infoBox.innerText = '🔴 Erro na câmara!';
-            console.error('Erro ao aceder à câmara:', err);
+        function log(msg) {
+            console.log(msg);
+            info.innerText = msg;
         }
-    }
 
-    function waitForOpenCV() {
-        const check = setInterval(() => {
-            if (typeof cv !== 'undefined' && typeof cv.imread !== 'undefined') {
-                clearInterval(check);
-                infoBox.innerText = '🟢 OpenCV pronto. A iniciar deteção...';
-                console.log('✅ OpenCV carregado.');
-                detectLoop();
-            } else {
-                console.log('⌛ A aguardar OpenCV...');
-            }
-        }, 200);
-    }
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        processVideo();
+                    };
+                }).catch(err => {
+                    log("Erro câmara: " + err);
+                });
+        }
 
-    function detectLoop() {
-        try {
-            const width = video.videoWidth;
-            const height = video.videoHeight;
-            if (!width || !height) {
-                console.warn('❌ Vídeo sem dimensões disponíveis ainda.');
-                setTimeout(detectLoop, 1000);
-                return;
-            }
-
-            const src = new cv.Mat(height, width, cv.CV_8UC4);
-            const cap = new cv.VideoCapture(video);
-            cap.read(src);
-
-            // Verificar se o frame está preto
-            const total = cv.countNonZero(cv.cvtColor(src.clone(), new cv.Mat(), cv.COLOR_RGBA2GRAY));
-            if (total === 0) {
-                infoBox.innerText = '🔴 Frame vazio (câmara bloqueada?)';
-                console.warn('❌ Frame captado está completamente preto.');
-                src.delete();
-                setTimeout(detectLoop, 2000);
-                return;
-            }
-
+        function processVideo() {
+            let src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
             let gray = new cv.Mat();
-            let blurred = new cv.Mat();
             let edges = new cv.Mat();
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
 
-            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-            cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-            cv.Canny(blurred, edges, 75, 200);
-            cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            const FPS = 10;
 
-            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            function detect() {
+                try {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    src.data.set(imageData.data);
 
-            console.log(`🔍 ${contours.size()} contornos detetados.`);
+                    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+                    cv.Canny(gray, edges, 75, 150);
+                    cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
 
-            let found = false;
-            for (let i = 0; i < contours.size(); i++) {
-                let cnt = contours.get(i);
-                let approx = new cv.Mat();
-                cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
-                if (approx.rows === 4 && cv.contourArea(approx) > 5000) {
-                    found = true;
-                    overlayCtx.beginPath();
-                    overlayCtx.strokeStyle = 'red';
-                    overlayCtx.lineWidth = 3;
+                    // Limpar canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 2;
 
-                    for (let j = 0; j < 4; j++) {
-                        const x1 = approx.data32S[j * 2];
-                        const y1 = approx.data32S[j * 2 + 1];
-                        const x2 = approx.data32S[((j + 1) % 4) * 2];
-                        const y2 = approx.data32S[((j + 1) % 4) * 2 + 1];
-                        overlayCtx.moveTo(x1, y1);
-                        overlayCtx.lineTo(x2, y2);
+                    let found = false;
+
+                    for (let i = 0; i < contours.size(); i++) {
+                        let cnt = contours.get(i);
+                        let approx = new cv.Mat();
+                        cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+
+                        if (approx.rows === 4 && cv.contourArea(approx) > 10000) {
+                            // Desenha contorno
+                            let points = [];
+                            for (let j = 0; j < 4; j++) {
+                                let pt = approx.data32S.slice(j * 2, j * 2 + 2);
+                                points.push({ x: pt[0], y: pt[1] });
+                            }
+
+                            ctx.beginPath();
+                            ctx.moveTo(points[0].x, points[0].y);
+                            for (let j = 1; j < 4; j++) ctx.lineTo(points[j].x, points[j].y);
+                            ctx.closePath();
+                            ctx.stroke();
+
+                            found = true;
+                            approx.delete();
+                            break;
+                        }
+
+                        approx.delete();
                     }
-                    overlayCtx.stroke();
-                    console.log('✅ Detetado quadrilátero potencial de carta.');
-                    approx.delete();
-                    break;
+
+                    log(found ? "✅ Carta detetada!" : "🔍 A procurar carta...");
+                } catch (err) {
+                    console.error(err);
+                    log("❌ Erro: " + err);
                 }
-                approx.delete();
+
+                setTimeout(detect, 1000 / FPS);
             }
 
-            infoBox.innerText = found ? '🟢 Carta detetada!' : '🔎 Nenhuma carta detetada.';
-            if (!found) console.log('⚠️ Nenhum quadrilátero com 4 pontos foi encontrado.');
-
-            // Limpar
-            src.delete(); gray.delete(); blurred.delete(); edges.delete(); contours.delete(); hierarchy.delete();
-        } catch (err) {
-            infoBox.innerText = '🔴 Erro no OpenCV.';
-            console.error('Erro no loop de deteção:', err);
+            detect();
         }
 
-        setTimeout(detectLoop, 1500);
-    }
+        // Esperar pelo carregamento do OpenCV
+        function waitForOpenCV() {
+            if (cv && cv.Mat) {
+                log("✅ OpenCV carregado!");
+                startVideo();
+            } else {
+                log("⌛ A aguardar OpenCV...");
+                setTimeout(waitForOpenCV, 100);
+            }
+        }
 
-    document.addEventListener('DOMContentLoaded', startCamera);
-</script>
+        waitForOpenCV();
+    </script>
 </body>
 </html>
