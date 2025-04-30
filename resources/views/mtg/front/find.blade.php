@@ -2,29 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Detect Card and Focus on It</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>MTG Card Detection</title>
     <style>
-        video, canvas {
-            max-width: 100%;
-            display: block;
-            margin: 1rem auto;
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        #container {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            max-width: 1200px;
+            max-height: 800px;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: 1px solid white;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            max-width: 300px;
+        }
+
+        #logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+            width: 50px;
+            height: auto;
         }
     </style>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas" style="display: none;"></canvas>
-    <canvas id="overlay"></canvas>
+    <div id="container">
+        <!-- Logo do MTG -->
+        <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Magic_The_Gathering_Logo.svg" alt="MTG Logo">
+
+        <!-- Vídeo da câmera -->
+        <video id="video" autoplay playsinline muted></video>
+        <!-- Overlay para a borda da carta detectada -->
+        <canvas id="overlay"></canvas>
+
+        <!-- Informações carregadas via AJAX -->
+        <div id="info">
+            Carregando informações...
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
         const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
         const overlay = document.getElementById('overlay');
-        const ctx = canvas.getContext('2d');
         const overlayCtx = overlay.getContext('2d');
+        const infoBox = document.getElementById('info');
 
         async function startCamera() {
             try {
@@ -32,11 +95,11 @@
                 video.srcObject = stream;
 
                 video.onloadedmetadata = () => {
-                    canvas.width = 750;
-                    canvas.height = 1050;
+                    // Ajuste do canvas para o tamanho do vídeo
                     overlay.width = video.videoWidth;
                     overlay.height = video.videoHeight;
 
+                    // Inicia o loop de captura de vídeo
                     captureLoop();
                 };
             } catch (err) {
@@ -44,23 +107,22 @@
             }
         }
 
-        // Função simples de detecção de bordas para encontrar um retângulo
+        // Função simples para capturar a carta com base em bordas
         function detectCardPosition(imageData) {
             const width = imageData.width;
             const height = imageData.height;
-            let maxEdge = 0;
             let cardX = 0;
             let cardY = 0;
+            let maxEdge = 0;
 
-            // Algoritmo básico de detecção de bordas (busca bordas mais escuras e claras)
+            // Algoritmo básico para detectar bordas claras (simulando detecção de uma carta)
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    const pixel = imageData.data[(y * width + x) * 4]; // Acessa o valor do pixel
                     const r = imageData.data[(y * width + x) * 4 + 0];
                     const g = imageData.data[(y * width + x) * 4 + 1];
                     const b = imageData.data[(y * width + x) * 4 + 2];
 
-                    // Detectar bordas claras para simular a detecção da carta (um exemplo básico)
+                    // Detectando pixels claros que representam bordas
                     if (r > 200 && g > 200 && b > 200) {
                         maxEdge++;
                         cardX = x;
@@ -69,52 +131,54 @@
                 }
             }
 
+            // Se detectarmos um número suficiente de bordas, retornamos a posição
             if (maxEdge > 1000) {
-                // Retorna a posição da carta como (X, Y)
-                return { x: cardX, y: cardY, width: 300, height: 400 }; // Ajustar as dimensões se necessário
+                return { x: cardX, y: cardY, width: 300, height: 400 }; // Tamanho da carta padrão
             }
 
-            return null; // Se não encontrar
+            return null;
         }
 
         function captureLoop() {
-            canvas.width = 750;
-            canvas.height = 1050;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
             // Desenha o vídeo no canvas
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Pega os dados da imagem
+            // Obtém os dados da imagem
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
             // Detecta a posição da carta
             const cardPosition = detectCardPosition(imageData);
 
             if (cardPosition) {
-                // Ajusta a posição e tamanho da carta
+                // Ajusta a posição da carta
                 const { x, y, width, height } = cardPosition;
 
                 // Limpa o overlay
                 overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
-                // Desenha a borda da carta detectada no overlay
+                // Desenha a borda da carta detectada
                 overlayCtx.strokeStyle = 'red';
                 overlayCtx.lineWidth = 2;
                 overlayCtx.strokeRect(x, y, width, height);
 
-                // Captura a região da carta
+                // Captura a região da carta e converte em uma imagem
                 const cardCanvas = document.createElement('canvas');
-                cardCanvas.width = 750;
-                cardCanvas.height = 1050;
+                cardCanvas.width = width;
+                cardCanvas.height = height;
                 const cardCtx = cardCanvas.getContext('2d');
 
-                // Ajusta o foco para a carta
+                // Ajusta o foco para a carta detectada
                 cardCtx.drawImage(video, x, y, width, height, 0, 0, width, height);
                 const imageDataURL = cardCanvas.toDataURL('image/jpeg');
 
                 console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
 
-                // Envia para o servidor para comparação
+                // Envia a imagem para o servidor via AJAX para comparação
                 $.ajax({
                     url: '/mtg/front/compare-hash',
                     method: 'POST',
@@ -124,17 +188,39 @@
                     },
                     success: function(response) {
                         console.log('Resultado da comparação:', response);
+                        infoBox.innerHTML = 'Carta detectada com sucesso!';
                     },
                     error: function(xhr) {
                         console.error('Erro ao enviar imagem:', xhr.responseText);
+                        infoBox.innerHTML = 'Erro ao processar a carta.';
                     }
                 });
+            } else {
+                infoBox.innerHTML = 'Nenhuma carta detectada.';
             }
 
-            setTimeout(captureLoop, 2000); // Repete a captura
+            // Repete a captura
+            setTimeout(captureLoop, 2000);
         }
 
-        document.addEventListener('DOMContentLoaded', startCamera);
+        // Função para carregar as informações via AJAX
+        function loadInfo() {
+            $.ajax({
+                url: '/mtg/front/get-info',
+                method: 'GET',
+                success: function(response) {
+                    infoBox.innerHTML = response.data; // Exibe as informações carregadas
+                },
+                error: function(xhr) {
+                    console.error('Erro ao carregar as informações:', xhr.responseText);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startCamera();
+            loadInfo();
+        });
     </script>
 </body>
 </html>
