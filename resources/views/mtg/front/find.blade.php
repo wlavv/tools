@@ -86,23 +86,24 @@
 
         // Função para processar o vídeo e realizar a detecção
         function processVideo() {
-            // Usando o método correto para criar a Mat a partir do vídeo
             const FPS = 10;
+            let videoCapture = new cv.VideoCapture(video);
 
             function detect() {
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+                videoCapture.read(frame);
 
-                // Usando cv.imread() para ler a imagem do canvas
-                let src = cv.imread(canvas);  // Agora utilizando cv.imread() diretamente no canvas
-
+                // Converter para escala de cinza
                 let gray = new cv.Mat();
+                cv.cvtColor(frame, gray, cv.COLOR_RGBA2GRAY);
+
+                // Detectar bordas com Canny
                 let edges = new cv.Mat();
+                cv.Canny(gray, edges, 75, 150);
+
+                // Encontrar contornos
                 let contours = new cv.MatVector();
                 let hierarchy = new cv.Mat();
-
-                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-                cv.Canny(gray, edges, 75, 150);
                 cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
 
                 // Limpar canvas
@@ -143,7 +144,7 @@
                 info.innerText = found ? "✅ Carta detectada!" : "🔍 A procurar carta...";
 
                 // Libera os recursos da imagem
-                src.delete();
+                frame.delete();
                 gray.delete();
                 edges.delete();
                 contours.delete();
