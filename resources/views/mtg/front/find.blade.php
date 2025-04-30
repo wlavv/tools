@@ -29,7 +29,7 @@
         #video {
             width: 500px;
             height: 700px;
-            object-fit: contain;
+            object-fit: cover;
             border: 1px solid white;
         }
 
@@ -85,6 +85,8 @@
         const overlayCtx = overlay.getContext('2d');
         const infoBox = document.getElementById('info');
 
+        let lastCardPosition = null;
+
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -106,41 +108,40 @@
         function detectCardPosition(imageData) {
             const width = imageData.width;
             const height = imageData.height;
-            let cardX = -1, cardY = -1;
-            let cardWidth = 0, cardHeight = 0;
-            let maxEdge = 0;
 
-            // Algoritmo para detectar uma região retangular (cartão) baseado em contraste
+            let minX = width, minY = height, maxX = 0, maxY = 0;
+            let found = false;
+
             for (let y = 0; y < height - 1; y++) {
                 for (let x = 0; x < width - 1; x++) {
-                    // Pega os valores de cor dos pixels atuais e adjacentes
-                    const r1 = imageData.data[(y * width + x) * 4 + 0];
-                    const g1 = imageData.data[(y * width + x) * 4 + 1];
-                    const b1 = imageData.data[(y * width + x) * 4 + 2];
+                    const idx = (y * width + x) * 4;
+                    const r1 = imageData.data[idx];
+                    const g1 = imageData.data[idx + 1];
+                    const b1 = imageData.data[idx + 2];
 
-                    const r2 = imageData.data[((y + 1) * width + x) * 4 + 0];
-                    const g2 = imageData.data[((y + 1) * width + x) * 4 + 1];
-                    const b2 = imageData.data[((y + 1) * width + x) * 4 + 2];
+                    const idx2 = ((y + 1) * width + x) * 4;
+                    const r2 = imageData.data[idx2];
+                    const g2 = imageData.data[idx2 + 1];
+                    const b2 = imageData.data[idx2 + 2];
 
-                    // Calcula a diferença de cor entre pixels adjacentes (vertical)
                     const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
-                    if (diff > 100) {  // Limite para considerar um contorno
-                        maxEdge++;
-                        if (cardX === -1) cardX = x;
-                        if (cardY === -1) cardY = y;
-                        cardWidth = x - cardX;
-                        cardHeight = y - cardY;
+                    if (diff > 100) {
+                        minX = Math.min(minX, x);
+                        minY = Math.min(minY, y);
+                        maxX = Math.max(maxX, x);
+                        maxY = Math.max(maxY, y);
+                        found = true;
                     }
                 }
             }
 
-            // Se encontrarmos bordas suficientes, retornamos a posição da carta
-            if (maxEdge > 1000) {
-                return { x: cardX, y: cardY, width: cardWidth, height: cardHeight };
+            if (found && (maxX - minX > 50 && maxY - minY > 70)) {
+                return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
             }
 
             return null;
         }
+       
 
         function captureLoop() {
             const width = 500;
@@ -148,56 +149,37 @@
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            // Força as dimensões padrão (500x700)
             canvas.width = width;
             canvas.height = height;
-
             ctx.drawImage(video, 0, 0, width, height);
 
             const imageData = ctx.getImageData(0, 0, width, height);
             const cardPosition = detectCardPosition(imageData);
 
-            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            overlayCtx.clearRect(0, 0, width, height);
 
             if (cardPosition) {
+                // Suaviza a transição do retângulo entre frames
+                if (lastCardPosition) {
+                    const smoothFactor = 0.2; // Quanto menor, mais suave
+                    cardPosition.x = lastCardPosition.x + (cardPosition.x - lastCardPosition.x) * smoothFactor;
+                    cardPosition.y = lastCardPosition.y + (cardPosition.y - lastCardPosition.y) * smoothFactor;
+                    cardPosition.width = lastCardPosition.width + (cardPosition.width - lastCardPosition.width) * smoothFactor;
+                    cardPosition.height = lastCardPosition.height + (cardPosition.height - lastCardPosition.height) * smoothFactor;
+                }
+
+                lastCardPosition = cardPosition;
+
                 const { x, y, width: w, height: h } = cardPosition;
 
                 overlayCtx.strokeStyle = 'red';
                 overlayCtx.lineWidth = 2;
                 overlayCtx.strokeRect(x, y, w, h);
-
-                const cardCanvas = document.createElement('canvas');
-                cardCanvas.width = w;
-                cardCanvas.height = h;
-                const cardCtx = cardCanvas.getContext('2d');
-
-                cardCtx.drawImage(video, x, y, w, h, 0, 0, w, h);
-                const imageDataURL = cardCanvas.toDataURL('image/jpeg');
-
-                console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
-
-                $.ajax({
-                    url: '/mtg/front/compare-hash',
-                    method: 'POST',
-                    data: {
-                        image: imageDataURL,
-                        _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    success: function(response) {
-                        console.log('Resultado da comparação:', response);
-                        infoBox.innerHTML = 'Carta detectada com sucesso!';
-                    },
-                    error: function(xhr) {
-                        console.error('Erro ao enviar imagem:', xhr.responseText);
-                        infoBox.innerHTML = 'Erro ao processar a carta.';
-                    }
-                });
             } else {
-                infoBox.innerHTML = 'Nenhuma carta detectada.';
+                lastCardPosition = null;
             }
 
-            setTimeout(captureLoop, 2000);
+            requestAnimationFrame(captureLoop); // substitui setTimeout para tracking contínuo
         }
 
         // Função para carregar as informações via AJAX
