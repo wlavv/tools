@@ -102,9 +102,11 @@ class mtgController extends Controller
         if (!$request->has('base64_image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
 
         $base64Image = $request->input('base64_image');
-        
+
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
+
         try {
-            $imageHash = ImageHash::hashFromBase64($base64Image);
+            $imageHash = ImageHash::fromData($imageData); 
             $inputHash = $imageHash->toHex();
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
@@ -128,6 +130,7 @@ class mtgController extends Controller
             return response()->json(['error' => 'Carta não encontrada.'], 404);
         }
     }
+
     
     public function hammingDistance($hash1, $hash2){
 
