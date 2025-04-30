@@ -92,7 +92,13 @@
                 image(croppedImageCanvas, 10, 300); // Exibe a imagem cortada
 
                 // Envia a imagem recortada para o servidor via AJAX
-                sendImageToServer(croppedImageCanvas);
+
+                setTimeout(() => {
+                    sendImageToServer(croppedImageCanvas);
+                    }, 5000);
+
+
+                    /**sendImageToServer(croppedImageCanvas);**/
             } else {
                 info.html("🔍 A procurar carta...");
             }
