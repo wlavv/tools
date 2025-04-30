@@ -130,6 +130,8 @@ class mtgController extends Controller
                     'collector_number' => $card->collector_number,
                     'image_url' => $card->image_url,
                     'price' => $card->price,
+                    'card_hash' => $card->hash,
+                    'scan_hash' => $inputHash,
                 ]
             ]);
         } else {
