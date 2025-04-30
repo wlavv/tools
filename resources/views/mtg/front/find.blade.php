@@ -33,6 +33,7 @@
     </style>
 </head>
 <body>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div id="info">⌛ A iniciar...</div>
     <div id="croppedImage"></div>
 
@@ -130,6 +131,9 @@
                 type: 'POST',
                 data: JSON.stringify({ base64_image: base64Image }),
                 contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
+                },
                 success: function(response) {
                     $('#info').text('pHash da carta: ' + response.pHash);
                 },
