@@ -60,22 +60,18 @@
             top: 20px;
             left: 20px;
             z-index: 2;
-            width: 50px;
+            width: 200px;
             height: auto;
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <!-- Logo do MTG -->
         <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Magic_The_Gathering_Logo.svg" alt="MTG Logo">
 
-        <!-- Vídeo da câmera -->
         <video id="video" autoplay playsinline muted></video>
-        <!-- Overlay para a borda da carta detectada -->
         <canvas id="overlay"></canvas>
 
-        <!-- Informações carregadas via AJAX -->
         <div id="info">
             Carregando informações...
         </div>
@@ -95,11 +91,10 @@
                 video.srcObject = stream;
 
                 video.onloadedmetadata = () => {
-                    // Ajuste do canvas para o tamanho do vídeo
+
                     overlay.width = video.videoWidth;
                     overlay.height = video.videoHeight;
 
-                    // Inicia o loop de captura de vídeo
                     captureLoop();
                 };
             } catch (err) {
@@ -213,6 +208,8 @@
 
         // Função para carregar as informações via AJAX
         function loadInfo() {
+
+            /**
             $.ajax({
                 url: '/mtg/front/get-info',
                 method: 'GET',
@@ -223,6 +220,7 @@
                     console.error('Erro ao carregar as informações:', xhr.responseText);
                 }
             });
+            **/
         }
 
         document.addEventListener('DOMContentLoaded', () => {
