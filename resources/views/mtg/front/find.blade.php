@@ -141,7 +141,7 @@
             const boxWidth = maxX - minX;
             const boxHeight = maxY - minY;
 
-            if (foundEdges > 300 && boxWidth > 50 && boxHeight > 80){}
+            if (foundEdges > 300 && boxWidth > 50 && boxHeight > 80){
                 return { x: minX, y: minY, width: boxWidth, height: boxHeight };
             }
 
