@@ -32,8 +32,8 @@
                 video.srcObject = stream;
 
                 video.onloadedmetadata = () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+                    canvas.width = 750;
+                    canvas.height = 1050;
                     overlay.width = video.videoWidth;
                     overlay.height = video.videoHeight;
 
