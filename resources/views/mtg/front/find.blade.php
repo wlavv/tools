@@ -143,45 +143,40 @@
         }
 
         function captureLoop() {
+            const width = 500;
+            const height = 700;
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Desenha o vídeo no canvas
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Força as dimensões padrão (500x700)
+            canvas.width = width;
+            canvas.height = height;
 
-            // Obtém os dados da imagem
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, width, height);
 
-            // Detecta a posição da carta
+            const imageData = ctx.getImageData(0, 0, width, height);
             const cardPosition = detectCardPosition(imageData);
 
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
             if (cardPosition) {
-                // Ajusta a posição da carta
-                const { x, y, width, height } = cardPosition;
+                const { x, y, width: w, height: h } = cardPosition;
 
-                // Limpa o overlay
-                overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-
-                // Desenha a borda da carta detectada
                 overlayCtx.strokeStyle = 'red';
                 overlayCtx.lineWidth = 2;
-                overlayCtx.strokeRect(x, y, width, height);
+                overlayCtx.strokeRect(x, y, w, h);
 
-                // Captura a região da carta e converte em uma imagem
                 const cardCanvas = document.createElement('canvas');
-                cardCanvas.width = width;
-                cardCanvas.height = height;
+                cardCanvas.width = w;
+                cardCanvas.height = h;
                 const cardCtx = cardCanvas.getContext('2d');
 
-                // Ajusta o foco para a carta detectada
-                cardCtx.drawImage(video, x, y, width, height, 0, 0, width, height);
+                cardCtx.drawImage(video, x, y, w, h, 0, 0, w, h);
                 const imageDataURL = cardCanvas.toDataURL('image/jpeg');
 
                 console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
 
-                // Envia a imagem para o servidor via AJAX para comparação
                 $.ajax({
                     url: '/mtg/front/compare-hash',
                     method: 'POST',
@@ -202,7 +197,6 @@
                 infoBox.innerHTML = 'Nenhuma carta detectada.';
             }
 
-            // Repete a captura
             setTimeout(captureLoop, 2000);
         }
 
