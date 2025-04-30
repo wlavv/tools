@@ -21,15 +21,26 @@
             padding: 8px;
             border-radius: 4px;
         }
+
+        #croppedImage {
+            position: absolute;
+            top: 300px;
+            left: 10px;
+            border: 2px solid white;
+            background: rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body>
     <div id="info">⌛ A iniciar...</div>
+    <div id="croppedImage"></div>
 
     <script>
         let video;
         let info;
         let contours = [];
+        let croppedImageElement = document.getElementById('croppedImage');
+        let croppedImageCanvas;
 
         function setup() {
             createCanvas(640, 480);
@@ -61,6 +72,22 @@
                     vertex(c.x, c.y);
                 });
                 endShape(CLOSE);    // Finaliza o desenho da borda
+
+                // Calcula o bounding box (caixa de limite) para o crop
+                let minX = Math.min(...contours.map(c => c.x));
+                let maxX = Math.max(...contours.map(c => c.x));
+                let minY = Math.min(...contours.map(c => c.y));
+                let maxY = Math.max(...contours.map(c => c.y));
+
+                // Realiza o crop na imagem
+                let croppedImage = img.get(minX, minY, maxX - minX, maxY - minY);
+
+                // Cria uma nova imagem cropped e a exibe na tela
+                if (!croppedImageCanvas) {
+                    croppedImageCanvas = createGraphics(maxX - minX, maxY - minY);
+                }
+                croppedImageCanvas.image(croppedImage, 0, 0);
+                image(croppedImageCanvas, 10, 300); // Exibe a imagem cortada
             } else {
                 info.html("🔍 A procurar carta...");
             }
