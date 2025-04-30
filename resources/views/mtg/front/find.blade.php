@@ -125,7 +125,7 @@
         }
 
         // Função para enviar a imagem recortada para o servidor
-        function sendImageToServer(croppedImageCanvas) {
+        /*function sendImageToServer(croppedImageCanvas) {
             croppedImageCanvas.loadPixels();
             let imageData = croppedImageCanvas.get();
 
@@ -161,7 +161,46 @@
 
                 }
             });
-        }
-    </script>
+        }*/
+
+        let lastRequestTime = 0;  // Variável para armazenar o tempo da última requisição
+
+function sendImageToServer(croppedImageCanvas) {
+    const currentTime = Date.now();  // Obtem o tempo atual em milissegundos
+
+    // Verifica se se passaram 10 segundos desde a última requisição
+    if (currentTime - lastRequestTime >= 10000) {
+        croppedImageCanvas.loadPixels();
+        let imageData = croppedImageCanvas.get();
+
+        // Converte a imagem para base64
+        const base64Image = imageData.canvas.toDataURL('image/jpeg');
+
+        // Envia via AJAX utilizando jQuery
+        $.ajax({
+            url: '/mtg/find-card-base64',
+            type: 'POST',
+            data: JSON.stringify({ base64_image: base64Image }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
+            },
+            success: function(response) {
+                $('#info').text('pHash da carta: ' + response.pHash);
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro ao enviar imagem:', error);
+                $('#info').text('Erro ao enviar imagem!');
+            }
+        });
+
+        // Atualiza o tempo da última requisição
+        lastRequestTime = currentTime;
+    } else {
+        // Caso não tenha se passado 10 segundos, avisa o usuário
+        console.log('Aguarde 10 segundos antes de enviar outra requisição');
+    }
+}
+</script>
 </body>
 </html>
