@@ -109,9 +109,12 @@
 
 function openMobileMenu(closed){
 
+    alert(closed);
+    
     if(closed==1){
         $('#openMobileMenuTrigger').replaceWith('<div id="openMobileMenuTrigger" onclick="openMobileMenu(0)"><i class="fa-solid fa-chevron-up"></i></div>')
         $('#mainMenuMobileContainer').css('height', '250px');
+        $('#mainMenuMobileContainer').css('display', 'contents');
     }else{
         $('#openMobileMenuTrigger').replaceWith('<div id="openMobileMenuTrigger" onclick="openMobileMenu(1)"><i class="fa-solid fa-chevron-down"></i></div>')
         $('#mainMenuMobileContainer').css('height', '0px');
