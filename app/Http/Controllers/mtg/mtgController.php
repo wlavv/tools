@@ -117,10 +117,13 @@ class mtgController extends Controller
         $imageHash = new ImageHash();
         echo $pHash = $imageHash->hash($tempImagePath);
 
+        $phash = '410143098b000000';
+        
         // Verificar se o pHash já existe no banco de dados
         $card = mtg_cards::where('hash', $pHash)->first();
 
         dd($card);
+
         if ($card) {
             return response()->json(['found' => true, 'card' => $card, 'pHash' => $pHash]);
         } else {
