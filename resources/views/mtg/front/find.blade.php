@@ -107,33 +107,41 @@
             }
         }
 
-        // Função simples para capturar a carta com base em bordas
+        // Função para detecção de bordas e identificar a carta
         function detectCardPosition(imageData) {
             const width = imageData.width;
             const height = imageData.height;
-            let cardX = 0;
-            let cardY = 0;
+            let cardX = -1, cardY = -1;
+            let cardWidth = 0, cardHeight = 0;
             let maxEdge = 0;
 
-            // Algoritmo básico para detectar bordas claras (simulando detecção de uma carta)
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const r = imageData.data[(y * width + x) * 4 + 0];
-                    const g = imageData.data[(y * width + x) * 4 + 1];
-                    const b = imageData.data[(y * width + x) * 4 + 2];
+            // Algoritmo para detectar uma região retangular (cartão) baseado em contraste
+            for (let y = 0; y < height - 1; y++) {
+                for (let x = 0; x < width - 1; x++) {
+                    // Pega os valores de cor dos pixels atuais e adjacentes
+                    const r1 = imageData.data[(y * width + x) * 4 + 0];
+                    const g1 = imageData.data[(y * width + x) * 4 + 1];
+                    const b1 = imageData.data[(y * width + x) * 4 + 2];
 
-                    // Detectando pixels claros que representam bordas
-                    if (r > 200 && g > 200 && b > 200) {
+                    const r2 = imageData.data[((y + 1) * width + x) * 4 + 0];
+                    const g2 = imageData.data[((y + 1) * width + x) * 4 + 1];
+                    const b2 = imageData.data[((y + 1) * width + x) * 4 + 2];
+
+                    // Calcula a diferença de cor entre pixels adjacentes (vertical)
+                    const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+                    if (diff > 100) {  // Limite para considerar um contorno
                         maxEdge++;
-                        cardX = x;
-                        cardY = y;
+                        if (cardX === -1) cardX = x;
+                        if (cardY === -1) cardY = y;
+                        cardWidth = x - cardX;
+                        cardHeight = y - cardY;
                     }
                 }
             }
 
-            // Se detectarmos um número suficiente de bordas, retornamos a posição
+            // Se encontrarmos bordas suficientes, retornamos a posição da carta
             if (maxEdge > 1000) {
-                return { x: cardX, y: cardY, width: 300, height: 400 }; // Tamanho da carta padrão
+                return { x: cardX, y: cardY, width: cardWidth, height: cardHeight };
             }
 
             return null;
