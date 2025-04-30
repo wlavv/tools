@@ -62,4 +62,64 @@
         function getCardDimensions() {
             // Vamos usar a largura do vídeo como referência para calcular a altura
             const videoAspectRatio = video.videoWidth / video.videoHeight;
-            const
+            const cardDisplayWidth = 300; // largura da carta em pixels (fixa)
+            const cardDisplayHeight = cardDisplayWidth * CARD_HEIGHT_MM / CARD_WIDTH_MM; // ajusta altura proporcionalmente
+            return { cardDisplayWidth, cardDisplayHeight };
+        }
+
+        function captureLoop() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Desenha vídeo no canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Limpa o overlay a cada loop
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+            // Calcula o tamanho e a posição da carta
+            const { cardDisplayWidth, cardDisplayHeight } = getCardDimensions();
+            const cardX = (canvas.width - cardDisplayWidth) / 2;
+            const cardY = (canvas.height - cardDisplayHeight) / 2;
+
+            // Desenha o retângulo de contorno com as dimensões exatas da carta
+            overlayCtx.strokeStyle = 'red'; // Cor da borda
+            overlayCtx.lineWidth = 2; // Largura da borda
+            overlayCtx.strokeRect(cardX, cardY, cardDisplayWidth, cardDisplayHeight); // Desenha a borda
+
+            // Captura apenas a região da carta
+            const cardCanvas = document.createElement('canvas');
+            cardCanvas.width = cardDisplayWidth;
+            cardCanvas.height = cardDisplayHeight;
+
+            const cardCtx = cardCanvas.getContext('2d');
+            cardCtx.drawImage(video, cardX, cardY, cardDisplayWidth, cardDisplayHeight, 0, 0, cardDisplayWidth, cardDisplayHeight);
+
+            const imageDataURL = cardCanvas.toDataURL('image/jpeg');
+
+            console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
+
+            // Envia para o backend
+            $.ajax({
+                url: '/mtg/front/compare-hash',
+                method: 'POST',
+                data: {
+                    image: imageDataURL,
+                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                success: function(response) {
+                    console.log('Resultado da comparação:', response);
+                },
+                error: function(xhr) {
+                    console.error('Erro ao enviar imagem:', xhr.responseText);
+                }
+            });
+
+            // Repetir após 2 segundos
+            setTimeout(captureLoop, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', startCamera);
+    </script>
+</body>
+</html>
