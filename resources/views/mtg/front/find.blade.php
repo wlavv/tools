@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>MTG Card Detection</title>
     <style>
         body {
@@ -20,8 +19,6 @@
 
         #container {
             position: relative;
-            width: 90%;
-            height: 90%;
             width: 500px;
             height: 700px;
         }
@@ -37,17 +34,17 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 500px;
+            height: 700px;
             pointer-events: none;
-            z-index: 1;
+            z-index: 2;
         }
 
         #info {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            z-index: 2;
+            z-index: 3;
             background-color: rgba(0, 0, 0, 0.6);
             padding: 10px;
             border-radius: 5px;
@@ -59,7 +56,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 2;
+            z-index: 3;
             width: 200px;
             height: auto;
         }
@@ -68,147 +65,94 @@
 <body>
     <div id="container">
         <img id="logo" src="https://1000logos.net/wp-content/uploads/2022/10/Magic-The-Gathering-logo-500x325.png" alt="MTG Logo">
-
         <video id="video" autoplay playsinline muted></video>
-        <canvas id="overlay"></canvas>
-
-        <div id="info">
-            Carregando informações...
-        </div>
+        <canvas id="overlay" width="500" height="700"></canvas>
+        <div id="info">Carregando...</div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+    <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
     <script>
         const video = document.getElementById('video');
         const overlay = document.getElementById('overlay');
         const overlayCtx = overlay.getContext('2d');
         const infoBox = document.getElementById('info');
 
-        let lastCardPosition = null;
-
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 video.srcObject = stream;
-
                 video.onloadedmetadata = () => {
-
-                    overlay.width = 500;
-                    overlay.height = 700;
-
-                    captureLoop();
+                    setTimeout(checkOpenCVLoaded, 500);
                 };
             } catch (err) {
                 console.error('Erro ao aceder à câmara:', err);
             }
         }
 
-        // Função para detecção de bordas e identificar a carta
-        function detectCardPosition(imageData) {
-            const width = imageData.width;
-            const height = imageData.height;
-
-            let minX = width;
-            let maxX = 0;
-            let minY = height;
-            let maxY = 0;
-            let foundEdges = 0;
-
-            for (let y = 0; y < height - 1; y++) {
-                for (let x = 0; x < width - 1; x++) {
-                    const i = (y * width + x) * 4;
-                    const r1 = imageData.data[i];
-                    const g1 = imageData.data[i + 1];
-                    const b1 = imageData.data[i + 2];
-
-                    const i2 = ((y + 1) * width + x) * 4;
-                    const r2 = imageData.data[i2];
-                    const g2 = imageData.data[i2 + 1];
-                    const b2 = imageData.data[i2 + 2];
-
-                    const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
-                    if (diff > 100) {
-                        foundEdges++;
-                        if (x < minX) minX = x;
-                        if (x > maxX) maxX = x;
-                        if (y < minY) minY = y;
-                        if (y > maxY) maxY = y;
-                    }
-                }
-            }
-
-            const boxWidth = maxX - minX;
-            const boxHeight = maxY - minY;
-
-            if (foundEdges > 300 && boxWidth > 50 && boxHeight > 80){
-                return { x: minX, y: minY, width: boxWidth, height: boxHeight };
-            }
-
-            return null;
-        }
-
-
-        function captureLoop() {
-            const width = 500;
-            const height = 700;
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(video, 0, 0, width, height);
-
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const cardPosition = detectCardPosition(imageData);
-
-            overlayCtx.clearRect(0, 0, width, height);
-
-            if (cardPosition) {
-                // Suaviza a transição do retângulo entre frames
-                if (lastCardPosition) {
-                    const smoothFactor = 0.2; // Quanto menor, mais suave
-                    cardPosition.x = lastCardPosition.x + (cardPosition.x - lastCardPosition.x) * smoothFactor;
-                    cardPosition.y = lastCardPosition.y + (cardPosition.y - lastCardPosition.y) * smoothFactor;
-                    cardPosition.width = lastCardPosition.width + (cardPosition.width - lastCardPosition.width) * smoothFactor;
-                    cardPosition.height = lastCardPosition.height + (cardPosition.height - lastCardPosition.height) * smoothFactor;
-                }
-
-                lastCardPosition = cardPosition;
-
-                const { x, y, width: w, height: h } = cardPosition;
-
-                overlayCtx.strokeStyle = 'red';
-                overlayCtx.lineWidth = 2;
-                overlayCtx.strokeRect(x, y, w, h);
+        function checkOpenCVLoaded() {
+            if (typeof cv === 'undefined' || !cv.ready) {
+                infoBox.innerText = 'A carregar OpenCV...';
+                setTimeout(checkOpenCVLoaded, 200);
             } else {
-                lastCardPosition = null;
+                infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
+                detectLoop();
+            }
+        }
+
+        function detectLoop() {
+            try {
+                const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+                const cap = new cv.VideoCapture(video);
+                cap.read(src);
+
+                let dst = new cv.Mat();
+                let gray = new cv.Mat();
+                let contours = new cv.MatVector();
+                let hierarchy = new cv.Mat();
+
+                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+                cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
+                cv.Canny(gray, dst, 75, 200);
+                cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+                overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+                let found = false;
+                for (let i = 0; i < contours.size(); i++) {
+                    let cnt = contours.get(i);
+                    let approx = new cv.Mat();
+                    cv.approxPolyDP(cnt, approx, 0.02 * cv.arcLength(cnt, true), true);
+                    if (approx.rows === 4 && cv.contourArea(approx) > 5000) {
+                        found = true;
+                        overlayCtx.beginPath();
+                        overlayCtx.strokeStyle = 'red';
+                        overlayCtx.lineWidth = 3;
+
+                        for (let j = 0; j < 4; j++) {
+                            const pt1 = approx.data32S[j * 2];
+                            const pt2 = approx.data32S[j * 2 + 1];
+                            const ptNext1 = approx.data32S[((j + 1) % 4) * 2];
+                            const ptNext2 = approx.data32S[((j + 1) % 4) * 2 + 1];
+                            overlayCtx.moveTo(pt1, pt2);
+                            overlayCtx.lineTo(ptNext1, ptNext2);
+                        }
+                        overlayCtx.stroke();
+                        approx.delete();
+                        break;
+                    }
+                    approx.delete();
+                }
+
+                infoBox.innerText = found ? "Carta detetada!" : "Nenhuma carta detetada.";
+                src.delete(); dst.delete(); gray.delete(); contours.delete(); hierarchy.delete();
+            } catch (err) {
+                console.error('Erro no processamento OpenCV:', err);
             }
 
-            requestAnimationFrame(captureLoop); // substitui setTimeout para tracking contínuo
+            setTimeout(detectLoop, 2000);
         }
 
-        // Função para carregar as informações via AJAX
-        function loadInfo() {
-
-            /**
-            $.ajax({
-                url: '/mtg/front/get-info',
-                method: 'GET',
-                success: function(response) {
-                    infoBox.innerHTML = response.data; // Exibe as informações carregadas
-                },
-                error: function(xhr) {
-                    console.error('Erro ao carregar as informações:', xhr.responseText);
-                }
-            });
-            **/
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            startCamera();
-            loadInfo();
-        });
+        document.addEventListener('DOMContentLoaded', startCamera);
     </script>
 </body>
 </html>
