@@ -101,10 +101,13 @@ class mtgController extends Controller
 
         if (!$request->has('base64_image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
 
-        echo $base64Image = $request->input('base64_image');
-
-        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-
+        $base64 = preg_replace('#^data:image/\w+;base64,#i', '', $request->input('base64_image'));
+        $imageData = base64_decode($base64, true); // true ativa o strict mode
+        
+        if ($imageData === false) {
+            return response()->json(['error' => 'Base64 inválido.'], 400);
+        }
+        
         $image = imagecreatefromstring($imageData);
 
         if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
