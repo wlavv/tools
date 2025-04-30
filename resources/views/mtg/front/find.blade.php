@@ -87,11 +87,13 @@
         // Função para processar o vídeo e realizar a detecção
         function processVideo() {
             const FPS = 10;
-            let videoCapture = new cv.VideoCapture(video);
 
             function detect() {
-                let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-                videoCapture.read(frame);
+                // Capturar o quadro do vídeo para o canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Obter dados da imagem do canvas
+                let frame = cv.matFromImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
 
                 // Converter para escala de cinza
                 let gray = new cv.Mat();
