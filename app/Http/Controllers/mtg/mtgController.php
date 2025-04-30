@@ -118,7 +118,7 @@ class mtgController extends Controller
         $pHash = $imageHash->hash($tempImagePath);
 
         // Verificar se o pHash já existe no banco de dados
-        $card = mtg_card::where('phash', $pHash)->first();
+        $card = mtg_cards::where('phash', $pHash)->first();
 
         if ($card) {
             return response()->json(['found' => true, 'card' => $card, 'pHash' => $pHash]);
