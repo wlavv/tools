@@ -136,10 +136,22 @@
                 },
                 success: function(response) {
                     $('#info').text('pHash da carta: ' + response.pHash);
+
+                    const delay = response.exists === true ? 5000 : 1000;
+
+                    setTimeout(() => {
+                        canSend = true; // Libera nova requisição após o delay
+                    }, delay);
+
                 },
                 error: function(xhr, status, error) {
                     console.error('Erro ao enviar imagem:', error);
                     $('#info').text('Erro ao enviar imagem!');
+
+                    setTimeout(() => {
+                        canSend = true;
+                    }, 1000);
+
                 }
             });
         }
