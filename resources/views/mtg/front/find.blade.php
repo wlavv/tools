@@ -69,7 +69,6 @@
         <canvas id="overlay" width="500" height="700"></canvas>
         <div id="info">Carregando...</div>
     </div>
-
     <script async src="https://docs.opencv.org/4.x/opencv.js" type="text/javascript"></script>
 <script>
     const video = document.getElementById('video');
@@ -79,30 +78,70 @@
 
     async function startCamera() {
         try {
+            infoBox.innerText = '🟡 A iniciar câmara...';
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                infoBox.innerText = '🟢 Câmara pronta. A carregar OpenCV...';
+                waitForOpenCV();
+            };
         } catch (err) {
+            infoBox.innerText = '🔴 Erro na câmara!';
             console.error('Erro ao aceder à câmara:', err);
         }
     }
 
+    function waitForOpenCV() {
+        const check = setInterval(() => {
+            if (typeof cv !== 'undefined' && typeof cv.imread !== 'undefined') {
+                clearInterval(check);
+                infoBox.innerText = '🟢 OpenCV pronto. A iniciar deteção...';
+                console.log('✅ OpenCV carregado.');
+                detectLoop();
+            } else {
+                console.log('⌛ A aguardar OpenCV...');
+            }
+        }, 200);
+    }
+
     function detectLoop() {
         try {
-            const src = new cv.Mat(video.videoHeight, video.videoWidth, cv.CV_8UC4);
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+            if (!width || !height) {
+                console.warn('❌ Vídeo sem dimensões disponíveis ainda.');
+                setTimeout(detectLoop, 1000);
+                return;
+            }
+
+            const src = new cv.Mat(height, width, cv.CV_8UC4);
             const cap = new cv.VideoCapture(video);
             cap.read(src);
 
-            let dst = new cv.Mat();
+            // Verificar se o frame está preto
+            const total = cv.countNonZero(cv.cvtColor(src.clone(), new cv.Mat(), cv.COLOR_RGBA2GRAY));
+            if (total === 0) {
+                infoBox.innerText = '🔴 Frame vazio (câmara bloqueada?)';
+                console.warn('❌ Frame captado está completamente preto.');
+                src.delete();
+                setTimeout(detectLoop, 2000);
+                return;
+            }
+
             let gray = new cv.Mat();
+            let blurred = new cv.Mat();
+            let edges = new cv.Mat();
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
 
             cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-            cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
-            cv.Canny(gray, dst, 75, 200);
-            cv.findContours(dst, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+            cv.Canny(blurred, edges, 75, 200);
+            cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+            console.log(`🔍 ${contours.size()} contornos detetados.`);
 
             let found = false;
             for (let i = 0; i < contours.size(); i++) {
@@ -116,49 +155,35 @@
                     overlayCtx.lineWidth = 3;
 
                     for (let j = 0; j < 4; j++) {
-                        const pt1 = approx.data32S[j * 2];
-                        const pt2 = approx.data32S[j * 2 + 1];
-                        const ptNext1 = approx.data32S[((j + 1) % 4) * 2];
-                        const ptNext2 = approx.data32S[((j + 1) % 4) * 2 + 1];
-                        overlayCtx.moveTo(pt1, pt2);
-                        overlayCtx.lineTo(ptNext1, ptNext2);
+                        const x1 = approx.data32S[j * 2];
+                        const y1 = approx.data32S[j * 2 + 1];
+                        const x2 = approx.data32S[((j + 1) % 4) * 2];
+                        const y2 = approx.data32S[((j + 1) % 4) * 2 + 1];
+                        overlayCtx.moveTo(x1, y1);
+                        overlayCtx.lineTo(x2, y2);
                     }
                     overlayCtx.stroke();
+                    console.log('✅ Detetado quadrilátero potencial de carta.');
                     approx.delete();
                     break;
                 }
                 approx.delete();
             }
 
-            infoBox.innerText = found ? "Carta detetada!" : "Nenhuma carta detetada.";
-            src.delete(); dst.delete(); gray.delete(); contours.delete(); hierarchy.delete();
+            infoBox.innerText = found ? '🟢 Carta detetada!' : '🔎 Nenhuma carta detetada.';
+            if (!found) console.log('⚠️ Nenhum quadrilátero com 4 pontos foi encontrado.');
+
+            // Limpar
+            src.delete(); gray.delete(); blurred.delete(); edges.delete(); contours.delete(); hierarchy.delete();
         } catch (err) {
-            console.error('Erro no processamento OpenCV:', err);
+            infoBox.innerText = '🔴 Erro no OpenCV.';
+            console.error('Erro no loop de deteção:', err);
         }
 
-        setTimeout(detectLoop, 2000);
+        setTimeout(detectLoop, 1500);
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        await startCamera();
-
-        // Espera pelo carregamento do OpenCV.js
-        if (typeof cv === 'undefined') {
-            infoBox.innerText = 'A carregar OpenCV...';
-            const checkOpenCV = setInterval(() => {
-                if (typeof cv !== 'undefined' && typeof cv.imread !== 'undefined') {
-                    clearInterval(checkOpenCV);
-                    infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
-                    detectLoop();
-                }
-            }, 100);
-        } else {
-            infoBox.innerText = 'OpenCV carregado. A detetar cartas...';
-            detectLoop();
-        }
-    });
-
-        document.addEventListener('DOMContentLoaded', startCamera);
-    </script>
+    document.addEventListener('DOMContentLoaded', startCamera);
+</script>
 </body>
 </html>
