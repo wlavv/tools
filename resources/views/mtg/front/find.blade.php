@@ -92,8 +92,8 @@
 
                 video.onloadedmetadata = () => {
 
-                    overlay.width = video.videoWidth;
-                    overlay.height = video.videoHeight;
+                    overlay.width = 500;
+                    overlay.height = 700;
 
                     captureLoop();
                 };
