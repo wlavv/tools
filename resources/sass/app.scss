@@ -51,7 +51,7 @@ li.nav-item > a:hover { color: dodgerblue; }
 .sideMenu{ float: left; width: 0px; display: none; }
 
 #mainMenuMobileContainer{
-    width: 150px; float: left;background-color: #ededed;height: calc(100% - 104px); position: fixed;margin-top: 104px; z-index: 1;
+    width: 150px; float: left;background-color: #ededed;height: calc(100% - 87px); position: fixed;margin-top: 87px; z-index: 1;
 }
 
 @media (max-width: 768px) {

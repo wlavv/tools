@@ -60,7 +60,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div style="margin: 10px;width: 100%;">
+                                <div style="width: 100%;">
                                     <div style="width: 65%; float: left;"  id="breadcrumbs">  @include('includes.breadcrumbs') </div>
                                 </div>
                             </div>
