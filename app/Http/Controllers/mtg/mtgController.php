@@ -96,39 +96,37 @@ class mtgController extends Controller
 
     public function findCardFromBase64(Request $request)
     {
+        $request->validate([
+            'base64_image' => 'required|string',
+        ]);
 
-        $request->validate([ 'base64_image' => 'required|string' ]);
-
+        // Recupera a imagem base64
         $base64 = $request->input('base64_image');
         $base64 = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
         $binary = base64_decode($base64);
 
-        if ($binary === false) return response()->json(['error' => 'Imagem inválida'], 400);
+        if ($binary === false) {
+            return response()->json(['error' => 'Imagem inválida'], 400);
+        }
 
-        $temp = public_path('images/mtg/tdm/1.jpg');
-
-        $imageHashTemp = new ImageHash();
-
-        echo $pHash = $imageHashTemp->hash($temp);
-
-
+        // Salvar a imagem temporariamente
         $tempImagePath = storage_path('app/public/temp_image.jpg');
         file_put_contents($tempImagePath, $binary);
 
+        // Gerar o pHash
         $imageHash = new ImageHash();
+        $pHash = $imageHash->hash($tempImagePath);
 
-        echo $pHash = $imageHash->hash($tempImagePath);
-
-        $card = mtg_card::where('hash', $pHash)->first();
-
-        dd($card);
+        // Verificar se o pHash já existe no banco de dados
+        $card = MtgCard::where('phash', $pHash)->first();
 
         if ($card) {
-            return response()->json(['found' => true, 'card' => $card]);
+            return response()->json(['found' => true, 'card' => $card, 'pHash' => $pHash]);
         } else {
-            return response()->json(['found' => false]);
+            return response()->json(['found' => false, 'pHash' => $pHash]);
         }
     }
+
 
     public function compareHash(Request $request)
     {

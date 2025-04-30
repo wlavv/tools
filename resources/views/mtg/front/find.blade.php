@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>MTG Card Tracker with pHash</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
         body {
@@ -120,19 +121,23 @@
             croppedImageCanvas.loadPixels();
             let imageData = croppedImageCanvas.get();
 
-            // Cria um FormData para enviar a imagem via AJAX
-            const formData = new FormData();
-            formData.append('image', imageData.canvas.toDataURL('image/jpeg')); // Envia a imagem como base64
+            // Converte a imagem para base64
+            const base64Image = imageData.canvas.toDataURL('image/jpeg');
 
-            fetch('{{route("mtg.findCardFromBase64")}}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('info').innerText = 'pHash da carta: ' + data.pHash;
-            })
-            .catch(error => console.error('Erro ao enviar imagem:', error));
+            // Envia via AJAX utilizando jQuery
+            $.ajax({
+                url: '/mtg/find-card-base64',
+                type: 'POST',
+                data: JSON.stringify({ base64_image: base64Image }),
+                contentType: 'application/json',
+                success: function(response) {
+                    $('#info').text('pHash da carta: ' + response.pHash);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro ao enviar imagem:', error);
+                    $('#info').text('Erro ao enviar imagem!');
+                }
+            });
         }
     </script>
 </body>
