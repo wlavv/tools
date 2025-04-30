@@ -124,7 +124,7 @@
             const formData = new FormData();
             formData.append('image', imageData.canvas.toDataURL('image/jpeg')); // Envia a imagem como base64
 
-            fetch('upload.php', {
+            fetch('{{route("mtg.findCardFromBase64")}}', {
                 method: 'POST',
                 body: formData
             })
