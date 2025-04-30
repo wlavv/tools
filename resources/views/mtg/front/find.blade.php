@@ -92,7 +92,11 @@
             function detect() {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                let src = cv.matFromImageData(imageData);  // Criação de Mat a partir da imagem do canvas
+
+                // Criando a Mat a partir dos dados da imagem
+                let src = new cv.Mat(canvas.height, canvas.width, cv.CV_8UC4);
+                src.data.set(imageData.data);  // Atribui os dados do canvas à Mat
+
                 let gray = new cv.Mat();
                 let edges = new cv.Mat();
                 let contours = new cv.MatVector();
