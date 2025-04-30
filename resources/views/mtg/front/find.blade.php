@@ -22,8 +22,8 @@
             position: relative;
             width: 90%;
             height: 90%;
-            max-width: 1200px;
-            max-height: 800px;
+            width: 750px;
+            height: 1050px;
         }
 
         #video {
