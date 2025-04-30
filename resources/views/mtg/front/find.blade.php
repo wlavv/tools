@@ -109,39 +109,45 @@
             const width = imageData.width;
             const height = imageData.height;
 
-            let minX = width, minY = height, maxX = 0, maxY = 0;
-            let found = false;
+            let minX = width;
+            let maxX = 0;
+            let minY = height;
+            let maxY = 0;
+            let foundEdges = 0;
 
             for (let y = 0; y < height - 1; y++) {
                 for (let x = 0; x < width - 1; x++) {
-                    const idx = (y * width + x) * 4;
-                    const r1 = imageData.data[idx];
-                    const g1 = imageData.data[idx + 1];
-                    const b1 = imageData.data[idx + 2];
+                    const i = (y * width + x) * 4;
+                    const r1 = imageData.data[i];
+                    const g1 = imageData.data[i + 1];
+                    const b1 = imageData.data[i + 2];
 
-                    const idx2 = ((y + 1) * width + x) * 4;
-                    const r2 = imageData.data[idx2];
-                    const g2 = imageData.data[idx2 + 1];
-                    const b2 = imageData.data[idx2 + 2];
+                    const i2 = ((y + 1) * width + x) * 4;
+                    const r2 = imageData.data[i2];
+                    const g2 = imageData.data[i2 + 1];
+                    const b2 = imageData.data[i2 + 2];
 
                     const diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
                     if (diff > 100) {
-                        minX = Math.min(minX, x);
-                        minY = Math.min(minY, y);
-                        maxX = Math.max(maxX, x);
-                        maxY = Math.max(maxY, y);
-                        found = true;
+                        foundEdges++;
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
                     }
                 }
             }
 
-            if (found && (maxX - minX > 50 && maxY - minY > 70)) {
-                return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+            const boxWidth = maxX - minX;
+            const boxHeight = maxY - minY;
+
+            if (foundEdges > 500 && boxWidth > 100 && boxHeight > 150) {
+                return { x: minX, y: minY, width: boxWidth, height: boxHeight };
             }
 
             return null;
         }
-       
+
 
         function captureLoop() {
             const width = 500;
