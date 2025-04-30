@@ -67,7 +67,7 @@
 </head>
 <body>
     <div id="container">
-        <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Magic_The_Gathering_Logo.svg" alt="MTG Logo">
+        <img id="logo" src="https://1000logos.net/wp-content/uploads/2022/10/Magic-The-Gathering-logo-500x325.png" alt="MTG Logo">
 
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
