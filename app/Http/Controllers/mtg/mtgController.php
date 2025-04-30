@@ -107,7 +107,7 @@ class mtgController extends Controller
         if ($imageData === false) {
             return response()->json(['error' => 'Base64 inválido.'], 400);
         }
-        
+
         $image = imagecreatefromstring($imageData);
 
         if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
@@ -135,8 +135,7 @@ class mtgController extends Controller
                     'price' => $card->price,
                     'card_hash' => $card->hash,
                     'scan_hash' => $inputHash,
-                    'imageHash' => $imageHash,
-                    'base64Image' => $base64Image,
+                    'base64Image' => $base64,
                     'imageData' => $imageData
                 ]
             ]);
