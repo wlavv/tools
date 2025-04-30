@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>MTG Card Tracker com pHash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://unpkg.com/blockhash-core/blockhash.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blockhash@1.0.3/blockhash.js"></script>
     <style>
         body {
             background: black;
