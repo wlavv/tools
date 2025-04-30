@@ -60,10 +60,13 @@
 
         // Função para calcular o tamanho da carta na tela com base na proporção
         function getCardDimensions() {
-            // Vamos usar a largura do vídeo como referência para calcular a altura
             const videoAspectRatio = video.videoWidth / video.videoHeight;
-            const cardDisplayWidth = 300; // largura da carta em pixels (fixa)
-            const cardDisplayHeight = cardDisplayWidth * CARD_HEIGHT_MM / CARD_WIDTH_MM; // ajusta altura proporcionalmente
+
+            // Definir uma largura fixa para a carta, por exemplo, 300px
+            const cardDisplayWidth = 300;
+
+            // Ajustar a altura da carta com base na proporção da carta MTG (1:1.4)
+            const cardDisplayHeight = cardDisplayWidth * CARD_HEIGHT_MM / CARD_WIDTH_MM;
             return { cardDisplayWidth, cardDisplayHeight };
         }
 
