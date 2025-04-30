@@ -9,6 +9,10 @@ use App\Http\Controllers\Controller;
 use App\Models\mtg\mtg_sets;
 use App\Models\mtg\mtg_cards;
 
+use Jenssegers\ImageHash\ImageHash;
+use Jenssegers\ImageHash\Implementations\PerceptualHash;
+use Intervention\Image\ImageManagerStatic as Image;
+
 class mtgController extends Controller
 {
     public $actions;
@@ -113,6 +117,52 @@ class mtgController extends Controller
         } else {
             return response()->json(['found' => false]);
         }
+    }
+
+    public function compareHash(Request $request)
+    {
+
+        $base64Image = $request->input('image');
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
+
+        $tempPath = storage_path('app/temp_capture.jpg');
+        file_put_contents($tempPath, $imageData);
+
+        // Inicializar o hasher com pHash
+        $hasher = new ImageHash(new PerceptualHash());
+        $capturedHash = $hasher->hash($tempPath);
+
+        // Procurar cartas semelhantes
+        $allCards = mtg_cards::all();
+
+        $match = null;
+        $lowestDistance = PHP_INT_MAX;
+
+        foreach ($allCards as $card) {
+            if (!$card->image_hash) continue;
+
+            $distance = $capturedHash->distanceFrom($card->image_hash);
+
+            if ($distance < $lowestDistance) {
+                $lowestDistance = $distance;
+                $match = $card;
+            }
+        }
+
+        // Define um limite de distância aceitável para considerar "igual"
+        if ($match && $lowestDistance <= 5) {
+            return response()->json([
+                'status' => 'success',
+                'card' => $match,
+                'distance' => $lowestDistance
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'not_found',
+            'distance' => $lowestDistance
+        ]);
+
     }
 
     

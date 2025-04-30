@@ -5,21 +5,28 @@
     <title>Camera Stream with Auto Capture</title>
     <style>
         video, canvas {
-            width: 100%;
             max-width: 100%;
             display: block;
             margin: 1rem auto;
         }
     </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas" style="display: none;"></canvas>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+
+        // Proporção de carta MTG: 63.5mm x 88.9mm ≈ 1:1.4
+        const CARD_RATIO = 1.4;
+        const CARD_DISPLAY_WIDTH = 300; // largura que usaremos no ecrã
+        const CARD_DISPLAY_HEIGHT = CARD_DISPLAY_WIDTH * CARD_RATIO;
 
         async function startCamera() {
             try {
@@ -30,7 +37,6 @@
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
 
-                    // Começa a capturar automaticamente em loop
                     captureLoop();
                 };
             } catch (err) {
@@ -38,65 +44,52 @@
             }
         }
 
-        // Função para detectar a posição da carta
-        function detectCardPosition(imageData) {
-            const width = imageData.width;
-            const height = imageData.height;
-
-            // Vamos percorrer os dados da imagem
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const pixel = imageData.data[(y * width + x) * 4]; // Acessa o valor do pixel
-
-                    // Aqui buscamos um padrão simples (por exemplo, cor clara de uma borda)
-                    if (pixel > 200) {
-                        // Retorna a posição (X, Y) onde a carta pode estar
-                        return { x, y }; 
-                    }
-                }
-            }
-
-            return null; // Se não encontrar a carta
-        }
-
-        // Função de captura contínua
         function captureLoop() {
-            // Define as dimensões do canvas
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
 
-            // Desenha o vídeo no canvas
+            // Desenha vídeo no canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Pega os dados da imagem do canvas
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // Detecta a posição da carta
-            const cardPosition = detectCardPosition(imageData);
+            // Calcula posição central da carta
+            const cardX = (canvas.width - CARD_DISPLAY_WIDTH) / 2;
+            const cardY = (canvas.height - CARD_DISPLAY_HEIGHT) / 2;
 
-            if (cardPosition) {
-                const cardX = cardPosition.x;
-                const cardY = cardPosition.y;
-                const cardWidth = 300; // largura da carta
-                const cardHeight = 400; // altura da carta
+            // Desenha contorno da carta (1px)
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cardX, cardY, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT);
 
-                // Desenha a borda de 1 pixel ao redor da carta detectada
-                ctx.strokeStyle = 'red'; // Cor da borda
-                ctx.lineWidth = 1; // Largura da borda
-                ctx.strokeRect(cardX, cardY, cardWidth, cardHeight); // Desenha a borda
+            // Captura apenas a região da carta
+            const cardCanvas = document.createElement('canvas');
+            cardCanvas.width = CARD_DISPLAY_WIDTH;
+            cardCanvas.height = CARD_DISPLAY_HEIGHT;
 
-                // Captura a região da carta
-                ctx.drawImage(video, cardX, cardY, cardWidth, cardHeight, 0, 0, cardWidth, cardHeight);
-                
-                const imageDataURL = canvas.toDataURL('image/jpeg');
+            const cardCtx = cardCanvas.getContext('2d');
+            cardCtx.drawImage(video, cardX, cardY, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT, 0, 0, CARD_DISPLAY_WIDTH, CARD_DISPLAY_HEIGHT);
 
-                // Aqui você pode gerar a hash da imagem da carta e enviá-la para o servidor
-                console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
+            const imageDataURL = cardCanvas.toDataURL('image/jpeg');
 
-                // Você pode verificar o hash dessa imagem e compará-lo com as imagens na BD, etc.
-            }
+            console.log('Imagem capturada com sucesso', imageDataURL.substring(0, 50));
 
-            setTimeout(captureLoop, 2000); // Executa a captura novamente após 2 segundos
+            // Envia para o backend
+            $.ajax({
+                url: '/mtg/front/compare-hash',
+                method: 'POST',
+                data: {
+                    image: imageDataURL,
+                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                success: function(response) {
+                    console.log('Resultado da comparação:', response);
+                },
+                error: function(xhr) {
+                    console.error('Erro ao enviar imagem:', xhr.responseText);
+                }
+            });
+
+            // Repetir após 2 segundos
+            setTimeout(captureLoop, 2000);
         }
 
         document.addEventListener('DOMContentLoaded', startCamera);

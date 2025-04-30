@@ -19,6 +19,7 @@ Route::get('/mtg/showSet/{code}/{sub_set?}',   [mtgController::class, 'showSet']
 
 Route::get('/mtg/front/find',   [mtgController::class, 'findCard'])->name('mtg.findCard');
 Route::post('/mtg/find-card-base64', [mtgController::class, 'findCardFromBase64'])->name('mtg.findCardFromBase64');
+Route::post('/mtg/front/compare-hash', [mtgController::class, 'compareHash'])->name('mtg.compareHash');
 
 /** AREAS **/
 Route::resources([ 'home'           => dashboardController::class       ]);
