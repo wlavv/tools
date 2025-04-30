@@ -101,12 +101,9 @@ class mtgController extends Controller
 
         if (!$request->has('base64_image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
 
-        $base64 = preg_replace('#^data:image/\w+;base64,#i', '', $request->input('base64_image'));
-        $imageData = base64_decode($base64, true); // true ativa o strict mode
-        
-        if ($imageData === false) {
-            return response()->json(['error' => 'Base64 inválido.'], 400);
-        }
+        $base64Image = $request->input('base64_image');
+
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
         $image = imagecreatefromstring($imageData);
 
@@ -135,8 +132,6 @@ class mtgController extends Controller
                     'price' => $card->price,
                     'card_hash' => $card->hash,
                     'scan_hash' => $inputHash,
-                    'base64Image' => $base64,
-                    'imageData' => $imageData
                 ]
             ]);
         } else {
