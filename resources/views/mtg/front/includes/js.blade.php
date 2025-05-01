@@ -73,27 +73,17 @@ window.draw = function () {
 
             boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-            // Mostra a imagem recortada (original, não a crop prévia)
-            if (boundingBox.width > 0 && boundingBox.height > 0) {
-                let fullFrame = video.get();
-                let detected = fullFrame.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-
-                if (!croppedImageCanvas) {
-                    croppedImageCanvas = createGraphics(boundingBox.width, boundingBox.height);
-                } else {
-                    croppedImageCanvas.resizeCanvas(boundingBox.width, boundingBox.height);
-                }
-
-                croppedImageCanvas.image(detected, 0, 0);
-
-                croppedImageElement.innerHTML = "";
-                croppedImageElement.appendChild(croppedImageCanvas.canvas);
-            }
+            alert('WIDTH: ' + boundingBox.width);
+            alert('HEIGHT: ' + boundingBox.height);
+            alert('X: ' + boundingBox.x);
+            alert('Y: ' + boundingBox.y);
+            alert('Y: ' + boundingBox.y);
+            alert('IMAGE: ' + response.croppedImageUrl);
 
             // Atualizar a #cropZone com a imagem recortada
             let croppedImageUrl = response.croppedImageUrl;
             let imgElement = document.createElement("img");
-            imgElement.src = croppedImageUrl;  // URL da imagem recortada
+            imgElement.src = response.croppedImageUrl;  // URL da imagem recortada
             imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
             imgElement.style.height = 'auto'; // Mantém a proporção
 
