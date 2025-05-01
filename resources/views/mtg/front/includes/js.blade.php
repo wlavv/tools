@@ -33,20 +33,16 @@ window.setup = function () {
     onOpenCvReady();
 };
 
-window.draw = function () {
-    clear();  // Limpa o canvas
-
+function draw() {
     if (!isCapturing) return;
 
-    let img = video.get();
-    img.loadPixels();
-
-    // Detecta bordas usando Canny
-    let src = cv.imread(img.canvas);
+    // Captura o frame atual com o método getImageData
+    let src = cv.matFromImageData(getImageData(video));
     let gray = new cv.Mat();
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY); // Converte para escala de cinza
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);  // Converte para escala de cinza
+
     let edges = new cv.Mat();
-    cv.Canny(gray, edges, 100, 200);  // Detecta as bordas
+    cv.Canny(gray, edges, 100, 200);  // Detecta bordas
 
     // Encontrar contornos
     let contours = new cv.MatVector();
@@ -68,34 +64,46 @@ window.draw = function () {
 
             points = orderPoints(points);  // Ordena os pontos
 
-            // Aplica a transformação de perspectiva para "endireitar" a carta
-            let width = 224;  // Tamanho da carta (ajustável)
+            // Aplica a transformação de perspectiva
+            let width = 224;  // Tamanho da carta
             let height = 324;
-            let dst = cv.matFromArray([
-                [0, 0],
-                [width - 1, 0],
-                [width - 1, height - 1],
-                [0, height - 1]
+            
+            // Converte os pontos para o formato adequado
+            let srcPoints = cv.matFromArray([
+                points[0][0], points[0][1],
+                points[1][0], points[1][1],
+                points[2][0], points[2][1],
+                points[3][0], points[3][1]
             ], cv.CV_32F);
 
-            let M = cv.getPerspectiveTransform(new cv.Mat(4, 1, cv.CV_32F, points), dst);
+            let dstPoints = cv.matFromArray([
+                0, 0,
+                width - 1, 0,
+                width - 1, height - 1,
+                0, height - 1
+            ], cv.CV_32F);
+
+            let M = cv.getPerspectiveTransform(srcPoints, dstPoints);  // Matriz de transformação
+
             let dstImg = new cv.Mat();
             cv.warpPerspective(src, dstImg, M, new cv.Size(width, height));
 
-            // Exibe o resultado da transformação
-            cv.imshow('outputCanvas', dstImg);
+            // Exibe a imagem recortada com a carta
+            cv.imshow('canvasOverlay', dstImg);
 
-            // Limpeza de recursos OpenCV
+            // Limpeza dos recursos OpenCV
             src.delete(); gray.delete(); edges.delete(); contours.delete(); hierarchy.delete();
 
-            // Enviar a imagem corrigida para o backend (se necessário)
-            return dstImg;  // Retorna a imagem transformada
+            // Envia a imagem processada via AJAX (para backend)
+            sendProcessedImageToBackend(dstImg);
+
+            return dstImg;  // Retorna a imagem transformada (corte)
         }
     }
 
     // Limpeza dos recursos do OpenCV
     src.delete(); gray.delete(); edges.delete(); contours.delete(); hierarchy.delete();
-};
+}
 
 // Função para ordenar os pontos do quadrilátero (como fizemos no Python)
 function orderPoints(points) {
