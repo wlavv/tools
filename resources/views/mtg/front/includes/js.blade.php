@@ -53,14 +53,23 @@ window.draw = function () {
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
 
-    // Aplicar a detecção de bordas (Canny)
+    // Aplicar CLAHE para aumentar o contraste de maneira local
+    let clahe = new cv.CLAHE();
+    clahe.setClipLimit(2.0);
+    clahe.setTileGridSize(new cv.Size(8, 8));
+    clahe.apply(gray, gray);
+
+    // Aplicar a detecção de bordas (Canny) com parâmetros ajustados
     let edges = new cv.Mat();
-    cv.Canny(gray, edges, 50, 100);
+    cv.Canny(gray, edges, 100, 200);  // Ajuste os limiares de Canny
 
     // Encontrar contornos (para detectar a carta)
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
     cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    // Desenhar todos os contornos encontrados (debug)
+    cv.drawContours(mat, contours, -1, [255, 0, 0, 255], 2); // Contornos em vermelho
 
     // Processar contornos e detectar o retângulo da carta
     for (let i = 0; i < contours.size(); i++) {
@@ -79,10 +88,8 @@ window.draw = function () {
             }
 
             // Desenhar o contorno ao redor da carta
-            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
-
-            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
             let boundingRect = cv.boundingRect(contour);
+            cv.rectangle(mat, boundingRect, [0, 255, 0, 255], 3);  // Contorno verde ao redor da carta
 
             // Calcular a proporção do retângulo (largura / altura)
             let aspectRatio = boundingRect.width / boundingRect.height;
@@ -92,19 +99,18 @@ window.draw = function () {
                 // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
                 if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
                     // O retângulo é válido e tem o tamanho mínimo necessário
-                    // Captura o crop da imagem com base no boundingRect
                     let croppedMat = mat.roi(boundingRect); // Recorta a imagem no OpenCV
 
-                    // Converter a imagem recortada para base64
+                    // Verifique a imagem recortada
                     let croppedImage = new cv.Mat();
                     cv.cvtColor(croppedMat, croppedImage, cv.COLOR_RGBA2BGR);
+                    console.log('Imagem recortada:', croppedImage);
+
+                    // Converter para base64
                     let croppedCanvas = document.createElement('canvas');
                     cv.imshow(croppedCanvas, croppedImage);  // Exibe no canvas
                     let croppedBase64 = croppedCanvas.toDataURL('image/jpeg');
 
-                    console.log('BoundingRect:', boundingRect);
-                    console.log('Aspect Ratio:', aspectRatio);
-                    
                     // Enviar o crop para o servidor
                     $.ajax({
                         url: "{{ route('mtg.processImage') }}",
@@ -142,17 +148,16 @@ window.draw = function () {
 
                     // Pausa a captura por 5 segundos após o envio
                     isCapturing = false;
-                    setTimeout(() => { isCapturing = true }, 5000);
                 }
             }
         }
     }
 
-    // Libere os recursos do OpenCV
+    // Libere a memória do OpenCV
     mat.delete();
     gray.delete();
     edges.delete();
     contours.delete();
     hierarchy.delete();
-};
+}
 </script>
