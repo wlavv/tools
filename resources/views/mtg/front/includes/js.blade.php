@@ -5,11 +5,6 @@ let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
 
-cv.onRuntimeInitialized = () => {
-        console.log("OpenCV.js carregado com sucesso!");
-        // Aqui você pode chamar suas funções OpenCV
-    };
-    
 async function onOpenCvReady() {
     console.log('OpenCV carregado com sucesso!');
 }
