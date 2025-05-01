@@ -10,8 +10,8 @@
         // Criação da tela e captura do vídeo
         createCanvas(windowWidth, windowHeight); // Ajusta para ocupar toda a largura e altura da página
         video = createCapture(VIDEO);
-        video.size(width, height);
-        video.hide(); // Oculta o elemento de vídeo na página
+        video.size(windowWidth, windowHeight); // Ajusta o vídeo para preencher o canvas
+        video.parent('croppedImage'); // Coloca o vídeo diretamente no div com id 'croppedImage'
 
         info = select('#info');
         info.html("🔍 A procurar carta...");
@@ -74,5 +74,11 @@
                 info.html('Erro ao enviar imagem!');
             }
         });
+    }
+
+    // Função para ajustar o tamanho do canvas ao redimensionar a janela
+    function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);  // Ajusta o canvas para a nova largura e altura da página
+        video.size(windowWidth, windowHeight);  // Ajusta o vídeo para a nova largura e altura
     }
 </script>
