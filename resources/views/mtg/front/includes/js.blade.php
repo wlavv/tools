@@ -36,8 +36,8 @@ window.setup = function () {
 
 // Função para iniciar o rastreamento (geralmente no primeiro clique ou em um quadro detectado)
 function startTracking(boundingRect) {
-    // Iniciar o rastreador CSRT
-    tracker = new cv.TrackerCSRT();
+    // Usar o TrackerKCF em vez de TrackerCSRT
+    tracker = new cv.TrackerKCF();
     tracker.start(video.get().canvas, boundingRect);
     isTracking = true;
 }
@@ -109,6 +109,5 @@ window.draw = function () {
     gray.delete(); // Libera a variável gray corretamente
     edges.delete(); // Libera a variável edges corretamente
 };
-
 
 </script>
