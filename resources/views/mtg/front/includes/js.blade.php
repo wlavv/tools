@@ -1,18 +1,26 @@
 <script>
+
 let video;
+let canvasOverlay;
 let isCapturing = true;
-let orb;
-let keypoints;
-let descriptors;
 
-const cropWidth = 640;
-const cropHeight = 480;
+const cropWidth = 1200;
+const cropHeight = 900;
 
-// Base de dados de descritores (exemplo de array)
-const descriptorDatabase = [];  // Aqui você deve armazenar os descritores das cartas previamente processadas
+// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
+const targetAspectRatio = 1.5; // Largura / Altura
+const minWidth = 100;  // Largura mínima em pixels
+const minHeight = 150; // Altura mínima em pixels
 
+// Configurar o vídeo
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
+    canvasOverlay = canvas.elt;
+    canvasOverlay.style.position = 'absolute';
+    canvasOverlay.style.top = '0';
+    canvasOverlay.style.left = '0';
+    canvasOverlay.style.zIndex = '10';
+
     video = createCapture(VIDEO, () => {
         const videoContainer = document.getElementById('videoContainer');
         videoContainer.style.position = 'relative';
@@ -22,91 +30,125 @@ window.setup = function () {
         video.elt.width = cropWidth;
         video.elt.height = cropHeight;
         videoContainer.appendChild(video.elt);
+        videoContainer.appendChild(canvasOverlay);
     });
 
     video.size(cropWidth, cropHeight);
-
-    // Inicializa o ORB
-    orb = new cv.ORB();
 };
 
+// Função para processar cada frame e detectar a carta
 window.draw = function () {
-    clear();  // Limpa o canvas de fundo
+    clear();  // Limpa o canvas
 
     if (!isCapturing) return;
 
     let img = video.get();
-    let mat;
-    try {
-        mat = cv.imread(img.canvas);
-    } catch (err) {
-        console.error('Erro ao ler a imagem: ', err);
-        return;
-    }
+    img.loadPixels();
 
-    let gray;
-    try {
-        gray = new cv.Mat();
-        cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
-    } catch (err) {
-        console.error('Erro ao converter para escala de cinza: ', err);
-        return;
-    }
+    // Converte a imagem para Mat (OpenCV)
+    let mat = cv.imread(img.canvas);
 
-    let keypoints;
-    let descriptors;
-    try {
-        keypoints = new cv.KeyPointVector();
-        descriptors = new cv.Mat();
-        orb.detectAndCompute(gray, new cv.Mat(), keypoints, descriptors);
-    } catch (err) {
-        console.error('Erro ao detectar e computar ORB: ', err);
-        return;
-    }
+    // Converter a imagem para escala de cinza
+    let gray = new cv.Mat();
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
 
-    // Verificar se há pontos chave válidos antes de tentar desenhá-los
-    if (keypoints.size() > 0) {
-        let imgKeypoints;
-        try {
-            imgKeypoints = new cv.Mat();
-            // Verificar se o canvas de exibição está correto
-            const canvasOverlayElement = document.getElementById('canvasOverlay');
-            if (canvasOverlayElement) {
-                cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
-                // Exibir imagem com pontos chave no canvas
-                cv.imshow(canvasOverlayElement, imgKeypoints);
-            } else {
-                console.error('Elemento de canvas não encontrado!');
+    // Aplicar a detecção de bordas (Canny)
+    let edges = new cv.Mat();
+    cv.Canny(gray, edges, 50, 100);
+
+    // Encontrar contornos (para detectar a carta)
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    // Processar contornos e detectar o retângulo da carta
+    for (let i = 0; i < contours.size(); i++) {
+        let contour = contours.get(i);
+        let approx = new cv.Mat();
+
+        // Aproximar o contorno para um polígono (para garantir que temos um retângulo)
+        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
+
+        // Verificar se é um retângulo
+        if (approx.rows == 4) {
+            // Obter os pontos do retângulo
+            let points = [];
+            for (let j = 0; j < 4; j++) {
+                points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
-        } catch (err) {
-            console.error('Erro ao desenhar pontos chave: ', err);
+
+            // Desenhar o retângulo ao redor da carta (desenhando diretamente no canvas)
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
+
+            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
+            let boundingRect = cv.boundingRect(contour);
+
+            // Calcular a proporção do retângulo
+            let aspectRatio = boundingRect.width / boundingRect.height;
+
+            // Verificar se a proporção do retângulo está dentro da faixa de uma carta (1.5 ± 0.1)
+            if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
+                // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
+                if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
+                    // O retângulo é válido e tem o tamanho mínimo necessário
+                    // Captura o crop da imagem com base na boundingRect
+                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+
+                    // Converte a imagem recortada para base64
+                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+
+                    console.log(boundingRect);
+
+                    // Enviar o crop para o servidor
+                    $.ajax({
+                        url: "{{ route('mtg.processImage') }}",
+                        type: 'POST',
+                        data: JSON.stringify({
+                            image: croppedBase64,
+                            boundingBox: boundingRect
+                        }),
+                        contentType: 'application/json',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            $('#info').html("📛 pHash: " + response.pHash);
+
+                            let imgElement = document.createElement("img");
+                            imgElement.src = response.croppedImageUrl;
+                            imgElement.style.width = '100%';
+                            imgElement.style.height = 'auto';
+
+                            let cropZone = document.getElementById('cropZone');
+                            cropZone.innerHTML = '';
+                            cropZone.appendChild(imgElement);
+
+                            // Adiciona um delay de 10 segundos após a resposta do AJAX
+                            setTimeout(function() {
+                                console.log('Atraso de 10 segundos completado');
+                                isCapturing = true;
+                            }, 10000);
+                        },
+                        error: function () {
+                            $('#info').html("❌ Erro ao enviar imagem");
+                        }
+                    });
+
+                    // Pausa a captura por 5 segundos após o envio
+                    isCapturing = false;
+                    setTimeout(() => { isCapturing = true }, 5000);
+                }
+            }
         }
-    } else {
-        console.log('Nenhum ponto chave encontrado');
     }
 
-    // Limpeza de memória
+    // Libere os recursos do OpenCV
     mat.delete();
     gray.delete();
-    descriptors.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
 };
 
 
-
-// Comparar descritores extraídos
-function compareDescriptors(descriptors) {
-    let bestMatch = null;
-    let minDistance = Number.MAX_VALUE;
-
-    for (let i = 0; i < descriptorDatabase.length; i++) {
-        let dbDescriptor = descriptorDatabase[i];
-        let distance = cv.norm(descriptors, dbDescriptor, cv.NORM_L2);
-
-        if (distance < minDistance) {
-            minDistance = distance;
-            bestMatch = dbDescriptor;  // Retorna o melhor match
-        }
-    }
-    return bestMatch;
-}
 </script>

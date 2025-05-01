@@ -105,12 +105,12 @@ class mtg_cards extends Model
                         $imageContent = file_get_contents($card['image_uris']['normal']);
                         file_put_contents($savePath . '/' . $filename, $imageContent);
                         //$hash_image = hash('sha256', $imageContent);
-                        $hash_image = (string) $hasher->hash($savePath . '/' . $filename);
+                        //$hash_image = (string) $hasher->hash($savePath . '/' . $filename);
                     } elseif (isset($card['card_faces'][0]['image_uris']['normal'])) {
                         $imageContent = file_get_contents($card['card_faces'][0]['image_uris']['normal']);
                         file_put_contents($savePath . '/' . $filename, $imageContent);
                         //$hash_image = hash('sha256', $imageContent);
-                        $hash_image = (string) $hasher->hash($savePath . '/' . $filename);
+                        //$hash_image = (string) $hasher->hash($savePath . '/' . $filename);
                     }
     
                     // Atualiza ou cria a carta no banco de dados
