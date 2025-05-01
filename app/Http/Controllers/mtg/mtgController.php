@@ -105,7 +105,10 @@ class mtgController extends Controller
 
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
-        $image = imagecreatefromstring($imageData);
+
+        //$image = imagecreatefromstring($imageData);
+
+        $image = Intervention\Image\Facades\Image::make($imageBinary);
 
         if ($image->width() === 0 || $image->height() === 0) {
             return response()->json(['error' => 'Imagem sem dimensões válidas'], 400);
