@@ -19,12 +19,9 @@
 
         <div id="croppedImage"></div>
     </body>
-</html>
-
-
 
     <script>
-        /**
+        
         const video = document.getElementById('videoElement');
 
         navigator.mediaDevices.getUserMedia({ video: true })
@@ -36,5 +33,10 @@
                 console.error("Erro ao aceder à webcam:", err);
                 document.getElementById("info").innerText = "❌ Erro ao aceder à webcam";
             });
-        **/
-    </script>
+        
+    </script>    
+</html>
+
+
+
+
