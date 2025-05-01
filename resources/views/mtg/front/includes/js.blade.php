@@ -41,13 +41,35 @@ window.setup = function () {
 };
 
 window.draw = function () {
+
     clear(); // limpa o canvas a cada frame
 
-    
+    if (!isCapturing) {
+        // Mostra bounding box, se existir
+        if (boundingBox.width > 0 && boundingBox.height > 0) {
+            noFill();
+            stroke('lime');
+            strokeWeight(3);
+            rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        }
+        return;
+    }
+
+    let img = video.get();
+    img.loadPixels();
+
+    let cropX = Math.floor((video.width - cropWidth) / 2);
+    let cropY = Math.floor((video.height - cropHeight) / 2);
+
+    let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
+    cropped.filter(GRAY);
+    cropped.loadPixels();
+
+    // --- tracking baseado em contraste ---
     let maxDiff = 0;
     let bestX = 0;
     let bestY = 0;
-    let boxSize = 100; // Tamanho da área para detecção
+    let boxSize = 100; // Tamanho da área de deteção
 
     for (let y = 0; y < cropped.height - boxSize; y += 10) {
         for (let x = 0; x < cropped.width - boxSize; x += 10) {
@@ -60,7 +82,7 @@ window.draw = function () {
                 }
             }
             let avg = sum / (boxSize * boxSize);
-            let diff = Math.abs(avg - 128); // contraste com meio-tom
+            let diff = Math.abs(avg - 128);
 
             if (diff > maxDiff) {
                 maxDiff = diff;
@@ -78,74 +100,63 @@ window.draw = function () {
         height: boxSize
     };
 
+    // Desenha a bounding box no canvas
     noFill();
     stroke('lime');
     strokeWeight(3);
     rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-    
 
-    if (isCapturing) {
-        let img = video.get();
-        img.loadPixels();
+    // Gera imagem base64 para enviar
+    let base64Image = cropped.canvas.toDataURL('image/jpeg');
 
-        let cropX = Math.floor((video.width - cropWidth) / 2);
-        let cropY = Math.floor((video.height - cropHeight) / 2);
 
-        let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
-        cropped.filter(GRAY);
+    // Verifica se o intervalo de 1 minuto foi atingido antes de enviar a requisição
+    const currentTime = Date.now();
+    if (currentTime - lastRequestTime >= minRequestInterval) {
 
-        let base64Image = cropped.canvas.toDataURL('image/jpeg');
+        $.ajax({
+            url: "{{ route('mtg.processImage') }}",
+            type: 'POST',
+            data: JSON.stringify({
+                image: base64Image,
+                boundingBox: boundingBox // envia o objeto com x, y, width, height
+            }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                info.html("📛 pHash: " + response.pHash);
 
-        // Verifica se o intervalo de 1 minuto foi atingido antes de enviar a requisição
-        const currentTime = Date.now();
-        if (currentTime - lastRequestTime >= minRequestInterval) {
+                // Atualiza a bounding box com as novas coordenadas
+                boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-            $.ajax({
-                url: "{{ route('mtg.processImage') }}",
-                type: 'POST',
-                data: JSON.stringify({
-                    image: base64Image,
-                    boundingBox: boundingBox // envia o objeto com x, y, width, height
-                }),
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    info.html("📛 pHash: " + response.pHash);
+                // Atualiza a #cropZone com a imagem recortada
+                let croppedImageUrl = response.croppedImageUrl;
+                let imgElement = document.createElement("img");
+                imgElement.src = croppedImageUrl;  // URL da imagem recortada
+                imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
+                imgElement.style.height = 'auto'; // Mantém a proporção
 
-                    // Atualiza a bounding box com as novas coordenadas
-                    boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
+                // Adiciona a imagem à #cropZone
+                let cropZone = document.getElementById('cropZone');
+                cropZone.innerHTML = ''; // Limpa qualquer conteúdo anterior
+                cropZone.appendChild(imgElement);
 
-                    // Atualiza a #cropZone com a imagem recortada
-                    let croppedImageUrl = response.croppedImageUrl;
-                    let imgElement = document.createElement("img");
-                    imgElement.src = croppedImageUrl;  // URL da imagem recortada
-                    imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
-                    imgElement.style.height = 'auto'; // Mantém a proporção
+                // Atualiza o tempo da última requisição
+                lastRequestTime = currentTime;
 
-                    // Adiciona a imagem à #cropZone
-                    let cropZone = document.getElementById('cropZone');
-                    cropZone.innerHTML = ''; // Limpa qualquer conteúdo anterior
-                    cropZone.appendChild(imgElement);
-
-                    // Atualiza o tempo da última requisição
-                    lastRequestTime = currentTime;
-
-                    // Continuar capturando frames
-                    isCapturing = true;
-                },
-                error: function(xhr, status, error) {
-                    console.error("Erro ao enviar imagem:", error);
-                    info.html("❌ Erro ao enviar imagem");
-                    isCapturing = true; // Reinicia a captura se houver erro
-                }
-            });
-        } else {
-            console.log("Aguardando 1 minuto antes de enviar nova requisição...");
-        }
-
-        isCapturing = false;
+                // Continuar capturando frames
+                isCapturing = true;
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro ao enviar imagem:", error);
+                info.html("❌ Erro ao enviar imagem");
+                isCapturing = true; // Reinicia a captura se houver erro
+            }
+        });
+    } else {
+        console.log("Aguardando 1 minuto antes de enviar nova requisição...");
     }
 };
 
