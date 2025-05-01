@@ -1,27 +1,20 @@
 <script>
-let video;
-let canvasOverlay;
-let isCapturing = true;
 
-const cropWidth = 1200;
-const cropHeight = 900;
-
-// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
-const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 100;  // Largura mínima em pixels
-const minHeight = 150; // Altura mínima em pixels
-
-// Configurar o vídeo
 window.setup = function () {
+    // Criar o canvas de overlay
     const canvas = createCanvas(cropWidth, cropHeight);
     canvasOverlay = canvas.elt;
     canvasOverlay.style.position = 'absolute';
     canvasOverlay.style.top = '0';
     canvasOverlay.style.left = '0';
     canvasOverlay.style.zIndex = '10';
+    
+    // Adicionando o canvasOverlay ao DOM
+    const videoContainer = document.getElementById('videoContainer');
+    videoContainer.appendChild(canvasOverlay);
 
+    // Captura de vídeo
     video = createCapture(VIDEO, () => {
-        const videoContainer = document.getElementById('videoContainer');
         videoContainer.style.position = 'relative';
         video.elt.style.position = 'absolute';
         video.elt.style.top = '0';
@@ -29,11 +22,11 @@ window.setup = function () {
         video.elt.width = cropWidth;
         video.elt.height = cropHeight;
         videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvasOverlay);
     });
 
     video.size(cropWidth, cropHeight);
 };
+
 // Função para processar cada frame e detectar a carta
 window.draw = function () {
     clear();  // Limpa o canvas
@@ -48,8 +41,8 @@ window.draw = function () {
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
     let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
-    // Exibir a imagem original para depuração
-    cv.imshow('canvasOverlay', mat);  // Exibe a imagem original no overlay
+    // Exibir a imagem original no canvasOverlay (usando o canvas real)
+    cv.imshow(canvasOverlay, mat);  // Exibe a imagem original no canvasOverlay
 
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
