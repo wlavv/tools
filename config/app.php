@@ -176,7 +176,6 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Milon\Barcode\BarcodeServiceProvider::class,
-        Intervention\Image\ImageServiceProvider::class,
     ])->toArray(),
 
     /*
@@ -189,14 +188,12 @@ return [
     | the aliases are "lazy" loaded so they don't hinder performance.
     |
     */
-    
 
     'aliases' => Facade::defaultAliases()->merge([
         
         'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
         'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
-        'Image' => Intervention\Image\Facades\Image::class,
-                // 'Example' => App\Facades\Example::class,
+        // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
 ];
