@@ -60,7 +60,9 @@
         function draw() {
             image(video, 0, 0); // Exibe o vídeo na tela
             let img = get(); // Captura o quadro atual
+            img.filter(GRAY); // Converte para escala de cinza
 
+            // Detecta os contornos na imagem
             contours = detectContours(img);
 
             if (contours.length > 0) {
@@ -108,9 +110,9 @@
                     let g = img.pixels[index + 1];
                     let b = img.pixels[index + 2];
 
-                    //if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
+                    if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
                         contours.push(createVector(x, y)); // Se encontrar um contorno, armazena o ponto
-                    //}
+                    }
                 }
             }
             return contours;
