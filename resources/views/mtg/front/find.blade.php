@@ -6,6 +6,8 @@
         <title>MTG Card Tracker with pHash</title>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+        <script async src="https://docs.opencv.org/4.x/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+
         @include("mtg.front.includes.css")
     </head>
     <body>
