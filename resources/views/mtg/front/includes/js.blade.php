@@ -150,22 +150,10 @@ window.draw = function () {
     }
 };
 
-// Função para iniciar o rastreamento contínuo
-function startTracking() {
-    if (!isTracking) {
-        isTracking = true;
-        info.html("🔍 A rastrear a carta...");
-    }
-}
-
 // Função para parar o rastreamento (se necessário)
 function stopTracking() {
     isTracking = false;
     info.html("❌ Rastreamento parado.");
 }
-
-// Chama a função de detecção no início para iniciar o rastreamento
-startTracking();
-
 
 </script>
