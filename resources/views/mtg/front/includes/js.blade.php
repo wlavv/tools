@@ -48,7 +48,6 @@ window.draw = function () {
     // Converte a imagem para Mat (OpenCV)
     let mat = cv.imread(img.canvas);
 
-
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
