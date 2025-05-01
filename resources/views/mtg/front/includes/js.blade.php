@@ -5,8 +5,8 @@ let info;
 let canvasOverlay;
 let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
 let isCapturing = true;
-const cropWidth = 500;
-const cropHeight = 750;
+const cropWidth = 1200;
+const cropHeight = 1500;
 
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
@@ -22,8 +22,8 @@ window.setup = function () {
         video.elt.style.position = 'absolute';
         video.elt.style.top = '0';
         video.elt.style.left = '0';
-        video.elt.width = '1200px';
-        video.elt.height = '900px';
+        video.elt.width = 1200;
+        video.elt.height = 900;
         videoContainer.appendChild(video.elt);
         videoContainer.appendChild(canvasOverlay); // sobrepõe o canvas ao vídeo
     });
