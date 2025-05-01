@@ -85,7 +85,7 @@ window.draw = function () {
             // Desenhar o retângulo ao redor da carta
             let boundingRect = cv.boundingRect(contour);
             console.log('Bounding Rect:', boundingRect);
-            cv.rectangle(mat, boundingRect, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
+            cv.rectangle(mat, boundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
 
             // Calcular a proporção do retângulo
             let aspectRatio = boundingRect.width / boundingRect.height;
