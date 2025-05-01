@@ -21,6 +21,9 @@ Route::get('/mtg/front/find',   [mtgController::class, 'findCard'])->name('mtg.f
 Route::post('/mtg/find-card-base64', [mtgController::class, 'findCardFromBase64'])->name('mtg.findCardFromBase64');
 Route::post('/mtg/front/compare-hash', [mtgController::class, 'compareHash'])->name('mtg.compareHash');
 
+/** new approuch **/
+Route::post('/mtg/front/process-image', [mtgController::class, 'processImage'])->name('mtg.processImage');
+
 /** AREAS **/
 Route::resources([ 'home'           => dashboardController::class       ]);
 Route::resources([ 'dashboard'      => dashboardController::class       ]);

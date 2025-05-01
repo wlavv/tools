@@ -26,7 +26,7 @@
         $('#info').text('📤 A enviar imagem...');
 
         $.ajax({
-            url: "{{ route('mtg.process-image') }}",
+            url: "{{ route('mtg.processIImage') }}",
             type: "POST",
             data: {
                 image: base64Image,
@@ -46,7 +46,7 @@
     }
 
     function drawBoundingBox(box) {
-        
+
         removeExistingBox(); 
 
         const overlay = document.createElement('div');

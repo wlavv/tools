@@ -117,7 +117,7 @@ class mtgController extends Controller
         if (!preg_match('#^data:image/jpeg;base64,#', $base64Image)) {
             return response()->json(['error' => 'Formato de imagem não suportado (requer JPEG).'], 400);
         }
-        
+
         // Criar imagem GD a partir dos dados
         $image = imagecreatefromstring($imageData);
     
@@ -203,4 +203,76 @@ class mtgController extends Controller
         return null;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function processImage(Request $request)
+    {
+        // Verifica se a imagem foi enviada
+        if (!$request->has('image')) {
+            return response()->json(['error' => 'Imagem não fornecida.'], 400);
+        }
+
+        // Obtém a imagem base64 do request
+        $base64Image = $request->input('image');
+
+        // Decodifica a imagem base64
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
+
+        // Cria a imagem a partir dos dados binários
+        $image = imagecreatefromstring($imageData);
+
+        if (!$image) {
+            return response()->json(['error' => 'Imagem inválida.'], 400);
+        }
+
+        // Aplica o pHash para detectar a imagem
+        $imageHash = new ImageHash(new PerceptualHash());
+        $hash = $imageHash->hash($image);
+
+        if (!$hash) {
+            return response()->json(['error' => 'Erro ao gerar o pHash da imagem.'], 500);
+        }
+
+        // Convertendo o hash para hexadecimal
+        $pHash = $hash->toHex();
+
+        // Aqui você pode fazer a detecção da carta ou outras operações
+        // Para este exemplo, vamos retornar apenas o pHash
+        // Também retornamos a bounding box fictícia para exibir a borda (isso depende da lógica de detecção que implementares)
+        $boundingBox = [
+            'x' => 50,  // Coordenada X da borda
+            'y' => 100, // Coordenada Y da borda
+            'width' => 200, // Largura da borda
+            'height' => 300, // Altura da borda
+        ];
+
+        return response()->json([
+            'pHash' => $pHash,
+            'boundingBox' => $boundingBox,
+        ]);
+    }    
 }
