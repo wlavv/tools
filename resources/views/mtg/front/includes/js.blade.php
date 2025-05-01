@@ -1,5 +1,4 @@
 <script>
-
 let video;
 let canvasOverlay;
 let isCapturing = true;
@@ -43,10 +42,12 @@ window.draw = function () {
     if (!isCapturing) return;
 
     let img = video.get();
-    img.loadPixels();
-
-    // Converte a imagem para Mat (OpenCV)
-    let mat = cv.imread(img.canvas);
+    let canvas = document.createElement('canvas');
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
+    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
@@ -92,12 +93,17 @@ window.draw = function () {
                 if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
                     // O retângulo é válido e tem o tamanho mínimo necessário
                     // Captura o crop da imagem com base na boundingRect
-                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+                    let croppedMat = mat.roi(boundingRect); // Recorta a imagem no OpenCV
 
-                    // Converte a imagem recortada para base64
-                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+                    // Converter a imagem recortada para base64
+                    let croppedImage = new cv.Mat();
+                    cv.cvtColor(croppedMat, croppedImage, cv.COLOR_RGBA2BGR);
+                    let croppedCanvas = document.createElement('canvas');
+                    cv.imshow(croppedCanvas, croppedImage);  // Exibe no canvas
+                    let croppedBase64 = croppedCanvas.toDataURL('image/jpeg');
 
-                    console.log(boundingRect);
+                    console.log('BoundingRect:', boundingRect);
+                    console.log('Aspect Ratio:', aspectRatio);
 
                     // Enviar o crop para o servidor
                     $.ajax({
@@ -149,5 +155,4 @@ window.draw = function () {
     contours.delete();
     hierarchy.delete();
 };
-
 </script>
