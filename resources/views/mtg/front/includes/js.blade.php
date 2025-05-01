@@ -3,17 +3,11 @@
 let video;
 let canvasOverlay;
 let isCapturing = true;
-let detector;
 
 const cropWidth = 1200;
 const cropHeight = 900;
 
-async function onOpenCvReady() {
-    // Carregar o modelo COCO-SSD para detecção de objetos
-    detector = await cocoSsd.load();
-    console.log('Modelo COCO-SSD carregado com sucesso!');
-}
-
+// Configurar o vídeo
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
     canvasOverlay = canvas.elt;
@@ -35,94 +29,92 @@ window.setup = function () {
     });
 
     video.size(cropWidth, cropHeight);
-
-    // Aguardar o carregamento do modelo COCO-SSD
-    onOpenCvReady();
 };
 
+// Função para processar cada frame e detectar a carta
 window.draw = function () {
     clear();  // Limpa o canvas
 
-    if (!isCapturing || !detector) return;
+    if (!isCapturing) return;
 
-    // Captura o vídeo em cada frame
     let img = video.get();
-    
-    // Verifica se a imagem foi capturada corretamente
-    if (!img) {
-        console.error("Erro ao capturar o vídeo.");
-        return;
+    img.loadPixels();
+
+    // Converte a imagem para Mat (OpenCV)
+    let mat = cv.imread(img.canvas);
+
+    // Converter a imagem para escala de cinza
+    let gray = new cv.Mat();
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+
+    // Aplicar a detecção de bordas (Canny)
+    let edges = new cv.Mat();
+    cv.Canny(gray, edges, 50, 100);
+
+    // Encontrar contornos (para detectar a carta)
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    // Processar contornos e detectar o retângulo da carta
+    for (let i = 0; i < contours.size(); i++) {
+        let contour = contours.get(i);
+        let approx = new cv.Mat();
+
+        // Aproximar o contorno para um polígono (para garantir que temos um retângulo)
+        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
+
+        // Verificar se é um retângulo
+        if (approx.rows == 4) {
+            // Obter os pontos do retângulo
+            let points = [];
+            for (let j = 0; j < 4; j++) {
+                points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
+            }
+
+            // Desenhar o retângulo ao redor da carta
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
+
+            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
+            let boundingRect = cv.boundingRect(contour);
+            const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+
+            // Exibir o cropped (apenas a carta)
+            let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+
+            // Enviar o crop para o servidor
+            $.ajax({
+                url: "{{ route('mtg.processImage') }}",
+                type: 'POST',
+                data: JSON.stringify({
+                    image: croppedBase64,
+                    boundingBox: boundingRect
+                }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    // Exibe a resposta do backend (pHash, etc.)
+                    $('#info').html("📛 pHash: " + response.pHash);
+                },
+                error: function () {
+                    $('#info').html("❌ Erro ao enviar imagem");
+                }
+            });
+
+            // Pausa a captura por 5 segundos após o envio
+            isCapturing = false;
+            setTimeout(() => { isCapturing = true }, 5000);
+        }
     }
 
-    img.loadPixels();  // Certifique-se de carregar os pixels da imagem
-
-    // Usando o modelo COCO-SSD para detectar objetos no frame atual
-    detector.detect(img.canvas).then(predictions => {
-        predictions.forEach(prediction => {
-            // Verifica se a classe do objeto detectado é uma carta
-            //if (prediction.class.toLowerCase() === 'card') {
-                // Desenha a borda verde ao redor do objeto detectado
-                noFill();
-                stroke(0, 255, 0);  // Cor verde
-                strokeWeight(3);     // Espessura da borda
-                rectMode(CORNER);
-                rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
-
-                // Exibe o nome do objeto e a confiança
-                textSize(18);
-                text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
-
-                // Captura o crop da imagem com base na bounding box
-                const croppedImage = img.get(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
-
-                // Verifica se o recorte foi feito corretamente
-                if (!croppedImage) {
-                    console.error("Erro ao fazer o recorte da imagem.");
-                    return;
-                }
-
-                // Converte a imagem recortada para base64
-                const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
-
-                // Envia a imagem para o backend via AJAX
-                $.ajax({
-                    url: "{{ route('mtg.processImage') }}",
-                    type: 'POST',
-                    data: JSON.stringify({
-                        image: base64Image,
-                        boundingBox: prediction.bbox
-                    }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        // Exibe a resposta do backend (pHash, etc.)
-                        $('#info').html("📛 pHash: " + response.pHash);
-
-                        // Atualiza a imagem recortada no front-end
-                        let imgElement = document.createElement("img");
-                        imgElement.src = response.croppedImageUrl;
-                        imgElement.style.width = '100%';
-                        imgElement.style.height = 'auto';
-
-                        let cropZone = document.getElementById('cropZone');
-                        cropZone.innerHTML = '';
-                        cropZone.appendChild(imgElement);
-                    },
-                    error: function () {
-                        $('#info').html("❌ Erro ao enviar imagem");
-                    }
-                });
-
-                // Pausa a captura por 5 segundos após o envio
-                isCapturing = false;
-                setTimeout(() => { isCapturing = true }, 5000);
-            //}
-        });
-    }).catch(err => {
-        console.error("Erro na detecção de objetos: ", err);
-    });
+    // Libere os recursos do OpenCV
+    mat.delete();
+    gray.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
 };
 
 </script>
