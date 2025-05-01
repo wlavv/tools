@@ -293,9 +293,9 @@ class mtgController extends Controller
         // A lógica real de detecção deve ser implementada aqui (ex: OpenCV, CNN, etc.)
         return [
             'x' => 50,  // Coordenada X da borda
-            'y' => 100, // Coordenada Y da borda
-            'width' => 200, // Largura da borda
-            'height' => 300, // Altura da borda
+            'y' => 50, // Coordenada Y da borda
+            'width' => 500, // Largura da borda
+            'height' => 750, // Altura da borda
         ];
     }    
 }

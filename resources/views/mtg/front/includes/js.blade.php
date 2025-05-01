@@ -129,4 +129,5 @@ function stopTracking() {
 // Chama a função de detecção no início para iniciar o rastreamento
 startTracking();
 
+
 </script>
