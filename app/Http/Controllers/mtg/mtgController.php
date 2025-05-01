@@ -112,8 +112,16 @@ class mtgController extends Controller
         $imageHash = new ImageHash();
 
         try {
-            $imageHash = $imageHash->hash($image); 
-            $inputHash = $imageHash->toHex();  
+
+            $implementation = new PerceptualHash();
+            $hasher = new ImageHash($implementation);
+            $hash = $hasher->hash($image);
+            $inputHash = $hash->toHex();
+
+            if (empty($inputHash)) {
+                return response()->json(['error' => 'Hash não gerada'], 400);
+            }
+                        
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
         }
