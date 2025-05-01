@@ -5,6 +5,7 @@
 let video;
 let canvasOverlay;
 let templateImage;  // A carta template que será usada para comparação
+let templateCanvas;  // Canvas para desenhar a carta template
 let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
@@ -64,6 +65,13 @@ function setup() {
   templateImage = new Image();
   templateImage.src = '/images/mtg/templates/land artefact.png'; // Caminho da imagem template
   templateImage.onload = function () {
+    // Criar um canvas para desenhar o template da carta
+    templateCanvas = document.createElement('canvas');
+    const templateContext = templateCanvas.getContext('2d');
+    templateCanvas.width = templateImage.width;
+    templateCanvas.height = templateImage.height;
+    templateContext.drawImage(templateImage, 0, 0);
+
     video = createCapture(VIDEO, () => {
       const videoContainer = document.getElementById('videoContainer');
       videoContainer.style.position = 'relative';
@@ -90,7 +98,7 @@ function draw() {
   
   // Aguardar que a captura do vídeo e o template estejam prontos
   if (img && templateImage.complete) {
-    let match = matchTemplate(img.canvas, templateImage);
+    let match = matchTemplate(img.canvas, templateCanvas);
 
     // Desenha o retângulo ao redor do template encontrado
     if (match.score > -Infinity) {
