@@ -26,7 +26,7 @@
         $('#info').text('📤 A enviar imagem...');
 
         $.ajax({
-            url: "{{ route('mtg.processIImage') }}",
+            url: "{{ route('mtg.processImage') }}",
             type: "POST",
             data: {
                 image: base64Image,
