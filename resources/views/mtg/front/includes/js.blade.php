@@ -5,96 +5,107 @@
 
 let video;
 let canvasOverlay;
+let templateImage;  // A carta template que será usada para comparação
 let isCapturing = true;
-let templateImage;
-let matchThreshold = 0.8; // Limite de correspondência
-
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
-const minWidth = 100;  // Largura mínima em pixels
-const minHeight = 150; // Altura mínima em pixels
+// Template Matching
+function matchTemplate(videoFrame, template) {
+  const videoCanvas = document.createElement('canvas');
+  const videoContext = videoCanvas.getContext('2d');
+  videoCanvas.width = videoFrame.width;
+  videoCanvas.height = videoFrame.height;
+  videoContext.drawImage(videoFrame, 0, 0);
 
-// Carregar a imagem do template (a carta de Magic)
-function preload() {
-    template = loadImage('/images/mtg/templates/land artefact.png');
+  const videoData = videoContext.getImageData(0, 0, videoFrame.width, videoFrame.height);
+  const templateData = template.getImageData(0, 0, template.width, template.height);
+
+  let bestMatch = { x: 0, y: 0, score: -Infinity };  // Guardar a melhor correspondência
+
+  // Slide do template sobre a imagem
+  for (let y = 0; y < videoFrame.height - template.height; y++) {
+    for (let x = 0; x < videoFrame.width - template.width; x++) {
+      let score = 0;
+
+      // Comparar o bloco da imagem com o template
+      for (let ty = 0; ty < template.height; ty++) {
+        for (let tx = 0; tx < template.width; tx++) {
+          const idxFrame = ((y + ty) * videoFrame.width + (x + tx)) * 4;
+          const idxTemplate = (ty * template.width + tx) * 4;
+          
+          // Somar diferenças entre os pixels
+          const rDiff = Math.abs(videoData.data[idxFrame] - templateData.data[idxTemplate]);
+          const gDiff = Math.abs(videoData.data[idxFrame + 1] - templateData.data[idxTemplate + 1]);
+          const bDiff = Math.abs(videoData.data[idxFrame + 2] - templateData.data[idxTemplate + 2]);
+
+          score -= (rDiff + gDiff + bDiff); // Maior valor é a melhor correspondência
+        }
+      }
+
+      if (score > bestMatch.score) {
+        bestMatch = { x, y, score };
+      }
+    }
+  }
+
+  return bestMatch;
 }
 
-window.setup = function () {
-    const canvas = createCanvas(cropWidth, cropHeight);
-    canvasOverlay = canvas.elt;
-    canvasOverlay.style.position = 'absolute';
-    canvasOverlay.style.top = '0';
-    canvasOverlay.style.left = '0';
-    canvasOverlay.style.zIndex = '10';
+// Configurar o vídeo
+function setup() {
+  const canvas = createCanvas(cropWidth, cropHeight);
+  canvasOverlay = canvas.elt;
+  canvasOverlay.style.position = 'absolute';
+  canvasOverlay.style.top = '0';
+  canvasOverlay.style.left = '0';
+  canvasOverlay.style.zIndex = '10';
 
+  // Carregar o template (a carta modelo)
+  templateImage = new Image();
+  templateImage.src = '/images/mtg/templates/land artefact.png'; // Caminho da imagem template
+  templateImage.onload = function() {
     video = createCapture(VIDEO, () => {
-        const videoContainer = document.getElementById('videoContainer');
-        videoContainer.style.position = 'relative';
-        video.elt.style.position = 'absolute';
-        video.elt.style.top = '0';
-        video.elt.style.left = '0';
-        video.elt.width = cropWidth;
-        video.elt.height = cropHeight;
-        videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvasOverlay);
+      const videoContainer = document.getElementById('videoContainer');
+      videoContainer.style.position = 'relative';
+      video.elt.style.position = 'absolute';
+      video.elt.style.top = '0';
+      video.elt.style.left = '0';
+      video.elt.width = cropWidth;
+      video.elt.height = cropHeight;
+      videoContainer.appendChild(video.elt);
+      videoContainer.appendChild(canvasOverlay);
     });
 
     video.size(cropWidth, cropHeight);
-};
+  };
+}
 
 // Função para processar cada frame e detectar a carta
-window.draw = function () {
-    clear();  // Limpa o canvas
+function draw() {
+  clear(); // Limpa o canvas
 
-    if (!isCapturing) return;
+  if (!isCapturing) return;
 
-    let img = video.get();
-    let canvas = document.createElement('canvas');
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
-    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
+  let img = video.get();
+  let match = matchTemplate(img.canvas, templateImage);
 
-    // Converter a imagem capturada para escala de cinza
-    let gray = new cv.Mat();
-    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  // Desenha o retângulo ao redor do template encontrado
+  if (match.score > -Infinity) {
+    const { x, y } = match;
+    stroke(0, 255, 0);
+    noFill();
+    rect(x, y, templateImage.width, templateImage.height); // Desenha o contorno da carta
 
-    // Converter o template para escala de cinza também
-    let templateGray = new cv.Mat();
-    cv.cvtColor(cv.imread(templateImage.canvas), templateGray, cv.COLOR_RGBA2GRAY);
+    // Exibir cropped image
+    let croppedImage = img.get(x, y, templateImage.width, templateImage.height);
+    croppedImage.loadPixels();
+    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+    document.getElementById('croppedImage').innerHTML = `<img src="${croppedBase64}" />`;
+  }
+}
 
-    // Aplicar Template Matching
-    let result = new cv.Mat();
-    cv.matchTemplate(gray, templateGray, result, cv.TM_CCOEFF_NORMED);
-
-    // Obter os pontos de coincidência
-    let minMax = cv.minMaxLoc(result);
-    let maxPoint = minMax.maxLoc;
-    let matchVal = minMax.maxVal;
-
-    // Se a correspondência for suficientemente boa, desenhar o retângulo ao redor
-    if (matchVal >= matchThreshold) {
-        // Desenhar um retângulo verde em volta da carta detectada
-        let point1 = new cv.Point(maxPoint.x, maxPoint.y);
-        let point2 = new cv.Point(maxPoint.x + templateImage.width, maxPoint.y + templateImage.height);
-        cv.rectangle(mat, point1, point2, [0, 255, 0, 255], 3);
-        
-        // Adicionar mais lógica para capturar o crop ou outras ações, se necessário
-        console.log("Carta detectada com valor de correspondência: ", matchVal);
-    }
-
-    // Exibir a imagem com o retângulo no canvas
-    cv.imshow(canvasOverlay, mat);
-
-    // Libere os recursos do OpenCV
-    mat.delete();
-    gray.delete();
-    result.delete();
-    templateGray.delete();
-};
-
+// Inicia a captura e o processamento
+setup();
 
 </script>
