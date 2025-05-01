@@ -9,8 +9,8 @@ const cropHeight = 900;
 
 // Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
 const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 200;  // Largura mínima em pixels
-const minHeight = 300; // Altura mínima em pixels
+const minWidth = 100;  // Largura mínima em pixels
+const minHeight = 150; // Altura mínima em pixels
 
 // Configurar o vídeo
 window.setup = function () {
