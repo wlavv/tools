@@ -172,7 +172,7 @@ function sendImageToServer(croppedImageCanvas) {
 
         // Envia via AJAX utilizando jQuery
 
-        if(base64Image.lenght() > 0){
+        if(base64Image.length > 0){
             $.ajax({
                 url: '/mtg/find-card-base64',
                 type: 'POST',
