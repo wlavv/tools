@@ -3,7 +3,6 @@
 let video;
 let canvasOverlay;
 let isCapturing = true;
-let lastRequestTime = 0;
 let detector;
 
 const cropWidth = 1200;
@@ -64,6 +63,47 @@ window.draw = function () {
             // Exibe o nome do objeto e a confiança
             textSize(18);
             text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
+
+            // Captura o crop da imagem com base na bbox
+            const croppedImage = img.get(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+
+            // Converte a imagem recortada para base64
+            const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
+
+            // Envia a imagem para o backend via AJAX
+            $.ajax({
+                url: "{{ route('mtg.processImage') }}",
+                type: 'POST',
+                data: JSON.stringify({
+                    image: base64Image,
+                    boundingBox: prediction.bbox
+                }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    // Exibe a resposta do backend (pHash, etc.)
+                    info.html("📛 pHash: " + response.pHash);
+
+                    // Atualiza a imagem recortada no front-end
+                    let imgElement = document.createElement("img");
+                    imgElement.src = response.croppedImageUrl;
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = 'auto';
+
+                    let cropZone = document.getElementById('cropZone');
+                    cropZone.innerHTML = '';
+                    cropZone.appendChild(imgElement);
+                },
+                error: function () {
+                    info.html("❌ Erro ao enviar imagem");
+                }
+            });
+
+            // Pausa a captura por 5 segundos após o envio
+            isCapturing = false;
+            setTimeout(() => { isCapturing = true }, 5000);
         });
     }).catch(err => {
         console.error("Erro na detecção de objetos: ", err);
