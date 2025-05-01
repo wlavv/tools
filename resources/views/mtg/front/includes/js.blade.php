@@ -78,8 +78,8 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Desenhar o retângulo ao redor da carta
-            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
+            // Desenhar o retângulo ao redor da carta (desenhando diretamente no canvas)
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);  // Contorno verde
 
             // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
             let boundingRect = cv.boundingRect(contour);
