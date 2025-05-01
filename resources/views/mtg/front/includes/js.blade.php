@@ -1,21 +1,12 @@
 <script>
-
 let video;
 let canvasOverlay;
 let isCapturing = true;
-let detector;
-
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// As classes que você quer procurar. Aqui estou incluindo 'card' como exemplo, 
-// mas se o modelo não encontrar 'card', você pode testar outros nomes de classes
-const targetClasses = ['card', 'playing card', 'board game', 'paper'];
-
 async function onOpenCvReady() {
-    // Carregar o modelo COCO-SSD para detecção de objetos
-    detector = await cocoSsd.load();
-    console.log('Modelo COCO-SSD carregado com sucesso!');
+    console.log('OpenCV carregado com sucesso!');
 }
 
 window.setup = function () {
@@ -39,81 +30,84 @@ window.setup = function () {
     });
 
     video.size(cropWidth, cropHeight);
-
-    // Aguardar o carregamento do modelo COCO-SSD
     onOpenCvReady();
 };
 
 window.draw = function () {
     clear();  // Limpa o canvas
 
-    if (!isCapturing || !detector) return;
+    if (!isCapturing) return;
 
-    // Captura o vídeo em cada frame
     let img = video.get();
     img.loadPixels();
 
-    // Usando o modelo COCO-SSD para detectar objetos no frame atual
-    detector.detect(img.canvas).then(predictions => {
-        predictions.forEach(prediction => {
-            // Verificar se a classe do objeto detectado está na lista de classes alvo
-            //if (targetClasses.includes(prediction.class.toLowerCase())) {
-                // Desenha a borda verde ao redor do objeto detectado
-                noFill();
-                stroke(0, 255, 0);  // Cor verde
-                strokeWeight(3);     // Espessura da borda
-                rectMode(CORNER);
-                rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+    // Detecta bordas usando Canny
+    let src = cv.imread(img.canvas);
+    let gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY); // Converte para escala de cinza
+    let edges = new cv.Mat();
+    cv.Canny(gray, edges, 100, 200);  // Detecta as bordas
 
-                // Exibe o nome do objeto e a confiança
-                textSize(18);
-                text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
+    // Encontrar contornos
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-                // Captura o crop da imagem com base na bbox
-                const croppedImage = img.get(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+    // Filtra os contornos para encontrar quadriláteros (forma da carta)
+    for (let i = 0; i < contours.size(); i++) {
+        let contour = contours.get(i);
+        let approx = new cv.Mat();
+        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true); // Aproxima o contorno
 
-                // Converte a imagem recortada para base64
-                const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
+        // Se encontrar um quadrilátero (carta), aplica a transformação
+        if (approx.rows == 4) {
+            let points = [];
+            for (let j = 0; j < 4; j++) {
+                points.push([approx.data32S[j * 2], approx.data32S[j * 2 + 1]]);
+            }
 
-                // Envia a imagem para o backend via AJAX
-                $.ajax({
-                    url: "{{ route('mtg.processImage') }}",
-                    type: 'POST',
-                    data: JSON.stringify({
-                        image: base64Image,
-                        boundingBox: prediction.bbox
-                    }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        // Exibe a resposta do backend (pHash, etc.)
-                        $('#info').html("📛 pHash: " + response.pHash);
+            points = orderPoints(points);  // Ordena os pontos
 
-                        // Atualiza a imagem recortada no front-end
-                        let imgElement = document.createElement("img");
-                        imgElement.src = response.croppedImageUrl;
-                        imgElement.style.width = '100%';
-                        imgElement.style.height = 'auto';
+            // Aplica a transformação de perspectiva para "endireitar" a carta
+            let width = 224;  // Tamanho da carta (ajustável)
+            let height = 324;
+            let dst = cv.matFromArray([
+                [0, 0],
+                [width - 1, 0],
+                [width - 1, height - 1],
+                [0, height - 1]
+            ], cv.CV_32F);
 
-                        let cropZone = document.getElementById('cropZone');
-                        cropZone.innerHTML = '';
-                        cropZone.appendChild(imgElement);
-                    },
-                    error: function () {
-                        $('#info').html("❌ Erro ao enviar imagem");
-                    }
-                });
+            let M = cv.getPerspectiveTransform(new cv.Mat(4, 1, cv.CV_32F, points), dst);
+            let dstImg = new cv.Mat();
+            cv.warpPerspective(src, dstImg, M, new cv.Size(width, height));
 
-                // Pausa a captura por 5 segundos após o envio
-                isCapturing = false;
-                setTimeout(() => { isCapturing = true }, 5000);
-            //}
-        });
-    }).catch(err => {
-        console.error("Erro na detecção de objetos: ", err);
-    });
+            // Exibe o resultado da transformação
+            cv.imshow('outputCanvas', dstImg);
+
+            // Limpeza de recursos OpenCV
+            src.delete(); gray.delete(); edges.delete(); contours.delete(); hierarchy.delete();
+
+            // Enviar a imagem corrigida para o backend (se necessário)
+            return dstImg;  // Retorna a imagem transformada
+        }
+    }
+
+    // Limpeza dos recursos do OpenCV
+    src.delete(); gray.delete(); edges.delete(); contours.delete(); hierarchy.delete();
 };
 
+// Função para ordenar os pontos do quadrilátero (como fizemos no Python)
+function orderPoints(points) {
+    let rect = new Array(4);
+    let s = points.map(p => p[0] + p[1]);
+    let diff = points.map(p => p[0] - p[1]);
+
+    rect[0] = points[s.indexOf(Math.min(...s))];  // topo-esquerda
+    rect[2] = points[s.indexOf(Math.max(...s))];  // fundo-direita
+    rect[1] = points[diff.indexOf(Math.min(...diff))];  // topo-direita
+    rect[3] = points[diff.indexOf(Math.max(...diff))];  // fundo-esquerda
+
+    return rect;
+}
 </script>
