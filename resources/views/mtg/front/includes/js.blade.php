@@ -6,7 +6,7 @@ let canvasOverlay;
 let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
 let isCapturing = true;
 const cropWidth = 1200;
-const cropHeight = 1500;
+const cropHeight = 900;
 
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
