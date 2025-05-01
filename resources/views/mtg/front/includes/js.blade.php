@@ -1,17 +1,17 @@
 <script>
 
 let video;
-let info;
 let canvasOverlay;
 let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
 let isCapturing = true;
+let lastRequestTime = 0;
+
 const cropWidth = 1200;
 const cropHeight = 900;
-let isTracking = false; // Variável para controlar o estado de rastreamento
 
-// Variáveis para controle de requisições AJAX
-let lastRequestTime = 0;  // Armazena o tempo da última requisição
-const minRequestInterval = 60000; // Intervalo de 1 minuto (em milissegundos)
+function onOpenCvReady() {
+    console.log('OpenCV.js loaded ✅');
+}
 
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
@@ -19,7 +19,7 @@ window.setup = function () {
     canvasOverlay.style.position = 'absolute';
     canvasOverlay.style.top = '0';
     canvasOverlay.style.left = '0';
-    canvasOverlay.style.zIndex = '10'; // Sobre o vídeo
+    canvasOverlay.style.zIndex = '10';
 
     video = createCapture(VIDEO, () => {
         const videoContainer = document.getElementById('videoContainer');
@@ -30,134 +30,107 @@ window.setup = function () {
         video.elt.width = 1200;
         video.elt.height = 900;
         videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvasOverlay); // sobrepõe o canvas ao vídeo
+        videoContainer.appendChild(canvasOverlay);
     });
 
     video.size(cropWidth, cropHeight);
-    // NÃO usamos video.hide() — queremos vê-lo
-
-    info = select('#info');
-    info.html("🔍 A procurar carta...");
 };
 
 window.draw = function () {
-
-    clear(); // limpa o canvas a cada frame
-
-    if (!isCapturing) {
-        // Mostra bounding box, se existir
-        if (boundingBox.width > 0 && boundingBox.height > 0) {
-            noFill();
-            stroke('lime');
-            strokeWeight(3);
-            rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-        }
-        return;
-    }
+    clear();
 
     let img = video.get();
     img.loadPixels();
 
-    let cropX = Math.floor((video.width - cropWidth) / 2);
-    let cropY = Math.floor((video.height - cropHeight) / 2);
+    if (typeof cv === 'undefined' || !cv.imread) {
+        return;
+    }
 
-    let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
-    cropped.filter(GRAY);
-    cropped.loadPixels();
+    const src = cv.imread(img.canvas);
+    const gray = new cv.Mat();
+    const edges = new cv.Mat();
 
-    // --- tracking baseado em contraste ---
-    let maxDiff = 0;
-    let bestX = 0;
-    let bestY = 0;
-    let boxSize = 100; // Tamanho da área de deteção
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
+    cv.Canny(gray, edges, 50, 150);
 
-    for (let y = 0; y < cropped.height - boxSize; y += 10) {
-        for (let x = 0; x < cropped.width - boxSize; x += 10) {
-            let sum = 0;
-            for (let j = 0; j < boxSize; j++) {
-                for (let i = 0; i < boxSize; i++) {
-                    let index = 4 * ((y + j) * cropped.width + (x + i));
-                    let brightness = cropped.pixels[index]; // escala de cinza
-                    sum += brightness;
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+
+    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    let maxArea = 0;
+    let bestRect = null;
+
+    for (let i = 0; i < contours.size(); i++) {
+        let cnt = contours.get(i);
+        let rect = cv.boundingRect(cnt);
+
+        const aspectRatio = rect.width / rect.height;
+        const area = rect.width * rect.height;
+
+        // Filtro: proporção aproximada de carta + área mínima
+        if (aspectRatio > 0.6 && aspectRatio < 0.8 && area > 10000) {
+            if (area > maxArea) {
+                maxArea = area;
+                bestRect = rect;
+            }
+        }
+        cnt.delete();
+    }
+
+    if (bestRect) {
+        boundingBox = {
+            x: bestRect.x,
+            y: bestRect.y,
+            width: bestRect.width,
+            height: bestRect.height
+        };
+
+        // Só envia para servidor 1x por minuto
+        const now = Date.now();
+        if (now - lastRequestTime > 60000 && isCapturing) {
+            const croppedCanvas = document.createElement("canvas");
+            croppedCanvas.width = bestRect.width;
+            croppedCanvas.height = bestRect.height;
+            const croppedCtx = croppedCanvas.getContext("2d");
+            croppedCtx.drawImage(video.elt, bestRect.x, bestRect.y, bestRect.width, bestRect.height, 0, 0, bestRect.width, bestRect.height);
+            const base64Image = croppedCanvas.toDataURL('image/jpeg');
+
+            $.ajax({
+                url: "{{ route('mtg.processImage') }}",
+                type: 'POST',
+                data: JSON.stringify({ image: base64Image }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = response.croppedImageUrl;
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = 'auto';
+
+                    const cropZone = document.getElementById('cropZone');
+                    cropZone.innerHTML = '';
+                    cropZone.appendChild(imgElement);
+
+                    lastRequestTime = now;
                 }
-            }
-            let avg = sum / (boxSize * boxSize);
-            let diff = Math.abs(avg - 128);
-
-            if (diff > maxDiff) {
-                maxDiff = diff;
-                bestX = x;
-                bestY = y;
-            }
+            });
         }
     }
 
-    // Atualiza boundingBox com base no ponto de maior contraste
-    boundingBox = {
-        x: bestX,
-        y: bestY,
-        width: boxSize,
-        height: boxSize
-    };
-
-    // Desenha a bounding box no canvas
     noFill();
     stroke('lime');
     strokeWeight(3);
     rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
 
-    // Gera imagem base64 para enviar
-    let base64Image = cropped.canvas.toDataURL('image/jpeg');
-
-
-    // Verifica se o intervalo de 1 minuto foi atingido antes de enviar a requisição
-    const currentTime = Date.now();
-    if (currentTime - lastRequestTime >= minRequestInterval) {
-
-        $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: 'POST',
-            data: JSON.stringify({
-                image: base64Image,
-                boundingBox: boundingBox // envia o objeto com x, y, width, height
-            }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                info.html("📛 pHash: " + response.pHash);
-
-                // Atualiza a bounding box com as novas coordenadas
-                boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
-
-                // Atualiza a #cropZone com a imagem recortada
-                let croppedImageUrl = response.croppedImageUrl;
-                let imgElement = document.createElement("img");
-                imgElement.src = croppedImageUrl;  // URL da imagem recortada
-                imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
-                imgElement.style.height = 'auto'; // Mantém a proporção
-
-                // Adiciona a imagem à #cropZone
-                let cropZone = document.getElementById('cropZone');
-                cropZone.innerHTML = ''; // Limpa qualquer conteúdo anterior
-                cropZone.appendChild(imgElement);
-
-                // Atualiza o tempo da última requisição
-                lastRequestTime = currentTime;
-
-                // Continuar capturando frames
-                isCapturing = true;
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao enviar imagem:", error);
-                info.html("❌ Erro ao enviar imagem");
-                isCapturing = true; // Reinicia a captura se houver erro
-            }
-        });
-    } else {
-        console.log("Aguardando 1 minuto antes de enviar nova requisição...");
-    }
+    src.delete();
+    gray.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
 };
 
 </script>
