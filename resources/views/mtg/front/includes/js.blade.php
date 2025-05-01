@@ -70,6 +70,8 @@ window.draw = function () {
             // Converte a imagem recortada para base64
             const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
 
+            let info = document.getElementById('info'); // Seleciona o elemento com o id 'info'
+
             // Envia a imagem para o backend via AJAX
             $.ajax({
                 url: "{{ route('mtg.processImage') }}",
