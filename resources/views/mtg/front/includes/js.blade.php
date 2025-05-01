@@ -1,77 +1,78 @@
 <script>
     let video;
+    let info;
+    let croppedImageElement = document.getElementById('croppedImage');
+    let croppedImageCanvas;
+    let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
+    let isCapturing = true;  // Flag para controlar a captura contínua
 
     function setup() {
-        noCanvas();
-
+        // Criação da tela e captura do vídeo
+        createCanvas(windowWidth, windowHeight); // Ajusta para ocupar toda a largura e altura da página
         video = createCapture(VIDEO);
-        video.size(windowWidth, windowHeight);
-        video.hide();
+        video.size(width, height);
+        video.hide(); // Oculta o elemento de vídeo na página
 
-        const button = createButton('📸 Capturar imagem');
-        button.style('font-size', '18px');
-        button.style('margin', '20px');
-        button.mousePressed(() => {
-            captureAndSend(video);
-        });
+        info = select('#info');
+        info.html("🔍 A procurar carta...");
+
+        frameRate(30); // Ajusta para capturar 30 quadros por segundo
     }
 
-    function captureAndSend(video) {
-        const canvas = createGraphics(video.width, video.height);
-        canvas.image(video, 0, 0, video.width, video.height);
+    function draw() {
+        if (isCapturing) {
+            image(video, 0, 0); // Exibe o vídeo ao vivo
 
-        canvas.loadPixels();
-        const base64Image = canvas.canvas.toDataURL("image/png");
+            // Captura o quadro atual do vídeo
+            let img = get();
+            img.loadPixels();
 
-        $('#info').text('📤 A enviar imagem...');
+            // Realiza a detecção da carta
+            detectCard(img);
 
+            // Se a borda da carta for detectada, desenha ela na tela
+            if (boundingBox.width > 0 && boundingBox.height > 0) {
+                noFill();
+                stroke(255, 0, 0); // Define a cor da borda para vermelho
+                strokeWeight(4);   // Ajusta a espessura da linha da borda
+                rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height); // Desenha a borda ao redor da carta
+            }
+        }
+    }
+
+    function detectCard(img) {
+        // Aqui você captura o quadro da câmera e envia para o servidor para detecção
+        img.filter(GRAY); // Converte para escala de cinza, se necessário
+
+        // Converte a imagem em base64
+        let base64Image = img.canvas.toDataURL('image/jpeg');
+
+        // Envia a imagem para o servidor via AJAX
         $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: "POST",
-            data: {
-                image: base64Image,
-                _token: $('meta[name="csrf-token"]').attr('content')
+            url: "{{ route('mtg.processImage') }}", // Rota para processar a imagem
+            type: 'POST',
+            data: JSON.stringify({ image: base64Image }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
             },
-            success: function (response) {
-                $('#info').text(`✅ pHash: ${response.pHash}`);
+            success: function(response) {
+                // Exibe o pHash da carta detectada
+                info.html("pHash da carta: " + response.pHash);
 
-                if (response.boundingBox) {
-                    drawBoundingBox(response.boundingBox);
-                }
+                // Atualiza a posição e tamanho da borda
+                boundingBox = response.boundingBox;
+
+                // Interrompe a captura por 5 segundos
+                isCapturing = false;
+                setTimeout(function() {
+                    isCapturing = true; // Reinicia a captura após 5 segundos
+                }, 5000);
             },
-            error: function () {
-                $('#info').text("❌ Erro ao enviar imagem.");
+            error: function(xhr, status, error) {
+                console.error('Erro ao enviar imagem:', error);
+                info.html('Erro ao enviar imagem!');
             }
         });
     }
-
-    function drawBoundingBox(box) {
-
-        removeExistingBox(); 
-
-        const overlay = document.createElement('div');
-        overlay.id = 'boundingBoxOverlay';
-        overlay.style.position = 'absolute';
-        overlay.style.border = '3px solid red';
-        overlay.style.left = box.x + 'px';
-        overlay.style.top = box.y + 'px';
-        overlay.style.width = box.width + 'px';
-        overlay.style.height = box.height + 'px';
-        overlay.style.zIndex = 9999;
-
-        document.body.appendChild(overlay);
-    }
-
-    function removeExistingBox() {
-        const oldBox = document.getElementById('boundingBoxOverlay');
-        if (oldBox) {
-            oldBox.remove();
-        }
-    }
-
-    window.addEventListener("resize", () => {
-        if (video) {
-            video.size(windowWidth, windowHeight);
-        }
-    });
 </script>
