@@ -84,23 +84,27 @@ function setup() {
 function draw() {
   clear(); // Limpa o canvas
 
-  if (!isCapturing) return;
+  if (!isCapturing || !video || !templateImage.complete) return;
 
-  let img = video.get();
-  let match = matchTemplate(img.canvas, templateImage);
+  let img = video.get();  // Capture the current frame from the video
+  
+  // Aguardar que a captura do vídeo e o template estejam prontos
+  if (img && templateImage.complete) {
+    let match = matchTemplate(img.canvas, templateImage);
 
-  // Desenha o retângulo ao redor do template encontrado
-  if (match.score > -Infinity) {
-    const { x, y } = match;
-    stroke(0, 255, 0);
-    noFill();
-    rect(x, y, templateImage.width, templateImage.height); // Desenha o contorno da carta
+    // Desenha o retângulo ao redor do template encontrado
+    if (match.score > -Infinity) {
+      const { x, y } = match;
+      stroke(0, 255, 0);
+      noFill();
+      rect(x, y, templateImage.width, templateImage.height); // Desenha o contorno da carta
 
-    // Exibir cropped image
-    let croppedImage = img.get(x, y, templateImage.width, templateImage.height);
-    croppedImage.loadPixels();
-    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
-    document.getElementById('croppedImage').innerHTML = `<img src="${croppedBase64}" />`;
+      // Exibir cropped image
+      let croppedImage = img.get(x, y, templateImage.width, templateImage.height);
+      croppedImage.loadPixels();
+      let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+      document.getElementById('croppedImage').innerHTML = `<img src="${croppedBase64}" />`;
+    }
   }
 }
 
