@@ -21,6 +21,7 @@ class mtgController extends Controller
     public $actions;
     public $breadcrumbs;
 
+    
     public function __construct()
     {
         $this->middleware('auth');
