@@ -1,4 +1,15 @@
 <script>
+let video;
+let canvasOverlay;
+let isCapturing = true;
+
+const cropWidth = 1200;
+const cropHeight = 900;
+
+// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
+const targetAspectRatio = 1.5; // Largura / Altura
+const minWidth = 100;  // Largura mínima em pixels
+const minHeight = 150; // Altura mínima em pixels
 
 window.setup = function () {
     // Criar o canvas de overlay
@@ -162,5 +173,6 @@ window.draw = function () {
     contours.delete();
     hierarchy.delete();
 };
+
 
 </script>
