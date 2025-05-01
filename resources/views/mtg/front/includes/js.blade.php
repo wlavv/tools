@@ -31,7 +31,8 @@ window.setup = function () {
 };
 
 window.draw = function () {
-    clear();
+    clear();  // Limpa o canvas de fundo
+
     if (!isCapturing) return;
 
     let img = video.get();
@@ -68,8 +69,15 @@ window.draw = function () {
         let imgKeypoints;
         try {
             imgKeypoints = new cv.Mat();
-            cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
-            cv.imshow('canvasOverlay', imgKeypoints);
+            // Verificar se o canvas de exibição está correto
+            const canvasOverlayElement = document.getElementById('canvasOverlay');
+            if (canvasOverlayElement) {
+                cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+                // Exibir imagem com pontos chave no canvas
+                cv.imshow(canvasOverlayElement, imgKeypoints);
+            } else {
+                console.error('Elemento de canvas não encontrado!');
+            }
         } catch (err) {
             console.error('Erro ao desenhar pontos chave: ', err);
         }
