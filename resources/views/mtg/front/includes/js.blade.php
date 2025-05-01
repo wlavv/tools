@@ -77,7 +77,7 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Desenhar o retângulo ao redor da carta (bordas verdes)
+            // Desenhar o retângulo ao redor da carta (bordas verdes) na imagem original (mat)
             cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
 
             // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
@@ -92,10 +92,10 @@ window.draw = function () {
                 if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
                     // O retângulo é válido e tem o tamanho mínimo necessário
                     // Captura o crop da imagem com base na boundingRect
-                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+                    const croppedImage = mat.roi(boundingRect);  // Usando ROI para cortar a área desejada
 
                     // Converte a imagem cropada para base64
-                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+                    let croppedBase64 = cv.imencode('.jpg', croppedImage).toString('base64');
 
                     console.log(boundingRect);
 
