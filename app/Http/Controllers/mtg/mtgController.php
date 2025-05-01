@@ -12,6 +12,7 @@ use App\Models\mtg\mtg_cards;
 use Jenssegers\ImageHash\Hash;
 use Jenssegers\ImageHash\ImageHash;
 use Jenssegers\ImageHash\Implementations\PerceptualHash;
+
 use Intervention\Image\Facades\Image;
 
 use Illuminate\Support\Str;
@@ -21,7 +22,7 @@ class mtgController extends Controller
     public $actions;
     public $breadcrumbs;
 
-    
+
     public function __construct()
     {
         $this->middleware('auth');
