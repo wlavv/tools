@@ -18,9 +18,7 @@
 
     #croppedImage {
         position: absolute;
-        width: 500px;
-        height: 750px;
-        top: 10px;
+        top: 300px;
         left: 10px;
         border: 2px solid white;
         background: rgba(0, 0, 0, 0.5);
@@ -33,13 +31,13 @@
 
     #videoElement {
         width: 500px;
-        height: auto;
+        height: auto;  /* Ajuste automático para manter a proporção do vídeo */
     }
 
     #cropZone {
         width: 500px;
         height: 750px;
-        border: 2px solid red;
+        border: 2px solid red; /* Opcional: para destacar a área de crop */
         position: relative;
     }
 
