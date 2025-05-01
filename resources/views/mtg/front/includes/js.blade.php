@@ -70,7 +70,7 @@ window.draw = function () {
             success: function(response) {
                 info.html("📛 pHash: " + response.pHash);
 
-                // Atualiza a bounding box
+                // Atualiza a bounding box com as novas coordenadas
                 boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
                 // Atualiza a #cropZone com a imagem recortada
@@ -115,5 +115,6 @@ function stopTracking() {
 
 // Chama a função de detecção no início para iniciar o rastreamento
 startTracking();
+
 
 </script>
