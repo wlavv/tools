@@ -9,8 +9,8 @@ const cropHeight = 900;
 
 // Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
 const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 100;  // Largura mínima em pixels
-const minHeight = 150; // Altura mínima em pixels
+const minWidth = 50;  // Largura mínima em pixels
+const minHeight = 50; // Altura mínima em pixels
 
 // Configurar o vídeo
 window.setup = function () {
@@ -77,7 +77,7 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Desenhar o retângulo ao redor da carta
+            // Desenhar o retângulo ao redor da carta (bordas verdes)
             cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
 
             // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
@@ -94,7 +94,14 @@ window.draw = function () {
                     // Captura o crop da imagem com base na boundingRect
                     const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
 
-                    // Converte a imagem recortada para base64
+                    // Desenhar borda verde na imagem cropada
+                    croppedImage.loadPixels();
+                    croppedImage.stroke(0, 255, 0); // cor verde para a borda
+                    croppedImage.strokeWeight(3);
+                    croppedImage.noFill();
+                    croppedImage.rect(0, 0, croppedImage.width, croppedImage.height);
+
+                    // Converte a imagem recortada com a borda para base64
                     let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
                     console.log(boundingRect);
