@@ -108,14 +108,18 @@ class mtgController extends Controller
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
 
-        //$image = imagecreatefromstring($imageData);
+        $image = imagecreatefromstring($imageData);
 
-        $image = \Image::make($imageBinary);
-
-        if ($image->getWidth() === 0 || $image->getHeight() === 0) {
-            return response()->json(['error' => 'Imagem sem dimensões válidas'], 400);
+        if ($image === false) {
+            // Erro ao criar a imagem
+            echo "Erro ao criar a imagem a partir dos dados fornecidos.";
+        } else {
+            // A imagem foi criada com sucesso
+            echo "Imagem criada com sucesso!";
+            
+            // Agora você pode continuar com o processamento da imagem, como salvar, exibir, etc.
         }
-        
+                
         if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
 
         $imageHash = new ImageHash();
