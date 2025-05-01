@@ -225,36 +225,6 @@ class mtgController extends Controller
 
 
 
-
-
-    
-    public function tensorflow_model(){
-        return View::make('mtg/tensorflow/model');
-    }
-    
-    public function tensorflow_create(){
-
-        try {
-            // Caminho do script Python
-            $pythonScriptPath = base_path('scripts/train_model.py');
-            $output = shell_exec("python3 $pythonScriptPath");
-    
-            return response()->json([
-                'success' => true,
-                'message' => 'Modelo treinado com sucesso!',
-                'output' => $output
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao treinar o modelo.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-
-    }
-
-
     
     public function processImage(Request $request)
     {

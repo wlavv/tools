@@ -24,9 +24,6 @@ Route::post('/mtg/front/compare-hash', [mtgController::class, 'compareHash'])->n
 /** new approuch **/
 Route::post('/mtg/front/process-image', [mtgController::class, 'processImage'])->name('mtg.processImage');
 
-Route::get('/mtg/tensorflow/model', [mtgController::class, 'tensorflow_model'])->name('mtg.tensorflow_model');
-Route::post('/mtg/tensorflow/create_model', [mtgController::class, 'tensorflow_create'])->name('mtg.tensorflow_create_model');
-
 /** AREAS **/
 Route::resources([ 'home'           => dashboardController::class       ]);
 Route::resources([ 'dashboard'      => dashboardController::class       ]);
