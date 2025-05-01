@@ -69,7 +69,7 @@ window.draw = function () {
         }
     }
 
-    if (bestContour && maxArea > 10000) {
+    if (bestContour && maxArea > 10) {
         let rect = cv.boundingRect(bestContour);
         boundingBox = {
             x: rect.x,
