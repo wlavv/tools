@@ -8,11 +8,12 @@ let detector;
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// Lista das classes que você quer seguir
-const targetClasses = ['card']; // Adicione mais classes se necessário
+// As classes que você quer procurar. Aqui estou incluindo 'card' como exemplo, 
+// mas se o modelo não encontrar 'card', você pode testar outros nomes de classes
+const targetClasses = ['card', 'playing card', 'board game', 'paper'];
 
 async function onOpenCvReady() {
-    // Carregando o modelo COCO-SSD para detecção de objetos
+    // Carregar o modelo COCO-SSD para detecção de objetos
     detector = await cocoSsd.load();
     console.log('Modelo COCO-SSD carregado com sucesso!');
 }
@@ -54,10 +55,9 @@ window.draw = function () {
 
     // Usando o modelo COCO-SSD para detectar objetos no frame atual
     detector.detect(img.canvas).then(predictions => {
-        // Loop pelas predições e filtra as classes específicas
         predictions.forEach(prediction => {
-            // Filtra apenas as classes de interesse (cartas e mãos)
-            if (targetClasses.includes(prediction.class)) {
+            // Verificar se a classe do objeto detectado está na lista de classes alvo
+            if (targetClasses.includes(prediction.class.toLowerCase())) {
                 // Desenha a borda verde ao redor do objeto detectado
                 noFill();
                 stroke(0, 255, 0);  // Cor verde
@@ -115,6 +115,5 @@ window.draw = function () {
         console.error("Erro na detecção de objetos: ", err);
     });
 };
-
 
 </script>
