@@ -289,55 +289,13 @@ class mtgController extends Controller
      */
     private function detectCard($image)
     {
-        // 1. Converte a imagem para escala de cinza
-        $width = imagesx($image);
-        $height = imagesy($image);
-    
-        // Cria uma nova imagem em escala de cinza
-        $grayImage = imagecreatetruecolor($width, $height);
-        imagecopy($grayImage, $image, 0, 0, 0, 0, $width, $height);
-        imagefilter($grayImage, IMG_FILTER_GRAYSCALE);
-    
-        // 2. Aplica um filtro de bordas para destacar as bordas da imagem
-        imagefilter($grayImage, IMG_FILTER_EDGEDETECT);
-    
-        // 3. Encontra os contornos na imagem (aproximação simples)
-        // Vamos percorrer os pixels da imagem e procurar por áreas com bordas intensas
-        $boundingBox = null;
-    
-        for ($y = 0; $y < $height; $y++) {
-            for ($x = 0; $x < $width; $x++) {
-                $color = imagecolorat($grayImage, $x, $y);
-                $grayValue = (int) (($color >> 16) & 0xFF); // Pega a intensidade do pixel (escala de cinza)
-    
-                // Verifica se o pixel é suficientemente "branco" para ser considerado como parte da borda
-                if ($grayValue > 200) { // Esse valor pode ser ajustado conforme a imagem
-                    if (!$boundingBox) {
-                        $boundingBox = [
-                            'x' => $x,
-                            'y' => $y,
-                            'width' => 0,
-                            'height' => 0
-                        ];
-                    }
-    
-                    // Atualiza as coordenadas do bounding box
-                    $boundingBox['x'] = min($boundingBox['x'], $x);
-                    $boundingBox['y'] = min($boundingBox['y'], $y);
-                    $boundingBox['width'] = max($boundingBox['width'], $x - $boundingBox['x']);
-                    $boundingBox['height'] = max($boundingBox['height'], $y - $boundingBox['y']);
-                }
-            }
-        }
-    
-        // Se não encontrar uma bounding box válida, retorna null
-        if ($boundingBox) {
-            // Ajusta a largura e altura da bounding box
-            $boundingBox['width'] = min($boundingBox['width'], $width - $boundingBox['x']);
-            $boundingBox['height'] = min($boundingBox['height'], $height - $boundingBox['y']);
-        }
-    
-        return $boundingBox;
-    }
-      
+        // Para exemplo, retornamos uma caixa fictícia
+        // A lógica real de detecção deve ser implementada aqui (ex: OpenCV, CNN, etc.)
+        return [
+            'x' => 50,  // Coordenada X da borda
+            'y' => 100, // Coordenada Y da borda
+            'width' => 200, // Largura da borda
+            'height' => 300, // Altura da borda
+        ];
+    }    
 }
