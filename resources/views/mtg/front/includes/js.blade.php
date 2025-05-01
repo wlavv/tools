@@ -95,8 +95,11 @@ window.draw = function () {
                     const croppedImage = mat.roi(boundingRect);  // Usando ROI para cortar a área desejada
 
                     // Codificar a imagem para Base64 usando imencode
-                    let encoded = cv.imencode('.jpg', croppedImage); // Codifica para JPG
-                    let base64String = 'data:image/jpeg;base64,' + cv.matToBase64(encoded); // Converte para base64
+                    let buf = new cv.Mat();
+                    cv.imencode('.jpg', croppedImage, buf); // Codifica para JPG e armazena em 'buf'
+
+                    // Converter o buffer para base64
+                    let base64String = 'data:image/jpeg;base64,' + buf.toString('base64'); // Converte para base64
 
                     console.log(boundingRect);
 
