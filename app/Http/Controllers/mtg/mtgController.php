@@ -242,8 +242,6 @@ class mtgController extends Controller
     
         if (!$boundingBox || !is_array($boundingBox) || count($boundingBox) != 4) return response()->json(['error' => 'Bounding box inválida.'], 400);
     
-        dd($boundingBox);
-
         list($x, $y, $width, $height) = $boundingBox;
     
         $croppedImage = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $width, 'height' => $height]);
