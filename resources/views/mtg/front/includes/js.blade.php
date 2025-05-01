@@ -35,6 +35,10 @@ window.setup = function () {
 
     video.size(cropWidth, cropHeight);
 };
+
+
+
+
 window.draw = function () {
     clear();
 
@@ -43,8 +47,9 @@ window.draw = function () {
     let img = video.get();
     img.loadPixels();
 
-    // Converter frame para OpenCV
-    let src = cv.imread(img.canvas);
+    // Converter o frame para OpenCV
+    let canvas = img.canvas;
+    let src = cv.matFromImageData(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height));
     let gray = new cv.Mat();
     let blurred = new cv.Mat();
     let thresh = new cv.Mat();
@@ -55,11 +60,13 @@ window.draw = function () {
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
     cv.threshold(blurred, thresh, 120, 255, cv.THRESH_BINARY);
 
+    // Encontra os contornos
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
     let maxArea = 0;
     let bestContour = null;
 
+    // Encontrar o contorno com maior área
     for (let i = 0; i < contours.size(); i++) {
         let cnt = contours.get(i);
         let area = cv.contourArea(cnt);
@@ -69,7 +76,7 @@ window.draw = function () {
         }
     }
 
-    if (bestContour && maxArea > 10) {
+    if (bestContour && maxArea > 10000) { // Verifica se o contorno é grande o suficiente
         let rect = cv.boundingRect(bestContour);
         boundingBox = {
             x: rect.x,
@@ -78,7 +85,7 @@ window.draw = function () {
             height: rect.height
         };
 
-        // Mostrar bounding box no canvas
+        // Mostrar a bounding box no canvas
         noFill();
         stroke('lime');
         strokeWeight(3);
