@@ -55,8 +55,9 @@ window.draw = function () {
     // Converte a imagem do canvas para ImageData
     let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    // Cria a Mat a partir do ImageData
-    let src = cv.matFromImageData(imageData);
+    // Criar a Mat manualmente
+    let src = new cv.Mat(canvas.height, canvas.width, cv.CV_8UC4);  // 8 bits por canal e 4 canais (RGBA)
+    src.data.set(imageData.data);  // Copia os dados da ImageData para a Mat
 
     let gray = new cv.Mat();
     let blurred = new cv.Mat();
