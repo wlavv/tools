@@ -1,20 +1,26 @@
 <style>
     body {
+        background: black;
+        color: white;
+        font-family: Arial, sans-serif;
         margin: 0;
         overflow: hidden;
-        font-family: 'Nunito', sans-serif;
     }
 
-    #loading {
+    #info {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.5rem;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 8px;
-        z-index: 10;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        padding: 8px;
+        border-radius: 4px;
+    }
+
+    #croppedImage {
+        position: absolute;
+        top: 300px;
+        left: 10px;
+        border: 2px solid white;
+        background: rgba(0, 0, 0, 0.5);
     }
 </style>
