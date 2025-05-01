@@ -60,7 +60,7 @@ window.draw = function () {
     detector.detect(img.canvas).then(predictions => {
         predictions.forEach(prediction => {
             // Verifica se a classe do objeto detectado é uma carta
-            if (prediction.class.toLowerCase() === 'card') {
+            //if (prediction.class.toLowerCase() === 'card') {
                 // Desenha a borda verde ao redor do objeto detectado
                 noFill();
                 stroke(0, 255, 0);  // Cor verde
@@ -118,7 +118,7 @@ window.draw = function () {
                 // Pausa a captura por 5 segundos após o envio
                 isCapturing = false;
                 setTimeout(() => { isCapturing = true }, 5000);
-            }
+            //}
         });
     }).catch(err => {
         console.error("Erro na detecção de objetos: ", err);
