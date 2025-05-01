@@ -35,18 +35,43 @@ window.draw = function () {
     if (!isCapturing) return;
 
     let img = video.get();
-    let mat = cv.imread(img.canvas);
-    let gray = new cv.Mat();
-    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+    let mat;
+    try {
+        mat = cv.imread(img.canvas);
+    } catch (err) {
+        console.error('Erro ao ler a imagem: ', err);
+        return;
+    }
 
-    // Detectar pontos-chave e descritores com ORB
-    keypoints = new cv.KeyPointVector();
-    descriptors = new cv.Mat();
-    orb.detectAndCompute(gray, new cv.Mat(), keypoints, descriptors);
+    let gray;
+    try {
+        gray = new cv.Mat();
+        cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+    } catch (err) {
+        console.error('Erro ao converter para escala de cinza: ', err);
+        return;
+    }
+
+    let keypoints;
+    let descriptors;
+    try {
+        keypoints = new cv.KeyPointVector();
+        descriptors = new cv.Mat();
+        orb.detectAndCompute(gray, new cv.Mat(), keypoints, descriptors);
+    } catch (err) {
+        console.error('Erro ao detectar e computar ORB: ', err);
+        return;
+    }
 
     // Exibir pontos chave na imagem
-    let imgKeypoints = new cv.Mat();
-    cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+    let imgKeypoints;
+    try {
+        imgKeypoints = new cv.Mat();
+        cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+    } catch (err) {
+        console.error('Erro ao desenhar pontos chave: ', err);
+        return;
+    }
 
     // Comparar descritores com a base de dados
     let bestMatch = compareDescriptors(descriptors);
@@ -83,6 +108,7 @@ window.draw = function () {
     descriptors.delete();
     imgKeypoints.delete();
 };
+
 
 // Comparar descritores extraídos
 function compareDescriptors(descriptors) {
