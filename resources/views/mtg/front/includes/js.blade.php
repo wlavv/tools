@@ -1,4 +1,5 @@
 <script>
+
 let video;
 let canvasOverlay;
 let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
@@ -142,4 +143,6 @@ window.draw = function () {
     src.delete(); gray.delete(); blurred.delete(); thresh.delete();
     contours.delete(); hierarchy.delete();
 };
+
+
 </script>
