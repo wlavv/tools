@@ -107,20 +107,14 @@ class mtgController extends Controller
 
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
-
-        $image = imagecreatefromstring($imageData);
-
-        if ($image === false) {
-            // Erro ao criar a imagem
-            echo "Erro ao criar a imagem a partir dos dados fornecidos.";
-        } else {
-            // A imagem foi criada com sucesso
-            echo "Imagem criada com sucesso!";
-            
-            // Agora você pode continuar com o processamento da imagem, como salvar, exibir, etc.
+        if (!$imageData) {
+            return response()->json(['error' => 'Imagem não foi decodificada corretamente.'], 400);
         }
-                
-        if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
+        
+        $image = imagecreatefromstring($imageData);
+        if (!$image) {
+            return response()->json(['error' => 'Imagem inválida após conversão.'], 400);
+        }
 
         $imageHash = new ImageHash();
 
