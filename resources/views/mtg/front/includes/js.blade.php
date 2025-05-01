@@ -94,8 +94,9 @@ window.draw = function () {
                     // Captura o crop da imagem com base na boundingRect
                     const croppedImage = mat.roi(boundingRect);  // Usando ROI para cortar a área desejada
 
-                    // Converte a imagem cropada para base64
-                    let croppedBase64 = cv.imencode('.jpg', croppedImage).toString('base64');
+                    // Codificar a imagem para Base64 usando imencode
+                    let encoded = cv.imencode('.jpg', croppedImage); // Codifica para JPG
+                    let base64String = 'data:image/jpeg;base64,' + cv.matToBase64(encoded); // Converte para base64
 
                     console.log(boundingRect);
 
@@ -104,7 +105,7 @@ window.draw = function () {
                         url: "{{ route('mtg.processImage') }}",
                         type: 'POST',
                         data: JSON.stringify({
-                            image: croppedBase64,
+                            image: base64String,
                             boundingBox: boundingRect
                         }),
                         contentType: 'application/json',
