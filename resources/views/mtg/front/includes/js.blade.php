@@ -1,95 +1,108 @@
 <script>
 
 let video;
-let canvasOverlay;
+let template;
 let isCapturing = true;
 
 const cropWidth = 1200;
 const cropHeight = 900;
 
-let orb, keypoints, descriptors;
-let isTracking = false;
-let prevKeypoints, prevDescriptors;
+// Carregar o template da carta MTG
+function preload() {
+    // Aqui você carrega o template da carta que será usada para o matching
+    template = loadImage('/images/mtg/templates/land artefact.png');  // Substitua pelo caminho correto do template
+}
 
-// Configurar o vídeo
-window.setup = function () {
+function setup() {
     const canvas = createCanvas(cropWidth, cropHeight);
-    canvasOverlay = canvas.elt;
-    canvasOverlay.style.position = 'absolute';
-    canvasOverlay.style.top = '0';
-    canvasOverlay.style.left = '0';
-    canvasOverlay.style.zIndex = '10';
+    canvas.id('canvasOverlay');
+    document.body.appendChild(canvas);
 
+    // Configurar captura de vídeo
     video = createCapture(VIDEO, () => {
-        const videoContainer = document.getElementById('videoContainer');
-        videoContainer.style.position = 'relative';
-        video.elt.style.position = 'absolute';
-        video.elt.style.top = '0';
-        video.elt.style.left = '0';
-        video.elt.width = cropWidth;
-        video.elt.height = cropHeight;
-        videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvasOverlay);
+        video.size(cropWidth, cropHeight);
+        video.hide();
+        document.getElementById('videoContainer').appendChild(video.elt);
     });
 
-    video.size(cropWidth, cropHeight);
-    orb = new cv.ORB(); // Inicializa o ORB
-};
+    loop();  // Iniciar o loop para processar o vídeo
+}
 
-// Função para processar cada frame e rastrear o objeto
-window.draw = function () {
-    clear();  // Limpa o canvas
-
+function draw() {
     if (!isCapturing) return;
 
-    let img = video.get();
-    let canvas = document.createElement('canvas');
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
-    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
+    let img = video.get();  // Captura um frame do vídeo
+    image(img, 0, 0);
 
-    let gray = new cv.Mat();
-    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);  // Converte a imagem para escala de cinza
+    // Realizar a detecção com Template Matching
+    let match = findTemplateMatch(img, template);
 
-    // Detecta keypoints e descritores usando ORB
-    keypoints = new cv.KeyPointVector();
-    descriptors = new cv.Mat();
-    orb.detectAndCompute(gray, new cv.Mat(), keypoints, descriptors);
+    if (match) {
+        // Se houver uma correspondência, desenha a caixa ao redor
+        rect(match.x, match.y, template.width, template.height);
+        fill(0, 255, 0, 100); // Cor de preenchimento para o contorno
+        rect(match.x, match.y, template.width, template.height);
+        console.log("Carta detectada! Enviando ao servidor...");
+        sendToServer(img.get(match.x, match.y, template.width, template.height));
+    }
+}
 
-    // Se já temos keypoints da imagem anterior, realizamos o matching
-    if (prevKeypoints && prevDescriptors) {
-        let matches = new cv.DMatchVector();
-        
-        // Inicializando o Brute-Force Matcher
-        let bf = new cv.BFMatcher(cv.NORM_HAMMING, true); // 'true' indica que será um match bidirecional
-        bf.match(prevDescriptors, descriptors, matches);  // Faz o match entre os descritores
+// Função para realizar o Template Matching
+function findTemplateMatch(image, template) {
+    let match = null;
+    let threshold = 0.8;  // Limite de similaridade para detectar uma correspondência
 
-        // Desenha os matches
-        for (let i = 0; i < matches.size(); i++) {
-            let match = matches.get(i);
-            let pt1 = prevKeypoints.get(match.queryIdx).pt;
-            let pt2 = keypoints.get(match.trainIdx).pt;
-            cv.line(mat, pt1, pt2, [0, 255, 0, 255], 2); // Desenha uma linha verde conectando os pontos correspondentes
+    for (let x = 0; x < image.width - template.width; x++) {
+        for (let y = 0; y < image.height - template.height; y++) {
+            // Cria uma subimagem da região atual
+            let region = image.get(x, y, template.width, template.height);
+
+            // Comparar a subimagem com o template
+            let similarity = compareImages(region, template);
+
+            if (similarity >= threshold) {
+                match = { x: x, y: y };
+                break;
+            }
         }
-
-        // Atualiza os keypoints e descritores anteriores
-        prevKeypoints = keypoints;
-        prevDescriptors = descriptors;
-    } else {
-        // Caso contrário, apenas armazene os keypoints e descritores para a próxima iteração
-        prevKeypoints = keypoints;
-        prevDescriptors = descriptors;
+        if (match) break;  // Interrompe se encontrar a primeira correspondência
     }
 
-    // Exibe o canvas no overlay
-    cv.imshow(canvasOverlay, mat);
+    return match;
+}
 
-    // Libere os recursos do OpenCV
-    mat.delete();
-    gray.delete();
-};
+// Função simples para comparar a similaridade entre duas imagens
+function compareImages(region, template) {
+    let similarity = 0;
+    region.loadPixels();
+    template.loadPixels();
+
+    for (let i = 0; i < region.pixels.length; i++) {
+        similarity += (region.pixels[i] === template.pixels[i]) ? 1 : 0;
+    }
+
+    return similarity / region.pixels.length;  // Retorna a porcentagem de similaridade
+}
+
+// Função para enviar a imagem recortada ao servidor
+function sendToServer(croppedImage) {
+    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+    $.ajax({
+        url: "{{ route('mtg.processImage') }}",
+        type: 'POST',
+        data: JSON.stringify({ image: croppedBase64 }),
+        contentType: 'application/json',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            $('#info').html("📛 Informações da carta: " + response.info);
+        },
+        error: function() {
+            $('#info').html("❌ Erro ao enviar imagem");
+        }
+    });
+}
 
 
 </script>
