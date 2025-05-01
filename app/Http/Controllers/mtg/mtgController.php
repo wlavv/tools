@@ -257,6 +257,11 @@ class mtgController extends Controller
             return response()->json(['error' => 'Erro ao gerar o pHash da imagem.'], 500);
         }
 
+        $filename = 'cropped_' . uniqid() . '.jpg';
+        $path = public_path('uploads/mtg/front/temp/' . $filename);
+
+        imagejpeg($croppedImage, $path);
+
         // Convertendo o hash para hexadecimal
         $pHash = $hash->toHex();
 
@@ -273,6 +278,7 @@ class mtgController extends Controller
         return response()->json([
             'pHash' => $pHash,
             'boundingBox' => $boundingBox,
+            'croppedImageUrl' => url("uploads/mtg/front/temp/{$filename}")
         ]);
     }    
 }
