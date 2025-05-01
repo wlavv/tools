@@ -79,7 +79,8 @@ window.draw = function () {
             }
 
             // Desenhar o retângulo ao redor da carta (desenhando diretamente no canvas)
-            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);  // Contorno verde
+            // Adicionando um contorno mais espesso e uma cor visível
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
 
             // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
             let boundingRect = cv.boundingRect(contour);
