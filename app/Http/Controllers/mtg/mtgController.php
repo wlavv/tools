@@ -107,6 +107,10 @@ class mtgController extends Controller
 
         $image = imagecreatefromstring($imageData);
 
+        if ($image->width() === 0 || $image->height() === 0) {
+            return response()->json(['error' => 'Imagem sem dimensões válidas'], 400);
+        }
+        
         if (!$image) return response()->json(['error' => 'Erro ao criar imagem a partir da base64.'], 500);
 
         $imageHash = new ImageHash();
