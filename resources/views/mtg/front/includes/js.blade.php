@@ -56,6 +56,10 @@ window.draw = function () {
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
     let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
+    // Criar a imagem em escala de cinza (gray) antes de realizar qualquer operação
+    let gray = new cv.Mat();
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);  // Converte a imagem para escala de cinza
+
     // Verificar se estamos rastreando
     if (isTracking) {
         let trackingResult = tracker.update(img.canvas);
@@ -67,9 +71,6 @@ window.draw = function () {
         }
     } else {
         // Detectar o objeto (cartas ou outro item) no primeiro frame
-        let gray = new cv.Mat();
-        cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
-
         // Aplicar a detecção de bordas (Canny)
         let edges = new cv.Mat();
         cv.Canny(gray, edges, 50, 100);
@@ -104,7 +105,7 @@ window.draw = function () {
 
     // Libere os recursos do OpenCV
     mat.delete();
-    gray.delete();
+    gray.delete(); // Libera a variável gray corretamente
     edges.delete();
 };
 
