@@ -17,6 +17,7 @@ use Intervention\Image\Facades\Image;
 
 use Illuminate\Support\Str;
 
+
 class mtgController extends Controller
 {
     public $actions;
@@ -229,9 +230,7 @@ class mtgController extends Controller
 
 
 
-    use Illuminate\Http\Request;
-    use ImageHash\ImageHash;
-    use ImageHash\Algorithm\PerceptualHash;
+
     
     public function processImage(Request $request)
     {
