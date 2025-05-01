@@ -113,9 +113,17 @@ class mtgController extends Controller
         if (!$imageData) {
             return response()->json(['error' => 'Imagem não foi decodificada corretamente.'], 400);
         }
-    
+
+        if (!preg_match('#^data:image/jpeg;base64,#', $base64Image)) {
+            return response()->json(['error' => 'Formato de imagem não suportado (requer JPEG).'], 400);
+        }
+        
         // Criar imagem GD a partir dos dados
         $image = imagecreatefromstring($imageData);
+    
+        imagejpeg($image, public_path('debug.jpg')); // ou public_path()
+
+
         if (!$image) {
             return response()->json(['error' => 'Imagem inválida após conversão.'], 400);
         }
