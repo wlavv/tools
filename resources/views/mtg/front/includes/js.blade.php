@@ -35,107 +35,97 @@ window.setup = function () {
 
     video.size(cropWidth, cropHeight);
 };
-
 window.draw = function () {
     clear();
+
+    if (!isCapturing) return;
 
     let img = video.get();
     img.loadPixels();
 
-    if (typeof cv === 'undefined' || !cv.imread) {
-        return;
-    }
-
-    const src = cv.imread(img.canvas);
-    const gray = new cv.Mat();
-    const edges = new cv.Mat();
-
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray, gray, new cv.Size(5, 5), 0);
-    cv.Canny(gray, edges, 50, 150);
-
+    // Converter frame para OpenCV
+    let src = cv.imread(img.canvas);
+    let gray = new cv.Mat();
+    let blurred = new cv.Mat();
+    let thresh = new cv.Mat();
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
 
-    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+    cv.threshold(blurred, thresh, 120, 255, cv.THRESH_BINARY);
+
+    cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
     let maxArea = 0;
-    let bestRect = null;
+    let bestContour = null;
 
     for (let i = 0; i < contours.size(); i++) {
         let cnt = contours.get(i);
-        let rect = cv.boundingRect(cnt);
-
-        const aspectRatio = rect.width / rect.height;
-        const area = rect.width * rect.height;
-
-        // Filtro: proporção aproximada de carta + área mínima
-        if (aspectRatio > 0.6 && aspectRatio < 0.8 && area > 10000) {
-            if (area > maxArea) {
-                maxArea = area;
-                bestRect = rect;
-            }
+        let area = cv.contourArea(cnt);
+        if (area > maxArea) {
+            maxArea = area;
+            bestContour = cnt;
         }
-        cnt.delete();
     }
 
-    if (bestRect) {
+    if (bestContour && maxArea > 10000) {
+        let rect = cv.boundingRect(bestContour);
         boundingBox = {
-            x: bestRect.x,
-            y: bestRect.y,
-            width: bestRect.width,
-            height: bestRect.height
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height
         };
 
-        // Só envia para servidor 1x por minuto
-        const now = Date.now();
-        if (now - lastRequestTime > 60000 && isCapturing) {
-            const croppedCanvas = document.createElement("canvas");
-            croppedCanvas.width = bestRect.width;
-            croppedCanvas.height = bestRect.height;
-            const croppedCtx = croppedCanvas.getContext("2d");
-            croppedCtx.drawImage(video.elt, bestRect.x, bestRect.y, bestRect.width, bestRect.height, 0, 0, bestRect.width, bestRect.height);
-            const base64Image = croppedCanvas.toDataURL('image/jpeg');
-
-            $.ajax({
-                url: "{{ route('mtg.processImage') }}",
-                type: 'POST',
-                data: JSON.stringify({ image: base64Image }),
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    const imgElement = document.createElement("img");
-                    imgElement.src = response.croppedImageUrl;
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = 'auto';
-
-                    const cropZone = document.getElementById('cropZone');
-                    cropZone.innerHTML = '';
-                    cropZone.appendChild(imgElement);
-
-                    lastRequestTime = now;
-                }
-            });
-        }
-    }
-
-    if (boundingBox.width > 0 && boundingBox.height > 0) {
+        // Mostrar bounding box no canvas
         noFill();
-        
-        let highlightAlpha = sin(frameCount * 0.1) * 50 + 205;
-        stroke(`rgba(0,255,0,${highlightAlpha})`);        
-
-        strokeWeight(4);
+        stroke('lime');
+        strokeWeight(3);
+        rectMode(CORNER);
         rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+
+        // Crop a imagem usando a bounding box
+        let cropped = img.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        let base64Image = cropped.canvas.toDataURL('image/jpeg');
+
+        // Enviar para backend
+        $.ajax({
+            url: "{{ route('mtg.processImage') }}",
+            type: 'POST',
+            data: JSON.stringify({
+                image: base64Image,
+                boundingBox: boundingBox
+            }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                info.html("📛 pHash: " + response.pHash);
+
+                let imgElement = document.createElement("img");
+                imgElement.src = response.croppedImageUrl;
+                imgElement.style.width = '100%';
+                imgElement.style.height = 'auto';
+
+                let cropZone = document.getElementById('cropZone');
+                cropZone.innerHTML = '';
+                cropZone.appendChild(imgElement);
+            },
+            error: function () {
+                info.html("❌ Erro ao enviar imagem");
+            }
+        });
+
+        // Pausar captura por 5 segundos
+        isCapturing = false;
+        setTimeout(() => { isCapturing = true }, 5000);
     }
 
-    src.delete();
-    gray.delete();
-    edges.delete();
-    contours.delete();
-    hierarchy.delete();
+    // Libertar memória
+    src.delete(); gray.delete(); blurred.delete(); thresh.delete();
+    contours.delete(); hierarchy.delete();
 };
 
 </script>
