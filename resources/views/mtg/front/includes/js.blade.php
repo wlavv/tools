@@ -83,7 +83,7 @@ window.draw = function () {
             let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
             console.log(boundingRect);
-            
+
             // Enviar o crop para o servidor
             $.ajax({
                 url: "{{ route('mtg.processImage') }}",
@@ -97,8 +97,22 @@ window.draw = function () {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function (response) {
-                    // Exibe a resposta do backend (pHash, etc.)
+
                     $('#info').html("📛 pHash: " + response.pHash);
+
+                    let imgElement = document.createElement("img");
+                    imgElement.src = response.croppedImageUrl;
+                    imgElement.style.width = '100%';
+                    imgElement.style.height = 'auto';
+
+                    let cropZone = document.getElementById('cropZone');
+                    cropZone.innerHTML = '';
+                    cropZone.appendChild(imgElement);
+
+                    setTimeout(function() {
+                        console.log('Atraso de 10 segundos completado');
+                        isCapturing = true;
+                    }, 10000);
                 },
                 error: function () {
                     $('#info').html("❌ Erro ao enviar imagem");
