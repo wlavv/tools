@@ -47,17 +47,7 @@ window.draw = function () {
     canvas.height = cropHeight;
     let ctx = canvas.getContext('2d');
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
-    
-    // Verificar se a imagem foi desenhada corretamente no canvas
-    console.log("Imagem desenhada no canvas:", canvas);
-
-    let mat;
-    try {
-        mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
-    } catch (e) {
-        console.error("Erro ao ler a imagem com OpenCV:", e);
-        return;
-    }
+    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
@@ -72,6 +62,10 @@ window.draw = function () {
     let hierarchy = new cv.Mat();
     cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
+    // Variável para armazenar o maior retângulo
+    let largestBoundingRect = null;
+    let largestArea = 0;
+
     // Processar contornos e detectar o retângulo da carta
     for (let i = 0; i < contours.size(); i++) {
         let contour = contours.get(i);
@@ -82,78 +76,85 @@ window.draw = function () {
 
         // Verificar se é um retângulo
         if (approx.rows == 4) {
-            // Desenhar o retângulo ao redor da carta
             let boundingRect = cv.boundingRect(contour);
-            console.log('Bounding Rect:', boundingRect);
-            //cv.rectangle(mat, boundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
+
+            // Calcular a área do retângulo
+            let area = boundingRect.width * boundingRect.height;
 
             // Calcular a proporção do retângulo
             let aspectRatio = boundingRect.width / boundingRect.height;
-            console.log("Aspect Ratio:", aspectRatio);
 
             // Verificar se a proporção do retângulo está dentro da faixa de uma carta (1.5 ± 0.1)
             if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
                 // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
                 if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
-                    // O retângulo é válido e tem o tamanho mínimo necessário
-                    // Captura o crop da imagem com base na boundingRect
-                    let croppedMat = mat.roi(boundingRect); // Recorta a imagem no OpenCV
-                    console.log("Cropped Mat:", croppedMat);
-
-                    // Converter a imagem recortada para base64
-                    let croppedImage = new cv.Mat();
-                    cv.cvtColor(croppedMat, croppedImage, cv.COLOR_RGBA2BGR);
-                    let croppedCanvas = document.createElement('canvas');
-                    cv.imshow(croppedCanvas, croppedImage);  // Exibe no canvas
-                    let croppedBase64 = croppedCanvas.toDataURL('image/jpeg');
-
-                    console.log('Base64 da imagem recortada:', croppedBase64);
-
-                    // Enviar o crop para o servidor
-                    $.ajax({
-                        url: "{{ route('mtg.processImage') }}",
-                        type: 'POST',
-                        data: JSON.stringify({
-                            image: croppedBase64,
-                            boundingBox: boundingRect
-                        }),
-                        contentType: 'application/json',
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (response) {
-                            $('#info').html("📛 pHash: " + response.pHash);
-
-                            let imgElement = document.createElement("img");
-                            imgElement.src = response.croppedImageUrl;
-                            imgElement.style.width = '100%';
-                            imgElement.style.height = 'auto';
-
-                            let cropZone = document.getElementById('cropZone');
-                            cropZone.innerHTML = '';
-                            cropZone.appendChild(imgElement);
-
-                            // Adiciona um delay de 10 segundos após a resposta do AJAX
-                            setTimeout(function() {
-                                console.log('Atraso de 10 segundos completado');
-                                isCapturing = true;
-                            }, 10000);
-                        },
-                        error: function () {
-                            $('#info').html("❌ Erro ao enviar imagem");
-                        }
-                    });
-
-                    // Pausa a captura por 5 segundos após o envio
-                    isCapturing = false;
-                    setTimeout(() => { isCapturing = true }, 5000);
+                    // Se for o maior retângulo encontrado até agora, atualize
+                    if (area > largestArea) {
+                        largestBoundingRect = boundingRect;
+                        largestArea = area;
+                    }
                 }
             }
         }
     }
 
-    // Exibir o resultado final com contornos
-    cv.imshow(canvasOverlay, mat);  // Exibe a imagem no canvasOverlay
+    // Se um retângulo válido foi encontrado, fazer o crop da maior carta detectada
+    if (largestBoundingRect !== null) {
+        // Desenhar o retângulo ao redor da maior carta
+        cv.rectangle(mat, largestBoundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
+
+        // Captura o crop da imagem com base no maior boundingRect
+        let croppedMat = mat.roi(largestBoundingRect); // Recorta a imagem no OpenCV
+
+        // Converter a imagem recortada para base64
+        let croppedImage = new cv.Mat();
+        cv.cvtColor(croppedMat, croppedImage, cv.COLOR_RGBA2BGR);
+        let croppedCanvas = document.createElement('canvas');
+        cv.imshow(croppedCanvas, croppedImage);  // Exibe no canvas
+        let croppedBase64 = croppedCanvas.toDataURL('image/jpeg');
+
+        console.log('BoundingRect:', largestBoundingRect);
+        console.log('Aspect Ratio:', largestBoundingRect.width / largestBoundingRect.height);
+
+        // Enviar o crop para o servidor
+        $.ajax({
+            url: "{{ route('mtg.processImage') }}",
+            type: 'POST',
+            data: JSON.stringify({
+                image: croppedBase64,
+                boundingBox: largestBoundingRect
+            }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                $('#info').html("📛 pHash: " + response.pHash);
+
+                let imgElement = document.createElement("img");
+                imgElement.src = response.croppedImageUrl;
+                imgElement.style.width = '100%';
+                imgElement.style.height = 'auto';
+
+                let cropZone = document.getElementById('cropZone');
+                cropZone.innerHTML = '';
+                cropZone.appendChild(imgElement);
+
+                // Adiciona um delay de 10 segundos após a resposta do AJAX
+                setTimeout(function() {
+                    console.log('Atraso de 10 segundos completado');
+                    isCapturing = true;
+                }, 10000);
+            },
+            error: function () {
+                $('#info').html("❌ Erro ao enviar imagem");
+            }
+        });
+
+        // Pausa a captura por 5 segundos após o envio
+        isCapturing = false;
+        setTimeout(() => { isCapturing = true }, 5000);
+    }
 
     // Libere os recursos do OpenCV
     mat.delete();
