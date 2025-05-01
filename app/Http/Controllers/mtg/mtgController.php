@@ -121,6 +121,8 @@ class mtgController extends Controller
                 return response()->json(['error' => 'Hash inválida (objeto não gerado)'], 500);
             }
 
+            return response()->json(['error' => print_r($hash, 1)], 500);
+
             $inputHash = $hash->toHex();
 
             if (empty($inputHash)) {
