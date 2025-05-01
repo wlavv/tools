@@ -60,6 +60,9 @@ window.draw = function () {
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);  // Converte a imagem para escala de cinza
 
+    // Inicializar a variável edges aqui
+    let edges = new cv.Mat();
+
     // Verificar se estamos rastreando
     if (isTracking) {
         let trackingResult = tracker.update(img.canvas);
@@ -70,9 +73,7 @@ window.draw = function () {
             cv.rectangle(mat, rect, [0, 255, 0, 255], 2);
         }
     } else {
-        // Detectar o objeto (cartas ou outro item) no primeiro frame
         // Aplicar a detecção de bordas (Canny)
-        let edges = new cv.Mat();
         cv.Canny(gray, edges, 50, 100);
 
         // Encontrar contornos
@@ -106,7 +107,8 @@ window.draw = function () {
     // Libere os recursos do OpenCV
     mat.delete();
     gray.delete(); // Libera a variável gray corretamente
-    edges.delete();
+    edges.delete(); // Libera a variável edges corretamente
 };
+
 
 </script>
