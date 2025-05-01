@@ -99,49 +99,55 @@ class mtgController extends Controller
         
     }
     
-    public function findCardFromBase64(Request $request){
-
-        if (!$request->has('base64_image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
-
+    public function findCardFromBase64(Request $request)
+    {
+        if (!$request->has('base64_image')) {
+            return response()->json(['error' => 'Imagem não fornecida.'], 400);
+        }
+    
         $base64Image = $request->input('base64_image');
-
+    
+        // Limpar o prefixo base64 e decodificar
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-
+    
         if (!$imageData) {
             return response()->json(['error' => 'Imagem não foi decodificada corretamente.'], 400);
         }
-        
+    
+        // Criar imagem GD a partir dos dados
         $image = imagecreatefromstring($imageData);
         if (!$image) {
             return response()->json(['error' => 'Imagem inválida após conversão.'], 400);
         }
-
-        $imageHash = new ImageHash();
-
+    
+        // Verificar dimensões da imagem (evita pHash inválido)
+        $width = imagesx($image);
+        $height = imagesy($image);
+        if ($width < 32 || $height < 32) {
+            return response()->json(['error' => 'Imagem demasiado pequena para gerar hash.'], 400);
+        }
+    
         try {
-
-            $implementation = new PerceptualHash();
-            $hasher = new ImageHash($implementation);
+            $hasher = new \Jenssegers\ImageHash\ImageHash(new PerceptualHash());
             $hash = $hasher->hash($image);
-
-            if (!$hash instanceof Hash) {
+    
+            if (!$hash instanceof \Jenssegers\ImageHash\Hash) {
                 return response()->json(['error' => 'Hash inválida (objeto não gerado)'], 500);
             }
-
-            return response()->json(['error' => print_r($hash, 1)], 500);
-
+    
             $inputHash = $hash->toHex();
-
-            if (empty($inputHash)) {
-                return response()->json(['error' => 'Hash não gerada'], 400);
+    
+            if (empty($inputHash) || $inputHash === str_repeat('0', strlen($inputHash))) {
+                return response()->json(['error' => 'Hash não gerada ou inválida (zeros apenas)'], 400);
             }
-
+    
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
+            return response()->json(['error' => 'Erro ao gerar o hash da imagem: ' . $e->getMessage()], 500);
         }
-
+    
+        // Lógica de comparação de hashes (deves garantir que é otimizada)
         $card = $this->compareHashes($inputHash);
-
+    
         if ($card) {
             return response()->json([
                 'message' => 'Carta encontrada!',
@@ -160,7 +166,7 @@ class mtgController extends Controller
             return response()->json(['error' => 'Carta não encontrada.'], 404);
         }
     }
-
+    
     
     public function hammingDistance($hash1, $hash2){
 
