@@ -57,31 +57,35 @@
                 });
         }
 
+        // Função para capturar e processar o quadro
         function trackObject() {
             if (!video || !video.videoWidth || !video.videoHeight) return;
 
             // Captura o quadro atual do vídeo
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            let src = cv.imread(canvas);
+            // Cria a imagem no formato Mat para o OpenCV
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let src = new cv.Mat(canvas.height, canvas.width, cv.CV_8UC4);
+            src.data.set(imageData.data);
+
+            // Converte a imagem para escala de cinza
             let gray = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+
+            // Aplicar desfoque para reduzir o ruído
             let blurred = new cv.Mat();
-            let thresh = new cv.Mat();
+            cv.GaussianBlur(gray, blurred, new cv.Size(15, 15), 0);
+
+            // Detecta os contornos na imagem
             let contours = new cv.MatVector();
             let hierarchy = new cv.Mat();
-
-            // Converte a imagem para escala de cinza e aplica desfoque
-            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-            cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-            cv.threshold(blurred, thresh, 120, 255, cv.THRESH_BINARY);
-
-            // Encontra os contornos na imagem
-            cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            cv.findContours(blurred, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
             let maxArea = 0;
             let bestContour = null;
 
-            // Encontrar o maior contorno (isso vai representar o objeto que estamos rastreando)
+            // Encontrar o maior contorno (representa o objeto rastreado)
             for (let i = 0; i < contours.size(); i++) {
                 let cnt = contours.get(i);
                 let area = cv.contourArea(cnt);
@@ -102,12 +106,15 @@
                 ctx.strokeRect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
             }
 
-            // Limpa a memória após o uso
-            src.delete(); gray.delete(); blurred.delete(); thresh.delete();
-            contours.delete(); hierarchy.delete();
+            // Libera a memória após o uso
+            src.delete();
+            gray.delete();
+            blurred.delete();
+            contours.delete();
+            hierarchy.delete();
         }
 
-        // Executa o rastreamento em intervalos
+        // Função para iniciar o rastreamento
         function startTracking() {
             tracking = true;
             setInterval(function() {
