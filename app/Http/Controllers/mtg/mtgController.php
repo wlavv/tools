@@ -239,7 +239,9 @@ class mtgController extends Controller
         if (!$image) return response()->json(['error' => 'Imagem inválida.'], 400);
     
         $boundingBox = $request->input('boundingBox');
-    
+
+        echo '<pre>' . print_r($boundingBox, 1) . '</pre>';
+
         if (!$boundingBox || !is_array($boundingBox) || count($boundingBox) != 4) return response()->json(['error' => 'Bounding box inválida.'], 400);
     
         $x = $boundingBox->x;
