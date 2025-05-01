@@ -7,8 +7,9 @@ let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
 
-let tracker;
-let isTracking = false;  // Controla se o objeto está sendo rastreado
+let orb, keypoints, descriptors;
+let isTracking = false;
+let prevKeypoints, prevDescriptors;
 
 // Configurar o vídeo
 window.setup = function () {
@@ -32,15 +33,8 @@ window.setup = function () {
     });
 
     video.size(cropWidth, cropHeight);
+    orb = new cv.ORB(); // Inicializa o ORB
 };
-
-// Função para iniciar o rastreamento (geralmente no primeiro clique ou em um quadro detectado)
-function startTracking(boundingRect) {
-    // Usar o TrackerMIL (suportado no OpenCV.js)
-    tracker = new cv.TrackerMIL();
-    tracker.start(video.get().canvas, boundingRect);
-    isTracking = true;
-}
 
 // Função para processar cada frame e rastrear o objeto
 window.draw = function () {
@@ -56,49 +50,35 @@ window.draw = function () {
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
     let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
-    // Criar a imagem em escala de cinza (gray) antes de realizar qualquer operação
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);  // Converte a imagem para escala de cinza
 
-    // Inicializar a variável edges aqui
-    let edges = new cv.Mat();
+    // Detecta keypoints e descritores usando ORB
+    keypoints = new cv.KeyPointVector();
+    descriptors = new cv.Mat();
+    orb.detectAndCompute(gray, new cv.Mat(), keypoints, descriptors);
 
-    // Verificar se estamos rastreando
-    if (isTracking) {
-        let trackingResult = tracker.update(img.canvas);
-        
-        if (trackingResult) {
-            // Desenhar o retângulo de rastreamento no canvas
-            let rect = tracker.getPosition();
-            cv.rectangle(mat, rect, [0, 255, 0, 255], 2);
+    // Se já temos keypoints da imagem anterior, realizamos o matching
+    if (prevKeypoints && prevDescriptors) {
+        let matches = new cv.DMatchVector();
+        let bf = new cv.BFMatcher(cv.NORM_HAMMING, true);
+        bf.match(prevDescriptors, descriptors, matches);  // Faz o match entre os descritores
+
+        // Desenha os matches
+        for (let i = 0; i < matches.size(); i++) {
+            let match = matches.get(i);
+            let pt1 = prevKeypoints.get(match.queryIdx).pt;
+            let pt2 = keypoints.get(match.trainIdx).pt;
+            cv.line(mat, pt1, pt2, [0, 255, 0, 255], 2); // Desenha uma linha verde conectando os pontos correspondentes
         }
+
+        // Atualiza os keypoints e descritores anteriores
+        prevKeypoints = keypoints;
+        prevDescriptors = descriptors;
     } else {
-        // Aplicar a detecção de bordas (Canny)
-        cv.Canny(gray, edges, 50, 100);
-
-        // Encontrar contornos
-        let contours = new cv.MatVector();
-        let hierarchy = new cv.Mat();
-        cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-        // Processar os contornos e detectar o retângulo
-        for (let i = 0; i < contours.size(); i++) {
-            let contour = contours.get(i);
-            let approx = new cv.Mat();
-            cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
-
-            // Verificar se é um retângulo
-            if (approx.rows == 4) {
-                let boundingRect = cv.boundingRect(contour);
-
-                // Iniciar o rastreamento do primeiro objeto detectado
-                startTracking(boundingRect);
-            }
-        }
-
-        // Liberar os recursos de OpenCV
-        contours.delete();
-        hierarchy.delete();
+        // Caso contrário, apenas armazene os keypoints e descritores para a próxima iteração
+        prevKeypoints = keypoints;
+        prevDescriptors = descriptors;
     }
 
     // Exibe o canvas no overlay
@@ -106,8 +86,7 @@ window.draw = function () {
 
     // Libere os recursos do OpenCV
     mat.delete();
-    gray.delete(); // Libera a variável gray corretamente
-    edges.delete(); // Libera a variável edges corretamente
+    gray.delete();
 };
 
 
