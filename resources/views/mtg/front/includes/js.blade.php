@@ -70,8 +70,6 @@ window.draw = function () {
             // Converte a imagem recortada para base64
             const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
 
-            let info = document.getElementById('info'); // Seleciona o elemento com o id 'info'
-
             // Envia a imagem para o backend via AJAX
             $.ajax({
                 url: "{{ route('mtg.processImage') }}",
@@ -86,7 +84,7 @@ window.draw = function () {
                 },
                 success: function (response) {
                     // Exibe a resposta do backend (pHash, etc.)
-                    info.html("📛 pHash: " + response.pHash);
+                    $('#info').html("📛 pHash: " + response.pHash);
 
                     // Atualiza a imagem recortada no front-end
                     let imgElement = document.createElement("img");
@@ -99,7 +97,7 @@ window.draw = function () {
                     cropZone.appendChild(imgElement);
                 },
                 error: function () {
-                    info.html("❌ Erro ao enviar imagem");
+                    $('#info').html("❌ Erro ao enviar imagem");
                 }
             });
 
