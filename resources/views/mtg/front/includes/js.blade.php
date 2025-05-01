@@ -7,10 +7,8 @@ let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
-const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 100;  // Largura mínima em pixels
-const minHeight = 150; // Altura mínima em pixels
+let tracker;
+let isTracking = false;  // Controla se o objeto está sendo rastreado
 
 // Configurar o vídeo
 window.setup = function () {
@@ -36,119 +34,78 @@ window.setup = function () {
     video.size(cropWidth, cropHeight);
 };
 
-// Função para processar cada frame e detectar a carta
+// Função para iniciar o rastreamento (geralmente no primeiro clique ou em um quadro detectado)
+function startTracking(boundingRect) {
+    // Iniciar o rastreador CSRT
+    tracker = new cv.TrackerCSRT();
+    tracker.start(video.get().canvas, boundingRect);
+    isTracking = true;
+}
+
+// Função para processar cada frame e rastrear o objeto
 window.draw = function () {
     clear();  // Limpa o canvas
 
     if (!isCapturing) return;
 
     let img = video.get();
-    img.loadPixels();
+    let canvas = document.createElement('canvas');
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
+    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
-    // Converte a imagem para Mat (OpenCV)
-    let mat = cv.imread(img.canvas);
+    // Verificar se estamos rastreando
+    if (isTracking) {
+        let trackingResult = tracker.update(img.canvas);
+        
+        if (trackingResult) {
+            // Desenhar o retângulo de rastreamento no canvas
+            let rect = tracker.getPosition();
+            cv.rectangle(mat, rect, [0, 255, 0, 255], 2);
+        }
+    } else {
+        // Detectar o objeto (cartas ou outro item) no primeiro frame
+        let gray = new cv.Mat();
+        cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
 
-    // Converter a imagem para escala de cinza
-    let gray = new cv.Mat();
-    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+        // Aplicar a detecção de bordas (Canny)
+        let edges = new cv.Mat();
+        cv.Canny(gray, edges, 50, 100);
 
-    // Aplicar a detecção de bordas (Canny)
-    let edges = new cv.Mat();
-    cv.Canny(gray, edges, 50, 100);
+        // Encontrar contornos
+        let contours = new cv.MatVector();
+        let hierarchy = new cv.Mat();
+        cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    // Encontrar contornos (para detectar a carta)
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+        // Processar os contornos e detectar o retângulo
+        for (let i = 0; i < contours.size(); i++) {
+            let contour = contours.get(i);
+            let approx = new cv.Mat();
+            cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
 
-    // Processar contornos e detectar o retângulo da carta
-    for (let i = 0; i < contours.size(); i++) {
-        let contour = contours.get(i);
-        let approx = new cv.Mat();
+            // Verificar se é um retângulo
+            if (approx.rows == 4) {
+                let boundingRect = cv.boundingRect(contour);
 
-        // Aproximar o contorno para um polígono (para garantir que temos um retângulo)
-        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
-
-        // Verificar se é um retângulo
-        if (approx.rows == 4) {
-            // Obter os pontos do retângulo
-            let points = [];
-            for (let j = 0; j < 4; j++) {
-                points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
-            }
-
-            // Desenhar o retângulo ao redor da carta (desenhando diretamente no canvas)
-            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
-
-            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
-            let boundingRect = cv.boundingRect(contour);
-
-            // Calcular a proporção do retângulo
-            let aspectRatio = boundingRect.width / boundingRect.height;
-
-            // Verificar se a proporção do retângulo está dentro da faixa de uma carta (1.5 ± 0.1)
-            if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
-                // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
-                if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
-                    // O retângulo é válido e tem o tamanho mínimo necessário
-                    // Captura o crop da imagem com base na boundingRect
-                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-
-                    // Converte a imagem recortada para base64
-                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
-
-                    console.log(boundingRect);
-
-                    // Enviar o crop para o servidor
-                    $.ajax({
-                        url: "{{ route('mtg.processImage') }}",
-                        type: 'POST',
-                        data: JSON.stringify({
-                            image: croppedBase64,
-                            boundingBox: boundingRect
-                        }),
-                        contentType: 'application/json',
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                        },
-                        success: function (response) {
-                            $('#info').html("📛 pHash: " + response.pHash);
-
-                            let imgElement = document.createElement("img");
-                            imgElement.src = response.croppedImageUrl;
-                            imgElement.style.width = '100%';
-                            imgElement.style.height = 'auto';
-
-                            let cropZone = document.getElementById('cropZone');
-                            cropZone.innerHTML = '';
-                            cropZone.appendChild(imgElement);
-
-                            // Adiciona um delay de 10 segundos após a resposta do AJAX
-                            setTimeout(function() {
-                                console.log('Atraso de 10 segundos completado');
-                                isCapturing = true;
-                            }, 10000);
-                        },
-                        error: function () {
-                            $('#info').html("❌ Erro ao enviar imagem");
-                        }
-                    });
-
-                    // Pausa a captura por 5 segundos após o envio
-                    isCapturing = false;
-                    setTimeout(() => { isCapturing = true }, 5000);
-                }
+                // Iniciar o rastreamento do primeiro objeto detectado
+                startTracking(boundingRect);
             }
         }
+
+        // Liberar os recursos de OpenCV
+        contours.delete();
+        hierarchy.delete();
     }
+
+    // Exibe o canvas no overlay
+    cv.imshow(canvasOverlay, mat);
 
     // Libere os recursos do OpenCV
     mat.delete();
     gray.delete();
     edges.delete();
-    contours.delete();
-    hierarchy.delete();
 };
-
 
 </script>
