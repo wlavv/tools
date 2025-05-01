@@ -243,63 +243,101 @@ class mtgController extends Controller
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
         // Cria a imagem a partir dos dados binários
-        $image = imagecreatefromstring($imageData);
-
-        if (!$image) {
+        $image = imagecreatefromstring($imageData);if (!$image) {
             return response()->json(['error' => 'Imagem inválida.'], 400);
         }
-
-        // Aplica o pHash para detectar a imagem
-        $imageHash = new ImageHash(new PerceptualHash());
-        $hash = $imageHash->hash($image);
-
-        if (!$hash) {
-            return response()->json(['error' => 'Erro ao gerar o pHash da imagem.'], 500);
+    
+        // Aqui, você aplicaria a lógica de detecção de carta
+        // Para fins de exemplo, vamos usar uma caixa fixa como antes
+        // Substitua isso por um método real de detecção de carta
+        $boundingBox = $this->detectCard($image);
+    
+        if (!$boundingBox) {
+            return response()->json(['error' => 'Carta não detectada.'], 400);
         }
-
+    
+        // Recorte a imagem com base na bounding box
+        $croppedImage = imagecrop($image, $boundingBox);
+    
+        // Se não foi possível cortar a imagem
+        if (!$croppedImage) {
+            return response()->json(['error' => 'Falha ao cortar a imagem.'], 500);
+        }
+    
+        // Salvar a imagem recortada temporariamente
         $filename = 'cropped_' . uniqid() . '.jpg';
         $path = public_path('uploads/mtg/front/temp/' . $filename);
-
-        // Aqui estamos usando o bounding box para recortar a imagem
-        $boundingBox = [
-            'x' => 50,  // Coordenada X da borda
-            'y' => 100, // Coordenada Y da borda
-            'width' => 200, // Largura da borda
-            'height' => 300, // Altura da borda
-        ];
-
-        // Recorta a imagem de acordo com as coordenadas do bounding box
-        $croppedImage = imagecrop($image, [
-            'x' => $boundingBox['x'],
-            'y' => $boundingBox['y'],
-            'width' => $boundingBox['width'],
-            'height' => $boundingBox['height']
-        ]);
-
-        // Verifica se o recorte foi bem-sucedido
-        if ($croppedImage === FALSE) {
-            return response()->json(['error' => 'Erro ao recortar a imagem.'], 500);
-        }
-
         imagejpeg($croppedImage, $path);
-
+    
+        // Aplicar o pHash
+        $imageHash = new ImageHash(new PerceptualHash());
+        $hash = $imageHash->hash($croppedImage);
+    
         // Convertendo o hash para hexadecimal
         $pHash = $hash->toHex();
-
-        // Aqui você pode fazer a detecção da carta ou outras operações
-        // Para este exemplo, vamos retornar apenas o pHash
-        // Também retornamos a bounding box fictícia para exibir a borda (isso depende da lógica de detecção que implementares)
-        $boundingBox = [
-            'x' => 50,  // Coordenada X da borda
-            'y' => 100, // Coordenada Y da borda
-            'width' => 200, // Largura da borda
-            'height' => 300, // Altura da borda
-        ];
-
+    
         return response()->json([
             'pHash' => $pHash,
             'boundingBox' => $boundingBox,
             'croppedImageUrl' => url("uploads/mtg/front/temp/{$filename}")
         ]);
-    }    
+    }
+    
+    /**
+     * Método fictício para detecção de carta.
+     * Você precisaria substituir isso por uma lógica real de detecção.
+     */
+    private function detectCard($image)
+    {
+        // 1. Converte a imagem para escala de cinza
+        $width = imagesx($image);
+        $height = imagesy($image);
+    
+        // Cria uma nova imagem em escala de cinza
+        $grayImage = imagecreatetruecolor($width, $height);
+        imagecopy($grayImage, $image, 0, 0, 0, 0, $width, $height);
+        imagefilter($grayImage, IMG_FILTER_GRAYSCALE);
+    
+        // 2. Aplica um filtro de bordas para destacar as bordas da imagem
+        imagefilter($grayImage, IMG_FILTER_EDGEDETECT);
+    
+        // 3. Encontra os contornos na imagem (aproximação simples)
+        // Vamos percorrer os pixels da imagem e procurar por áreas com bordas intensas
+        $boundingBox = null;
+    
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $color = imagecolorat($grayImage, $x, $y);
+                $grayValue = (int) (($color >> 16) & 0xFF); // Pega a intensidade do pixel (escala de cinza)
+    
+                // Verifica se o pixel é suficientemente "branco" para ser considerado como parte da borda
+                if ($grayValue > 200) { // Esse valor pode ser ajustado conforme a imagem
+                    if (!$boundingBox) {
+                        $boundingBox = [
+                            'x' => $x,
+                            'y' => $y,
+                            'width' => 0,
+                            'height' => 0
+                        ];
+                    }
+    
+                    // Atualiza as coordenadas do bounding box
+                    $boundingBox['x'] = min($boundingBox['x'], $x);
+                    $boundingBox['y'] = min($boundingBox['y'], $y);
+                    $boundingBox['width'] = max($boundingBox['width'], $x - $boundingBox['x']);
+                    $boundingBox['height'] = max($boundingBox['height'], $y - $boundingBox['y']);
+                }
+            }
+        }
+    
+        // Se não encontrar uma bounding box válida, retorna null
+        if ($boundingBox) {
+            // Ajusta a largura e altura da bounding box
+            $boundingBox['width'] = min($boundingBox['width'], $width - $boundingBox['x']);
+            $boundingBox['height'] = min($boundingBox['height'], $height - $boundingBox['y']);
+        }
+    
+        return $boundingBox;
+    }
+      
 }

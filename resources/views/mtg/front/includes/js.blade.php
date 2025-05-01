@@ -73,13 +73,6 @@ window.draw = function () {
 
             boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-            alert('WIDTH: ' + boundingBox.width);
-            alert('HEIGHT: ' + boundingBox.height);
-            alert('X: ' + boundingBox.x);
-            alert('Y: ' + boundingBox.y);
-            alert('Y: ' + boundingBox.y);
-            alert('IMAGE: ' + response.croppedImageUrl);
-
             // Atualizar a #cropZone com a imagem recortada
             let croppedImageUrl = response.croppedImageUrl;
             let imgElement = document.createElement("img");
