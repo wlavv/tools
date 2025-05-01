@@ -260,6 +260,27 @@ class mtgController extends Controller
         $filename = 'cropped_' . uniqid() . '.jpg';
         $path = public_path('uploads/mtg/front/temp/' . $filename);
 
+        // Aqui estamos usando o bounding box para recortar a imagem
+        $boundingBox = [
+            'x' => 50,  // Coordenada X da borda
+            'y' => 100, // Coordenada Y da borda
+            'width' => 200, // Largura da borda
+            'height' => 300, // Altura da borda
+        ];
+
+        // Recorta a imagem de acordo com as coordenadas do bounding box
+        $croppedImage = imagecrop($image, [
+            'x' => $boundingBox['x'],
+            'y' => $boundingBox['y'],
+            'width' => $boundingBox['width'],
+            'height' => $boundingBox['height']
+        ]);
+
+        // Verifica se o recorte foi bem-sucedido
+        if ($croppedImage === FALSE) {
+            return response()->json(['error' => 'Erro ao recortar a imagem.'], 500);
+        }
+
         imagejpeg($croppedImage, $path);
 
         // Convertendo o hash para hexadecimal
