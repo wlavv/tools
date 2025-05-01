@@ -23,6 +23,7 @@ window.setup = function () {
 
     video = createCapture(VIDEO, () => {
         const videoContainer = document.getElementById('videoContainer');
+        videoContainer.style.position = 'relative';
         video.elt.style.position = 'absolute';
         video.elt.style.top = '0';
         video.elt.style.left = '0';
@@ -122,7 +123,7 @@ window.draw = function () {
 
     if (boundingBox.width > 0 && boundingBox.height > 0) {
         noFill();
-
+        
         let highlightAlpha = sin(frameCount * 0.1) * 50 + 205;
         stroke(`rgba(0,255,0,${highlightAlpha})`);        
 
