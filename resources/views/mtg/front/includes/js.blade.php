@@ -63,51 +63,26 @@ window.draw = function () {
         return;
     }
 
-    // Exibir pontos chave na imagem
-    let imgKeypoints;
-    try {
-        imgKeypoints = new cv.Mat();
-        cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
-    } catch (err) {
-        console.error('Erro ao desenhar pontos chave: ', err);
-        return;
+    // Verificar se há pontos chave válidos antes de tentar desenhá-los
+    if (keypoints.size() > 0) {
+        let imgKeypoints;
+        try {
+            imgKeypoints = new cv.Mat();
+            cv.drawKeypoints(mat, keypoints, imgKeypoints, [0, 255, 0, 255], cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS);
+            cv.imshow('canvasOverlay', imgKeypoints);
+        } catch (err) {
+            console.error('Erro ao desenhar pontos chave: ', err);
+        }
+    } else {
+        console.log('Nenhum ponto chave encontrado');
     }
-
-    // Comparar descritores com a base de dados
-    let bestMatch = compareDescriptors(descriptors);
-
-    if (bestMatch) {
-        console.log('Carta encontrada:', bestMatch);
-        // Enviar a imagem para o servidor ou mostrar informações
-        $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: 'POST',
-            data: JSON.stringify({
-                image: img.canvas.toDataURL('image/jpeg'),
-                cardId: bestMatch.id
-            }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                $('#info').html("Informações: " + response.info);
-            },
-            error: function () {
-                $('#info').html("❌ Erro ao enviar imagem");
-            }
-        });
-    }
-
-    // Exibir a imagem com pontos chave
-    cv.imshow('canvasOverlay', imgKeypoints);
 
     // Limpeza de memória
     mat.delete();
     gray.delete();
     descriptors.delete();
-    imgKeypoints.delete();
 };
+
 
 
 // Comparar descritores extraídos
