@@ -108,9 +108,9 @@
                     let g = img.pixels[index + 1];
                     let b = img.pixels[index + 2];
 
-                    if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
+                    //if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
                         contours.push(createVector(x, y)); // Se encontrar um contorno, armazena o ponto
-                    }
+                    //}
                 }
             }
             return contours;
