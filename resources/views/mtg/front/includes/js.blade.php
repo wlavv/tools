@@ -7,6 +7,9 @@ let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
 
+// Proporção aproximada para uma carta (Magic: The Gathering)
+const targetAspectRatio = 1.5;  // 2:3 -> Largura:Altura (1.5 = Largura / Altura)
+
 // Configurar o vídeo
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
@@ -72,56 +75,65 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Desenhar o retângulo ao redor da carta
-            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
-
-            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
+            // Calcular o bounding box (retângulo)
             let boundingRect = cv.boundingRect(contour);
-            const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+            let width = boundingRect.width;
+            let height = boundingRect.height;
 
-            // Exibir o cropped (apenas a carta)
-            let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+            // Verificar a proporção (rácio) do retângulo
+            let aspectRatio = width / height;
 
-            console.log(boundingRect);
+            // Se a proporção estiver dentro do intervalo aceitável para uma carta (aproximadamente 1.5 para 2:3)
+            if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
+                // Desenhar o retângulo ao redor da carta
+                cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
 
-            // Enviar o crop para o servidor
-            $.ajax({
-                url: "{{ route('mtg.processImage') }}",
-                type: 'POST',
-                data: JSON.stringify({
-                    image: croppedBase64,
-                    boundingBox: boundingRect
-                }),
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
+                // Cortar a imagem da carta
+                const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+                let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
-                    $('#info').html("📛 pHash: " + response.pHash);
+                // Exibir o cropped (apenas a carta)
+                console.log('Bounding Box:', boundingRect);
 
-                    let imgElement = document.createElement("img");
-                    imgElement.src = response.croppedImageUrl;
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = 'auto';
+                // Enviar o crop para o servidor
+                $.ajax({
+                    url: "{{ route('mtg.processImage') }}",
+                    type: 'POST',
+                    data: JSON.stringify({
+                        image: croppedBase64,
+                        boundingBox: boundingRect
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        $('#info').html("📛 pHash: " + response.pHash);
 
-                    let cropZone = document.getElementById('cropZone');
-                    cropZone.innerHTML = '';
-                    cropZone.appendChild(imgElement);
+                        let imgElement = document.createElement("img");
+                        imgElement.src = response.croppedImageUrl;
+                        imgElement.style.width = '100%';
+                        imgElement.style.height = 'auto';
 
-                    setTimeout(function() {
-                        console.log('Atraso de 10 segundos completado');
-                        isCapturing = true;
-                    }, 10000);
-                },
-                error: function () {
-                    $('#info').html("❌ Erro ao enviar imagem");
-                }
-            });
+                        let cropZone = document.getElementById('cropZone');
+                        cropZone.innerHTML = '';
+                        cropZone.appendChild(imgElement);
 
-            // Pausa a captura por 5 segundos após o envio
-            isCapturing = false;
-            setTimeout(() => { isCapturing = true }, 5000);
+                        // Delay de 10 segundos antes de permitir a nova captura
+                        setTimeout(function() {
+                            console.log('Atraso de 10 segundos completado');
+                            isCapturing = true;
+                        }, 10000); // 10 segundos de delay
+                    },
+                    error: function () {
+                        $('#info').html("❌ Erro ao enviar imagem");
+                    }
+                });
+
+                // Pausa a captura por 5 segundos após o envio
+                isCapturing = false;
+                setTimeout(() => { isCapturing = true }, 5000); // Reativar captura após 5 segundos
+            }
         }
     }
 
