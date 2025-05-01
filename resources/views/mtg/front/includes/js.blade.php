@@ -9,8 +9,8 @@ const cropHeight = 900;
 
 // Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
 const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 50;  // Largura mínima em pixels
-const minHeight = 50; // Altura mínima em pixels
+const minWidth = 100;  // Largura mínima em pixels
+const minHeight = 150; // Altura mínima em pixels
 
 // Configurar o vídeo
 window.setup = function () {
@@ -48,11 +48,6 @@ window.draw = function () {
     // Converte a imagem para Mat (OpenCV)
     let mat = cv.imread(img.canvas);
 
-    // Verifica se a conversão foi bem-sucedida
-    if (mat.empty()) {
-        console.error("Erro ao carregar a imagem para o formato cv.Mat.");
-        return;
-    }
 
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
@@ -83,7 +78,7 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Desenhar o retângulo ao redor da carta (bordas verdes) na imagem original (mat)
+            // Desenhar o retângulo ao redor da carta
             cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
 
             // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
@@ -98,25 +93,10 @@ window.draw = function () {
                 if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
                     // O retângulo é válido e tem o tamanho mínimo necessário
                     // Captura o crop da imagem com base na boundingRect
-                    const croppedImage = mat.roi(boundingRect);  // Usando ROI para cortar a área desejada
+                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
 
-                    // Verificar se a imagem foi corretamente cortada
-                    if (croppedImage.empty()) {
-                        console.error("Erro ao cortar a imagem para o formato cv.Mat.");
-                        return;
-                    }
-
-                    // Codificar a imagem para Base64 usando imencode
-                    let buf = new cv.Mat();
-                    try {
-                        cv.imencode('.jpg', croppedImage, buf); // Codifica para JPG e armazena em 'buf'
-                    } catch (err) {
-                        console.error("Erro ao codificar a imagem: ", err);
-                        return;
-                    }
-
-                    // Converter o buffer para base64
-                    let base64String = 'data:image/jpeg;base64,' + buf.toString('base64'); // Converte para base64
+                    // Converte a imagem recortada para base64
+                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
                     console.log(boundingRect);
 
@@ -125,7 +105,7 @@ window.draw = function () {
                         url: "{{ route('mtg.processImage') }}",
                         type: 'POST',
                         data: JSON.stringify({
-                            image: base64String,
+                            image: croppedBase64,
                             boundingBox: boundingRect
                         }),
                         contentType: 'application/json',
