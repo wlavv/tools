@@ -8,10 +8,8 @@
 
     function setup() {
         // Criação da tela e captura do vídeo
-        //createCanvas(windowWidth, windowHeight); // Ajusta para ocupar toda a largura e altura da página
         video = createCapture(VIDEO);
         video.size(windowWidth, windowHeight); // Ajusta o vídeo para preencher o canvas
-        //video.parent('croppedImage'); // Coloca o vídeo diretamente no div com id 'croppedImage'
 
         info = select('#info');
         info.html("🔍 A procurar carta...");
@@ -62,6 +60,20 @@
 
                 // Atualiza a posição e tamanho da borda
                 boundingBox = response.boundingBox;
+
+                // Exibe a imagem recortada no tamanho da carta detectada
+                if (boundingBox.width > 0 && boundingBox.height > 0) {
+                    let croppedImage = img.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+
+                    if (!croppedImageCanvas) {
+                        croppedImageCanvas = createGraphics(boundingBox.width, boundingBox.height);
+                    }
+                    croppedImageCanvas.image(croppedImage, 0, 0);
+
+                    // Exibe a imagem recortada no local adequado
+                    croppedImageElement.innerHTML = "";
+                    croppedImageElement.appendChild(croppedImageCanvas.canvas);
+                }
 
                 // Interrompe a captura por 5 segundos
                 isCapturing = false;
