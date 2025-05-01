@@ -250,7 +250,7 @@ class mtgController extends Controller
         // Aqui, você aplicaria a lógica de detecção de carta
         // Para fins de exemplo, vamos usar uma caixa fixa como antes
         // Substitua isso por um método real de detecção de carta
-        $boundingBox = $this->detectCard($image);
+        $boundingBox = $request->input('boundingBox');
     
         if (!$boundingBox) {
             return response()->json(['error' => 'Carta não detectada.'], 400);
@@ -278,24 +278,7 @@ class mtgController extends Controller
     
         return response()->json([
             'pHash' => $pHash,
-            'boundingBox' => $boundingBox,
             'croppedImageUrl' => url("uploads/mtg/front/temp/{$filename}")
         ]);
     }
-    
-    /**
-     * Método fictício para detecção de carta.
-     * Você precisaria substituir isso por uma lógica real de detecção.
-     */
-    private function detectCard($image)
-    {
-        // Para exemplo, retornamos uma caixa fictícia
-        // A lógica real de detecção deve ser implementada aqui (ex: OpenCV, CNN, etc.)
-        return [
-            'x' => 50,  // Coordenada X da borda
-            'y' => 50, // Coordenada Y da borda
-            'width' => 500, // Largura da borda
-            'height' => 750, // Altura da borda
-        ];
-    }    
 }

@@ -66,10 +66,48 @@ window.draw = function () {
         // Verifica se o intervalo de 1 minuto foi atingido antes de enviar a requisição
         const currentTime = Date.now();
         if (currentTime - lastRequestTime >= minRequestInterval) {
+
+            let maxDiff = 0;
+            let bestX = 0;
+            let bestY = 0;
+            let boxSize = 100; // Tamanho da área para detecção
+
+            for (let y = 0; y < cropped.height - boxSize; y += 10) {
+                for (let x = 0; x < cropped.width - boxSize; x += 10) {
+                    let sum = 0;
+                    for (let j = 0; j < boxSize; j++) {
+                        for (let i = 0; i < boxSize; i++) {
+                            let index = 4 * ((y + j) * cropped.width + (x + i));
+                            let brightness = cropped.pixels[index]; // escala de cinza
+                            sum += brightness;
+                        }
+                    }
+                    let avg = sum / (boxSize * boxSize);
+                    let diff = Math.abs(avg - 128); // contraste com meio-tom
+
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        bestX = x;
+                        bestY = y;
+                    }
+                }
+            }
+
+            // Atualiza boundingBox com base no ponto de maior contraste
+            boundingBox = {
+                x: bestX,
+                y: bestY,
+                width: boxSize,
+                height: boxSize
+            };
+
             $.ajax({
                 url: "{{ route('mtg.processImage') }}",
                 type: 'POST',
-                data: JSON.stringify({ image: base64Image }),
+                data: JSON.stringify({
+                    image: base64Image,
+                    boundingBox: boundingBox // envia o objeto com x, y, width, height
+                }),
                 contentType: 'application/json',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
