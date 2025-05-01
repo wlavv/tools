@@ -8,10 +8,10 @@
 
     function setup() {
         // Criação da tela e captura do vídeo
-        createCanvas(windowWidth, windowHeight); // Ajusta para ocupar toda a largura e altura da página
+        //createCanvas(windowWidth, windowHeight); // Ajusta para ocupar toda a largura e altura da página
         video = createCapture(VIDEO);
         video.size(windowWidth, windowHeight); // Ajusta o vídeo para preencher o canvas
-        video.parent('croppedImage'); // Coloca o vídeo diretamente no div com id 'croppedImage'
+        //video.parent('croppedImage'); // Coloca o vídeo diretamente no div com id 'croppedImage'
 
         info = select('#info');
         info.html("🔍 A procurar carta...");
