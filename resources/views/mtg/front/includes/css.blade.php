@@ -7,6 +7,7 @@
         overflow: hidden;
     }
 
+    /** 
     #info {
         position: absolute;
         top: 10px;
@@ -31,7 +32,7 @@
 
     #videoElement {
         width: 500px;
-        height: auto;  /* Ajuste automático para manter a proporção do vídeo */
+        height: auto;  
     }
 
     .video-crop-container {
@@ -61,6 +62,49 @@
         background-color: rgba(0, 0, 0, 0.2);
     }
 
+**/
+
+
+    .video-crop-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#videoContainer {
+    position: relative;
+    width: 1200px;
+    height: 900px;
+    margin: 0 auto;
+    border: 1px solid #ddd;
+}
+
+#videoContainer video,
+#videoContainer canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1200px;
+    height: 900px;
+}
+
+#info {
+    margin: 20px 0;
+    font-weight: bold;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 1.2rem;
+}
+
+#cropZone {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#cropZone img {
+    max-width: 100%;
+    height: auto;
+}
 
 
 </style>
