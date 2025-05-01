@@ -40,15 +40,27 @@ window.setup = function () {
 window.draw = function () {
     clear();  // Limpa o canvas
 
-    if (!isCapturing) return;
+    if (!isCapturing || !video.loadedmetadata) return;  // Garante que o vídeo foi carregado corretamente
 
     let img = video.get();  // Captura o frame atual do vídeo
+    if (!img) {
+        console.error("Erro ao capturar a imagem do vídeo.");
+        return;
+    }
+
     let canvas = document.createElement('canvas');
     canvas.width = cropWidth;
     canvas.height = cropHeight;
     let ctx = canvas.getContext('2d');
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
-    let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
+
+    let mat;
+    try {
+        mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
+    } catch (err) {
+        console.error("Erro ao ler a imagem com OpenCV:", err);
+        return;
+    }
 
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
@@ -61,7 +73,12 @@ window.draw = function () {
     // Encontrar contornos (para detectar a carta)
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
-    cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    try {
+        cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+    } catch (err) {
+        console.error("Erro ao encontrar contornos:", err);
+        return;
+    }
 
     // Desenhar todos os contornos encontrados, sem verificar a proporção da carta
     cv.drawContours(mat, contours, -1, [255, 0, 0, 255], 2);  // Contornos em vermelho para visualização
@@ -72,7 +89,12 @@ window.draw = function () {
         let approx = new cv.Mat();
 
         // Aproximar o contorno para um polígono (para garantir que temos um retângulo)
-        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
+        try {
+            cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
+        } catch (err) {
+            console.error("Erro ao aproximar o contorno:", err);
+            continue;
+        }
 
         // Verificar se é um retângulo
         if (approx.rows == 4) {
@@ -83,7 +105,11 @@ window.draw = function () {
     }
 
     // Exibir o resultado (vídeo com contornos e retângulos desenhados)
-    cv.imshow(canvasOverlay, mat);  // Exibe a imagem no canvasOverlay
+    try {
+        cv.imshow(canvasOverlay, mat);  // Exibe a imagem no canvasOverlay
+    } catch (err) {
+        console.error("Erro ao exibir a imagem no canvasOverlay:", err);
+    }
 
     // Libere os recursos do OpenCV
     mat.delete();
