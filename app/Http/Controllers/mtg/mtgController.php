@@ -108,9 +108,9 @@ class mtgController extends Controller
 
         //$image = imagecreatefromstring($imageData);
 
-        $image = Intervention\Image\Facades\Image::make($imageBinary);
+        $image = Image::make($imageBinary);
 
-        if ($image->width() === 0 || $image->height() === 0) {
+        if ($image->getWidth() === 0 || $image->getHeight() === 0) {
             return response()->json(['error' => 'Imagem sem dimensões válidas'], 400);
         }
         
