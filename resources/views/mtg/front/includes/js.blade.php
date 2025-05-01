@@ -36,8 +36,9 @@ window.setup = function () {
 function draw() {
     if (!isCapturing) return;
 
-    // Captura o frame atual com o método getImageData
-    let src = cv.matFromImageData(getImageData(video));
+    // Captura o frame atual com o método video.get() do p5.js
+    let img = video.get();  // Captura o frame atual do vídeo
+    let src = cv.matFromImageData(img.canvas);  // Converte para OpenCV Mat
     let gray = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);  // Converte para escala de cinza
 
@@ -105,7 +106,7 @@ function draw() {
     src.delete(); gray.delete(); edges.delete(); contours.delete(); hierarchy.delete();
 }
 
-// Função para ordenar os pontos do quadrilátero (como fizemos no Python)
+// Função para ordenar os pontos do quadrilátero
 function orderPoints(points) {
     let rect = new Array(4);
     let s = points.map(p => p[0] + p[1]);
@@ -118,4 +119,5 @@ function orderPoints(points) {
 
     return rect;
 }
+
 </script>
