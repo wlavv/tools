@@ -101,7 +101,7 @@ window.draw = function () {
     // Se um retângulo válido foi encontrado, fazer o crop da maior carta detectada
     if (largestBoundingRect !== null) {
         // Desenhar o retângulo ao redor da maior carta
-        cv.rectangle(mat, largestBoundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
+        //cv.rectangle(mat, largestBoundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
 
         // Captura o crop da imagem com base no maior boundingRect
         let croppedMat = mat.roi(largestBoundingRect); // Recorta a imagem no OpenCV
