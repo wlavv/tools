@@ -10,12 +10,10 @@
     </head>
     <body>
         <div id="info">⌛ A iniciar...</div>
-
         <div class="video-crop-container">
-            <video id="videoElement" autoplay muted></video>
+            <div id="videoContainer"></div>
             <div id="cropZone"></div>
         </div>
-
         <div id="croppedImage"></div>
     </body>  
     @include("mtg.front.includes.js")

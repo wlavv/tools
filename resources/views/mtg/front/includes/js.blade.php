@@ -1,49 +1,45 @@
 <script>
     let video;
     let info;
-    let croppedImageElement = document.getElementById('croppedImage');
+    let croppedImageElement;
     let croppedImageCanvas;
     let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
     let isCapturing = true;
 
-    // Dimensões fixas da zona de crop
     const cropWidth = 500;
     const cropHeight = 750;
 
-    function setup() {
-        createCanvas(1, 1); // Canvas mínimo, não será exibido visualmente
-        video = createCapture(VIDEO);
+    window.setup = function () {
+        createCanvas(1, 1); // Canvas invisível
+
+        video = createCapture(VIDEO, () => {
+            // Quando o vídeo estiver pronto, insere no DOM
+            document.getElementById('videoContainer').appendChild(video.elt);
+        });
+        video.size(640, 480);
+        video.hide(); // Impede que o p5.js o mostre fora do lugar
+
         info = select('#info');
+        croppedImageElement = document.getElementById('croppedImage');
         info.html("🔍 A procurar carta...");
 
         frameRate(30);
-    }
+    };
 
-    function draw() {
+    window.draw = function () {
         if (!isCapturing) return;
 
-        // Captura o quadro atual
         let img = video.get();
         img.loadPixels();
 
-        // Ponto superior esquerdo da zona de crop (centralizado no vídeo)
-        let cropX = Math.max((video.width - cropWidth) / 2, 0);
-        let cropY = Math.max((video.height - cropHeight) / 2, 0);
+        let cropX = Math.floor((video.width - cropWidth) / 2);
+        let cropY = Math.floor((video.height - cropHeight) / 2);
 
-        // Garante que a área de crop está dentro dos limites
-        cropX = Math.floor(cropX);
-        cropY = Math.floor(cropY);
-
-        // Extrai apenas a área de interesse
         let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
-
-        // Aplica filtro de cinza, se desejado
         cropped.filter(GRAY);
 
-        // Converte em base64
         let base64Image = cropped.canvas.toDataURL('image/jpeg');
 
-        // Envia via AJAX
         $.ajax({
             url: "{{ route('mtg.processImage') }}",
             type: 'POST',
@@ -55,10 +51,8 @@
             success: function(response) {
                 info.html("📛 pHash: " + response.pHash);
 
-                // Atualiza bounding box
                 boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-                // Mostra a imagem recortada (original, não a crop prévia)
                 if (boundingBox.width > 0 && boundingBox.height > 0) {
                     let fullFrame = video.get();
                     let detected = fullFrame.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
@@ -70,12 +64,10 @@
                     }
 
                     croppedImageCanvas.image(detected, 0, 0);
-
                     croppedImageElement.innerHTML = "";
                     croppedImageElement.appendChild(croppedImageCanvas.canvas);
                 }
 
-                // Aguarda 5 segundos antes de nova deteção
                 isCapturing = false;
                 setTimeout(() => {
                     isCapturing = true;
@@ -87,6 +79,6 @@
             }
         });
 
-        isCapturing = false; // Impede chamadas múltiplas simultâneas
-    }
+        isCapturing = false;
+    };
 </script>

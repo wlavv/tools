@@ -34,12 +34,26 @@
         height: auto;  /* Ajuste automático para manter a proporção do vídeo */
     }
 
+    .video-crop-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 50px;
+        margin-left: 10px;
+    }
+
+    #videoContainer video {
+        width: 500px;
+        height: auto;
+        border: 2px solid white;
+    }
+
     #cropZone {
         width: 500px;
         height: 750px;
-        border: 2px solid red; /* Opcional: para destacar a área de crop */
-        position: relative;
+        border: 2px solid red;
+        background-color: rgba(0, 0, 0, 0.2);
     }
+
 
 
 </style>
