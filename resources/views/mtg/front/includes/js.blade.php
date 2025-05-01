@@ -1,84 +1,90 @@
 <script>
-    let video;
-    let info;
-    let croppedImageElement;
-    let croppedImageCanvas;
-    let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
-    let isCapturing = true;
 
-    const cropWidth = 500;
-    const cropHeight = 750;
+let video;
+let info;
+let canvasOverlay;
+let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
+let isCapturing = true;
+const cropWidth = 500;
+const cropHeight = 750;
 
-    window.setup = function () {
-        createCanvas(1, 1); // Canvas invisível
+window.setup = function () {
+    const canvas = createCanvas(cropWidth, cropHeight);
+    canvasOverlay = canvas.elt;
+    canvasOverlay.style.position = 'absolute';
+    canvasOverlay.style.top = '0';
+    canvasOverlay.style.left = '0';
+    canvasOverlay.style.zIndex = '10'; // Sobre o vídeo
 
-        video = createCapture(VIDEO, () => {
-            // Quando o vídeo estiver pronto, insere no DOM
-            document.getElementById('videoContainer').appendChild(video.elt);
-        });
-        video.size(640, 480);
-        video.hide(); // Impede que o p5.js o mostre fora do lugar
+    video = createCapture(VIDEO, () => {
+        const videoContainer = document.getElementById('videoContainer');
+        videoContainer.style.position = 'relative';
+        video.elt.style.position = 'absolute';
+        video.elt.style.top = '0';
+        video.elt.style.left = '0';
+        video.elt.width = cropWidth;
+        video.elt.height = cropHeight;
+        videoContainer.appendChild(video.elt);
+        videoContainer.appendChild(canvasOverlay); // sobrepõe o canvas ao vídeo
+    });
 
-        info = select('#info');
-        croppedImageElement = document.getElementById('croppedImage');
-        info.html("🔍 A procurar carta...");
+    video.size(cropWidth, cropHeight);
+    // NÃO usamos video.hide() — queremos vê-lo
 
-        frameRate(30);
-    };
+    info = select('#info');
+    info.html("🔍 A procurar carta...");
+};
 
-    window.draw = function () {
-        if (!isCapturing) return;
+window.draw = function () {
+    clear(); // limpa o canvas a cada frame
 
-        let img = video.get();
-        img.loadPixels();
+    if (!isCapturing) {
+        // Mostra bounding box, se existir
+        if (boundingBox.width > 0 && boundingBox.height > 0) {
+            noFill();
+            stroke('lime');
+            strokeWeight(3);
+            rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        }
+        return;
+    }
 
-        let cropX = Math.floor((video.width - cropWidth) / 2);
-        let cropY = Math.floor((video.height - cropHeight) / 2);
+    let img = video.get();
+    img.loadPixels();
 
-        let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
-        cropped.filter(GRAY);
+    let cropX = Math.floor((video.width - cropWidth) / 2);
+    let cropY = Math.floor((video.height - cropHeight) / 2);
 
-        let base64Image = cropped.canvas.toDataURL('image/jpeg');
+    let cropped = img.get(cropX, cropY, cropWidth, cropHeight);
+    cropped.filter(GRAY);
 
-        $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: 'POST',
-            data: JSON.stringify({ image: base64Image }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                info.html("📛 pHash: " + response.pHash);
+    let base64Image = cropped.canvas.toDataURL('image/jpeg');
 
-                boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
+    $.ajax({
+        url: "{{ route('mtg.processImage') }}",
+        type: 'POST',
+        data: JSON.stringify({ image: base64Image }),
+        contentType: 'application/json',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            info.html("📛 pHash: " + response.pHash);
 
-                if (boundingBox.width > 0 && boundingBox.height > 0) {
-                    let fullFrame = video.get();
-                    let detected = fullFrame.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+            boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-                    if (!croppedImageCanvas) {
-                        croppedImageCanvas = createGraphics(boundingBox.width, boundingBox.height);
-                    } else {
-                        croppedImageCanvas.resizeCanvas(boundingBox.width, boundingBox.height);
-                    }
+            isCapturing = false;
+            setTimeout(() => {
+                isCapturing = true;
+            }, 5000);
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao enviar imagem:", error);
+            info.html("❌ Erro ao enviar imagem");
+        }
+    });
 
-                    croppedImageCanvas.image(detected, 0, 0);
-                    croppedImageElement.innerHTML = "";
-                    croppedImageElement.appendChild(croppedImageCanvas.canvas);
-                }
+    isCapturing = false;
+};
 
-                isCapturing = false;
-                setTimeout(() => {
-                    isCapturing = true;
-                }, 5000);
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao enviar imagem:", error);
-                info.html("❌ Erro ao enviar imagem");
-            }
-        });
-
-        isCapturing = false;
-    };
 </script>
