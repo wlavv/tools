@@ -94,14 +94,7 @@ window.draw = function () {
                     // Captura o crop da imagem com base na boundingRect
                     const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
 
-                    // Desenhar borda verde na imagem cropada
-                    croppedImage.loadPixels();
-                    croppedImage.stroke(0, 255, 0); // cor verde para a borda
-                    croppedImage.strokeWeight(3);
-                    croppedImage.noFill();
-                    croppedImage.rect(0, 0, croppedImage.width, croppedImage.height);
-
-                    // Converte a imagem recortada com a borda para base64
+                    // Converte a imagem cropada para base64
                     let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
                     console.log(boundingRect);
