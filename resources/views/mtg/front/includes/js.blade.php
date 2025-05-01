@@ -2,15 +2,17 @@
 
 let video;
 let canvasOverlay;
-let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
 let isCapturing = true;
 let lastRequestTime = 0;
+let detector;
 
 const cropWidth = 1200;
 const cropHeight = 900;
 
-function onOpenCvReady() {
-    console.log('OpenCV.js loaded ✅');
+async function onOpenCvReady() {
+    // Carregando o modelo COCO-SSD para detecção de objetos
+    detector = await cocoSsd.load();
+    console.log('Modelo COCO-SSD carregado com sucesso!');
 }
 
 window.setup = function () {
@@ -34,115 +36,40 @@ window.setup = function () {
     });
 
     video.size(cropWidth, cropHeight);
+
+    // Aguardar o carregamento do modelo COCO-SSD
+    onOpenCvReady();
 };
 
 window.draw = function () {
     clear();  // Limpa o canvas
 
-    if (!isCapturing) return;
+    if (!isCapturing || !detector) return;
 
     // Captura o vídeo em cada frame
     let img = video.get();
     img.loadPixels();
 
-    // Acessa os pixels da captura
-    let canvas = document.createElement('canvas');
-    let ctx = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img.canvas, 0, 0);
+    // Usando o modelo COCO-SSD para detectar objetos no frame atual
+    detector.detect(img.canvas).then(predictions => {
+        // Loop pelas predições e desenha as bordas ao redor dos objetos
+        predictions.forEach(prediction => {
+            // Desenha a borda verde ao redor do objeto detectado
+            noFill();
+            stroke(0, 255, 0);  // Cor verde
+            strokeWeight(3);     // Espessura da borda
+            rectMode(CORNER);
+            rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
 
-    // Converte a imagem do canvas para ImageData
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // Criar a Mat manualmente a partir do array de pixels
-    let src = cv.matFromArray(canvas.height, canvas.width, cv.CV_8UC4, imageData.data);  // Usando matFromArray()
-
-    let gray = new cv.Mat();
-    let blurred = new cv.Mat();
-    let thresh = new cv.Mat();
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-
-    // Converte a imagem para escala de cinza
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-    cv.threshold(blurred, thresh, 120, 255, cv.THRESH_BINARY);
-
-    // Encontra os contornos da imagem
-    cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-    let maxArea = 0;
-    let bestContour = null;
-
-    // Encontrar o maior contorno
-    for (let i = 0; i < contours.size(); i++) {
-        let cnt = contours.get(i);
-        let area = cv.contourArea(cnt);
-        if (area > maxArea) {
-            maxArea = area;
-            bestContour = cnt;
-        }
-    }
-
-    // Se um contorno válido for encontrado, ajusta o bounding box
-    if (bestContour && maxArea > 10000) {  // Tamanho mínimo do contorno
-        let rect = cv.boundingRect(bestContour);
-        boundingBox = {
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: rect.height
-        };
-
-        // Desenha a borda verde ao redor do contorno detectado
-        noFill();
-        stroke(0, 255, 0);  // Cor verde
-        strokeWeight(3);     // Espessura da borda
-        rectMode(CORNER);
-        rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);  // Desenha o retângulo
-
-        // Recorta a imagem com base na bounding box detectada
-        let cropped = img.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
-        let base64Image = cropped.canvas.toDataURL('image/jpeg');
-
-        // Envia a imagem para o backend via AJAX
-        $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: 'POST',
-            data: JSON.stringify({
-                image: base64Image,
-                boundingBox: boundingBox
-            }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                // Atualiza a imagem recortada no front-end
-                let imgElement = document.createElement("img");
-                imgElement.src = response.croppedImageUrl;
-                imgElement.style.width = '100%';
-                imgElement.style.height = 'auto';
-
-                let cropZone = document.getElementById('cropZone');
-                cropZone.innerHTML = '';
-                cropZone.appendChild(imgElement);
-            },
-            error: function () {
-                info.html("❌ Erro ao enviar imagem");
-            }
+            // Exibe o nome do objeto e a confiança
+            textSize(18);
+            text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
         });
-
-        // Pausa a captura por 5 segundos
-        isCapturing = false;
-        setTimeout(() => { isCapturing = true }, 5000);
-    }
-
-    // Liberando memória após o uso das Matrices
-    src.delete(); gray.delete(); blurred.delete(); thresh.delete();
-    contours.delete(); hierarchy.delete();
+    }).catch(err => {
+        console.error("Erro na detecção de objetos: ", err);
+    });
 };
+
 
 
 </script>
