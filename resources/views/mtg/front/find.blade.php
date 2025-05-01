@@ -171,23 +171,24 @@ function sendImageToServer(croppedImageCanvas) {
         const base64Image = imageData.canvas.toDataURL('image/jpeg');
 
         // Envia via AJAX utilizando jQuery
-        $.ajax({
-            url: '/mtg/find-card-base64',
-            type: 'POST',
-            data: JSON.stringify({ base64_image: base64Image }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
-            },
-            success: function(response) {
-                $('#info').text('pHash da carta: ' + response.pHash);
-            },
-            error: function(xhr, status, error) {
-                console.error('Erro ao enviar imagem:', error);
-                $('#info').text('Erro ao enviar imagem!');
-            }
-        });
 
+        if(base64Image.lenght() > 0){
+            $.ajax({
+                url: '/mtg/find-card-base64',
+                type: 'POST',
+                data: JSON.stringify({ base64_image: base64Image }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
+                },
+                success: function(response) {
+                    $('#info').text('pHash da carta: ' + response.pHash);
+                },
+                error: function(xhr, status, error) {
+                    $('#info').text('Erro ao enviar imagem!');
+                }
+            });
+        }
         // Atualiza o tempo da última requisição
         lastRequestTime = currentTime;
     } else {
