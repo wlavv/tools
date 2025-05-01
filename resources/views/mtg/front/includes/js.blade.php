@@ -1,5 +1,4 @@
 <script>
-
 let video;
 let canvasOverlay;
 let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
@@ -27,8 +26,8 @@ window.setup = function () {
         video.elt.style.position = 'absolute';
         video.elt.style.top = '0';
         video.elt.style.left = '0';
-        video.elt.width = 1200;
-        video.elt.height = 900;
+        video.elt.width = cropWidth;
+        video.elt.height = cropHeight;
         videoContainer.appendChild(video.elt);
         videoContainer.appendChild(canvasOverlay);
     });
@@ -36,11 +35,8 @@ window.setup = function () {
     video.size(cropWidth, cropHeight);
 };
 
-
-
-
 window.draw = function () {
-    clear();
+    clear();  // Limpa o canvas
 
     if (!isCapturing) return;
 
@@ -98,12 +94,12 @@ window.draw = function () {
             height: rect.height
         };
 
-        // Desenha a borda no canvas (destaque para o contorno)
+        // Desenha a borda verde ao redor do contorno detectado
         noFill();
-        stroke('lime');
-        strokeWeight(3);
+        stroke(0, 255, 0);  // Cor verde
+        strokeWeight(3);     // Espessura da borda
         rectMode(CORNER);
-        rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);  // Desenha o retângulo
 
         // Recorta a imagem com base na bounding box detectada
         let cropped = img.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
@@ -122,8 +118,6 @@ window.draw = function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function (response) {
-                info.html("📛 pHash: " + response.pHash);
-
                 // Atualiza a imagem recortada no front-end
                 let imgElement = document.createElement("img");
                 imgElement.src = response.croppedImageUrl;
@@ -148,6 +142,4 @@ window.draw = function () {
     src.delete(); gray.delete(); blurred.delete(); thresh.delete();
     contours.delete(); hierarchy.delete();
 };
-
-
 </script>
