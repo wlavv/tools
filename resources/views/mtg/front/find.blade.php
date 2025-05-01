@@ -60,7 +60,7 @@
         function draw() {
             image(video, 0, 0); // Exibe o vídeo na tela
             let img = get(); // Captura o quadro atual
-            ///.filter(GRAY); // Converte para escala de cinza
+            img.filter(GRAY); // Converte para escala de cinza
 
             // Detecta os contornos na imagem
             contours = detectContours(img);
