@@ -7,8 +7,10 @@ let isCapturing = true;
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// Proporção aproximada para uma carta (Magic: The Gathering)
-const targetAspectRatio = 1.5;  // 2:3 -> Largura:Altura (1.5 = Largura / Altura)
+// Definir a proporção alvo (1.5 para cartas MTG) e o tamanho mínimo da carta (em pixels)
+const targetAspectRatio = 1.5; // Largura / Altura
+const minWidth = 200;  // Largura mínima em pixels
+const minHeight = 300; // Altura mínima em pixels
 
 // Configurar o vídeo
 window.setup = function () {
@@ -75,64 +77,67 @@ window.draw = function () {
                 points.push(new cv.Point(approx.data32S[j * 2], approx.data32S[j * 2 + 1]));
             }
 
-            // Calcular o bounding box (retângulo)
+            // Desenhar o retângulo ao redor da carta
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
+
+            // Aqui você pode ajustar o crop da imagem com base nos pontos do retângulo
             let boundingRect = cv.boundingRect(contour);
-            let width = boundingRect.width;
-            let height = boundingRect.height;
 
-            // Verificar a proporção (rácio) do retângulo
-            let aspectRatio = width / height;
+            // Calcular a proporção do retângulo
+            let aspectRatio = boundingRect.width / boundingRect.height;
 
-            // Se a proporção estiver dentro do intervalo aceitável para uma carta (aproximadamente 1.5 para 2:3)
+            // Verificar se a proporção do retângulo está dentro da faixa de uma carta (1.5 ± 0.1)
             if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
-                // Desenhar o retângulo ao redor da carta
-                cv.drawContours(mat, contours, i, [0, 255, 0, 255], 3);
+                // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
+                if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
+                    // O retângulo é válido e tem o tamanho mínimo necessário
+                    // Captura o crop da imagem com base na boundingRect
+                    const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
 
-                // Cortar a imagem da carta
-                const croppedImage = img.get(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-                let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
+                    // Converte a imagem recortada para base64
+                    let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
-                // Exibir o cropped (apenas a carta)
-                console.log('Bounding Box:', boundingRect);
+                    console.log(boundingRect);
 
-                // Enviar o crop para o servidor
-                $.ajax({
-                    url: "{{ route('mtg.processImage') }}",
-                    type: 'POST',
-                    data: JSON.stringify({
-                        image: croppedBase64,
-                        boundingBox: boundingRect
-                    }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function (response) {
-                        $('#info').html("📛 pHash: " + response.pHash);
+                    // Enviar o crop para o servidor
+                    $.ajax({
+                        url: "{{ route('mtg.processImage') }}",
+                        type: 'POST',
+                        data: JSON.stringify({
+                            image: croppedBase64,
+                            boundingBox: boundingRect
+                        }),
+                        contentType: 'application/json',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            $('#info').html("📛 pHash: " + response.pHash);
 
-                        let imgElement = document.createElement("img");
-                        imgElement.src = response.croppedImageUrl;
-                        imgElement.style.width = '100%';
-                        imgElement.style.height = 'auto';
+                            let imgElement = document.createElement("img");
+                            imgElement.src = response.croppedImageUrl;
+                            imgElement.style.width = '100%';
+                            imgElement.style.height = 'auto';
 
-                        let cropZone = document.getElementById('cropZone');
-                        cropZone.innerHTML = '';
-                        cropZone.appendChild(imgElement);
+                            let cropZone = document.getElementById('cropZone');
+                            cropZone.innerHTML = '';
+                            cropZone.appendChild(imgElement);
 
-                        // Delay de 10 segundos antes de permitir a nova captura
-                        setTimeout(function() {
-                            console.log('Atraso de 10 segundos completado');
-                            isCapturing = true;
-                        }, 10000); // 10 segundos de delay
-                    },
-                    error: function () {
-                        $('#info').html("❌ Erro ao enviar imagem");
-                    }
-                });
+                            // Adiciona um delay de 10 segundos após a resposta do AJAX
+                            setTimeout(function() {
+                                console.log('Atraso de 10 segundos completado');
+                                isCapturing = true;
+                            }, 10000);
+                        },
+                        error: function () {
+                            $('#info').html("❌ Erro ao enviar imagem");
+                        }
+                    });
 
-                // Pausa a captura por 5 segundos após o envio
-                isCapturing = false;
-                setTimeout(() => { isCapturing = true }, 5000); // Reativar captura após 5 segundos
+                    // Pausa a captura por 5 segundos após o envio
+                    isCapturing = false;
+                    setTimeout(() => { isCapturing = true }, 5000);
+                }
             }
         }
     }
