@@ -8,6 +8,9 @@ let detector;
 const cropWidth = 1200;
 const cropHeight = 900;
 
+// Lista das classes que você quer seguir
+const targetClasses = ['card']; // Adicione mais classes se necessário
+
 async function onOpenCvReady() {
     // Carregando o modelo COCO-SSD para detecção de objetos
     detector = await cocoSsd.load();
@@ -51,59 +54,62 @@ window.draw = function () {
 
     // Usando o modelo COCO-SSD para detectar objetos no frame atual
     detector.detect(img.canvas).then(predictions => {
-        // Loop pelas predições e desenha as bordas ao redor dos objetos
+        // Loop pelas predições e filtra as classes específicas
         predictions.forEach(prediction => {
-            // Desenha a borda verde ao redor do objeto detectado
-            noFill();
-            stroke(0, 255, 0);  // Cor verde
-            strokeWeight(3);     // Espessura da borda
-            rectMode(CORNER);
-            rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+            // Filtra apenas as classes de interesse (cartas e mãos)
+            if (targetClasses.includes(prediction.class)) {
+                // Desenha a borda verde ao redor do objeto detectado
+                noFill();
+                stroke(0, 255, 0);  // Cor verde
+                strokeWeight(3);     // Espessura da borda
+                rectMode(CORNER);
+                rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
 
-            // Exibe o nome do objeto e a confiança
-            textSize(18);
-            text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
+                // Exibe o nome do objeto e a confiança
+                textSize(18);
+                text(prediction.class, prediction.bbox[0], prediction.bbox[1] - 10);
 
-            // Captura o crop da imagem com base na bbox
-            const croppedImage = img.get(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+                // Captura o crop da imagem com base na bbox
+                const croppedImage = img.get(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
 
-            // Converte a imagem recortada para base64
-            const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
+                // Converte a imagem recortada para base64
+                const base64Image = croppedImage.canvas.toDataURL('image/jpeg');
 
-            // Envia a imagem para o backend via AJAX
-            $.ajax({
-                url: "{{ route('mtg.processImage') }}",
-                type: 'POST',
-                data: JSON.stringify({
-                    image: base64Image,
-                    boundingBox: prediction.bbox
-                }),
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    // Exibe a resposta do backend (pHash, etc.)
-                    $('#info').html("📛 pHash: " + response.pHash);
+                // Envia a imagem para o backend via AJAX
+                $.ajax({
+                    url: "{{ route('mtg.processImage') }}",
+                    type: 'POST',
+                    data: JSON.stringify({
+                        image: base64Image,
+                        boundingBox: prediction.bbox
+                    }),
+                    contentType: 'application/json',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        // Exibe a resposta do backend (pHash, etc.)
+                        $('#info').html("📛 pHash: " + response.pHash);
 
-                    // Atualiza a imagem recortada no front-end
-                    let imgElement = document.createElement("img");
-                    imgElement.src = response.croppedImageUrl;
-                    imgElement.style.width = '100%';
-                    imgElement.style.height = 'auto';
+                        // Atualiza a imagem recortada no front-end
+                        let imgElement = document.createElement("img");
+                        imgElement.src = response.croppedImageUrl;
+                        imgElement.style.width = '100%';
+                        imgElement.style.height = 'auto';
 
-                    let cropZone = document.getElementById('cropZone');
-                    cropZone.innerHTML = '';
-                    cropZone.appendChild(imgElement);
-                },
-                error: function () {
-                    $('#info').html("❌ Erro ao enviar imagem");
-                }
-            });
+                        let cropZone = document.getElementById('cropZone');
+                        cropZone.innerHTML = '';
+                        cropZone.appendChild(imgElement);
+                    },
+                    error: function () {
+                        $('#info').html("❌ Erro ao enviar imagem");
+                    }
+                });
 
-            // Pausa a captura por 5 segundos após o envio
-            isCapturing = false;
-            setTimeout(() => { isCapturing = true }, 5000);
+                // Pausa a captura por 5 segundos após o envio
+                isCapturing = false;
+                setTimeout(() => { isCapturing = true }, 5000);
+            }
         });
     }).catch(err => {
         console.error("Erro na detecção de objetos: ", err);
