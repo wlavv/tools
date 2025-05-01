@@ -22,8 +22,8 @@ window.setup = function () {
         video.elt.style.position = 'absolute';
         video.elt.style.top = '0';
         video.elt.style.left = '0';
-        video.elt.width = cropWidth;
-        video.elt.height = cropHeight;
+        video.elt.width = '1200px';
+        video.elt.height = '900px';
         videoContainer.appendChild(video.elt);
         videoContainer.appendChild(canvasOverlay); // sobrepõe o canvas ao vídeo
     });

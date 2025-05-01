@@ -43,8 +43,8 @@
 
     #videoContainer {
         position: relative;
-        width: 500px;
-        height: 750px;
+        width: 1300px;
+        height: 1500px;
     }
 
 
