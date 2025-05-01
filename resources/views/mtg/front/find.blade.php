@@ -3,84 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Object Tracking in Video with Tracking.js</title>
-    <script src="https://cdn.jsdelivr.net/npm/tracking@1.1.2/build/tracking-min.js"></script>
-    <style>
-        #videoContainer {
-            position: relative;
-        }
-        #canvasOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 10;
-        }
-        #info {
-            position: absolute;
-            z-index: 20;
-            color: white;
-            font-size: 20px;
-        }
-    </style>
+    <title>Object Tracking with p5.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 </head>
 <body>
-
     <div id="info">⌛ A iniciar...</div>
-    <div id="videoContainer">
-        <video id="video" width="640" height="480" autoplay></video>
-        <canvas id="canvasOverlay" width="640" height="480"></canvas>
-    </div>
-
+    <script src="tracking.js"></script>
     <script>
         let video;
-        let canvas;
-        let ctx;
         let tracker;
+        let boundingBox = { x: 0, y: 0, width: 0, height: 0 };
 
-        // Função para inicializar a captura de vídeo
-        function startVideo() {
-            video = document.getElementById('video');
-            canvas = document.getElementById('canvasOverlay');
-            ctx = canvas.getContext('2d');
+        // Função setup - chamada uma vez ao iniciar
+        function setup() {
+            createCanvas(640, 480);  // Define o tamanho do canvas
+            video = createCapture(VIDEO);
+            video.size(640, 480);
+            video.hide();  // Oculta o vídeo para mostrar apenas no canvas
 
-            // Inicia o vídeo da webcam
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
-                })
-                .catch(function(err) {
-                    console.log("Erro ao acessar a câmera: ", err);
-                });
-        }
-
-        // Função para iniciar o tracking com a biblioteca tracking.js
-        function startTracking() {
-            // Cria o tracker de cor (ColorTracker para rastrear objetos com uma cor específica)
-            tracker = new tracking.ColorTracker(['magenta', 'red', 'green']); // Agora com cores válidas
-
-            // Quando o objeto é detectado, desenha a bounding box
+            // Configura o rastreador de cor
+            tracker = new tracking.ColorTracker();
             tracker.on('track', function(event) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
-
-                event.data.forEach(function(rect) {
-                    // Desenha a borda verde ao redor do objeto
-                    ctx.strokeStyle = 'lime';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-                });
+                // Verifica se há algum objeto detectado
+                if (event.data.length === 0) {
+                    boundingBox = { x: 0, y: 0, width: 0, height: 0 };
+                } else {
+                    // Obtém as coordenadas do bounding box
+                    boundingBox = event.data[0].bounds;
+                }
             });
 
-            // Inicia o tracker para o vídeo
-            tracking.track('#video', tracker);
+            // Começa a rastrear a cor magenta
+            tracking.track(video.elt, tracker);
         }
 
-        // Função chamada quando a página carrega
-        window.onload = function() {
-            startVideo();
-            startTracking();
-        };
-    </script>
+        // Função draw - chamada a cada frame
+        function draw() {
+            image(video, 0, 0);  // Desenha o vídeo no canvas
 
+            // Desenha o bounding box em torno do objeto detectado
+            if (boundingBox.width > 0 && boundingBox.height > 0) {
+                noFill();
+                stroke('lime');
+                strokeWeight(3);
+                rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+            }
+        }
+    </script>
 </body>
 </html>
