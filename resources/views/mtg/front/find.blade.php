@@ -7,7 +7,6 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
         @include("mtg.front.includes.css")
-        @include("mtg.front.includes.js")
     </head>
     <body>
         <div id="info">⌛ A iniciar...</div>
@@ -19,6 +18,7 @@
 
         <div id="croppedImage"></div>
     </body>  
+    @include("mtg.front.includes.js")
 </html>
 
 
