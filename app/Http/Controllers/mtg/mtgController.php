@@ -229,35 +229,45 @@ class mtgController extends Controller
 
 
 
+    use Illuminate\Http\Request;
+    use ImageHash\ImageHash;
+    use ImageHash\Algorithm\PerceptualHash;
+    
     public function processImage(Request $request)
     {
         // Verifica se a imagem foi enviada
         if (!$request->has('image')) {
             return response()->json(['error' => 'Imagem não fornecida.'], 400);
         }
-
+    
         // Obtém a imagem base64 do request
         $base64Image = $request->input('image');
-
+    
+        // Remove o prefixo 'data:image/jpeg;base64,' ou similar
+        $base64Image = preg_replace('#^data:image/\w+;base64,#i', '', $base64Image);
+    
         // Decodifica a imagem base64
-        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-
+        $imageData = base64_decode($base64Image);
+    
         // Cria a imagem a partir dos dados binários
-        $image = imagecreatefromstring($imageData);if (!$image) {
+        $image = imagecreatefromstring($imageData);
+    
+        if (!$image) {
             return response()->json(['error' => 'Imagem inválida.'], 400);
         }
     
-        // Aqui, você aplicaria a lógica de detecção de carta
-        // Para fins de exemplo, vamos usar uma caixa fixa como antes
-        // Substitua isso por um método real de detecção de carta
+        // Obtém a caixa delimitadora (bounding box) enviada pelo request
         $boundingBox = $request->input('boundingBox');
     
-        if (!$boundingBox) {
-            return response()->json(['error' => 'Carta não detectada.'], 400);
+        if (!$boundingBox || !is_array($boundingBox) || count($boundingBox) != 4) {
+            return response()->json(['error' => 'Bounding box inválida.'], 400);
         }
     
+        // A caixa delimitadora é um array com [x, y, largura, altura]
+        list($x, $y, $width, $height) = $boundingBox;
+    
         // Recorte a imagem com base na bounding box
-        $croppedImage = imagecrop($image, $boundingBox);
+        $croppedImage = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $width, 'height' => $height]);
     
         // Se não foi possível cortar a imagem
         if (!$croppedImage) {
@@ -269,16 +279,18 @@ class mtgController extends Controller
         $path = public_path('uploads/mtg/front/temp/' . $filename);
         imagejpeg($croppedImage, $path);
     
-        // Aplicar o pHash
+        // Aplicar o pHash à imagem recortada
         $imageHash = new ImageHash(new PerceptualHash());
         $hash = $imageHash->hash($croppedImage);
     
         // Convertendo o hash para hexadecimal
         $pHash = $hash->toHex();
     
+        // Retornar a resposta com o pHash e a URL da imagem recortada
         return response()->json([
             'pHash' => $pHash,
             'croppedImageUrl' => url("uploads/mtg/front/temp/{$filename}")
         ]);
     }
+    
 }
