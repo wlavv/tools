@@ -44,29 +44,41 @@ window.draw = function () {
 
     if (!isCapturing) return;
 
+    // Captura o vídeo em cada frame
     let img = video.get();
     img.loadPixels();
 
-    // Converter o frame para OpenCV
-    let canvas = img.canvas;
-    let src = cv.matFromImageData(canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height));
+    // Acessa os pixels da captura
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img.canvas, 0, 0);
+
+    // Converte a imagem do canvas para ImageData
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Cria a Mat a partir do ImageData
+    let src = cv.matFromImageData(imageData);
+
     let gray = new cv.Mat();
     let blurred = new cv.Mat();
     let thresh = new cv.Mat();
     let contours = new cv.MatVector();
     let hierarchy = new cv.Mat();
 
+    // Converte a imagem para escala de cinza
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
     cv.threshold(blurred, thresh, 120, 255, cv.THRESH_BINARY);
 
-    // Encontra os contornos
+    // Encontra os contornos da imagem
     cv.findContours(thresh, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
     let maxArea = 0;
     let bestContour = null;
 
-    // Encontrar o contorno com maior área
+    // Encontrar o maior contorno
     for (let i = 0; i < contours.size(); i++) {
         let cnt = contours.get(i);
         let area = cv.contourArea(cnt);
@@ -76,7 +88,8 @@ window.draw = function () {
         }
     }
 
-    if (bestContour && maxArea > 10000) { // Verifica se o contorno é grande o suficiente
+    // Se um contorno válido for encontrado, ajusta o bounding box
+    if (bestContour && maxArea > 10000) {  // Tamanho mínimo do contorno
         let rect = cv.boundingRect(bestContour);
         boundingBox = {
             x: rect.x,
@@ -85,18 +98,18 @@ window.draw = function () {
             height: rect.height
         };
 
-        // Mostrar a bounding box no canvas
+        // Desenha a borda no canvas (destaque para o contorno)
         noFill();
         stroke('lime');
         strokeWeight(3);
         rectMode(CORNER);
         rect(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
 
-        // Crop a imagem usando a bounding box
+        // Recorta a imagem com base na bounding box detectada
         let cropped = img.get(boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
         let base64Image = cropped.canvas.toDataURL('image/jpeg');
 
-        // Enviar para backend
+        // Envia a imagem para o backend via AJAX
         $.ajax({
             url: "{{ route('mtg.processImage') }}",
             type: 'POST',
@@ -111,6 +124,7 @@ window.draw = function () {
             success: function (response) {
                 info.html("📛 pHash: " + response.pHash);
 
+                // Atualiza a imagem recortada no front-end
                 let imgElement = document.createElement("img");
                 imgElement.src = response.croppedImageUrl;
                 imgElement.style.width = '100%';
@@ -125,14 +139,15 @@ window.draw = function () {
             }
         });
 
-        // Pausar captura por 5 segundos
+        // Pausa a captura por 5 segundos
         isCapturing = false;
         setTimeout(() => { isCapturing = true }, 5000);
     }
 
-    // Libertar memória
+    // Liberando memória após o uso das Matrices
     src.delete(); gray.delete(); blurred.delete(); thresh.delete();
     contours.delete(); hierarchy.delete();
 };
+
 
 </script>
