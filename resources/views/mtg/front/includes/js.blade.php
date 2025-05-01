@@ -9,6 +9,10 @@ const cropWidth = 1200;
 const cropHeight = 900;
 let isTracking = false; // Variável para controlar o estado de rastreamento
 
+// Variáveis para controle de requisições AJAX
+let lastRequestTime = 0;  // Armazena o tempo da última requisição
+const minRequestInterval = 60000; // Intervalo de 1 minuto (em milissegundos)
+
 window.setup = function () {
     const canvas = createCanvas(cropWidth, cropHeight);
     canvasOverlay = canvas.elt;
@@ -59,41 +63,50 @@ window.draw = function () {
 
         let base64Image = cropped.canvas.toDataURL('image/jpeg');
 
-        $.ajax({
-            url: "{{ route('mtg.processImage') }}",
-            type: 'POST',
-            data: JSON.stringify({ image: base64Image }),
-            contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                info.html("📛 pHash: " + response.pHash);
+        // Verifica se o intervalo de 1 minuto foi atingido antes de enviar a requisição
+        const currentTime = Date.now();
+        if (currentTime - lastRequestTime >= minRequestInterval) {
+            $.ajax({
+                url: "{{ route('mtg.processImage') }}",
+                type: 'POST',
+                data: JSON.stringify({ image: base64Image }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    info.html("📛 pHash: " + response.pHash);
 
-                // Atualiza a bounding box com as novas coordenadas
-                boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
+                    // Atualiza a bounding box com as novas coordenadas
+                    boundingBox = response.boundingBox || { x: 0, y: 0, width: 0, height: 0 };
 
-                // Atualiza a #cropZone com a imagem recortada
-                let croppedImageUrl = response.croppedImageUrl;
-                let imgElement = document.createElement("img");
-                imgElement.src = croppedImageUrl;  // URL da imagem recortada
-                imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
-                imgElement.style.height = 'auto'; // Mantém a proporção
+                    // Atualiza a #cropZone com a imagem recortada
+                    let croppedImageUrl = response.croppedImageUrl;
+                    let imgElement = document.createElement("img");
+                    imgElement.src = croppedImageUrl;  // URL da imagem recortada
+                    imgElement.style.width = '100%';  // Ajusta o tamanho da imagem
+                    imgElement.style.height = 'auto'; // Mantém a proporção
 
-                // Adiciona a imagem à #cropZone
-                let cropZone = document.getElementById('cropZone');
-                cropZone.innerHTML = ''; // Limpa qualquer conteúdo anterior
-                cropZone.appendChild(imgElement);
+                    // Adiciona a imagem à #cropZone
+                    let cropZone = document.getElementById('cropZone');
+                    cropZone.innerHTML = ''; // Limpa qualquer conteúdo anterior
+                    cropZone.appendChild(imgElement);
 
-                // Continuar capturando frames
-                isCapturing = true;
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao enviar imagem:", error);
-                info.html("❌ Erro ao enviar imagem");
-                isCapturing = true; // Reinicia a captura se houver erro
-            }
-        });
+                    // Atualiza o tempo da última requisição
+                    lastRequestTime = currentTime;
+
+                    // Continuar capturando frames
+                    isCapturing = true;
+                },
+                error: function(xhr, status, error) {
+                    console.error("Erro ao enviar imagem:", error);
+                    info.html("❌ Erro ao enviar imagem");
+                    isCapturing = true; // Reinicia a captura se houver erro
+                }
+            });
+        } else {
+            console.log("Aguardando 1 minuto antes de enviar nova requisição...");
+        }
 
         isCapturing = false;
     }
@@ -115,6 +128,5 @@ function stopTracking() {
 
 // Chama a função de detecção no início para iniciar o rastreamento
 startTracking();
-
 
 </script>
