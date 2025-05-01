@@ -48,6 +48,12 @@ window.draw = function () {
     // Converte a imagem para Mat (OpenCV)
     let mat = cv.imread(img.canvas);
 
+    // Verifica se a conversão foi bem-sucedida
+    if (mat.empty()) {
+        console.error("Erro ao carregar a imagem para o formato cv.Mat.");
+        return;
+    }
+
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
@@ -94,9 +100,20 @@ window.draw = function () {
                     // Captura o crop da imagem com base na boundingRect
                     const croppedImage = mat.roi(boundingRect);  // Usando ROI para cortar a área desejada
 
+                    // Verificar se a imagem foi corretamente cortada
+                    if (croppedImage.empty()) {
+                        console.error("Erro ao cortar a imagem para o formato cv.Mat.");
+                        return;
+                    }
+
                     // Codificar a imagem para Base64 usando imencode
                     let buf = new cv.Mat();
-                    cv.imencode('.jpg', croppedImage, buf); // Codifica para JPG e armazena em 'buf'
+                    try {
+                        cv.imencode('.jpg', croppedImage, buf); // Codifica para JPG e armazena em 'buf'
+                    } catch (err) {
+                        console.error("Erro ao codificar a imagem: ", err);
+                        return;
+                    }
 
                     // Converter o buffer para base64
                     let base64String = 'data:image/jpeg;base64,' + buf.toString('base64'); // Converte para base64
