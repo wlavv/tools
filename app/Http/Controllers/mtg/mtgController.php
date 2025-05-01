@@ -116,12 +116,18 @@ class mtgController extends Controller
             $implementation = new PerceptualHash();
             $hasher = new ImageHash($implementation);
             $hash = $hasher->hash($image);
+
+            if (!$hash instanceof Hash) {
+                return response()->json(['error' => 'Hash inválida (objeto não gerado)'], 500);
+            }
+
             $inputHash = $hash->toHex();
 
             if (empty($inputHash)) {
+                Log::error('inputHash está vazio ou inválido. Hash: ' . print_r($hash, true));
                 return response()->json(['error' => 'Hash não gerada'], 400);
             }
-                        
+
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao gerar o hash da imagem.'], 500);
         }
