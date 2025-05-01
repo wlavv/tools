@@ -34,7 +34,6 @@ window.setup = function () {
 
     video.size(cropWidth, cropHeight);
 };
-
 // Função para processar cada frame e detectar a carta
 window.draw = function () {
     clear();  // Limpa o canvas
@@ -49,6 +48,9 @@ window.draw = function () {
     ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
     let mat = cv.imread(canvas);  // Agora usa esse canvas com OpenCV
 
+    // Exibir a imagem original para depuração
+    cv.imshow('canvasOverlay', mat);  // Exibe a imagem original no overlay
+
     // Converter a imagem para escala de cinza
     let gray = new cv.Mat();
     cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
@@ -62,11 +64,13 @@ window.draw = function () {
     let hierarchy = new cv.Mat();
     cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
-    // Variável para armazenar o maior retângulo
+    // Log de contornos encontrados
+    console.log("Contornos encontrados: ", contours.size());
+
+    // Processar contornos e detectar o retângulo da carta
     let largestBoundingRect = null;
     let largestArea = 0;
 
-    // Processar contornos e detectar o retângulo da carta
     for (let i = 0; i < contours.size(); i++) {
         let contour = contours.get(i);
         let approx = new cv.Mat();
@@ -76,32 +80,32 @@ window.draw = function () {
 
         // Verificar se é um retângulo
         if (approx.rows == 4) {
+            // Obter os pontos do retângulo
             let boundingRect = cv.boundingRect(contour);
 
             // Calcular a área do retângulo
             let area = boundingRect.width * boundingRect.height;
 
-            // Calcular a proporção do retângulo
-            let aspectRatio = boundingRect.width / boundingRect.height;
-
-            // Verificar se a proporção do retângulo está dentro da faixa de uma carta (1.5 ± 0.1)
-            if (aspectRatio >= targetAspectRatio * 0.9 && aspectRatio <= targetAspectRatio * 1.1) {
-                // Verificar se a largura e altura do retângulo estão dentro do tamanho mínimo
-                if (boundingRect.width >= minWidth && boundingRect.height >= minHeight) {
-                    // Se for o maior retângulo encontrado até agora, atualize
-                    if (area > largestArea) {
-                        largestBoundingRect = boundingRect;
-                        largestArea = area;
-                    }
-                }
+            // Verificar se a área do retângulo é a maior encontrada até agora
+            if (area > largestArea) {
+                largestBoundingRect = boundingRect;
+                largestArea = area;
             }
+
+            // Desenhar o retângulo ao redor da carta
+            cv.drawContours(mat, contours, i, [0, 255, 0, 255], 5);  // Contorno verde com espessura maior
         }
     }
 
     // Se um retângulo válido foi encontrado, fazer o crop da maior carta detectada
     if (largestBoundingRect !== null) {
-        // Desenhar o retângulo ao redor da maior carta
-        //cv.rectangle(mat, largestBoundingRect, new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
+        console.log('Corte da maior carta:', largestBoundingRect);
+
+        // Desenhar o retângulo da maior carta detectada
+        cv.rectangle(mat, 
+            new cv.Point(largestBoundingRect.x, largestBoundingRect.y), 
+            new cv.Point(largestBoundingRect.x + largestBoundingRect.width, largestBoundingRect.y + largestBoundingRect.height), 
+            new cv.Scalar(0, 255, 0), 5);  // Contorno verde com espessura maior
 
         // Captura o crop da imagem com base no maior boundingRect
         let croppedMat = mat.roi(largestBoundingRect); // Recorta a imagem no OpenCV
@@ -154,6 +158,8 @@ window.draw = function () {
         // Pausa a captura por 5 segundos após o envio
         isCapturing = false;
         setTimeout(() => { isCapturing = true }, 5000);
+    } else {
+        console.log("Nenhum contorno válido encontrado");
     }
 
     // Libere os recursos do OpenCV
@@ -163,4 +169,5 @@ window.draw = function () {
     contours.delete();
     hierarchy.delete();
 };
+
 </script>
