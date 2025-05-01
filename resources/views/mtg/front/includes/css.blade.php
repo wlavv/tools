@@ -41,6 +41,13 @@
         margin-left: 10px;
     }
 
+    #videoContainer {
+        position: relative;
+        width: 500px;
+        height: 750px;
+    }
+
+
     #videoContainer video {
         width: 500px;
         height: auto;
