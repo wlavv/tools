@@ -21,7 +21,6 @@
             background: rgba(0,0,0,0.7);
             padding: 8px;
             border-radius: 4px;
-            z-index: 10;
         }
 
         #croppedImage {
@@ -30,14 +29,6 @@
             left: 10px;
             border: 2px solid white;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 10;
-        }
-
-        canvas {
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
         }
     </style>
 </head>
@@ -53,60 +44,62 @@
         let croppedImageElement = document.getElementById('croppedImage');
         let croppedImageCanvas;
 
-        let zoom = 1;
-        let zoomX = 0;
-        let zoomY = 0;
-
         function setup() {
-            createCanvas(windowWidth, windowHeight);
+            createCanvas(640, 480);
             video = createCapture(VIDEO);
             video.size(width, height);
-            video.hide();
+            video.hide(); // Oculta o elemento de vídeo
 
             info = select('#info');
             info.html("🔍 A procurar carta...");
+
             frameRate(10);
+
         }
 
         function draw() {
-            background(0);
-            push();
-            translate(zoomX, zoomY);
-            scale(zoom);
+            image(video, 0, 0); // Exibe o vídeo na tela
+            let img = get(); // Captura o quadro atual
+            ///.filter(GRAY); // Converte para escala de cinza
 
-            image(video, 0, 0, width, height);
-            let img = get();
-            //img.filter(GRAY);
+            // Detecta os contornos na imagem
             contours = detectContours(img);
 
             if (contours.length > 0) {
                 info.html("✅ Carta detectada!");
-                stroke(255, 0, 0);
-                noFill();
-                beginShape();
-                contours.forEach(c => vertex(c.x, c.y));
-                endShape(CLOSE);
+                stroke(255, 0, 0);  // Define a cor da borda como vermelho
+                noFill();           // Não preenche a área da carta
+                beginShape();       // Inicia o desenho da borda
+                contours.forEach(c => {
+                    vertex(c.x, c.y);
+                });
+                endShape(CLOSE);    // Finaliza o desenho da borda
 
+                // Calcula o bounding box (caixa de limite) para o crop
                 let minX = Math.min(...contours.map(c => c.x));
                 let maxX = Math.max(...contours.map(c => c.x));
                 let minY = Math.min(...contours.map(c => c.y));
                 let maxY = Math.max(...contours.map(c => c.y));
 
+                // Realiza o crop na imagem
                 let croppedImage = img.get(minX, minY, maxX - minX, maxY - minY);
 
+                // Cria uma nova imagem cropped e a exibe na tela
                 if (!croppedImageCanvas) {
                     croppedImageCanvas = createGraphics(maxX - minX, maxY - minY);
                 }
                 croppedImageCanvas.image(croppedImage, 0, 0);
-                image(croppedImageCanvas, 10, 300);
+                image(croppedImageCanvas, 10, 300); // Exibe a imagem cortada
+
+                // Envia a imagem recortada para o servidor via AJAX
 
                 sendImageToServer(croppedImageCanvas);
             } else {
                 info.html("🔍 A procurar carta...");
             }
-            pop();
         }
 
+        // Função para detectar contornos usando o P5.js
         function detectContours(img) {
             let contours = [];
             img.loadPixels();
@@ -117,55 +110,91 @@
                     let g = img.pixels[index + 1];
                     let b = img.pixels[index + 2];
 
-                    if (r < 80 && g < 80 && b < 80) {
-                        contours.push(createVector(x, y));
+                    if (r < 80 && g < 80 && b < 80) { // Detecção simples por cor
+                        contours.push(createVector(x, y)); // Se encontrar um contorno, armazena o ponto
                     }
                 }
             }
             return contours;
         }
 
-        let lastRequestTime = 0;
-        function sendImageToServer(croppedImageCanvas) {
-            const currentTime = Date.now();
-            if (currentTime - lastRequestTime >= 10000) {
-                croppedImageCanvas.loadPixels();
-                let imageData = croppedImageCanvas.get();
-                const base64Image = imageData.canvas.toDataURL('image/jpeg');
+        // Função para enviar a imagem recortada para o servidor
+        /*function sendImageToServer(croppedImageCanvas) {
+            croppedImageCanvas.loadPixels();
+            let imageData = croppedImageCanvas.get();
 
-                $.ajax({
-                    url: '/mtg/find-card-base64',
-                    type: 'POST',
-                    data: JSON.stringify({ base64_image: base64Image }),
-                    contentType: 'application/json',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        $('#info').text('pHash da carta: ' + response.pHash);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Erro ao enviar imagem:', error);
-                        $('#info').text('Erro ao enviar imagem!');
-                    }
-                });
+            // Converte a imagem para base64
+            const base64Image = imageData.canvas.toDataURL('image/jpeg');
 
-                lastRequestTime = currentTime;
+            // Envia via AJAX utilizando jQuery
+            $.ajax({
+                url: '/mtg/find-card-base64',
+                type: 'POST',
+                data: JSON.stringify({ base64_image: base64Image }),
+                contentType: 'application/json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
+                },
+                success: function(response) {
+                    $('#info').text('pHash da carta: ' + response.pHash);
+
+                    const delay = response.exists === true ? 5000 : 3000;
+
+                    setTimeout(() => {
+                        canSend = true; // Libera nova requisição após o delay
+                    }, delay);
+
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro ao enviar imagem:', error);
+                    $('#info').text('Erro ao enviar imagem!');
+
+                    setTimeout(() => {
+                        canSend = true;
+                    }, 3000);
+
+                }
+            });
+        }*/
+
+        let lastRequestTime = 0;  // Variável para armazenar o tempo da última requisição
+
+function sendImageToServer(croppedImageCanvas) {
+    const currentTime = Date.now();  // Obtem o tempo atual em milissegundos
+
+    // Verifica se se passaram 10 segundos desde a última requisição
+    if (currentTime - lastRequestTime >= 10000) {
+        croppedImageCanvas.loadPixels();
+        let imageData = croppedImageCanvas.get();
+
+        // Converte a imagem para base64
+        const base64Image = imageData.canvas.toDataURL('image/jpeg');
+
+        // Envia via AJAX utilizando jQuery
+        $.ajax({
+            url: '/mtg/find-card-base64',
+            type: 'POST',
+            data: JSON.stringify({ base64_image: base64Image }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')  // Adiciona o token CSRF no cabeçalho
+            },
+            success: function(response) {
+                $('#info').text('pHash da carta: ' + response.pHash);
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro ao enviar imagem:', error);
+                $('#info').text('Erro ao enviar imagem!');
             }
-        }
+        });
 
-        // Redimensiona canvas dinamicamente
-        function windowResized() {
-            resizeCanvas(windowWidth, windowHeight);
-        }
-
-        // Zoom com scroll do rato
-        function mouseWheel(event) {
-            const zoomFactor = 0.05;
-            zoom += event.delta > 0 ? -zoomFactor : zoomFactor;
-            zoom = constrain(zoom, 0.5, 3);
-            return false; // Impede scroll da página
-        }
-    </script>
+        // Atualiza o tempo da última requisição
+        lastRequestTime = currentTime;
+    } else {
+        // Caso não tenha se passado 10 segundos, avisa o usuário
+        console.log('Aguarde 10 segundos antes de enviar outra requisição');
+    }
+}
+</script>
 </body>
 </html>
