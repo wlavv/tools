@@ -82,6 +82,8 @@ window.draw = function () {
             // Exibir o cropped (apenas a carta)
             let croppedBase64 = croppedImage.canvas.toDataURL('image/jpeg');
 
+            console.log(boundingRect);
+            
             // Enviar o crop para o servidor
             $.ajax({
                 url: "{{ route('mtg.processImage') }}",
