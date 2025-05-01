@@ -124,7 +124,6 @@ class mtgController extends Controller
             $inputHash = $hash->toHex();
 
             if (empty($inputHash)) {
-                Log::error('inputHash está vazio ou inválido. Hash: ' . print_r($hash, true));
                 return response()->json(['error' => 'Hash não gerada'], 400);
             }
 
