@@ -61,7 +61,9 @@ window.draw = function () {
     // Se já temos keypoints da imagem anterior, realizamos o matching
     if (prevKeypoints && prevDescriptors) {
         let matches = new cv.DMatchVector();
-        let bf = new cv.BFMatcher(cv.NORM_HAMMING, true);
+        
+        // Inicializando o Brute-Force Matcher
+        let bf = new cv.BFMatcher(cv.NORM_HAMMING, true); // 'true' indica que será um match bidirecional
         bf.match(prevDescriptors, descriptors, matches);  // Faz o match entre os descritores
 
         // Desenha os matches
