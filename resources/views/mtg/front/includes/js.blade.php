@@ -2,7 +2,6 @@
 <script>
 //     template = loadImage('/images/mtg/templates/land artefact.png');  // Substitua pelo caminho correto do template
 
-
 let video;
 let canvasOverlay;
 let templateImage;  // A carta template que será usada para comparação
@@ -52,9 +51,9 @@ function matchTemplate(videoFrame, template) {
   return bestMatch;
 }
 
-// Configurar o vídeo
+// Função para configurar o vídeo
 function setup() {
-  const canvas = createCanvas(cropWidth, cropHeight);
+  const canvas = createCanvas(cropWidth, cropHeight); // Usar a função do p5.js
   canvasOverlay = canvas.elt;
   canvasOverlay.style.position = 'absolute';
   canvasOverlay.style.top = '0';
@@ -64,7 +63,7 @@ function setup() {
   // Carregar o template (a carta modelo)
   templateImage = new Image();
   templateImage.src = '/images/mtg/templates/land artefact.png'; // Caminho da imagem template
-  templateImage.onload = function() {
+  templateImage.onload = function () {
     video = createCapture(VIDEO, () => {
       const videoContainer = document.getElementById('videoContainer');
       videoContainer.style.position = 'relative';
@@ -104,8 +103,5 @@ function draw() {
     document.getElementById('croppedImage').innerHTML = `<img src="${croppedBase64}" />`;
   }
 }
-
-// Inicia a captura e o processamento
-setup();
 
 </script>
