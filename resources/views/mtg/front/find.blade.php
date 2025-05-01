@@ -57,7 +57,7 @@
         // Função para iniciar o tracking com a biblioteca tracking.js
         function startTracking() {
             // Cria o tracker de cor (ColorTracker para rastrear objetos com uma cor específica)
-            tracker = new tracking.ColorTracker(['red', 'green', 'blue']); // Use cores específicas para rastrear
+            tracker = new tracking.ColorTracker(['magenta', 'red', 'green']); // Agora com cores válidas
 
             // Quando o objeto é detectado, desenha a bounding box
             tracker.on('track', function(event) {
