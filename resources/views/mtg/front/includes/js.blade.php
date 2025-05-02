@@ -60,13 +60,14 @@
     window.cv.onRuntimeInitialized = onOpenCVLoaded;
 
     function updateTracking() {
-        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-        cap.read(frame);
+        // Criar uma matriz Mat para armazenar o frame capturado
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Definir corretamente a Mat
+        cap.read(frame);  // Captura o próximo frame da webcam
 
         if (frame.empty()) {
             console.error("Falha ao capturar frame");
         } else {
-            let ok = tracker.update(frame, bbox);
+            let ok = tracker.update(frame, bbox);  // Atualiza o tracker com o novo frame
             if (ok) {
                 console.log("Tracking atualizado com sucesso");
                 // Atualiza a posição e as dimensões nos inputs
@@ -78,8 +79,10 @@
                 console.error("Falha no tracking");
             }
         }
+
+        // Libera a memória do frame após o uso
         frame.delete();
-    }
+    }    
 
     setInterval(updateTracking, 1000 / 30);
 
