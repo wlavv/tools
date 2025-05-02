@@ -3,17 +3,11 @@
 //     template = loadImage('/images/mtg/templates/land artefact.png');  // Substitua pelo caminho correto do template
 
 let video;
-let canvasOverlay;
 let templateImg;
 let isCapturing = true;
 
 const cropWidth = 1200;
 const cropHeight = 900;
-
-// Definir a proporção alvo (1.5 para cartas MTG)
-const targetAspectRatio = 1.5; // Largura / Altura
-const minWidth = 100;  // Largura mínima em pixels
-const minHeight = 150; // Altura mínima em pixels
 
 // Carregar template (carta Magic: The Gathering)
 function preload() {
@@ -23,11 +17,10 @@ function preload() {
 // Configurar o vídeo
 function setup() {
     const canvas = createCanvas(cropWidth, cropHeight);
-    canvasOverlay = canvas.elt;
-    canvasOverlay.style.position = 'absolute';
-    canvasOverlay.style.top = '0';
-    canvasOverlay.style.left = '0';
-    canvasOverlay.style.zIndex = '10';
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '10';
 
     video = createCapture(VIDEO, () => {
         const videoContainer = document.getElementById('videoContainer');
@@ -38,7 +31,7 @@ function setup() {
         video.elt.width = cropWidth;
         video.elt.height = cropHeight;
         videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvasOverlay);
+        videoContainer.appendChild(canvas);
     });
 
     video.size(cropWidth, cropHeight);
@@ -50,49 +43,23 @@ function draw() {
 
     if (!isCapturing) return;
 
+    // Captura o frame atual do vídeo
     let img = video.get();
-    let canvas = document.createElement('canvas');
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
-
-    // Realizar Template Matching
-    let result = cv.matchTemplate(canvas, templateImg.canvas, cv.TM_CCOEFF_NORMED);
     
-    // Definir um limite para o quanto a carta precisa se encaixar
-    let threshold = 0.8; // Ajuste conforme necessário
-    let maxVal = -1;
-    let maxLoc = {x: 0, y: 0};
+    // Achar a correspondência do template na imagem
+    let matchResult = findTemplateMatch(img, templateImg);
 
-    for (let y = 0; y < result.rows; y++) {
-        for (let x = 0; x < result.cols; x++) {
-            let value = result.ucharPtr(y, x)[0];
-            if (value > maxVal) {
-                maxVal = value;
-                maxLoc = {x, y};
-            }
-        }
-    }
-
-    // Se encontrou uma correspondência significativa
-    if (maxVal > threshold) {
-        // Mostrar aviso
+    if (matchResult.found) {
+        // Exibir aviso
         $('#info').html("Carta detectada!");
 
         // Desenhar o contorno (retângulo) ao redor da carta encontrada
-        let rectX = maxLoc.x;
-        let rectY = maxLoc.y;
-        let rectWidth = templateImg.width;
-        let rectHeight = templateImg.height;
-
-        // Desenhar o retângulo
-        stroke(0, 255, 0);  // Cor verde para o contorno
         noFill();
-        rect(rectX, rectY, rectWidth, rectHeight);
+        stroke(0, 255, 0);  // Contorno verde
+        rect(matchResult.x, matchResult.y, matchResult.width, matchResult.height);
 
-        // Enviar a imagem recortada
-        let croppedImg = img.get(rectX, rectY, rectWidth, rectHeight);
+        // Capturar o crop da carta encontrada
+        let croppedImg = img.get(matchResult.x, matchResult.y, matchResult.width, matchResult.height);
         let croppedBase64 = croppedImg.canvas.toDataURL('image/jpeg');
 
         // Enviar o crop para o servidor
@@ -101,7 +68,7 @@ function draw() {
             type: 'POST',
             data: JSON.stringify({
                 image: croppedBase64,
-                boundingBox: {x: rectX, y: rectY, width: rectWidth, height: rectHeight}
+                boundingBox: matchResult
             }),
             contentType: 'application/json',
             headers: {
@@ -128,6 +95,44 @@ function draw() {
             }
         });
     }
+}
+
+// Função para encontrar a correspondência do template na imagem
+function findTemplateMatch(img, template) {
+    let matchResult = { found: false, x: 0, y: 0, width: template.width, height: template.height };
+    
+    img.loadPixels();
+    template.loadPixels();
+
+    for (let y = 0; y < img.height - template.height; y++) {
+        for (let x = 0; x < img.width - template.width; x++) {
+            let sum = 0;
+            // Comparar cada pixel do template com a região correspondente na imagem
+            for (let ty = 0; ty < template.height; ty++) {
+                for (let tx = 0; tx < template.width; tx++) {
+                    let imgIndex = ((y + ty) * img.width + (x + tx)) * 4;
+                    let templateIndex = (ty * template.width + tx) * 4;
+
+                    // Cálculo de diferença de cor (simples soma de diferenças de RGB)
+                    let rDiff = Math.abs(img.pixels[imgIndex] - template.pixels[templateIndex]);
+                    let gDiff = Math.abs(img.pixels[imgIndex + 1] - template.pixels[templateIndex + 1]);
+                    let bDiff = Math.abs(img.pixels[imgIndex + 2] - template.pixels[templateIndex + 2]);
+                    
+                    sum += rDiff + gDiff + bDiff;
+                }
+            }
+
+            // Se a soma das diferenças for pequena o suficiente, consideramos que encontramos o template
+            if (sum < 10000) {  // Ajuste este valor conforme necessário
+                matchResult.found = true;
+                matchResult.x = x;
+                matchResult.y = y;
+                return matchResult;
+            }
+        }
+    }
+    
+    return matchResult;  // Retorna que não encontrou
 }
 
 </script>
