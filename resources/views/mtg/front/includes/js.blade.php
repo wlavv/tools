@@ -5,10 +5,9 @@
     let initialized = false;
     let roi = null;  // Região de Interesse (onde o tracker começa)
 
-    let cap;
     let tracker;
     let bbox;
-    let videoStreamInitialized = false;  // Flag para verificar se a captura foi inicializada
+    let videoStreamInitialized = false;
 
     startTracking();
 
@@ -63,8 +62,8 @@
 
     function updateTracking() {
         if (!videoStreamInitialized) {
-            console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
-            return;  // Não faz nada se cap não estiver inicializado
+            console.error("A captura de vídeo não foi iniciada.");
+            return;  // Não faz nada se o vídeo não estiver inicializado
         }
 
         // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
