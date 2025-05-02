@@ -1,171 +1,23 @@
-<html><head>
+<!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
-<title>CamShift Example</title>
-<link href="js_example_style.css" rel="stylesheet" type="text/css">
+<title>Hello OpenCV.js</title>
 </head>
 <body>
-<h2>CamShift Example</h2>
-<p>
-    Click <b>Start/Stop</b> button to start or stop the video.<br>
-    The <b>videoInput</b> is a &lt;video&gt; element used as CamShift input.
-    The <b>canvasOutput</b> is a &lt;canvas&gt; element used as CamShift output.<br>
-    The code of &lt;textarea&gt; will be executed when video is started.
-    You can modify the code to investigate more.
-</p>
+<h2>Hello OpenCV.js</h2>
 <div>
-<div class="control"><button id="startAndStop">Stop</button></div>
-<textarea class="code" rows="29" cols="100" id="codeEditor" spellcheck="false"></textarea>
+  <div class="inputoutput">
+    <img id="imageSrc" alt="No Image" />
+    <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+  </div>
 </div>
-<p class="err" id="errorMessage"></p>
-<div>
-    <table cellpadding="0" cellspacing="0" width="0" border="0">
-    <tbody><tr>
-        <td>
-            <video id="videoInput" width="320" height="240" muted="" loop="" src="cup.mp4"></video>
-        </td>
-        <td>
-            <canvas id="canvasOutput" width="320" height="240"></canvas>
-        </td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>
-            <div class="caption">videoInput</div>
-        </td>
-        <td>
-            <div class="caption">canvasOutput</div>
-        </td>
-        <td></td>
-        <td></td>
-    </tr>
-    </tbody></table>
-</div>
-<script async="" type="text/javascript" src="opencv.js"></script><script src="https://webrtc.github.io/adapter/adapter-5.0.4.js" type="text/javascript"></script>
-<script src="utils.js" type="text/javascript"></script>
-<script id="codeSnippet" type="text/code-snippet">
-let video = document.getElementById('videoInput');
-let cap = new cv.VideoCapture(video);
-
-// take first frame of the video
-let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-cap.read(frame);
-
-// hardcode the initial location of window
-let trackWindow = new cv.Rect(150, 60, 63, 125);
-
-// set up the ROI for tracking
-let roi = frame.roi(trackWindow);
-let hsvRoi = new cv.Mat();
-cv.cvtColor(roi, hsvRoi, cv.COLOR_RGBA2RGB);
-cv.cvtColor(hsvRoi, hsvRoi, cv.COLOR_RGB2HSV);
-let mask = new cv.Mat();
-let lowScalar = new cv.Scalar(30, 30, 0);
-let highScalar = new cv.Scalar(180, 180, 180);
-let low = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), lowScalar);
-let high = new cv.Mat(hsvRoi.rows, hsvRoi.cols, hsvRoi.type(), highScalar);
-cv.inRange(hsvRoi, low, high, mask);
-let roiHist = new cv.Mat();
-let hsvRoiVec = new cv.MatVector();
-hsvRoiVec.push_back(hsvRoi);
-cv.calcHist(hsvRoiVec, [0], mask, roiHist, [180], [0, 180]);
-cv.normalize(roiHist, roiHist, 0, 255, cv.NORM_MINMAX);
-
-// delete useless mats.
-roi.delete(); hsvRoi.delete(); mask.delete(); low.delete(); high.delete(); hsvRoiVec.delete();
-
-// Setup the termination criteria, either 10 iteration or move by at least 1 pt
-let termCrit = new cv.TermCriteria(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 1);
-
-let hsv = new cv.Mat(video.height, video.width, cv.CV_8UC3);
-let hsvVec = new cv.MatVector();
-hsvVec.push_back(hsv);
-let dst = new cv.Mat();
-let trackBox = null;
-
-const FPS = 30;
-function processVideo() {
-    try {
-        if (!streaming) {
-            // clean and stop.
-            frame.delete(); dst.delete(); hsvVec.delete(); roiHist.delete(); hsv.delete();
-            return;
-        }
-        let begin = Date.now();
-
-        // start processing.
-        cap.read(frame);
-        cv.cvtColor(frame, hsv, cv.COLOR_RGBA2RGB);
-        cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
-        cv.calcBackProject(hsvVec, [0], roiHist, dst, [0, 180], 1);
-
-        // apply camshift to get the new location
-        [trackBox, trackWindow] = cv.CamShift(dst, trackWindow, termCrit);
-
-        // Draw it on image
-        let pts = cv.rotatedRectPoints(trackBox);
-        cv.line(frame, pts[0], pts[1], [255, 0, 0, 255], 3);
-        cv.line(frame, pts[1], pts[2], [255, 0, 0, 255], 3);
-        cv.line(frame, pts[2], pts[3], [255, 0, 0, 255], 3);
-        cv.line(frame, pts[3], pts[0], [255, 0, 0, 255], 3);
-        cv.imshow('canvasOutput', frame);
-
-        // schedule the next one.
-        let delay = 1000/FPS - (Date.now() - begin);
-        setTimeout(processVideo, delay);
-    } catch (err) {
-        utils.printError(err);
-    }
-};
-
-// schedule the first one.
-setTimeout(processVideo, 0);
-</script>
 <script type="text/javascript">
-let utils = new Utils('errorMessage');
-
-utils.loadCode('codeSnippet', 'codeEditor');
-
-let streaming = false;
-let videoInput = document.getElementById('videoInput');
-let startAndStop = document.getElementById('startAndStop');
-let canvasOutput = document.getElementById('canvasOutput');
-let canvasContext = canvasOutput.getContext('2d');
-
-startAndStop.addEventListener('click', () => {
-    if (!streaming) {
-        utils.clearError();
-        videoInput.play().then(() => {
-            onVideoStarted();
-        });
-    } else {
-        videoInput.pause();
-        videoInput.currentTime = 0;
-        onVideoStopped();
-    }
-});
-
-function onVideoStarted() {
-    streaming = true;
-    startAndStop.innerText = 'Stop';
-    videoInput.height = videoInput.width * (videoInput.videoHeight / videoInput.videoWidth);
-    utils.executeCode('codeEditor');
-}
-
-function onVideoStopped() {
-    streaming = false;
-    canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
-    startAndStop.innerText = 'Start';
-}
-
-utils.loadOpenCv(() => {
-    videoInput.addEventListener('canplay', () => {
-        startAndStop.removeAttribute('disabled');
-    });
-    videoInput.src = 'cup.mp4';
-});
+let imgElement = document.getElementById("imageSrc")
+let inputElement = document.getElementById("fileInput");
+inputElement.addEventListener("change", (e) => {
+  imgElement.src = URL.createObjectURL(e.target.files[0]);
+}, false);
 </script>
-<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;rayId&quot;:&quot;93971fe3fffe6917&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}},&quot;version&quot;:&quot;2025.4.0-1-g37f21b1&quot;,&quot;token&quot;:&quot;55698296dd8c4381b9a17117972ffe0c&quot;}" crossorigin="anonymous"></script>
-
-
-</body></html>
+</body>
+</html>
