@@ -1,4 +1,5 @@
-<script src="/build/assets/opencv.min.js" onload="openCvReady();"></script>
+<script src="/build/assets/opencv.min.js" onload="openCvReady()"></script>
+
 <script>
     
     let video = document.getElementById('video');
@@ -11,13 +12,11 @@
 
 
     function openCvReady() {
-        // Aqui aguardamos até o OpenCV.js estar completamente inicializado
-        cv['onRuntimeInitialized'] = () => {
-            console.log("OpenCV.js está pronto para uso!");
+        // Quando o OpenCV.js estiver pronto
+        console.log("OpenCV.js está pronto para uso!");
 
-            // Coloque o código do seu projeto que depende do OpenCV.js aqui.
-            startTracking(); // Exemplo de função que usa OpenCV.js
-        };
+        // Coloque o código que depende do OpenCV.js aqui
+        startTracking();
     }
 
     function startTracking() {
