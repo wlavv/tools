@@ -15,8 +15,8 @@
 
                 <!-- Video com a webcam -->
                 <video id="video" preload autoplay loop muted></video>
-                <canvas id="previewCanvas" width="320" height="240"></canvas>
-                <canvas id="canvas" width="320" height="240"></canvas>
+                <canvas id="canvas"></canvas>
+                <canvas id="cropCanvas"></canvas>
             </div>
         </div>
         @include("mtg.front.includes.js")
