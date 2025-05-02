@@ -9,11 +9,16 @@
     </head>
     <body>
         <a-scene mindar-image="imageTargetSrc: images/mtg/minds/seedbornmuse.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+            <!-- Definição da câmera -->
             <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+            
+            <!-- Entidade de AR ligada à imagem alvo -->
             <a-entity mindar-image-target="targetIndex: 0">
-                <a-plane color="blue" opaciy="0.5" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+                <!-- Plane que será exibido quando a imagem alvo for detectada -->
+                <a-plane color="blue" opacity="0.5" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
             </a-entity>
         </a-scene>
+        
         @include("mtg.front.includes.js")
     </body>
 </html>
