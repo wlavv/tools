@@ -2,22 +2,20 @@
 <script>
     
     let video = document.getElementById('video');
-    let cap;
-    let tracker;
-    let bbox;
     let initialized = false;
     let roi = null;  // Região de Interesse (onde o tracker começa)
 
-    // Função para iniciar a captura da webcam
+    let cap;
+    let tracker;
+    let bbox;
+
     function startTracking() {
         console.log("Iniciando captura da webcam...");
 
-        // Acessar a webcam
         const video = document.getElementById("video");
-        const stream = video.srcObject;
 
         // Se o stream da webcam estiver vazio, inicia a captura
-        if (!stream) {
+        if (!video.srcObject) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function (stream) {
                     video.srcObject = stream;
@@ -26,8 +24,8 @@
                     cap = new cv.VideoCapture(video);
                     console.log("Webcam acessada com sucesso!");
 
-                    // Inicializar o tracker (usando KCF ou outro)
-                    tracker = new cv.TrackerKCF();
+                    // Inicializar o tracker usando cv.Tracker_create() (com KCF como exemplo)
+                    tracker = cv.Tracker_create('KCF');
                     console.log("Inicializando tracking...");
 
                     // Definir o bounding box manualmente ou a partir de uma interface
@@ -56,10 +54,16 @@
     } else {
         console.log("cv está definido.");
     }
+    
     window.cv = window.cv || {};  // Garantir que o cv esteja disponível
     window.cv.onRuntimeInitialized = onOpenCVLoaded;
 
     function updateTracking() {
+        if (!cap) {  // Verifica se cap foi inicializada
+            console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
+            return;
+        }
+
         // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
         let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Ou usar .zeros() se necessário
 
@@ -96,7 +100,6 @@
         // Libera a memória do frame após o uso
         frame.delete();
     }
-
     setInterval(updateTracking, 1000 / 30);
 
     // Função para inicializar o tracking
