@@ -17,8 +17,10 @@
 
         // Se o stream da webcam estiver vazio, inicia a captura
         if (!video.srcObject) {
+            console.log("Acessando a webcam...");
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function (stream) {
+                    console.log("Stream da webcam obtido com sucesso.");
                     video.srcObject = stream;
 
                     // Criar o VideoCapture para acessar o vídeo da webcam
@@ -35,10 +37,11 @@
 
                     // Marcar que a webcam foi inicializada com sucesso
                     videoStreamInitialized = true;
+                    console.log("A captura de vídeo foi inicializada com sucesso.");
 
                     // Iniciar o loop de captura e tracking
-                    // Garantir que o loop de updateTracking só começa quando o vídeo está pronto
                     if (videoStreamInitialized) {
+                        console.log("Iniciando o loop de tracking.");
                         setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
                     }
                 })
@@ -49,18 +52,9 @@
     }
 
 
-    // Definir a função que será chamada quando o OpenCV estiver pronto
-    function onOpenCVLoaded() {
-            console.log("OpenCV.js carregado com sucesso!");
-            // Qualquer código adicional que dependa do OpenCV.js
-        }
-
-        // Registar o evento onRuntimeInitialized antes de carregar o OpenCV.js
-        if (typeof cv === 'undefined') {
-            console.log("cv não está definido ainda...");
-        } else {
-            console.log("cv está definido.");
-        }
+    function onOpenCVLoaded() { console.log("OpenCV.js carregado com sucesso!"); }
+        if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
+        else console.log("cv está definido.");
 
         window.cv = window.cv || {};  // Garantir que o cv esteja disponível
         window.cv.onRuntimeInitialized = onOpenCVLoaded;
@@ -73,6 +67,7 @@
 
         // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
         let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Ou usar .zeros() se necessário
+        console.log("Capturando o frame da webcam...");
 
         cap.read(frame);  // Captura o próximo frame da webcam
 
@@ -107,7 +102,7 @@
         // Libera a memória do frame após o uso
         frame.delete();
     }
-
+    
     setInterval(updateTracking, 1000 / 30);
 
     // Função para inicializar o tracking
