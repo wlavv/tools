@@ -1,4 +1,4 @@
-<script src=" https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.min.js "></script>
+<script src="/build/opencv.min.js"></script>
 <script>
     
     let video = document.getElementById('video');
