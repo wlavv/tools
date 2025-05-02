@@ -204,65 +204,10 @@ class mtgController extends Controller
         return null;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     public function processImage(Request $request){
 
-        if (!$request->has('image')) return response()->json(['error' => 'Imagem não fornecida.'], 400);
-    
-        $base64Image = $request->input('image');
-        $base64Image = preg_replace('#^data:image/\w+;base64,#i', '', $base64Image);
-    
-        $imageData = base64_decode($base64Image);
-        $image = imagecreatefromstring($imageData);
-    
-        if (!$image) return response()->json(['error' => 'Imagem inválida.'], 400);
-    
-        $boundingBox = $request->input('boundingBox');
-    
-        if (!$boundingBox || !is_array($boundingBox) || count($boundingBox) != 4) return response()->json(['error' => 'Bounding box inválida.'], 400);
-    
-        $x = $boundingBox['x'];
-        $y = $boundingBox['y'];
-        $width = $boundingBox['width'];
-        $height = $boundingBox['height'];
-        
-        $croppedImage = imagecrop($image, ['x' => $x, 'y' => $y, 'width' => $width, 'height' => $height]);
-    
-        if (!$croppedImage) return response()->json(['error' => 'Falha ao cortar a imagem.'], 500);
-    
-        $filename = 'cropped_' . uniqid() . '.jpg';
-        $path = public_path('uploads/mtg/front/temp/' . $filename);
-        imagejpeg($croppedImage, $path);
-    
-        $imageHash = new ImageHash(new PerceptualHash());
-        $hash = $imageHash->hash($croppedImage);
-    
-        $pHash = $hash->toHex();
-    
-        return response()->json([
-            'pHash' => $pHash,
-            'croppedImageUrl' => url("uploads/mtg/front/temp/{$filename}")
-        ]);
+        dd($request->all());
+
     }
+
 }

@@ -9,12 +9,9 @@
         @include("mtg.front.includes.css")
     </head>
     <body>
-        <div id="info">⌛ A iniciar...</div>
-        <div class="video-crop-container">
-            <div id="videoContainer"></div>
-            <div id="cropZone"></div>
-        </div>
-        <div id="croppedImage"></div>
+        <h1>Tracking de Objetos com Webcam</h1>
+        <video id="video" width="640" height="480" autoplay></video>
+        <button id="startTracking" onclick="startTracking()">Iniciar Tracking</button>
     </body>
     @include("mtg.front.includes.js")
 </html>
