@@ -66,8 +66,8 @@
             return;  // Não faz nada se o vídeo não estiver inicializado
         }
 
-        // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
-        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        // Criar a matriz Mat corretamente
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4); // Se não houver imagem inicial
         console.log("Capturando o frame da webcam...");
 
         // Captura o próximo frame da webcam usando cv.imread
