@@ -129,10 +129,16 @@ function findTemplateMatch(img, template) {
 
     // Iteração por todos os possíveis locais da imagem onde o template pode se encaixar
     for (let y = 0; y < img.height - template.height; y++) {
+        console.log('FOR 1');
         for (let x = 0; x < img.width - template.width; x++) {
+            console.log('FOR 2');
             // Comparar cada pixel do template com a região correspondente na imagem
             for (let ty = 0; ty < template.height; ty++) {
+                console.log('FOR 3');
                 for (let tx = 0; tx < template.width; tx++) {
+                    console.log('FOR 4');
+
+                    
                     let imgIndex = ((y + ty) * img.width + (x + tx)) * 4;
                     let templateIndex = (ty * template.width + tx) * 4;
 
@@ -144,6 +150,8 @@ function findTemplateMatch(img, template) {
                     sum += rDiff + gDiff + bDiff;
                 }
             }
+
+            console.log(`Soma das diferenças (x: ${x}, y: ${y}):`, sum);
 
             // Se a soma das diferenças for pequena o suficiente, consideramos que encontramos o template
             if (sum < 10000) {  // Ajuste este valor conforme necessário
