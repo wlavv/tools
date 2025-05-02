@@ -4,7 +4,6 @@
         var video = document.getElementById('video');
         var previewCanvas = document.getElementById('previewCanvas');
         var context = previewCanvas.getContext('2d');
-        var trackingContext = document.createElement('canvas').getContext('2d');
 
         // Inicia o vídeo com a webcam
         navigator.mediaDevices.getUserMedia({ video: true })
@@ -121,9 +120,8 @@
         // Usando o Tracker
         window.onload = function() {
             var video = document.getElementById('video');
-            var canvas = document.getElementById('canvas');
-            var context = canvas.getContext('2d');
-            var trackingContext = canvas.getContext('2d');
+            var previewCanvas = document.getElementById('previewCanvas');
+            var context = previewCanvas.getContext('2d');
 
             // Instanciando o nosso tracker customizado
             var cardTracker = new CardTracker();
@@ -133,16 +131,16 @@
 
             // Evento de tracking
             cardTracker.on('track', function(event) {
-                context.clearRect(0, 0, canvas.width, canvas.height); // Limpar o canvas
+                context.clearRect(0, 0, previewCanvas.width, previewCanvas.height); // Limpar o canvas
 
                 event.data.forEach(function(rect) {
                     // Filtro para garantir que estamos a detectar retângulos com a proporção correta
                     var detectedRatio = rect.width / rect.height;
                     if (Math.abs(detectedRatio - cardTracker.aspectRatio) < 0.1) { // Permitimos uma pequena variação
                         // Processar apenas a região detectada e mostrar no previewCanvas em tons de cinza
-                        var imageData = trackingContext.getImageData(rect.x, rect.y, rect.width, rect.height);
+                        var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
                         var grayscaleData = convertToGrayscale(imageData);
-                        context.putImageData(grayscaleData, 0, 0);
+                        context.putImageData(grayscaleData, rect.x, rect.y);
 
                         // Desenhando a área do tracker em cinza
                         context.strokeStyle = '#a64ceb';
@@ -154,7 +152,7 @@
             // Função de renderização contínua
             function render() {
                 // Desenha o vídeo no canvas oculto
-                trackingContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+                context.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
 
                 // Continua o loop de renderização
                 requestAnimationFrame(render);
