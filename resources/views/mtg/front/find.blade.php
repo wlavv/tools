@@ -11,11 +11,11 @@
         <div class="example-container">
             <div id="example-scanning-overlay" class="">
                 <div class="inner">
-                    <img src="./assets/card-example/card.png">
+                    <img src="/images/mtg/custom_images/Magic_card_back.png">
                     <div class="scanline"></div>
                 </div>
             </div>
-            <a-scene mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.2/examples/image-tracking/assets/card-example/card.mind; showStats: false; uiScanning: #example-scanning-overlay;" embedded="" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" inspector="" keyboard-shortcuts="" screenshot="">
+            <a-scene mindar-image="imageTargetSrc: /images/mtg/minds/cloudpost.mind; showStats: false; uiScanning: #example-scanning-overlay;" embedded="" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" inspector="" keyboard-shortcuts="" screenshot="">
                 <a-assets>
                     <img id="card" src="./assets/card-example/card.png">
                     <img id="icon-web" src="./assets/card-example/icons/web.png">
