@@ -141,9 +141,11 @@
                         });
                     });
                 }
+
+                setInterval(trackOnceEvery10Seconds, 10000);  // 10000ms = 10 segundos
+
             };
 
-            setInterval(trackOnceEvery10Seconds, 10000);  // 10000ms = 10 segundos
 
 
             function convertToGrayscale(imageData) {
