@@ -12,98 +12,92 @@
 
     startTracking();
 
-function startTracking() {
-    console.log("Iniciando captura da webcam...");
+    function startTracking() {
+        console.log("Iniciando captura da webcam...");
 
-    const video = document.getElementById("video");
+        const video = document.getElementById("video");
 
-    // Se o stream da webcam estiver vazio, inicia a captura
-    if (!video.srcObject) {
-        console.log("Acessando a webcam...");
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                console.log("Stream da webcam obtido com sucesso.");
-                video.srcObject = stream;
+        // Se o stream da webcam estiver vazio, inicia a captura
+        if (!video.srcObject) {
+            console.log("Acessando a webcam...");
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    console.log("Stream da webcam obtido com sucesso.");
+                    video.srcObject = stream;
 
-                // Verifique se a webcam foi corretamente associada ao vídeo
-                video.onloadedmetadata = function () {
-                    console.log("O vídeo carregou com sucesso!");
+                    // Verifique se a webcam foi corretamente associada ao vídeo
+                    video.onloadedmetadata = function () {
+                        console.log("O vídeo carregou com sucesso!");
 
-                    // Inicializa a captura de vídeo com OpenCV.js usando o elemento <video>
-                    cap = new cv.VideoCapture(video);
-                    console.log("Webcam acessada com sucesso!");
+                        // Marcar que a webcam foi inicializada com sucesso
+                        videoStreamInitialized = true;
+                        console.log("A captura de vídeo foi inicializada com sucesso.");
 
-                    // Inicializar o tracker corretamente com a função create
-                    tracker = new cv.TrackerKCF();  // Usando a função correta para o tracker KCF
-                    console.log("Inicializando tracking...");
+                        // Inicializar o tracker com a função create
+                        tracker = new cv.TrackerKCF();  // Usando a função correta para o tracker KCF
+                        console.log("Inicializando tracking...");
 
-                    // Definir o bounding box manualmente ou a partir de uma interface
-                    bbox = new cv.Rect(100, 100, 100, 100);  // Exemplo de bbox inicial
-                    tracker.init(cap.read(), bbox);  // Inicializa o tracker com o primeiro frame
+                        // Definir o bounding box manualmente ou a partir de uma interface
+                        bbox = new cv.Rect(100, 100, 100, 100);  // Exemplo de bbox inicial
+                        tracker.init(video, bbox);  // Inicializa o tracker com o vídeo
 
-                    // Marcar que a webcam foi inicializada com sucesso
-                    videoStreamInitialized = true;
-                    console.log("A captura de vídeo foi inicializada com sucesso.");
-
-                    // Iniciar o loop de captura e tracking
-                    if (videoStreamInitialized) {
-                        console.log("Iniciando o loop de tracking.");
+                        // Iniciar o loop de captura e tracking
                         setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
-                    }
-                };
-            })
-            .catch(function (err) {
-                console.error("Erro ao acessar a webcam: ", err);
-            });
-    } else {
-        console.log("A webcam já está acessada.");
+                    };
+                })
+                .catch(function (err) {
+                    console.error("Erro ao acessar a webcam: ", err);
+                });
+        } else {
+            console.log("A webcam já está acessada.");
+        }
     }
-}
 
     function onOpenCVLoaded() { console.log("OpenCV.js carregado com sucesso!"); }
-        if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
-        else console.log("cv está definido.");
 
-        window.cv = window.cv || {};  // Garantir que o cv esteja disponível
-        window.cv.onRuntimeInitialized = onOpenCVLoaded;
+    if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
+    else console.log("cv está definido.");
 
-        function updateTracking() {
-    if (!videoStreamInitialized) {
-        console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
-        return;  // Não faz nada se cap não estiver inicializado
+    window.cv = window.cv || {};  // Garantir que o cv esteja disponível
+    window.cv.onRuntimeInitialized = onOpenCVLoaded;
+
+    function updateTracking() {
+        if (!videoStreamInitialized) {
+            console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
+            return;  // Não faz nada se cap não estiver inicializado
+        }
+
+        // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        console.log("Capturando o frame da webcam...");
+
+        // Captura o próximo frame da webcam usando cv.imread
+        cv.imread(video, frame);  // Captura o frame do vídeo HTML e armazena em 'frame'
+
+        // Verifica se o frame está vazio
+        if (frame.empty()) {
+            console.error("Falha ao capturar frame");
+            frame.delete();  // Libera a memória do frame
+            return;
+        }
+
+        // Atualiza o tracker com o novo frame
+        let ok = tracker.update(frame, bbox);  
+
+        if (ok) {
+            console.log("Tracking atualizado com sucesso");
+            // Atualiza a posição e as dimensões nos inputs
+            document.getElementById("posX").value = bbox.x;
+            document.getElementById("posY").value = bbox.y;
+            document.getElementById("width").value = bbox.width;
+            document.getElementById("height").value = bbox.height;
+        } else {
+            console.error("Falha ao atualizar o tracker. O objeto não foi encontrado.");
+        }
+
+        // Libera a memória do frame após o uso
+        frame.delete();
     }
-
-    // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
-    let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
-    console.log("Capturando o frame da webcam...");
-
-    // Captura o próximo frame da webcam
-    cap.read(frame);
-
-    // Verifica se o frame está vazio
-    if (frame.empty()) {
-        console.error("Falha ao capturar frame");
-        frame.delete();  // Libera a memória do frame
-        return;
-    }
-
-    // Atualiza o tracker com o novo frame
-    let ok = tracker.update(frame, bbox);  
-
-    if (ok) {
-        console.log("Tracking atualizado com sucesso");
-        // Atualiza a posição e as dimensões nos inputs
-        document.getElementById("posX").value = bbox.x;
-        document.getElementById("posY").value = bbox.y;
-        document.getElementById("width").value = bbox.width;
-        document.getElementById("height").value = bbox.height;
-    } else {
-        console.error("Falha ao atualizar o tracker. O objeto não foi encontrado.");
-    }
-
-    // Libera a memória do frame após o uso
-    frame.delete();
-}
 
     setInterval(updateTracking, 1000 / 30);
 
