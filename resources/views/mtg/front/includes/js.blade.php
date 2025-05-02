@@ -3,94 +3,131 @@
 //     template = loadImage('/images/mtg/templates/land artefact.png');  // Substitua pelo caminho correto do template
 
 let video;
-let templateCanvas;
+let canvasOverlay;
+let templateImg;
 let isCapturing = true;
+
 const cropWidth = 1200;
 const cropHeight = 900;
 
-// Função de setup para iniciar o vídeo e o canvas
-function setup() {
-    // Criando o canvas para o vídeo
-    let canvas = createCanvas(cropWidth, cropHeight);
-    canvas.style('display', 'block');  // Garantir que o canvas seja visível
+// Definir a proporção alvo (1.5 para cartas MTG)
+const targetAspectRatio = 1.5; // Largura / Altura
+const minWidth = 100;  // Largura mínima em pixels
+const minHeight = 150; // Altura mínima em pixels
 
-    // Configurar o vídeo com p5.js
-    video = createCapture(VIDEO, () => {
-        video.size(cropWidth, cropHeight);
-    });
-    video.hide();  // Esconder o vídeo original
-
-    // Criando um canvas para o template (não visível na tela)
-    templateCanvas = createCanvas(cropWidth, cropHeight);
-    templateCanvas.style('display', 'none');  // Esconder o canvas do template
+// Carregar template (carta Magic: The Gathering)
+function preload() {
+    templateImg = loadImage("/images/mtg/templates/land artefact.png");  // Caminho correto para o template
 }
 
-// Função para realizar o template matching
-function matchTemplate(frameData, templateData) {
-    let width = frameData.width;
-    let height = frameData.height;
+// Configurar o vídeo
+function setup() {
+    const canvas = createCanvas(cropWidth, cropHeight);
+    canvasOverlay = canvas.elt;
+    canvasOverlay.style.position = 'absolute';
+    canvasOverlay.style.top = '0';
+    canvasOverlay.style.left = '0';
+    canvasOverlay.style.zIndex = '10';
 
-    let maxVal = 0;
-    let bestMatch = { x: 0, y: 0 };
+    video = createCapture(VIDEO, () => {
+        const videoContainer = document.getElementById('videoContainer');
+        videoContainer.style.position = 'relative';
+        video.elt.style.position = 'absolute';
+        video.elt.style.top = '0';
+        video.elt.style.left = '0';
+        video.elt.width = cropWidth;
+        video.elt.height = cropHeight;
+        videoContainer.appendChild(video.elt);
+        videoContainer.appendChild(canvasOverlay);
+    });
 
-    // Loop através da imagem do frame
-    for (let y = 0; y < height - templateData.height; y++) {
-        for (let x = 0; x < width - templateData.width; x++) {
-            let sum = 0;
-            // Comparar pixel a pixel entre o template e o frame
-            for (let j = 0; j < templateData.height; j++) {
-                for (let i = 0; i < templateData.width; i++) {
-                    let framePixel = frameData.get(x + i, y + j);
-                    let templatePixel = templateData.get(i, j);
-                    sum += dist(framePixel[0], framePixel[1], framePixel[2], templatePixel[0], templatePixel[1], templatePixel[2]);
-                }
-            }
+    video.size(cropWidth, cropHeight);
+}
 
-            // Armazenar a melhor correspondência
-            if (sum < maxVal || maxVal === 0) {
-                maxVal = sum;
-                bestMatch = { x: x, y: y };
+// Função para processar cada frame e detectar a carta
+function draw() {
+    clear();  // Limpa o canvas
+
+    if (!isCapturing) return;
+
+    let img = video.get();
+    let canvas = document.createElement('canvas');
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img.canvas, 0, 0, cropWidth, cropHeight);  // Desenha no canvas temporário
+
+    // Realizar Template Matching
+    let result = cv.matchTemplate(canvas, templateImg.canvas, cv.TM_CCOEFF_NORMED);
+    
+    // Definir um limite para o quanto a carta precisa se encaixar
+    let threshold = 0.8; // Ajuste conforme necessário
+    let maxVal = -1;
+    let maxLoc = {x: 0, y: 0};
+
+    for (let y = 0; y < result.rows; y++) {
+        for (let x = 0; x < result.cols; x++) {
+            let value = result.ucharPtr(y, x)[0];
+            if (value > maxVal) {
+                maxVal = value;
+                maxLoc = {x, y};
             }
         }
     }
 
-    return bestMatch;
-}
+    // Se encontrou uma correspondência significativa
+    if (maxVal > threshold) {
+        // Mostrar aviso
+        $('#info').html("Carta detectada!");
 
-// Função para desenhar no canvas e processar os frames
-function draw() {
-    clear();  // Limpa o canvas a cada novo frame
-    if (!isCapturing) return;
+        // Desenhar o contorno (retângulo) ao redor da carta encontrada
+        let rectX = maxLoc.x;
+        let rectY = maxLoc.y;
+        let rectWidth = templateImg.width;
+        let rectHeight = templateImg.height;
 
-    // Obter o frame atual do vídeo
-    let img = video.get();
-
-    // Desenhar o frame no canvas
-    image(img, 0, 0, cropWidth, cropHeight);
-
-    // Criar um template para a comparação (exemplo)
-    let template = loadImage('/images/mtg/templates/land artefact.png', () => {
-        templateCanvas.image(template, 0, 0, cropWidth, cropHeight);  // Coloca o template no canvas
-        let templateData = templateCanvas.get();  // Obtém os dados do template
-
-        // Obter os dados do frame atual
-        let frameData = get();  // Obter o frame atual do canvas
-        let frameDataPixels = frameData.loadPixels();
-
-        // Comparar o template com o frame atual
-        let match = matchTemplate(frameData, templateData);
-
-        // Desenhar o contorno do melhor match encontrado
+        // Desenhar o retângulo
         stroke(0, 255, 0);  // Cor verde para o contorno
         noFill();
-        rect(match.x, match.y, template.width, template.height);
+        rect(rectX, rectY, rectWidth, rectHeight);
 
-        // Exibir informações sobre a correspondência
-        textSize(16);
-        fill(255, 0, 0);
-        text(`Match found at: (${match.x}, ${match.y})`, 20, height - 20);
-    });
+        // Enviar a imagem recortada
+        let croppedImg = img.get(rectX, rectY, rectWidth, rectHeight);
+        let croppedBase64 = croppedImg.canvas.toDataURL('image/jpeg');
+
+        // Enviar o crop para o servidor
+        $.ajax({
+            url: "{{ route('mtg.processImage') }}",
+            type: 'POST',
+            data: JSON.stringify({
+                image: croppedBase64,
+                boundingBox: {x: rectX, y: rectY, width: rectWidth, height: rectHeight}
+            }),
+            contentType: 'application/json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                $('#info').html("📛 pHash: " + response.pHash);
+
+                let imgElement = document.createElement("img");
+                imgElement.src = response.croppedImageUrl;
+                imgElement.style.width = '100%';
+                imgElement.style.height = 'auto';
+
+                let cropZone = document.getElementById('cropZone');
+                cropZone.innerHTML = '';
+                cropZone.appendChild(imgElement);
+
+                // Pausa a captura por 5 segundos após o envio
+                isCapturing = false;
+                setTimeout(() => { isCapturing = true }, 5000);
+            },
+            error: function () {
+                $('#info').html("❌ Erro ao enviar imagem");
+            }
+        });
+    }
 }
-
 
 </script>
