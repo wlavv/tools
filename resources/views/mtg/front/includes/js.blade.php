@@ -11,7 +11,7 @@ const cropHeight = 900;
 // Carregar template (carta Magic: The Gathering)
 function preload() {
     console.log("Carregando template...");
-    templateImg = loadImage("/images/mtg/templates/land artefact.png", () => {
+    templateImg = loadImage("/images/mtg/templates/land artefact 1.png", () => {
         console.log("Template carregado com sucesso!");
     }, (error) => {
         console.log("Erro ao carregar o template:", error);
