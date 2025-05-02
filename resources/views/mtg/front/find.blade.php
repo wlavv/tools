@@ -13,9 +13,11 @@
         <div class="demo-frame">
             <div class="demo-container">
 
-                <video id="video" preload autoplay loop muted></video>
-                <canvas id="canvas" ></canvas>
-                <canvas id="previewCanvas"></canvas>
+                <!-- Video com a webcam -->
+                <video id="video" width="320" height="240" preload autoplay loop muted></video>
+
+                <!-- Canvas onde será feito o tracking e a conversão para cinza -->
+                <canvas id="previewCanvas" width="320" height="240"></canvas>
 
             </div>
         </div>
