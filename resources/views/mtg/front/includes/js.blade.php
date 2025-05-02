@@ -8,6 +8,7 @@
     let cap;
     let tracker;
     let bbox;
+    let videoStreamInitialized = false;  // Flag para verificar se a captura foi inicializada
 
     function startTracking() {
         console.log("Iniciando captura da webcam...");
@@ -32,8 +33,14 @@
                     bbox = new cv.Rect(100, 100, 100, 100);  // Exemplo de bbox inicial
                     tracker.init(cap.read(), bbox);  // Inicializa o tracker com o primeiro frame
 
+                    // Marcar que a webcam foi inicializada com sucesso
+                    videoStreamInitialized = true;
+
                     // Iniciar o loop de captura e tracking
-                    setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
+                    // Garantir que o loop de updateTracking só começa quando o vídeo está pronto
+                    if (videoStreamInitialized) {
+                        setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
+                    }
                 })
                 .catch(function (err) {
                     console.error("Erro ao acessar a webcam: ", err);
@@ -44,24 +51,24 @@
 
     // Definir a função que será chamada quando o OpenCV estiver pronto
     function onOpenCVLoaded() {
-        console.log("OpenCV.js carregado com sucesso!");
-        // Qualquer código adicional que dependa do OpenCV.js
-    }
+            console.log("OpenCV.js carregado com sucesso!");
+            // Qualquer código adicional que dependa do OpenCV.js
+        }
 
-    // Registar o evento onRuntimeInitialized antes de carregar o OpenCV.js
-    if (typeof cv === 'undefined') {
-        console.log("cv não está definido ainda...");
-    } else {
-        console.log("cv está definido.");
-    }
-    
-    window.cv = window.cv || {};  // Garantir que o cv esteja disponível
-    window.cv.onRuntimeInitialized = onOpenCVLoaded;
+        // Registar o evento onRuntimeInitialized antes de carregar o OpenCV.js
+        if (typeof cv === 'undefined') {
+            console.log("cv não está definido ainda...");
+        } else {
+            console.log("cv está definido.");
+        }
 
-    function updateTracking() {
-        if (!cap) {  // Verifica se cap foi inicializada
+        window.cv = window.cv || {};  // Garantir que o cv esteja disponível
+        window.cv.onRuntimeInitialized = onOpenCVLoaded;
+
+        function updateTracking() {
+        if (!videoStreamInitialized) {  // Verifica se a captura da webcam foi iniciada corretamente
             console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
-            return;
+            return;  // Não faz nada se cap não estiver inicializado
         }
 
         // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
@@ -100,6 +107,7 @@
         // Libera a memória do frame após o uso
         frame.delete();
     }
+
     setInterval(updateTracking, 1000 / 30);
 
     // Função para inicializar o tracking
