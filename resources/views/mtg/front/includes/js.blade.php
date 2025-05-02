@@ -114,7 +114,7 @@
             cv.onRuntimeInitialized = () => {
                 console.log("OpenCV.js carregado com sucesso!");
                 
-                tracker = new cv.TrackerKCF();  // Criar o tracker KCF
+                tracker = cv.TrackerKCF();  // Criar o tracker KCF
                 console.log("Tracker KCF inicializado!");
 
                 // Chamar função de rastreamento
