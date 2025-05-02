@@ -104,6 +104,11 @@
                     event.data.forEach(function(rect) {
                         // Filtro para garantir que estamos a detectar retângulos com a proporção correta
                         var detectedRatio = rect.width / rect.height;
+
+                        console.log( detectedRatio );
+                        console.log( detectedRatio - 3 / 4 );
+                        console.log( Math.abs(detectedRatio - 3 / 4) );
+                        
                         if (Math.abs(detectedRatio - 3 / 4) < 0.1) { // Permitimos uma pequena variação
                             context.strokeStyle = '#a64ceb';
                             context.strokeRect(rect.x, rect.y, rect.width, rect.height);
