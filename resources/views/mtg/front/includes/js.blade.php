@@ -122,6 +122,8 @@
                             console.log( 'width: ' + rect.width );
                             console.log( 'height: ' + rect.height );
                             
+                            return;
+                            
                             // Agora, fazermos o "crop" da imagem detectada
                             var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
                             
