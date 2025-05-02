@@ -6,8 +6,8 @@
         @include("mtg.front.includes.css")
         <script src="/build/assets/tracking/tracking.js"></script>
         <script src="/build/assets/tracking/face-min.js"></script>
-        <script src="/node_modules/dat.gui/build/dat.gui.min.js"></script>
-        <script src="/build/assets/tracking/stats.min.js"></script>
+        <script src="/build/assets/tracking/dat.gui.min.js"></script>
+        <!--<script src="/build/assets/tracking/stats.min.js"></script>-->
     </head>
     <body>
         <div class="demo-frame">
