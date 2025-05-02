@@ -3,7 +3,7 @@
             var CardTracker = function() {
                 this.stepSize = 2;
                 this.initialScale = 4;
-                this.edgesDensity = 0.1;
+                this.edgesDensity = 0.8;
             };
 
             // 2. Herda de tracking.Tracker
