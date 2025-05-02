@@ -106,7 +106,7 @@
                         var detectedRatio = rect.width / rect.height;
 
                         console.log( 'DETECTED: ' + detectedRatio );
-                        console.log( 'DIFF: ' + detectedRatio - 0.666666667 );
+                        console.log( 'DIFF: ' + ( detectedRatio - 0.666666667 ) );
                         console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
 
                         if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
@@ -117,6 +117,10 @@
                             context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
                             context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
 
+                            console.log( 'X: ' + rect.x );
+                            console.log( 'Y: ' + rect.y );
+                            console.log( 'width: ' + rect.width );
+                            console.log( 'height: ' + rect.height );
                             
                             // Agora, fazermos o "crop" da imagem detectada
                             var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
