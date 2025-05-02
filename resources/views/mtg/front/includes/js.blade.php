@@ -12,11 +12,11 @@
 
 
     function openCvReady() {
-        // Quando o OpenCV.js estiver pronto
-        console.log("OpenCV.js está pronto para uso!");
 
-        // Coloque o código que depende do OpenCV.js aqui
-        startTracking();
+        cv['onRuntimeInitialized'] = () => {
+                console.log("OpenCV.js está pronto para uso!");
+                startTracking();
+            };
     }
 
     function startTracking() {
