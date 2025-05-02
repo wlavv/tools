@@ -35,32 +35,14 @@
                     <a-asset-item id="avatarModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.2/examples/image-tracking/assets/card-example/softmind/scene.gltf"></a-asset-item>
                 </a-assets>
                 <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable" camera="" rotation="" wasd-controls=""></a-camera>
-                
-                <a-entity id="info-panel" position="0 -0.3 0">
-                    <a-plane color="black" opacity="0.8">
-                        <a-text value="Cloudpost" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
-                        <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
-                        <a-text value="Color: Colorless" color="white" position="0 0.1 0" scale="1 1 1"></a-text>
-                        <a-text value="Text: Add {C} for each Cloudpost" color="white" position="0 0 0" scale="1 1 1"></a-text>
-                        <a-text value="Flavor Text: 'A testament to the greatness of Mirrodin.'" color="white" position="0 -0.1 0" scale="1 1 1"></a-text>
-                        <a-text value="Block & Set: Mirrodin" color="white" position="0 -0.2 0" scale="1 1 1"></a-text>
-                        <a-text value="Price: $10.50" color="white" position="0 -0.3 0" scale="1 1 1"></a-text>
-                        <a-text value="Legal in: Legacy, Vintage" color="white" position="0 -0.4 0" scale="1 1 1"></a-text>
-                        <a-text value="Suggested Decks: Ramp, Colorless Artifact" color="white" position="0 -0.5 0" scale="1 1 1"></a-text>
-                    </a-plane>
-                </a-entity>
-
-                
+                                
                 <a-entity id="mytarget" mytarget="" mindar-image-target="targetIndex: 0">
 
 
                 <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0" material="" geometry=""></a-plane>
 
                 <a-entity visible="false" id="portfolio-panel" position="0 0 -0.01">
-
-                    <!-- Colocar o nome de forma dinamica -->
                     <a-text value="Cloudpost" color="black" align="center" width="2" position="0 0.4 0" text=""></a-text>
-
                     <a-entity id="portfolio-item0">
                         <a-video id="paintandquest-video-link" webkit-playsinline="" playsinline="" width="1" height="0.552" position="0 0 0" material="" geometry=""></a-video>
                         <a-image id="paintandquest-preview-button" class="clickable" src="#paintandquest-preview" alpha-test="0.5" position="0 0 0" height="0.552" width="1" material="" geometry="">
@@ -75,6 +57,20 @@
                     <a-image visible="false" id="portfolio-left-button" class="clickable" src="#icon-left" position="-0.7 0 0" height="0.15" width="0.15" material="" geometry=""></a-image>
                     <a-image visible="false" id="portfolio-right-button" class="clickable" src="#icon-right" position="0.7 0 0" height="0.15" width="0.15" material="" geometry=""></a-image>
                 </a-entity>
+                <a-entity id="info-panel" position="0 -0.3 0">
+                    <a-plane color="black" opacity="0.8">
+                        <a-text value="Cloudpost" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
+                        <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
+                        <a-text value="Color: Colorless" color="white" position="0 0.1 0" scale="1 1 1"></a-text>
+                        <a-text value="Text: Add {C} for each Cloudpost" color="white" position="0 0 0" scale="1 1 1"></a-text>
+                        <a-text value="Flavor Text: 'A testament to the greatness of Mirrodin.'" color="white" position="0 -0.1 0" scale="1 1 1"></a-text>
+                        <a-text value="Block & Set: Mirrodin" color="white" position="0 -0.2 0" scale="1 1 1"></a-text>
+                        <a-text value="Price: $10.50" color="white" position="0 -0.3 0" scale="1 1 1"></a-text>
+                        <a-text value="Legal in: Legacy, Vintage" color="white" position="0 -0.4 0" scale="1 1 1"></a-text>
+                        <a-text value="Suggested Decks: Ramp, Colorless Artifact" color="white" position="0 -0.5 0" scale="1 1 1"></a-text>
+                    </a-plane>
+                </a-entity>
+                
                 <a-image visible="false" id="profile-button" class="clickable" src="#icon-profile" position="-0.42 -0.5 0" height="0.15" width="0.15" animation="property: scale; to: 1.2 1.2 1.2; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate" material="" geometry=""></a-image>
                 <a-image visible="false" id="web-button" class="clickable" src="#icon-web" alpha-test="0.5" position="-0.14 -0.5 0" height="0.15" width="0.15" animation="property: scale; to: 1.2 1.2 1.2; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate" material="" geometry=""></a-image>
                 <a-image visible="false" id="email-button" class="clickable" src="#icon-email" position="0.14 -0.5 0" height="0.15" width="0.15" animation="property: scale; to: 1.2 1.2 1.2; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate" material="" geometry=""></a-image>
