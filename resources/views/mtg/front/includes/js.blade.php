@@ -60,29 +60,42 @@
     window.cv.onRuntimeInitialized = onOpenCVLoaded;
 
     function updateTracking() {
-        // Criar uma matriz Mat para armazenar o frame capturado
-        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Definir corretamente a Mat
+        // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Ou usar .zeros() se necessário
+
         cap.read(frame);  // Captura o próximo frame da webcam
 
+        // Verifica se o frame está vazio
         if (frame.empty()) {
             console.error("Falha ao capturar frame");
+            frame.delete();  // Libera a memória do frame
+            return;
+        }
+
+        // Verifica se o bounding box está dentro dos limites da imagem
+        if (bbox.x < 0 || bbox.y < 0 || bbox.x + bbox.width > video.width || bbox.y + bbox.height > video.height) {
+            console.error("Bounding box está fora dos limites da imagem");
+            frame.delete();  // Libera a memória do frame
+            return;
+        }
+
+        // Atualiza o tracker com o novo frame
+        let ok = tracker.update(frame, bbox);  
+
+        if (ok) {
+            console.log("Tracking atualizado com sucesso");
+            // Atualiza a posição e as dimensões nos inputs
+            document.getElementById("posX").value = bbox.x;
+            document.getElementById("posY").value = bbox.y;
+            document.getElementById("width").value = bbox.width;
+            document.getElementById("height").value = bbox.height;
         } else {
-            let ok = tracker.update(frame, bbox);  // Atualiza o tracker com o novo frame
-            if (ok) {
-                console.log("Tracking atualizado com sucesso");
-                // Atualiza a posição e as dimensões nos inputs
-                document.getElementById("posX").value = bbox.x;
-                document.getElementById("posY").value = bbox.y;
-                document.getElementById("width").value = bbox.width;
-                document.getElementById("height").value = bbox.height;
-            } else {
-                console.error("Falha no tracking");
-            }
+            console.error("Falha ao atualizar o tracker. O objeto não foi encontrado.");
         }
 
         // Libera a memória do frame após o uso
         frame.delete();
-    }    
+    }
 
     setInterval(updateTracking, 1000 / 30);
 
