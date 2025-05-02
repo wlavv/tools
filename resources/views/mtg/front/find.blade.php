@@ -36,7 +36,7 @@
                 </a-assets>
                 <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable" camera="" rotation="" wasd-controls=""></a-camera>
                 
-                <a-entity id="info-panel" position="0 -0.3 0" visible="false">
+                <a-entity id="info-panel" position="0 -0.3 0">
                     <a-plane width="2" height="1" color="black" opacity="0.8">
                         <a-text value="Cloudpost" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
                         <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
