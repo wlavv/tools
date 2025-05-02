@@ -1,3 +1,5 @@
+<script async src="https://docs.opencv.org/master/opencv.js"></script>
+
 <script>
     // Acessar a webcam do utilizador
     const video = document.getElementById('video');
