@@ -10,21 +10,26 @@
     let bbox;
     let videoStreamInitialized = false;  // Flag para verificar se a captura foi inicializada
 
-    function startTracking() {
-        console.log("Iniciando captura da webcam...");
+    startTracking();
 
-        const video = document.getElementById("video");
+function startTracking() {
+    console.log("Iniciando captura da webcam...");
 
-        // Se o stream da webcam estiver vazio, inicia a captura
-        if (!video.srcObject) {
-            console.log("Acessando a webcam...");
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
-                    console.log("Stream da webcam obtido com sucesso.");
-                    video.srcObject = stream;
+    const video = document.getElementById("video");
 
-                    // Inicializa a captura de vídeo com OpenCV.js de forma simples
-                    // Não precisamos de cv.VideoCapture diretamente, apenas usar o video HTML
+    // Se o stream da webcam estiver vazio, inicia a captura
+    if (!video.srcObject) {
+        console.log("Acessando a webcam...");
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                console.log("Stream da webcam obtido com sucesso.");
+                video.srcObject = stream;
+
+                // Verifique se a webcam foi corretamente associada ao vídeo
+                video.onloadedmetadata = function () {
+                    console.log("O vídeo carregou com sucesso!");
+
+                    // Inicializa a captura de vídeo com OpenCV.js usando o elemento <video>
                     cap = new cv.VideoCapture(video);
                     console.log("Webcam acessada com sucesso!");
 
@@ -45,12 +50,15 @@
                         console.log("Iniciando o loop de tracking.");
                         setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
                     }
-                })
-                .catch(function (err) {
-                    console.error("Erro ao acessar a webcam: ", err);
-                });
-        }
+                };
+            })
+            .catch(function (err) {
+                console.error("Erro ao acessar a webcam: ", err);
+            });
+    } else {
+        console.log("A webcam já está acessada.");
     }
+}
 
     function onOpenCVLoaded() { console.log("OpenCV.js carregado com sucesso!"); }
         if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
