@@ -31,41 +31,40 @@
         #example-scanning-overlay img {
             max-width: 100%;
         }
-        /* Painel imersivo com efeito Glass */
-        .info-panel {
+
+        /* Painéis de Glass UI */
+        .glass-panel {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.1); /* Transparência */
+            width: 30%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.2); /* Transparência */
             backdrop-filter: blur(10px); /* Efeito de desfoque */
-            padding: 20px;
             color: white;
+            padding: 20px;
+            border-radius: 10px;
             display: none; /* Inicialmente invisível */
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
         }
-        .info-panel h2, .info-panel p {
-            margin: 10px 0;
+
+        /* Posicionamento dos painéis em duas linhas de 3 colunas */
+        .panel-1 { top: 10%; left: 5%; }
+        .panel-2 { top: 10%; left: 35%; }
+        .panel-3 { top: 10%; left: 65%; }
+        .panel-4 { top: 60%; left: 5%; }
+        .panel-5 { top: 60%; left: 35%; }
+        .panel-6 { top: 60%; left: 65%; }
+
+        /* Texto dos painéis */
+        .glass-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
         }
-        .info-panel h2 {
-            font-size: 2rem;
-            margin-top: 50px;
-        }
-        .info-panel p {
+
+        .glass-panel p {
             font-size: 1.2rem;
         }
+
         .clickable {
             cursor: pointer;
-        }
-        .scale-animation {
-            animation: scaleAnim 1s infinite alternate;
-        }
-        @keyframes scaleAnim {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.2); }
         }
     </style>
 </head>
@@ -98,35 +97,48 @@
             <a-text value="Cloudpost" color="black" align="center" position="0 0.4 0" scale="2 2 2"></a-text>
         </a-entity>
 
-        <!-- Painel de Informações Imersivo -->
-        <a-entity id="info-panel" class="info-panel">
-            <a-text value="Cloudpost" color="white" align="center" position="0 0.5 0" scale="2 2 2"></a-text>
-            <a-text value="Mana Cost: {C}" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
-            <a-text value="Color: Colorless" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
-            <a-text value="Text: Add {C} for each Cloudpost" color="white" position="0 0.1 0" scale="1 1 1"></a-text>
-            <a-text value="Flavor Text: 'A testament to the greatness of Mirrodin.'" color="white" position="0 0 0" scale="1 1 1"></a-text>
-            <a-text value="Block & Set: Mirrodin" color="white" position="0 -0.1 0" scale="1 1 1"></a-text>
-            <a-text value="Price: $10.50" color="white" position="0 -0.2 0" scale="1 1 1"></a-text>
-            <a-text value="Legal in: Legacy, Vintage" color="white" position="0 -0.3 0" scale="1 1 1"></a-text>
-            <a-text value="Suggested Decks: Ramp, Colorless Artifact" color="white" position="0 -0.4 0" scale="1 1 1"></a-text>
-        </a-entity>
+        <!-- Painéis Glass UI (Estáticos) -->
+        <div id="panel-1" class="glass-panel panel-1">
+            <h2>Cloudpost</h2>
+            <p>Mana Cost: {C}</p>
+            <p>Color: Colorless</p>
+        </div>
+        <div id="panel-2" class="glass-panel panel-2">
+            <h2>Text</h2>
+            <p>Add {C} for each Cloudpost you control.</p>
+        </div>
+        <div id="panel-3" class="glass-panel panel-3">
+            <h2>Flavor Text</h2>
+            <p>"A testament to the greatness of Mirrodin."</p>
+        </div>
+        <div id="panel-4" class="glass-panel panel-4">
+            <h2>Price</h2>
+            <p>$10.50</p>
+        </div>
+        <div id="panel-5" class="glass-panel panel-5">
+            <h2>Legal in</h2>
+            <p>Legacy, Vintage</p>
+        </div>
+        <div id="panel-6" class="glass-panel panel-6">
+            <h2>Suggested Decks</h2>
+            <p>Ramp, Colorless Artifact</p>
+        </div>
     </a-scene>
 </div>
 
 <script>
-    // Mostrar o painel imersivo quando a carta for detectada
+    // Mostrar os painéis quando a carta for detectada
     const targetEntity = document.getElementById('cloudpost-target');
-    const infoPanel = document.getElementById('info-panel');
+    const panels = document.querySelectorAll('.glass-panel');
 
     targetEntity.addEventListener('mindar-image-target-detected', function() {
-        // Exibir o painel imersivo quando a carta for detectada
-        infoPanel.setAttribute('visible', true);
-        infoPanel.setAttribute('display', 'flex');  // Torna o painel visível e flexível
+        // Exibir os painéis quando a carta for detectada
+        panels.forEach(panel => panel.style.display = 'block');
     });
 
     targetEntity.addEventListener('mindar-image-target-lost', function() {
-        // Ocultar o painel quando a carta for perdida
-        infoPanel.setAttribute('visible', false);
+        // Ocultar os painéis quando a carta for perdida
+        panels.forEach(panel => panel.style.display = 'none');
     });
 </script>
 
