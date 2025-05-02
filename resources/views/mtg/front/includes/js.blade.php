@@ -61,14 +61,6 @@
         }
     }
 
-    function onOpenCVLoaded() { console.log("OpenCV.js carregado com sucesso!"); }
-
-    if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
-    else console.log("cv está definido.");
-
-    window.cv = window.cv || {};  // Garantir que o cv esteja disponível
-    window.cv.onRuntimeInitialized = onOpenCVLoaded;
-
     function updateTracking() {
         if (!videoStreamInitialized) {
             console.error("A captura de vídeo não foi iniciada.");
