@@ -1,47 +1,52 @@
 <script>
-        // Acessar a webcam do utilizador
-        const video = document.getElementById('video');
+    // Acessar a webcam do utilizador
+    const video = document.getElementById('video');
+    let tracker = null;
 
-        // Função para iniciar a captura da webcam
-        function startTracking() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    video.srcObject = stream;
-                    document.getElementById('startTracking').disabled = true; // Desabilitar o botão após começar
-                })
-                .catch(err => {
-                    console.log("Erro ao acessar a câmera: ", err);
-                });
-        }
+    // Função para iniciar a captura da webcam
+    function startTracking() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                document.getElementById('startTracking').disabled = true; // Desabilitar o botão após começar
+                initTracking();
+            })
+            .catch(err => {
+                console.log("Erro ao acessar a câmera: ", err);
+            });
+    }
 
-        // Função para capturar e enviar imagens para o backend
-        function captureAndSend() {
+    // Função para inicializar o tracking (usando uma simples detecção de cor ou qualquer método)
+    function initTracking() {
+        tracker = new cv.TrackerKCF();  // Escolher um tracker do OpenCV.js (supondo que OpenCV.js está carregado)
+
+        video.addEventListener('play', () => {
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Converte a imagem para base64
-            const imgData = canvas.toDataURL('image/png');
+            setInterval(() => {
+                // Desenhar o vídeo no canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Envia a imagem via AJAX para o Laravel
-            fetch('/process-image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}', // Token CSRF do Laravel
-                },
-                body: JSON.stringify({ image: imgData })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Resultado do servidor:', data);
-            })
-            .catch(error => console.error('Erro ao enviar a imagem:', error));
-        }
+                // Detectar o objeto no vídeo (aqui pode ser uma detecção simples de cor ou outro método)
+                const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-        // Chama a função de captura em intervalos regulares (a cada 1 segundo)
-        setInterval(captureAndSend, 1000);  // Envia uma imagem a cada segundo
-    </script>
+                // Supondo que estamos detectando um objeto baseado em cor
+                let posX = 0, posY = 0, width = 0, height = 0;
+
+                // Detecção fictícia de objeto: colocar valores fictícios para a posição e tamanho
+                // (Aqui, pode-se substituir isso por um algoritmo real de tracking como detecção de objetos ou características)
+                posX = Math.random() * canvas.width;
+                posY = Math.random() * canvas.height;
+                width = 50 + Math.random() * 100;
+                height = 50 + Math.random() * 100;
+
+                // Atualizar os inputs com a posição e dimensões do objeto
+                document.getElementById('posX').value = posX.toFixed(2);
+                document.getElementById('posY').value = posY.toFixed(2);
+                document.getElementById('width').value = width.toFixed(2);
+                document.getElementById('height').value = height.toFixed(2);
+            }, 1000 / 30);  // Atualiza a cada 33ms (~30fps)
+        });
+    }
+</script>
