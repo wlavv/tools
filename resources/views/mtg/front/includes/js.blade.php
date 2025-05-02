@@ -88,6 +88,8 @@
                 var video = document.getElementById('video');
                 var canvas = document.getElementById('canvas');
                 var context = canvas.getContext('2d');
+                var cropCanvas = document.getElementById('cropCanvas');
+                var cropContext = cropCanvas.getContext('2d');
 
                 // Instanciando o nosso tracker customizado
                 var cardTracker = new CardTracker();
