@@ -32,7 +32,9 @@
         // Função para detectar bordas usando Canny
         function detectEdges(grayMat) {
             let edges = new cv.Mat();
-            cv.Canny(grayMat, edges, 100, 200);
+            let lowThreshold = 50;
+            let highThreshold = 150;
+            cv.Canny(grayMat, edges, lowThreshold, highThreshold);
             return edges;
         }
 
@@ -59,8 +61,9 @@
                     let width = rect.width;
                     let height = rect.height;
 
-                    // Verifica se a proporção está próxima de 2.5:3 (proporção típica das cartas)
-                    if (width / height >= 0.8 && width / height <= 1.2) {
+                    // Ajustando o filtro para uma variação mais flexível de proporção
+                    let aspectRatio = width / height;
+                    if (aspectRatio >= 0.7 && aspectRatio <= 1.5) { // Ajuste a faixa de proporção conforme necessário
                         validContours.push(approx);
                     }
                 }
