@@ -1,29 +1,30 @@
 <script>
             // 1. Criando o Tracker Customizado
             var CardTracker = function() {
-                // Propriedade de configuração para controle manual
+                // Propriedade de configuração
                 this.stepSize = 2;  // Sensibilidade do rastreamento
                 this.initialScale = 4;  // Tamanho inicial do rastreamento
                 this.edgesDensity = 0.1;  // Densidade de bordas
-
-                // Não há necessidade de setStepSize ou setInitialScale aqui
             };
 
             // 2. Herda de tracking.Tracker
             tracking.inherits(CardTracker, tracking.Tracker);
 
-            // 3. Implementando o método track
+            // 3. Implementando o método track com detecção de bordas simplificada
             CardTracker.prototype.track = function(pixels, width, height) {
                 var rects = [];
 
-                // A lógica da detecção seria aqui, com base nos pixels recebidos
+                // Vamos tentar detectar bordas de objetos (ex: retângulos)
                 for (var y = 0; y < height; y++) {
                     for (var x = 0; x < width; x++) {
+                        // Verificar se o pixel está na borda (simples detecção de borda)
                         var pixel = pixels[(y * width + x) * 4];
-                        if (pixel) {
-                            // Detectar um retângulo de exemplo para ilustrar
+
+                        // Detecta se o pixel tem uma cor forte (só como exemplo)
+                        if (pixel < 100) { // Ajusta o limiar conforme necessário
+                            // Aqui, estamos apenas desenhando um retângulo fictício para teste
                             rects.push({
-                                x: 100, y: 100, width: 200, height: 300
+                                x: 50, y: 50, width: 200, height: 300
                             });
                         }
                     }
