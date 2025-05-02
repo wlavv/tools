@@ -109,8 +109,39 @@
                             context.fillStyle = "#fff";
                             context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
                             context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+
+                            
+                            // Agora, fazermos o "crop" da imagem detectada
+                            var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                            
+                            // Exibir o crop no canvas de preview em tons de cinza
+                            var grayscaleData = convertToGrayscale(imageData);
+                            context.putImageData(grayscaleData, rect.x, rect.y);
+
+                            // Agora faz o "crop" para o cropCanvas
+                            var croppedImage = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                            cropContext.putImageData(croppedImage, 0, 0); // Exibir no canvas de crop
+
                         }
                     });
                 });
             };
+
+            function convertToGrayscale(imageData) {
+                var data = imageData.data;
+                for (var i = 0; i < data.length; i += 4) {
+                    var r = data[i];
+                    var g = data[i + 1];
+                    var b = data[i + 2];
+
+                    // Convertendo para escala de cinza
+                    var gray = 0.3 * r + 0.59 * g + 0.11 * b;
+
+                    // Atualizando RGB para tons de cinza
+                    data[i] = data[i + 1] = data[i + 2] = gray;
+                }
+                return imageData;
+
+
+            }
         </script>
