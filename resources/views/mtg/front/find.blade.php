@@ -17,6 +17,8 @@
             width: 100%;
             height: 100vh;
         }
+
+        /* Animação de scan */
         #example-scanning-overlay {
             position: absolute;
             top: 0;
@@ -27,9 +29,6 @@
             justify-content: center;
             align-items: center;
             background-color: rgba(0, 0, 0, 0.6);
-        }
-        #example-scanning-overlay img {
-            max-width: 100%;
         }
         .scanline {
             position: absolute;
@@ -44,7 +43,7 @@
             100% { top: 110%; }
         }
 
-        /* Painéis de Glass UI */
+        /* Painéis de Glass UI - Estilo */
         .glass-panel {
             position: absolute;
             width: 30%;
