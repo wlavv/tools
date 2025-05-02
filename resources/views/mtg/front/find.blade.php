@@ -23,13 +23,25 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             background-color: rgba(0, 0, 0, 0.6);
         }
         #example-scanning-overlay img {
             max-width: 100%;
+        }
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.7);
+            animation: scan 1s linear infinite;
+            top: 50%;
+        }
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
         }
 
         /* Painéis de Glass UI */
@@ -72,9 +84,10 @@
 
 <div class="example-container">
     <div id="example-scanning-overlay">
+        <!-- A linha de escaneamento (animação) -->
+        <div class="scanline"></div>
         <div class="inner">
             <img src="/images/mtg/custom_images/Magic_card_back.png" alt="Card Back">
-            <div class="scanline"></div>
         </div>
     </div>
 
