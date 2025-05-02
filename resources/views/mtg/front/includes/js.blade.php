@@ -38,6 +38,30 @@
     window.cv = window.cv || {};  // Garantir que o cv esteja disponível
     window.cv.onRuntimeInitialized = onOpenCVLoaded;
 
+    function updateTracking() {
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        cap.read(frame);
+
+        if (frame.empty()) {
+            console.error("Falha ao capturar frame");
+        } else {
+            let ok = tracker.update(frame, bbox);
+            if (ok) {
+                console.log("Tracking atualizado com sucesso");
+                // Atualiza a posição e as dimensões nos inputs
+                document.getElementById("posX").value = bbox.x;
+                document.getElementById("posY").value = bbox.y;
+                document.getElementById("width").value = bbox.width;
+                document.getElementById("height").value = bbox.height;
+            } else {
+                console.error("Falha no tracking");
+            }
+        }
+        frame.delete();
+    }
+
+    setInterval(updateTracking, 1000 / 30);
+
     // Função para inicializar o tracking
     function initTracking() {
         console.log("Inicializando tracking...");
