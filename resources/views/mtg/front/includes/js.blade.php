@@ -32,18 +32,44 @@
                 for (var y = 0; y < height; y++) {
                     for (var x = 0; x < width; x++) {
                         if (edges[y * width + x] > threshold) {
-                            // Vamos limitar a detecção a retângulos com proporção de carta (3:4)
-                            var detectedWidth = 100;  // Ajustar dependendo do contorno
-                            var detectedHeight = 150; // Ajustar dependendo do contorno
-                            var ratio = detectedWidth / detectedHeight;
 
-                            // Limitar a detecção a objetos com proporção aproximada de 3:4 (cartas)
-                            if (Math.abs(ratio - 3 / 4) < 0.1) {
+                            // Encontrar a largura e a altura dinamicamente com base no contorno
+                            var minX = x, minY = y, maxX = x, maxY = y;
+
+                            // Explorar os pixels ao redor do ponto atual para encontrar o contorno completo
+                            for (var dy = -5; dy <= 5; dy++) {
+                                for (var dx = -5; dx <= 5; dx++) {
+                                    var nx = x + dx;
+                                    var ny = y + dy;
+                                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                        if (edges[ny * width + nx] > threshold) {
+                                            minX = Math.min(minX, nx);
+                                            minY = Math.min(minY, ny);
+                                            maxX = Math.max(maxX, nx);
+                                            maxY = Math.max(maxY, ny);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Cálculo das dimensões do retângulo
+                            var detectedWidth = maxX - minX;
+                            var detectedHeight = maxY - minY;
+
+                            var angle = Math.atan2(detectedHeight, detectedWidth); // Aqui pode-se calcular a rotação
+
+                            // Calcular a proporção da área
+                            var detectedRatio = detectedWidth / detectedHeight;
+
+                            // Se a proporção for aproximadamente 3:4 (como uma carta)
+                            if (Math.abs(detectedRatio - 3 / 4) < 0.1) {
+                                // Adicionando o retângulo detectado
                                 rects.push({
-                                    x: x,
-                                    y: y,
+                                    x: minX,
+                                    y: minY,
                                     width: detectedWidth,
-                                    height: detectedHeight
+                                    height: detectedHeight,
+                                    angle: angle
                                 });
                             }
                         }
@@ -97,56 +123,46 @@
                 // Começar o tracking com a webcam
                 tracking.track('#video', cardTracker, { camera: true });
 
-                function trackOnceEvery10Seconds() {
+                // Evento de tracking
+                cardTracker.on('track', function(event) {
+                    context.clearRect(0, 0, canvas.width, canvas.height); // Limpar o canvas
 
-                    // Evento de tracking
-                    cardTracker.on('track', function(event) {
-                        context.clearRect(0, 0, canvas.width, canvas.height); // Limpar o canvas
+                    event.data.forEach(function(rect) {
+                        // Filtro para garantir que estamos a detectar retângulos com a proporção correta
+                        var detectedRatio = rect.width / rect.height;
 
-                        event.data.forEach(function(rect) {
-                            // Filtro para garantir que estamos a detectar retângulos com a proporção correta
-                            var detectedRatio = rect.width / rect.height;
+                        console.log( 'DETECTED: ' + detectedRatio );
+                        console.log( 'DIFF: ' + ( detectedRatio - 0.666666667 ) );
+                        console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
 
-                            console.log( 'DETECTED: ' + detectedRatio );
-                            console.log( 'DIFF: ' + ( detectedRatio - 0.666666667 ) );
-                            console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
+                        if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
+                            context.strokeStyle = '#a64ceb';
+                            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                            context.font = '11px Helvetica';
+                            context.fillStyle = "#fff";
+                            context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+                            context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
 
-                            if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
-                                context.strokeStyle = '#a64ceb';
-                                context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-                                context.font = '11px Helvetica';
-                                context.fillStyle = "#fff";
-                                context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
-                                context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+                            console.log( 'X: ' + rect.x );
+                            console.log( 'Y: ' + rect.y );
+                            console.log( 'width: ' + rect.width );
+                            console.log( 'height: ' + rect.height );
+                            
+                            // Agora, fazermos o "crop" da imagem detectada
+                            var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                            
+                            // Exibir o crop no canvas de preview em tons de cinza
+                            var grayscaleData = convertToGrayscale(imageData);
+                            context.putImageData(grayscaleData, rect.x, rect.y);
 
-                                console.log( 'X: ' + rect.x );
-                                console.log( 'Y: ' + rect.y );
-                                console.log( 'width: ' + rect.width );
-                                console.log( 'height: ' + rect.height );
-                                
-                                return;
+                            // Agora faz o "crop" para o cropCanvas
+                            var croppedImage = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                            cropContext.putImageData(croppedImage, 0, 0); // Exibir no canvas de crop
 
-                                // Agora, fazermos o "crop" da imagem detectada
-                                var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
-                                
-                                // Exibir o crop no canvas de preview em tons de cinza
-                                var grayscaleData = convertToGrayscale(imageData);
-                                context.putImageData(grayscaleData, rect.x, rect.y);
-
-                                // Agora faz o "crop" para o cropCanvas
-                                var croppedImage = context.getImageData(rect.x, rect.y, rect.width, rect.height);
-                                cropContext.putImageData(croppedImage, 0, 0); // Exibir no canvas de crop
-
-                            }
-                        });
+                        }
                     });
-                }
-
-                setInterval(trackOnceEvery10Seconds, 10000);  // 10000ms = 10 segundos
-
+                });
             };
-
-
 
             function convertToGrayscale(imageData) {
                 var data = imageData.data;
