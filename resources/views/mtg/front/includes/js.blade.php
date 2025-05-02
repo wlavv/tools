@@ -1,4 +1,4 @@
-<script src="/build/assets/opencv.min.js" onload="openCvReady()"></script>
+<script async src="/build/assets/opencv.min.js" onload="openCvReady()"></script>
 
 <script>
     let video = document.getElementById('video');
