@@ -1,70 +1,82 @@
 <script async src="/build/assets/opencv.min.js?t={{rand()}}" onload="openCvReady()"></script>
 
 <script>
-    let video = document.getElementById('video');
-    let initialized = false;
-    let roi = null;  // Região de Interesse (onde o tracker começa)
-    let tracker;
-    let bbox;
-    let videoStreamInitialized = false;
+    let video = document.getElementById('videoInput');
+    let canvas = document.getElementById('canvasOutput');
+    let ctx = canvas.getContext('2d');
+
+    let streaming = true;  // Flag para controlar o fluxo da captura
+    let src, dst, cap;
 
     function openCvReady() {
-        setTimeout(() => {
-        // Verificar se o OpenCV foi carregado corretamente
-        if (typeof cv === 'undefined') {
-            console.error('Falha ao carregar OpenCV.js');
-            alert('Falha ao carregar OpenCV.js');
-            return;
-        }
-
-        // Garantir que o OpenCV.js foi completamente inicializado
         cv['onRuntimeInitialized'] = () => {
-            console.log("OpenCV.js carregado e inicializado com sucesso!");
-            startTracking();
+            console.log("OpenCV.js está pronto para uso!");
+
+            // Inicializar a captura de vídeo
+            cap = new cv.VideoCapture(video);
+
+            // Inicializar as matrizes para processamento
+            src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+
+            // Iniciar o processamento do vídeo
+            startProcessing();
         };
-        }, 1000); // Aguarde 1 segundo para garantir que o OpenCV.js foi completamente inicializado
     }
 
-    function startTracking() {
+    function startProcessing() {
         console.log("Iniciando captura da webcam...");
 
-        // Se o stream da webcam estiver vazio, inicia a captura
-        if (!video.srcObject) {
-            console.log("Acessando a webcam...");
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
-                    console.log("Stream da webcam obtido com sucesso.");
-                    video.srcObject = stream;
+        // Definindo FPS (frames por segundo)
+        const FPS = 30;
 
-                    // Verifique se a webcam foi corretamente associada ao vídeo
-                    video.onloadedmetadata = function () {
-                        console.log("O vídeo carregou com sucesso!");
+        function processVideo() {
+            try {
+                if (!streaming) {
+                    // Limpar e parar
+                    src.delete();
+                    dst.delete();
+                    return;
+                }
 
-                        // Marcar que a webcam foi inicializada com sucesso
-                        videoStreamInitialized = true;
-                        console.log("A captura de vídeo foi inicializada com sucesso.");
+                let begin = Date.now();
 
-                        // Inicializar o tracker com a função create
-                        tracker = cv.TrackerKCF.create();  // Criar o tracker KCF
+                // Captura o próximo frame
+                cap.read(src);
 
-                        console.log("Inicializando tracking...");
+                // Converte o frame de RGBA para escala de cinza
+                cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
 
-                        // Definir o bounding box manualmente ou a partir de uma interface
-                        bbox = new cv.Rect(100, 100, 100, 100);  // Exemplo de bbox inicial
-                        tracker.init(video, bbox);  // Inicializa o tracker com o vídeo
+                // Exibe a imagem convertida no canvas
+                cv.imshow('canvasOutput', dst);
 
-                        // Iniciar o loop de captura e tracking
-                        setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
-                    };
-                })
-                .catch(function (err) {
-                    console.error("Erro ao acessar a webcam: ", err);
-                });
-        } else {
-            console.log("A webcam já está acessada.");
+                // Calcula o delay necessário para manter o FPS
+                let delay = 1000 / FPS - (Date.now() - begin);
+                setTimeout(processVideo, delay);
+
+            } catch (err) {
+                console.error("Erro ao processar vídeo: ", err);
+            }
         }
+
+        // Iniciar o loop de processamento
+        setTimeout(processVideo, 0);
     }
 
+    // Acessar a webcam e iniciar o vídeo
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+            video.srcObject = stream;
+            video.onloadedmetadata = function () {
+                console.log("Stream da webcam obtido com sucesso.");
+            };
+        })
+        .catch(function (err) {
+            console.error("Erro ao acessar a webcam: ", err);
+        });
+
+
+        
     function updateTracking() {
         if (!videoStreamInitialized) {
             console.error("A captura de vídeo não foi iniciada.");

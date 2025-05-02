@@ -10,9 +10,9 @@
     <body>
         <div class="container">
             <h1>Tracking de Objetos com Webcam</h1>
-            <video id="video" width="640" height="480" autoplay></video>
+            <video id="videoInput" width="640" height="480" autoplay muted></video>
+            <canvas id="canvasOutput" width="640" height="480"></canvas>
 
-            <button id="startTracking" onclick="startTracking()">Iniciar Tracking</button>
             <div class="controls">
                 <div class="control-group">
                     <label for="posX">Posição X:</label>
