@@ -1,4 +1,8 @@
+<!--
 <script async src="/build/assets/opencv.min.js" onload="openCvReady()"></script>
+-->
+<script async src="https://cdn.jsdelivr.net/npm/opencv.js@4.5.1/opencv.js" onload="openCvReady()"></script>
+
 
 <script>
     
