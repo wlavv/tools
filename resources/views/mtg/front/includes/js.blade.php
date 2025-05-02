@@ -2,24 +2,45 @@
 <script>
     
     let video = document.getElementById('video');
-    let tracker = null;
+    let cap;
+    let tracker;
+    let bbox;
     let initialized = false;
     let roi = null;  // Região de Interesse (onde o tracker começa)
 
     // Função para iniciar a captura da webcam
     function startTracking() {
         console.log("Iniciando captura da webcam...");
-        
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-                document.getElementById('startTracking').disabled = true;
-                console.log("Webcam acessada com sucesso!");
-                initTracking();
-            })
-            .catch(err => {
-                console.error("Erro ao acessar a câmera: ", err);
-            });
+
+        // Acessar a webcam
+        const video = document.getElementById("video");
+        const stream = video.srcObject;
+
+        // Se o stream da webcam estiver vazio, inicia a captura
+        if (!stream) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+
+                    // Criar o VideoCapture para acessar o vídeo da webcam
+                    cap = new cv.VideoCapture(video);
+                    console.log("Webcam acessada com sucesso!");
+
+                    // Inicializar o tracker (usando KCF ou outro)
+                    tracker = new cv.TrackerKCF();
+                    console.log("Inicializando tracking...");
+
+                    // Definir o bounding box manualmente ou a partir de uma interface
+                    bbox = new cv.Rect(100, 100, 100, 100);  // Exemplo de bbox inicial
+                    tracker.init(cap.read(), bbox);  // Inicializa o tracker com o primeiro frame
+
+                    // Iniciar o loop de captura e tracking
+                    setInterval(updateTracking, 1000 / 30);  // Atualiza a cada 33ms (aproximadamente 30fps)
+                })
+                .catch(function (err) {
+                    console.error("Erro ao acessar a webcam: ", err);
+                });
+        }
     }
 
 
