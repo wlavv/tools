@@ -125,10 +125,11 @@ function findTemplateMatch(img, template) {
     img.loadPixels();
     template.loadPixels();
 
+    let sum = 0;
+
     // Iteração por todos os possíveis locais da imagem onde o template pode se encaixar
     for (let y = 0; y < img.height - template.height; y++) {
         for (let x = 0; x < img.width - template.width; x++) {
-            let sum = 0;
             // Comparar cada pixel do template com a região correspondente na imagem
             for (let ty = 0; ty < template.height; ty++) {
                 for (let tx = 0; tx < template.width; tx++) {
