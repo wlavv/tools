@@ -8,22 +8,21 @@
     let bbox;
     let videoStreamInitialized = false;
 
-    // Função chamada após o OpenCV.js ser carregado
     function openCvReady() {
-        // Verifique se o OpenCV.js foi carregado corretamente
+        setTimeout(() => {
+        // Verificar se o OpenCV foi carregado corretamente
         if (typeof cv === 'undefined') {
-        alert('Falha ao carregar OpenCV.js');
-        console.error("Falha ao carregar OpenCV.js.");
-        return;
+            console.error('Falha ao carregar OpenCV.js');
+            alert('Falha ao carregar OpenCV.js');
+            return;
         }
 
-        // A função cv['onRuntimeInitialized'] será chamada quando o OpenCV.js estiver pronto
+        // Garantir que o OpenCV.js foi completamente inicializado
         cv['onRuntimeInitialized'] = () => {
-        console.log("OpenCV.js carregado e inicializado com sucesso!");
-
-        // Agora você pode iniciar o seu código
-        startTracking();
+            console.log("OpenCV.js carregado e inicializado com sucesso!");
+            startTracking();
         };
+        }, 1000); // Aguarde 1 segundo para garantir que o OpenCV.js foi completamente inicializado
     }
 
     function startTracking() {
