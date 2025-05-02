@@ -40,6 +40,7 @@
             padding: 20px;
             color: white;
             overflow-y: scroll;
+            display: none; /* Initially hidden */
         }
         .info-panel h2, .info-panel p {
             margin: 10px 0;
@@ -66,6 +67,7 @@
         </div>
     </div>
 
+    <!-- MindAR Scene -->
     <a-scene mindar-image="imageTargetSrc: /images/mtg/minds/cloudpost.mind; uiScanning: #example-scanning-overlay;" embedded="" color-space="sRGB">
         <!-- Assets -->
         <a-assets>
@@ -77,15 +79,15 @@
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <!-- Carta -->
-        <a-entity mindar-image-target="targetIndex: 0">
+        <a-entity mindar-image-target="targetIndex: 0" id="cloudpost-target">
             <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
 
             <!-- Texto dinâmico (Nome da carta) -->
             <a-text value="Cloudpost" color="black" align="center" position="0 0.4 0" scale="2 2 2"></a-text>
         </a-entity>
 
-        <!-- Painel de Informações -->
-        <a-entity id="info-panel" position="0 -0.3 0">
+        <!-- Painel de Informações, inicialmente oculto -->
+        <a-entity id="info-panel" position="0 -0.3 0" visible="false">
             <a-plane width="2" height="1" color="black" opacity="0.8">
                 <a-text value="Cloudpost" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
                 <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
@@ -101,19 +103,21 @@
     </a-scene>
 </div>
 
-<!-- Botão de Informações Estilo Magic -->
-<div class="info-panel">
-    <h2>Magic: The Gathering Card Information</h2>
-    <p><strong>Name:</strong> Cloudpost</p>
-    <p><strong>Mana Cost:</strong> {C}</p>
-    <p><strong>Color:</strong> Colorless</p>
-    <p><strong>Text:</strong> Add {C} for each Cloudpost you control.</p>
-    <p><strong>Flavor Text:</strong> "A testament to the greatness of Mirrodin."</p>
-    <p><strong>Block & Set:</strong> Mirrodin</p>
-    <p><strong>Price:</strong> $10.50</p>
-    <p><strong>Legal in:</strong> Legacy, Vintage</p>
-    <p><strong>Suggested Decks:</strong> Ramp, Colorless Artifact</p>
-</div>
+<script>
+    // Mostrar o painel de informações quando a carta for detectada
+    const targetEntity = document.getElementById('cloudpost-target');
+    const infoPanel = document.getElementById('info-panel');
+
+    targetEntity.addEventListener('mindar-image-target-detected', function() {
+        // Exibir o painel quando a carta for detectada
+        infoPanel.setAttribute('visible', true);
+    });
+
+    targetEntity.addEventListener('mindar-image-target-lost', function() {
+        // Ocultar o painel quando a carta for perdida
+        infoPanel.setAttribute('visible', false);
+    });
+</script>
 
 </body>
 </html>
