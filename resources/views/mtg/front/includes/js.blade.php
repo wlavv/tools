@@ -4,6 +4,7 @@
                 this.stepSize = 1;
                 this.initialScale = 1;
                 this.edgesDensity = 0.3;
+                this.foundCard = false; // Flag para parar a detecção depois de encontrar a carta
             };
 
             // 2. Herda de tracking.Tracker
@@ -11,6 +12,11 @@
 
             // 3. Implementando o método track com detecção de contornos real
             CardTracker.prototype.track = function(pixels, width, height) {
+
+                if (this.foundCard) {
+                    return; // Se já encontrou a carta, não faz mais a detecção
+                }
+                
                 var rects = [];
                 var threshold = 100; // Limiar para detectar bordas (ajustável)
 
@@ -56,23 +62,35 @@
                             var detectedWidth = maxX - minX;
                             var detectedHeight = maxY - minY;
 
-                            var angle = Math.atan2(detectedHeight, detectedWidth); // Aqui pode-se calcular a rotação
+                            if (detectedWidth >= 200 && detectedHeight >= 200) {
 
-                            // Calcular a proporção da área
-                            var detectedRatio = detectedWidth / detectedHeight;
+                                var angle = Math.atan2(detectedHeight, detectedWidth); // Aqui pode-se calcular a rotação
 
-                            // Se a proporção for aproximadamente 3:4 (como uma carta)
-                            if (Math.abs(detectedRatio - 3 / 4) < 0.1) {
-                                // Adicionando o retângulo detectado
-                                rects.push({
-                                    x: minX,
-                                    y: minY,
-                                    width: detectedWidth,
-                                    height: detectedHeight,
-                                    angle: angle
-                                });
+                                // Calcular a proporção da área
+                                var detectedRatio = detectedWidth / detectedHeight;
+
+                                // Se a proporção for aproximadamente 3:4 (como uma carta)
+                                if (Math.abs(detectedRatio - 3 / 4) < 0.1) {
+                                    // Adicionando o retângulo detectado
+                                    rects.push({
+                                        x: minX,
+                                        y: minY,
+                                        width: detectedWidth,
+                                        height: detectedHeight,
+                                        angle: angle
+                                    });
+                                }
+
+                                // Marcar que a carta foi encontrada e mostrar as dimensões
+                                this.foundCard = true; // Impede novas detecções
+                                console.log("Carta encontrada!");
+                                console.log("Dimensões da carta:");
+                                console.log("Largura: " + detectedWidth + "px");
+                                console.log("Altura: " + detectedHeight + "px");
+
+                                // Parar o processo de tracking (opcional)
+                                break;
                             }
-                        }
                     }
                 }
 
@@ -149,7 +167,7 @@
                             console.log( 'height: ' + rect.height );
                             
                             alert('X: ' +  rect.x  + ' | Y: ' +  rect.y + ' | width: ' +  rect.width  + ' | height: ' +  rect.height  + ' | Angle: ' +  rect.angle );
-                            
+
                             // Agora, fazermos o "crop" da imagem detectada
                             var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
                             
