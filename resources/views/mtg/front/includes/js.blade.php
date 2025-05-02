@@ -97,48 +97,54 @@
                 // Começar o tracking com a webcam
                 tracking.track('#video', cardTracker, { camera: true });
 
-                // Evento de tracking
-                cardTracker.on('track', function(event) {
-                    context.clearRect(0, 0, canvas.width, canvas.height); // Limpar o canvas
+                function trackOnceEvery10Seconds() {
 
-                    event.data.forEach(function(rect) {
-                        // Filtro para garantir que estamos a detectar retângulos com a proporção correta
-                        var detectedRatio = rect.width / rect.height;
+                    // Evento de tracking
+                    cardTracker.on('track', function(event) {
+                        context.clearRect(0, 0, canvas.width, canvas.height); // Limpar o canvas
 
-                        console.log( 'DETECTED: ' + detectedRatio );
-                        console.log( 'DIFF: ' + ( detectedRatio - 0.666666667 ) );
-                        console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
+                        event.data.forEach(function(rect) {
+                            // Filtro para garantir que estamos a detectar retângulos com a proporção correta
+                            var detectedRatio = rect.width / rect.height;
 
-                        if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
-                            context.strokeStyle = '#a64ceb';
-                            context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-                            context.font = '11px Helvetica';
-                            context.fillStyle = "#fff";
-                            context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
-                            context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
+                            console.log( 'DETECTED: ' + detectedRatio );
+                            console.log( 'DIFF: ' + ( detectedRatio - 0.666666667 ) );
+                            console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
 
-                            console.log( 'X: ' + rect.x );
-                            console.log( 'Y: ' + rect.y );
-                            console.log( 'width: ' + rect.width );
-                            console.log( 'height: ' + rect.height );
-                            
-                            return;
-                            
-                            // Agora, fazermos o "crop" da imagem detectada
-                            var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
-                            
-                            // Exibir o crop no canvas de preview em tons de cinza
-                            var grayscaleData = convertToGrayscale(imageData);
-                            context.putImageData(grayscaleData, rect.x, rect.y);
+                            if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
+                                context.strokeStyle = '#a64ceb';
+                                context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                                context.font = '11px Helvetica';
+                                context.fillStyle = "#fff";
+                                context.fillText('x: ' + rect.x + 'px', rect.x + rect.width + 5, rect.y + 11);
+                                context.fillText('y: ' + rect.y + 'px', rect.x + rect.width + 5, rect.y + 22);
 
-                            // Agora faz o "crop" para o cropCanvas
-                            var croppedImage = context.getImageData(rect.x, rect.y, rect.width, rect.height);
-                            cropContext.putImageData(croppedImage, 0, 0); // Exibir no canvas de crop
+                                console.log( 'X: ' + rect.x );
+                                console.log( 'Y: ' + rect.y );
+                                console.log( 'width: ' + rect.width );
+                                console.log( 'height: ' + rect.height );
+                                
+                                return;
 
-                        }
+                                // Agora, fazermos o "crop" da imagem detectada
+                                var imageData = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                                
+                                // Exibir o crop no canvas de preview em tons de cinza
+                                var grayscaleData = convertToGrayscale(imageData);
+                                context.putImageData(grayscaleData, rect.x, rect.y);
+
+                                // Agora faz o "crop" para o cropCanvas
+                                var croppedImage = context.getImageData(rect.x, rect.y, rect.width, rect.height);
+                                cropContext.putImageData(croppedImage, 0, 0); // Exibir no canvas de crop
+
+                            }
+                        });
                     });
-                });
+                }
             };
+
+            setInterval(trackOnceEvery10Seconds, 10000);  // 10000ms = 10 segundos
+
 
             function convertToGrayscale(imageData) {
                 var data = imageData.data;
