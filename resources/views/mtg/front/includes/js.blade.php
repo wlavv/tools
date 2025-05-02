@@ -24,11 +24,12 @@
                     video.srcObject = stream;
 
                     // Criar o VideoCapture para acessar o vídeo da webcam
-                    cap = new cv.VideoCapture(video);
+                    // Agora, passamos diretamente o elemento <video> ao invés de usar o 'cv.VideoCapture'
+                    cap = new cv.VideoCapture(video);  // Corrigido: capturando diretamente do video HTML
                     console.log("Webcam acessada com sucesso!");
 
                     // Inicializar o tracker corretamente com a função create
-                    tracker = new cv.TrackerKCF();  // Este é o método correto para o tracker KCF
+                    tracker = new cv.TrackerKCF();  // Usando a função correta para o tracker KCF
                     console.log("Inicializando tracking...");
 
                     // Definir o bounding box manualmente ou a partir de uma interface
@@ -51,7 +52,6 @@
         }
     }
 
-
     function onOpenCVLoaded() { console.log("OpenCV.js carregado com sucesso!"); }
         if (typeof cv === 'undefined') console.log("cv não está definido ainda...");
         else console.log("cv está definido.");
@@ -59,28 +59,22 @@
         window.cv = window.cv || {};  // Garantir que o cv esteja disponível
         window.cv.onRuntimeInitialized = onOpenCVLoaded;
 
-        function updateTracking() {
-        if (!videoStreamInitialized) {  // Verifica se a captura da webcam foi iniciada corretamente
+    function updateTracking() {
+        if (!videoStreamInitialized) {
             console.error("Cap não está inicializada. A captura de vídeo não foi iniciada.");
             return;  // Não faz nada se cap não estiver inicializado
         }
 
         // Criar a matriz Mat corretamente usando cv.Mat.zeros() ou cv.Mat()
-        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);  // Ou usar .zeros() se necessário
+        let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4);
         console.log("Capturando o frame da webcam...");
 
-        cap.read(frame);  // Captura o próximo frame da webcam
+        // Captura o próximo frame da webcam
+        cap.read(frame);
 
         // Verifica se o frame está vazio
         if (frame.empty()) {
             console.error("Falha ao capturar frame");
-            frame.delete();  // Libera a memória do frame
-            return;
-        }
-
-        // Verifica se o bounding box está dentro dos limites da imagem
-        if (bbox.x < 0 || bbox.y < 0 || bbox.x + bbox.width > video.width || bbox.y + bbox.height > video.height) {
-            console.error("Bounding box está fora dos limites da imagem");
             frame.delete();  // Libera a memória do frame
             return;
         }
