@@ -155,6 +155,7 @@ function findTemplateMatch(img, template) {
         }
     }
     
+    console.log("SUM: " + sum);
     console.log("Template não encontrado.");
     return matchResult;  // Retorna que não encontrou
 }
