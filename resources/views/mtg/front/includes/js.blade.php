@@ -41,7 +41,7 @@
                         console.log("A captura de vídeo foi inicializada com sucesso.");
 
                         // Inicializar o tracker com a função create
-                        tracker = new cv.TrackerKCF();  // Usando a função correta para o tracker KCF
+                        tracker = new cv.legacy.TrackerKCF_create(); 
                         console.log("Inicializando tracking...");
 
                         // Definir o bounding box manualmente ou a partir de uma interface
