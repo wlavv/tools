@@ -10,14 +10,20 @@
 
     // Função chamada após o OpenCV.js ser carregado
     function openCvReady() {
-        if (cv && cv['onRuntimeInitialized']) {
-            cv['onRuntimeInitialized'] = () => {
-                console.log("OpenCV.js está pronto para uso!");
-                startTracking();
-            };
-        } else {
-            console.error("Falha ao inicializar o OpenCV.js");
+        // Verifique se o OpenCV.js foi carregado corretamente
+        if (typeof cv === 'undefined') {
+        alert('Falha ao carregar OpenCV.js');
+        console.error("Falha ao carregar OpenCV.js.");
+        return;
         }
+
+        // A função cv['onRuntimeInitialized'] será chamada quando o OpenCV.js estiver pronto
+        cv['onRuntimeInitialized'] = () => {
+        console.log("OpenCV.js carregado e inicializado com sucesso!");
+
+        // Agora você pode iniciar o seu código
+        startTracking();
+        };
     }
 
     function startTracking() {
