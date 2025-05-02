@@ -28,7 +28,7 @@
                     console.log("Webcam acessada com sucesso!");
 
                     // Inicializar o tracker usando cv.Tracker_create() (com KCF como exemplo)
-                    tracker = cv.Tracker_create('KCF');
+                    tracker = new cv.TrackerKCF();  // Usando a função correta para o tracker KCF
                     console.log("Inicializando tracking...");
 
                     // Definir o bounding box manualmente ou a partir de uma interface
@@ -102,7 +102,7 @@
         // Libera a memória do frame após o uso
         frame.delete();
     }
-    
+
     setInterval(updateTracking, 1000 / 30);
 
     // Função para inicializar o tracking
