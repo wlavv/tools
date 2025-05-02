@@ -16,12 +16,13 @@ function preload() {
 
 // Configurar o vídeo
 function setup() {
-    const canvas = createCanvas(cropWidth, cropHeight);
+    const canvas = createCanvas(cropWidth, cropHeight);  // Criação do canvas com tamanho fixo
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
     canvas.style.zIndex = '10';
 
+    // Garantir que o vídeo seja exibido corretamente na tela
     video = createCapture(VIDEO, () => {
         const videoContainer = document.getElementById('videoContainer');
         videoContainer.style.position = 'relative';
@@ -30,8 +31,10 @@ function setup() {
         video.elt.style.left = '0';
         video.elt.width = cropWidth;
         video.elt.height = cropHeight;
+
+        // Adicionar o vídeo e o canvas ao container
         videoContainer.appendChild(video.elt);
-        videoContainer.appendChild(canvas);
+        videoContainer.appendChild(canvas.elt);  // Usando canvas.elt para garantir a compatibilidade
     });
 
     video.size(cropWidth, cropHeight);
