@@ -12,8 +12,8 @@
     <body>
         <div class="demo-frame">
             <div class="demo-container">
-                <video id="video" width="320" height="240" preload autoplay loop muted></video>
-                <canvas id="canvas" width="320" height="240"></canvas>
+                <video id="video" preload autoplay loop muted></video>
+                <canvas id="canvas"></canvas>
             </div>
         </div>
         @include("mtg.front.includes.js")
