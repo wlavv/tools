@@ -106,10 +106,10 @@
                         var detectedRatio = rect.width / rect.height;
 
                         console.log( 'DETECTED: ' + detectedRatio );
-                        console.log( 'DIFF: ' + detectedRatio - 3 / 4 );
-                        console.log( 'COMPARE: ' + Math.abs(detectedRatio - 3 / 4) );
+                        console.log( 'DIFF: ' + detectedRatio - 0.666666667 );
+                        console.log( 'COMPARE: ' + Math.abs(detectedRatio - 0.666666667) );
 
-                        if (Math.abs(detectedRatio - 3 / 4) < 0.1) { // Permitimos uma pequena variação
+                        if (Math.abs(detectedRatio - 0.666666667) < 0.1) { // Permitimos uma pequena variação
                             context.strokeStyle = '#a64ceb';
                             context.strokeRect(rect.x, rect.y, rect.width, rect.height);
                             context.font = '11px Helvetica';
