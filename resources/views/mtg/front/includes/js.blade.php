@@ -42,7 +42,7 @@
 
                         // Inicializar o tracker com a função create
                         //tracker = new cv.legacy.TrackerKCF_create(); 
-                        tracker = cv.Tracker_create('KCF');
+                        tracker = cv.TrackerKCF.create();
 
                         console.log("Inicializando tracking...");
 
