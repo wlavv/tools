@@ -41,7 +41,9 @@
                         console.log("A captura de vídeo foi inicializada com sucesso.");
 
                         // Inicializar o tracker com a função create
-                        tracker = new cv.legacy.TrackerKCF_create(); 
+                        //tracker = new cv.legacy.TrackerKCF_create(); 
+                        tracker = cv.Tracker_create('KCF');
+
                         console.log("Inicializando tracking...");
 
                         // Definir o bounding box manualmente ou a partir de uma interface
@@ -68,6 +70,7 @@
 
         // Criar a matriz Mat corretamente
         let frame = new cv.Mat(video.height, video.width, cv.CV_8UC4); // Se não houver imagem inicial
+        
         console.log("Capturando o frame da webcam...");
 
         // Captura o próximo frame da webcam usando cv.imread
