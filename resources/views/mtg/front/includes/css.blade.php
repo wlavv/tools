@@ -24,8 +24,8 @@
 
 @media (min-aspect-ratio: 1/1) {
 	#example-scanning-overlay .inner {
-		width: 750px;
-		height: 1050px;
+		width: 500px;
+		height: auto;
 	}
 }
 
