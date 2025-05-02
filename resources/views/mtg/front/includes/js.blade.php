@@ -22,6 +22,22 @@
             });
     }
 
+
+    // Definir a função que será chamada quando o OpenCV estiver pronto
+    function onOpenCVLoaded() {
+        console.log("OpenCV.js carregado com sucesso!");
+        // Qualquer código adicional que dependa do OpenCV.js
+    }
+
+    // Registar o evento onRuntimeInitialized antes de carregar o OpenCV.js
+    if (typeof cv === 'undefined') {
+        console.log("cv não está definido ainda...");
+    } else {
+        console.log("cv está definido.");
+    }
+    window.cv = window.cv || {};  // Garantir que o cv esteja disponível
+    window.cv.onRuntimeInitialized = onOpenCVLoaded;
+
     // Função para inicializar o tracking
     function initTracking() {
         console.log("Inicializando tracking...");
