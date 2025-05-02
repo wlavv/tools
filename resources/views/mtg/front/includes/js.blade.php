@@ -1,32 +1,22 @@
-<!--
-<script async src="/build/assets/opencv.min.js" onload="openCvReady()"></script>
--->
 <script async src="https://cdn.jsdelivr.net/npm/opencv.js@1.2.1/opencv.min.js" onload="openCvReady()"></script>
 
-
 <script>
-    
     let video = document.getElementById('video');
     let initialized = false;
     let roi = null;  // Região de Interesse (onde o tracker começa)
-
     let tracker;
     let bbox;
     let videoStreamInitialized = false;
 
-
     function openCvReady() {
-
         cv['onRuntimeInitialized'] = () => {
-                console.log("OpenCV.js está pronto para uso!");
-                startTracking();
-            };
+            console.log("OpenCV.js está pronto para uso!");
+            startTracking();
+        };
     }
 
     function startTracking() {
         console.log("Iniciando captura da webcam...");
-
-        const video = document.getElementById("video");
 
         // Se o stream da webcam estiver vazio, inicia a captura
         if (!video.srcObject) {
@@ -45,7 +35,6 @@
                         console.log("A captura de vídeo foi inicializada com sucesso.");
 
                         // Inicializar o tracker com a função create
-                        //tracker = new cv.legacy.TrackerKCF_create(); 
                         tracker = cv.TrackerKCF.create();
 
                         console.log("Inicializando tracking...");
@@ -105,60 +94,6 @@
         frame.delete();
     }
 
-    setInterval(updateTracking, 1000 / 30);
-
-    // Função para inicializar o tracking
-    function initTracking() {
-        console.log("Inicializando tracking...");
-        
-        video.addEventListener('play', () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            console.log("Play...");
-
-            // Espere até que a OpenCV esteja completamente carregada
-            cv.onRuntimeInitialized = () => {
-                console.log("OpenCV.js carregado com sucesso!");
-                
-                tracker = cv.TrackerKCF();  // Criar o tracker KCF
-                console.log("Tracker KCF inicializado!");
-
-                // Chamar função de rastreamento
-                setInterval(() => {
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    let src = cv.matFromImageData(frame);
-
-                    if (!initialized) {
-                        // Detectar região de interesse (ROI) com clique no vídeo
-                        if (roi == null) {
-                            roi = new cv.Rect(100, 100, 100, 100);  // Exemplo de área de rastreamento
-                            tracker.init(src, roi);
-                            initialized = true;
-                            console.log("Tracking iniciado com a ROI:", roi);
-                        }
-                    } else {
-                        // Atualizar o tracker a cada quadro
-                        let ok = tracker.update(src, roi);
-                        if (ok) {
-                            // Atualizar a posição e dimensões
-                            console.log("Tracking bem-sucedido!");
-                            console.log("Posição X:", roi.x, "Posição Y:", roi.y, "Largura:", roi.width, "Altura:", roi.height);
-
-                            document.getElementById('posX').value = roi.x;
-                            document.getElementById('posY').value = roi.y;
-                            document.getElementById('width').value = roi.width;
-                            document.getElementById('height').value = roi.height;
-                        } else {
-                            console.log("Falha no tracking...");
-                        }
-                    }
-                    src.delete();
-                }, 1000 / 30);  // Atualiza a cada 33ms (~30fps)
-            };
-        });
-    }
-
-
+    // Iniciar a captura do vídeo e o tracking
+    startTracking();
 </script>
