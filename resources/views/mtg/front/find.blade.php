@@ -99,7 +99,7 @@
 
         // Função principal que executa a detecção
         function detectCards(imageData) {
-            let srcMat = cv.matFromImageData(imageData);
+            let srcMat = cv.imread(imageData);  // Usando cv.imread para carregar a imagem
             let grayMat = convertToGrayScale(srcMat);
             let edgesMat = detectEdges(grayMat);
             let contours = findContours(edgesMat);
@@ -108,7 +108,7 @@
             // Desenhando as cartas detectadas no canvas
             let canvas = document.getElementById('canvas');
             let ctx = canvas.getContext('2d');
-            ctx.drawImage(document.getElementById('imageInput'), 0, 0);
+            ctx.drawImage(imageData, 0, 0);  // Exibindo a imagem no canvas
 
             validContours.forEach(contour => {
                 let rect = cv.boundingRect(contour);
@@ -136,12 +136,15 @@
                 ctx.drawImage(img, 0, 0);
 
                 // Detectar as cartas na imagem
-                detectCards(canvas.toDataURL());
+                detectCards(img);
             };
             img.src = URL.createObjectURL(event.target.files[0]);
         }
 
         document.getElementById('imageInput').addEventListener('change', onImageUpload);
+
+        // Chama o OpenCV quando estiver pronto
+        cv.onRuntimeInitialized = onOpenCvReady;
     </script>
 </body>
 </html>
