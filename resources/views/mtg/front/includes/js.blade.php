@@ -91,6 +91,7 @@
                                 // Parar o processo de tracking (opcional)
                                 break;
                             }
+                        }
                     }
                 }
 
