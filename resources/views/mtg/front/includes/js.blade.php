@@ -1,4 +1,4 @@
-<script src="/build/opencv.min.js"></script>
+<script src="/build/assets/opencv.min.js"></script>
 <script>
     
     let video = document.getElementById('video');
