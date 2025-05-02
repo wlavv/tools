@@ -117,8 +117,14 @@ function draw() {
     }
 }
 
-// Função para encontrar a correspondência do template na imagem
+let hasExecuted = false;  // This flag ensures the code runs only once
+
 function findTemplateMatch(img, template) {
+    if (hasExecuted) {
+        console.log("Code has already executed. Skipping...");
+        return; // Exit early if the code has already been executed
+    }
+
     console.log("Iniciando busca pelo template...");
 
     let matchResult = { found: false, x: 0, y: 0, width: template.width, height: template.height };
@@ -144,7 +150,7 @@ function findTemplateMatch(img, template) {
         for (let x = 0; x < img.width - template.width; x++) {
             console.log(`Iniciando iteração em x=${x}`);
             let sum = 0;
-            
+
             // Comparar cada pixel do template com a região correspondente na imagem
             for (let ty = 0; ty < template.height; ty++) {
                 for (let tx = 0; tx < template.width; tx++) {
@@ -172,11 +178,15 @@ function findTemplateMatch(img, template) {
                 matchResult.x = x;
                 matchResult.y = y;
                 console.log(`Template encontrado! Posição: (${x}, ${y})`);
+
+                // Set flag to true so the code doesn't run again
+                hasExecuted = true;
+
                 return matchResult;
             }
         }
     }
-    
+
     console.log("Template não encontrado.");
     return matchResult;  // Retorna que não encontrou
 }
