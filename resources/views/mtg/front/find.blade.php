@@ -115,10 +115,6 @@
         glassPanel.style.display = 'block';
     });
 
-    targetEntity.addEventListener('mindar-image-target-lost', function() {
-        // Ocultar o painel quando a carta for perdida
-        glassPanel.style.display = 'none';
-    });
 </script>
 
     </body>
