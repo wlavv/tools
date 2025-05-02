@@ -30,6 +30,8 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
+            console.log("Play...");
+
             // Espere até que a OpenCV esteja completamente carregada
             cv.onRuntimeInitialized = () => {
                 console.log("OpenCV.js carregado com sucesso!");
