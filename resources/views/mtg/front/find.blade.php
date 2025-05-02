@@ -82,10 +82,41 @@
                 <a-entity light="" data-aframe-default-light="" aframe-injected=""></a-entity>
                 <a-entity light="" position="" data-aframe-default-light="" aframe-injected=""></a-entity>
             </a-scene>
+
+<!-- Painel Glass UI fixo no centro -->
+<div id="glass-panel" class="glass-panel">
+    <h2>Cloudpost</h2>
+    <p>Mana Cost: {C}</p>
+    <p>Color: Colorless</p>
+    <p>Text: Add {C} for each Cloudpost you control.</p>
+    <p>Flavor Text: "A testament to the greatness of Mirrodin."</p>
+    <p>Block & Set: Mirrodin</p>
+    <p>Price: $10.50</p>
+    <p>Legal in: Legacy, Vintage</p>
+    <p>Suggested Decks: Ramp, Colorless Artifact</p>
+</div>
+
             <video autoplay="" muted="" playsinline="" style="position: absolute; top: -242.5px; left: 0px; z-index: -2; width: 1920px; height: 1440px;" width="640" height="480"></video>
         </div>
         <div class="mindar-ui-overlay mindar-ui-loading hidden">
             <div class="loader"></div>
         </div>
+
+        <script>
+    // Mostrar o painel fixo quando a carta for detectada
+    const targetEntity = document.getElementById('cloudpost-target');
+    const glassPanel = document.getElementById('glass-panel');
+
+    targetEntity.addEventListener('mindar-image-target-detected', function() {
+        // Exibir o painel Glass UI fixo quando a carta for detectada
+        glassPanel.style.display = 'block';
+    });
+
+    targetEntity.addEventListener('mindar-image-target-lost', function() {
+        // Ocultar o painel quando a carta for perdida
+        glassPanel.style.display = 'none';
+    });
+</script>
+
     </body>
 </html>
