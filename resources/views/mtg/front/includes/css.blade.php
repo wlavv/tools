@@ -1,7 +1,6 @@
 <style>
-  video, canvas {
-    margin-left: 230px;
-    margin-top: 120px;
-    position: absolute;
-  }
+
+body { margin: 0; overflow: hidden; }
+#ar-container { width: 100%; height: 100vh; }
+
 </style>
