@@ -14,11 +14,9 @@
             <div class="demo-container">
 
                 <!-- Video com a webcam -->
-                <video id="video" width="320" height="240" preload autoplay loop muted></video>
-
-                <!-- Canvas onde será feito o tracking e a conversão para cinza -->
+                <video id="video" preload autoplay loop muted></video>
                 <canvas id="previewCanvas" width="320" height="240"></canvas>
-
+                <canvas id="canvas" width="320" height="240"></canvas>
             </div>
         </div>
         @include("mtg.front.includes.js")
