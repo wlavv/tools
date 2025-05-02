@@ -1,9 +1,9 @@
 <script>
             // 1. Criando o Tracker Customizado
             var CardTracker = function() {
-                this.stepSize = 2;
-                this.initialScale = 10;
-                this.edgesDensity = 0.1;
+                this.stepSize = 1;
+                this.initialScale = 1;
+                this.edgesDensity = 0.3;
             };
 
             // 2. Herda de tracking.Tracker
