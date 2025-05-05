@@ -1,7 +1,4 @@
-
-
-    <!-- Novos paineis fixos lado a lado -->
-    <div id="multi-panel" class="panel-container hidden-panel">
+<div id="multi-panel" class="panel-container hidden-panel">
     <div class="panel_parent">
         <div class="panel">
             <h2>Cloudpost</h2>
@@ -29,7 +26,7 @@
     <div class="panel_parent">
         <div class="panel">
             <h2>Imagem</h2>
-            <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 100%;margin: 0 auto;border-radius: 22px;">
+            <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 100%;margin: 0 auto;border-radius: 25px;">
         </div>
     </div>
     <div class="panel_parent">
