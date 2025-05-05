@@ -5,16 +5,10 @@
     AFRAME.registerComponent('mytarget', {
         init: function () {
             this.el.addEventListener('targetFound', event => {
-                console.log("target found");
-                showAvatar(() => {
-                    
-                    alert("AAA!");
-
-                });
-            });
-                this.el.addEventListener('targetLost', event => {
-                console.log("target found");
                 alert("Cloudpost!");
+            });
+            this.el.addEventListener('targetLost', event => {
+                alert("Target lost!!");
             });
         }
     });
