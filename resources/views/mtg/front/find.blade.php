@@ -178,5 +178,18 @@
          <div class="loader"></div>
       </div>
 
+      <script>
+         // Mostrar os painéis quando a carta for detetada
+         const glassPanel = document.getElementById('multi-panel');
+         const mytarget = document.getElementById('mytarget');
+
+         mytarget.addEventListener('targetFound', () => {
+            glassPanel.classList.remove('hidden-panel');
+         });
+
+         mytarget.addEventListener('targetLost', () => {
+            glassPanel.classList.add('hidden-panel');
+         });
+      </script>
    </body>
 </html>
