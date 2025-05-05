@@ -45,12 +45,13 @@
                 -webkit-backdrop-filter: blur(15px) saturate(160%);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 box-shadow:
-                    0 4px 12px rgba(0, 0, 0, 0.2),  /* sombra inferior leve */
-                    0 8px 24px rgba(0, 0, 0, 0.15); /* sombra mais profunda para relevo */
+                    0 4px 12px rgba(0, 0, 0, 0.4),  /* sombra inferior leve */
+                    0 8px 24px rgba(0, 0, 0, 0.25); /* sombra mais profunda para relevo */
                 color: #fff;
                 pointer-events: auto;
                 text-align: center;
                 overflow-y: auto;
+                margin: 10px;
             }
 
             .panel-container > .panel {
