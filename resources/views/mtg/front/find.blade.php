@@ -135,9 +135,11 @@
                     <p>Suggested Decks: Ramp, Colorless Artifact</p>
                 </div>
             </div>
-            <div class="panel">
-               <h2>Imagem</h2>
-               <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 90%;margin: 0 auto;">
+            <div class="panel_parent">
+                <div class="panel">
+                    <h2>Imagem</h2>
+                    <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 90%;margin: 0 auto;">
+               </div>
             </div>
             <div class="panel_parent">
                 <div class="panel">
