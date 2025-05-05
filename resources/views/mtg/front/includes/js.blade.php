@@ -7,13 +7,9 @@
             this.el.addEventListener('targetFound', event => {
                 console.log("target found");
                 showAvatar(() => {
-                    setTimeout(() => {
-                    showPortfolio(() => {
-                        setTimeout(() => {
-                        showInfo();
-                        }, 300);
-                    });
-                    }, 300);
+                    
+                    alert("AAA!");
+
                 });
             });
                 this.el.addEventListener('targetLost', event => {
