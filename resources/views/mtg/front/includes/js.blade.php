@@ -2,6 +2,18 @@
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
+        // Mostrar os painéis quando a carta for detetada
+        const glassPanel = document.getElementById('multi-panel');
+        const mytarget = document.getElementById('mytarget');
+
+        mytarget.addEventListener('targetFound', () => {
+        glassPanel.classList.remove('hidden-panel');
+        });
+
+        mytarget.addEventListener('targetLost', () => {
+        glassPanel.classList.add('hidden-panel');
+        });
+
       const showInfo = () => {
         let y = 0;
         const profileButton = document.querySelector("#profile-button");
