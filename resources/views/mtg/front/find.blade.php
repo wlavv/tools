@@ -80,7 +80,27 @@
             </div>
          </div>
          <a-scene mindar-image="imageTargetSrc: /images/mtg/minds/cloudpost.mind; showStats: false; uiScanning: #example-scanning-overlay; persistent: true;" embedded="" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: true" device-orientation-permission-ui="enabled: false">
-
+            <a-assets>
+               
+            </a-assets>
+            <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
+            <a-entity id="mytarget" mytarget="" mindar-image-target="targetIndex: 0">
+               <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+               <a-plane src="#card" position="6 6 6" height="1.552" width="3" rotation="1 0 0"></a-plane>
+               <a-entity id="info-panel" position="0 -0.3 0">
+                  <a-plane color="black" opacity="0.8">
+                     <a-text value="Cloudpost" color="white" position="0 0.3 0"></a-text>
+                     <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0"></a-text>
+                     <a-text value="Color: Colorless" color="white" position="0 0.1 0"></a-text>
+                     <a-text value="Text: Add {C} for each Cloudpost" color="white" position="0 0 0"></a-text>
+                     <a-text value="Flavor Text: 'A testament to the greatness of Mirrodin.'" color="white" position="0 -0.1 0"></a-text>
+                     <a-text value="Block & Set: Mirrodin" color="white" position="0 -0.2 0"></a-text>
+                     <a-text value="Price: $10.50" color="white" position="0 -0.3 0"></a-text>
+                     <a-text value="Legal in: Legacy, Vintage" color="white" position="0 -0.4 0"></a-text>
+                     <a-text value="Suggested Decks: Ramp, Colorless Artifact" color="white" position="0 -0.5 0"></a-text>
+                  </a-plane>
+               </a-entity>
+            </a-entity>
          </a-scene>
          @include("mtg.front.includes.AR_content")
          <video autoplay muted playsinline style="position: absolute; top: -242.5px; left: 0px; z-index: -2; width: 1920px; height: 1440px;" width="640" height="480"></video>
