@@ -95,33 +95,56 @@
          </a-scene>
 
          <!-- Novos paineis fixos lado a lado -->
-         <div id="multi-panel" class="panel-container hidden-panel">
-            <div class="panel">
-               <h2>Cloudpost</h2>
-               <p>Mana Cost: {C}</p>
-               <p>Color: Colorless</p>
-               <p>Text: Add {C} for each Cloudpost you control.</p>
-               <p>Flavor Text: "A testament to the greatness of Mirrodin."</p>
-               <p>Block & Set: Mirrodin</p>
-               <p>Price: $10.50</p>
-               <p>Legal in: Legacy, Vintage</p>
-               <p>Suggested Decks: Ramp, Colorless Artifact</p>
+        <div id="multi-panel" class="panel-container hidden-panel">
+            <div>
+                <div class="panel">
+                    <h2>Cloudpost</h2>
+                    <p>Mana Cost: {C}</p>
+                    <p>Color: Colorless</p>
+                    <p>Text: Add {C} for each Cloudpost you control.</p>
+                    <p>Flavor Text: "A testament to the greatness of Mirrodin."</p>
+                    <p>Block & Set: Mirrodin</p>
+                    <p>Price: $10.50</p>
+                    <p>Legal in: Legacy, Vintage</p>
+                    <p>Suggested Decks: Ramp, Colorless Artifact</p>
+                </div>
+                <div class="panel">
+                    <h2>Cloudpost</h2>
+                    <p>Mana Cost: {C}</p>
+                    <p>Color: Colorless</p>
+                    <p>Text: Add {C} for each Cloudpost you control.</p>
+                    <p>Flavor Text: "A testament to the greatness of Mirrodin."</p>
+                    <p>Block & Set: Mirrodin</p>
+                    <p>Price: $10.50</p>
+                    <p>Legal in: Legacy, Vintage</p>
+                    <p>Suggested Decks: Ramp, Colorless Artifact</p>
+                </div>
             </div>
             <div class="panel">
                <h2>Imagem</h2>
                <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 100%;">
             </div>
-            <div class="panel">
-               <h2>Outros Dados</h2>
-               <p>Exemplo de conteúdo adicional:</p>
-               <ul>
-                  <li>Estatísticas do Deck</li>
-                  <li>Cartas semelhantes</li>
-                  <li>Links para compra</li>
-               </ul>
+            <div>
+                <div class="panel">
+                    <h2>Outros Dados</h2>
+                    <p>Exemplo de conteúdo adicional:</p>
+                    <ul>
+                        <li>Estatísticas do Deck</li>
+                        <li>Cartas semelhantes</li>
+                        <li>Links para compra</li>
+                    </ul>
+                </div>
+                <div class="panel">
+                    <h2>Outros Dados</h2>
+                    <p>Exemplo de conteúdo adicional:</p>
+                    <ul>
+                        <li>Estatísticas do Deck</li>
+                        <li>Cartas semelhantes</li>
+                        <li>Links para compra</li>
+                    </ul>
+                </div>
             </div>
-         </div>
-
+        </div>
          <video autoplay muted playsinline style="position: absolute; top: -242.5px; left: 0px; z-index: -2; width: 1920px; height: 1440px;" width="640" height="480"></video>
       </div>
 
