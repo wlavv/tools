@@ -21,6 +21,11 @@
                 z-index: 9999;
                 pointer-events: none; /* opcional para não interferir no AR */
             }
+            .panel_parent {
+                flex: 1;
+                margin: 0 10px;
+                padding: 20px;
+            }
             .panel {
                 flex: 1;
                 margin: 0 10px;
@@ -96,7 +101,7 @@
 
          <!-- Novos paineis fixos lado a lado -->
         <div id="multi-panel" class="panel-container hidden-panel">
-            <div>
+            <div class="panel_parent">
                 <div class="panel">
                     <h2>Cloudpost</h2>
                     <p>Mana Cost: {C}</p>
@@ -124,7 +129,7 @@
                <h2>Imagem</h2>
                <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 100%;">
             </div>
-            <div>
+            <div class="panel_parent">
                 <div class="panel">
                     <h2>Outros Dados</h2>
                     <p>Exemplo de conteúdo adicional:</p>
