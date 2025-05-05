@@ -35,9 +35,10 @@
             </a-assets>
             <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable" camera="" rotation="" wasd-controls=""></a-camera>
             <a-entity id="mytarget" mytarget="" mindar-image-target="targetIndex: 0">
-               <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0" material="" geometry=""></a-plane>
+                <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0" material="" geometry=""></a-plane>
+                <a-plane src="#card" position="2 2 2" height="1.552" width="1" rotation="0 0 0" material="" geometry=""></a-plane>
                
-               <a-entity id="info-panel" position="0 -0.3 0">
+                <a-entity id="info-panel" position="0 -0.3 0">
                   <a-plane color="black" opacity="0.8">
                      <a-text value="Cloudpost" color="white" position="0 0.3 0" scale="1 1 1"></a-text>
                      <a-text value="Mana Cost: {C}" color="white" position="0 0.2 0" scale="1 1 1"></a-text>
