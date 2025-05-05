@@ -143,7 +143,7 @@
             <div class="panel_parent">
                 <div class="panel">
                     <h2>Imagem</h2>
-                    <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 90%;margin: 0 auto;">
+                    <img src="/images/mtg/mir/cloudpost.j+g" style="max-width: 90%;margin: 0 auto;">
                </div>
             </div>
             <div class="panel_parent">
