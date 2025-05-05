@@ -29,7 +29,7 @@
     <div class="panel_parent">
         <div class="panel">
             <h2>Imagem</h2>
-            <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 90%;margin: 0 auto;">
+            <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 100%;margin: 0 auto;border-radius: 22px;">
         </div>
     </div>
     <div class="panel_parent">
