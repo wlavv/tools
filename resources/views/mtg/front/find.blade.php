@@ -6,30 +6,47 @@
       <meta aframe-injected="" name="theme-color" content="black">
       @include("mtg.front.includes.css")
       @include("mtg.front.includes.js")
-      <style>
-         .panel-container {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 9999;
-         }
-         .panel {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            border-right: 1px solid #ccc;
-            background-color: rgba(255, 255, 255, 0.95);
-         }
-         .panel:last-child {
-            border-right: none;
-         }
-         .hidden-panel {
-            display: none;
-         }
-      </style>
+        <style>
+            .panel-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                width: 100%;
+                height: 100vh;
+                padding: 20px;
+                box-sizing: border-box;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 9999;
+                pointer-events: none; /* opcional para não interferir no AR */
+            }
+            .panel {
+                flex: 1;
+                margin: 0 10px;
+                padding: 20px;
+                overflow-y: auto;
+                border-radius: 16px;
+                backdrop-filter: blur(15px);
+                background: rgba(25, 25, 25, 0.6);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: #fff;
+                pointer-events: auto;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                min-width: 0; /* para evitar overflow */
+            }
+            .panel:first-child { margin-left: 0; }
+            .panel:last-child { margin-right: 0; }
+            .panel h2 {
+                margin-top: 0;
+                font-size: 1.5em;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                padding-bottom: 10px;
+            }
+            .hidden-panel {
+                display: none;
+            }
+        </style>
    </head>
    <body cz-shortcut-listen="true">
       <div class="example-container">
