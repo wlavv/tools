@@ -40,15 +40,17 @@
             .panel {
                 padding: 20px;
                 border-radius: 16px;
-                backdrop-filter: blur(15px);
-                background: rgba(25, 25, 25, 0.6);
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(100, 149, 237, 0.2); /* Azul suave (tipo cornflowerblue) */
+                backdrop-filter: blur(15px) saturate(160%);
+                -webkit-backdrop-filter: blur(15px) saturate(160%);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow:
+                    0 4px 12px rgba(0, 0, 0, 0.2),  /* sombra inferior leve */
+                    0 8px 24px rgba(0, 0, 0, 0.15); /* sombra mais profunda para relevo */
                 color: #fff;
                 pointer-events: auto;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
                 text-align: center;
                 overflow-y: auto;
-
             }
 
             .panel-container > .panel {
@@ -143,7 +145,7 @@
             <div class="panel_parent">
                 <div class="panel">
                     <h2>Imagem</h2>
-                    <img src="/images/mtg/mir/cloudpost.j+g" style="max-width: 90%;margin: 0 auto;">
+                    <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 90%;margin: 0 auto;">
                </div>
             </div>
             <div class="panel_parent">
