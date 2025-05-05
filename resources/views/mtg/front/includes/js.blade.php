@@ -18,6 +18,7 @@
             });
                 this.el.addEventListener('targetLost', event => {
                 console.log("target found");
+                alert("Cloudpost!");
             });
         }
     });
