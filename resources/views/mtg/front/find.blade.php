@@ -21,11 +21,9 @@
                 z-index: 9999;
                 pointer-events: none; /* opcional para não interferir no AR */
             }
-            .panel_parent {
-                flex: 1;
-                margin: 10px;
-                padding: 20px;
-            }
+
+            .panel_parent { flex: 1; }
+
             .panel {
                 flex: 1;
                 margin: 10px;
@@ -39,6 +37,7 @@
                 pointer-events: auto;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
                 min-width: 0; /* para evitar overflow */
+                text-align: center;
             }
 
             .panel h2 {
@@ -127,7 +126,7 @@
             </div>
             <div class="panel">
                <h2>Imagem</h2>
-               <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 100%;">
+               <img src="/images/mtg/custom_images/Magic_card_back.png" style="max-width: 90%;margin: 0 auto;">
             </div>
             <div class="panel_parent">
                 <div class="panel">
