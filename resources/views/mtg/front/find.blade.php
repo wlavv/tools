@@ -40,14 +40,14 @@
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
                 min-width: 0; /* para evitar overflow */
             }
-            .panel:first-child { margin-left: 0; }
-            .panel:last-child { margin-right: 0; }
+
             .panel h2 {
                 margin-top: 0;
                 font-size: 1.5em;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.2);
                 padding-bottom: 10px;
             }
+
             .hidden-panel {
                 display: none;
             }
