@@ -21,8 +21,19 @@
                 z-index: 9999;
                 pointer-events: none; /* opcional para não interferir no AR */
             }
+            
+            .panel_parent {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
 
-            .panel_parent { flex: 1; }
+            .panel_parent .panel {
+                flex: 1 1 50%;
+                height: 50%;
+            }
+
 
             .panel {
                 flex: 1;
