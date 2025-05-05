@@ -23,12 +23,12 @@
             }
             .panel_parent {
                 flex: 1;
-                margin: 0 10px;
+                margin: 10px;
                 padding: 20px;
             }
             .panel {
                 flex: 1;
-                margin: 0 10px;
+                margin: 10px;
                 padding: 20px;
                 overflow-y: auto;
                 border-radius: 16px;
