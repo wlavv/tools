@@ -93,7 +93,8 @@
 
             .panel_title{
                 font-family: 'magicTheGathering';
-                
+                letter-spacing: 5px;
+                text-align: left;                
             }
 
             .ul_items{
