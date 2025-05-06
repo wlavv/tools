@@ -9,23 +9,23 @@
         <style>
 
             @font-face {
-                font-family: magicTheGathering;
-                src: url(/fonts/planewalker/Planewalker.otf);
+                font-family: 'magicTheGathering';
+                src: url('/fonts/planewalker/Planewalker.otf');
             }
 
             @font-face {
-                font-family: magicTheGatheringItalic;
-                src: url(/fonts/planewalker/Planewalker Italic.otf);
+                font-family: 'magicTheGatheringItalic';
+                src: url('/fonts/planewalker/Planewalker Italic.otf');
             }
 
             @font-face {
-                font-family: magicTheGatheringBold;
-                src: url(/fonts/planewalker/Planewalker Bold.otf);
+                font-family: 'magicTheGatheringBold';
+                src: url('/fonts/planewalker/Planewalker Bold.otf');
             }
 
             @font-face {
-                font-family: magicTheGatheringBoldItalic;
-                src: url(/fonts/planewalker/Planewalker Bold Italic.otf);
+                font-family: 'magicTheGatheringBoldItalic';
+                src: url('/fonts/planewalker/Planewalker Bold Italic.otf');
             }
 
             .panel-container {
@@ -93,7 +93,7 @@
 
             .panel_title{
 
-                font-family: 'magicTheGatheringBoldItalic';
+                font-family: 'magicTheGathering';
                 
             }
 
