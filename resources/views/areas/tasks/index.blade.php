@@ -43,8 +43,8 @@
                                         <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 1, {{$task->value}})" class="btn btn-success {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-smile icons_tasks_size"></i></button>
                                         <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 0, 0)" class="btn btn-danger {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-frown icons_tasks_size">
                                     @else
-                                    <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 0, 0)" class="btn btn-success {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-smile icons_tasks_size"></i></button>
-                                    <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 1, {{$task->value}})" class="btn btn-danger {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-frown icons_tasks_size"></i></button>
+                                        <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 0, 0)" class="btn btn-success {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-smile icons_tasks_size"></i></button>
+                                        <button style="margin: 10px;" onclick="saveTask({{$task->id}}, {{$task->type}}, '{{$task->name}}', 1, {{$task->value}})" class="btn btn-danger {{$task->id}}_{{$task->name}}"><i class="fa-solid fa-face-frown icons_tasks_size"></i></button>
                                     @endif
                                 @endif
                                 
