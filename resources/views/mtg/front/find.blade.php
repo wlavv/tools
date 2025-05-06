@@ -7,6 +7,27 @@
       @include("mtg.front.includes.css")
       @include("mtg.front.includes.js")
         <style>
+
+            @font-face {
+                font-family: magicTheGathering;
+                src: url(/fonts/planewalker/Planewalker.otf);
+            }
+
+            @font-face {
+                font-family: magicTheGatheringItalic;
+                src: url(/fonts/planewalker/Planewalker Italic.otf);
+            }
+
+            @font-face {
+                font-family: magicTheGatheringBold;
+                src: url(/fonts/planewalker/Planewalker Bold.otf);
+            }
+
+            @font-face {
+                font-family: magicTheGatheringBoldItalic;
+                src: url(/fonts/planewalker/Planewalker Bold Italic.otf);
+            }
+
             .panel-container {
                 display: flex;
                 justify-content: space-between;
@@ -72,11 +93,13 @@
 
             .panel_title{
 
+                font-family: 'magicTheGatheringBoldItalic';
                 
             }
 
             .ul_items{
-
+                list-style: none;
+                text-align: left;
                 
             }
         </style>
