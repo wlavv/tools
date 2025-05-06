@@ -69,6 +69,16 @@
             .hidden-panel {
                 display: none;
             }
+
+            .panel_title{
+
+                
+            }
+
+            .ul_items{
+
+                
+            }
         </style>
    </head>
    <body cz-shortcut-listen="true">
