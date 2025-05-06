@@ -29,13 +29,6 @@
                 flex-direction: column;
                 justify-content: space-between;
                 gap: 20px;
-                transform: rotateY(5deg) translateZ(20px);
-                box-shadow:
-                    0 10px 30px rgba(0, 0, 0, 0.4),
-                    0 20px 60px rgba(0, 0, 0, 0.2),
-                    inset 0 0 20px rgba(255, 255, 255, 0.05);
-                transition: transform 0.4s ease, box-shadow 0.4s ease;
-
             }
 
             .panel_parent .panel {
