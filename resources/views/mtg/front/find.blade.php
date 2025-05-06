@@ -29,6 +29,13 @@
                 flex-direction: column;
                 justify-content: space-between;
                 gap: 20px;
+                transform: rotateY(5deg) translateZ(20px);
+                box-shadow:
+                    0 10px 30px rgba(0, 0, 0, 0.4),
+                    0 20px 60px rgba(0, 0, 0, 0.2),
+                    inset 0 0 20px rgba(255, 255, 255, 0.05);
+                transition: transform 0.4s ease, box-shadow 0.4s ease;
+
             }
 
             .panel_parent .panel {
@@ -69,86 +76,7 @@
             .hidden-panel {
                 display: none;
             }
-
-            #multi-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  z-index: 9999;
-  pointer-events: none;
-  gap: 30px;
-  padding: 40px;
-  box-sizing: border-box;
-  perspective: 1200px; /* Fundamental para 3D */
-}
-
-#multi-panel .glass-panel {
-  flex: 1;
-  max-width: 45%;
-  height: 80%;
-  background: linear-gradient(to bottom right, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-  border-radius: 20px;
-  padding: 20px;
-  color: white;
-  text-align: center;
-  backdrop-filter: blur(15px) saturate(150%);
-  -webkit-backdrop-filter: blur(15px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  overflow-y: auto;
-  pointer-events: auto;
-
-  /* 3D effect */
-  transform: rotateY(5deg) translateZ(20px);
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.4),
-    0 20px 60px rgba(0, 0, 0, 0.2),
-    inset 0 0 20px rgba(255, 255, 255, 0.05);
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-}
-
-#multi-panel .glass-panel.right {
-  transform: rotateY(-5deg) translateZ(20px);
-}
-
-#multi-panel .glass-panel:hover {
-  transform: rotateY(0deg) scale(1.02);
-  box-shadow:
-    0 15px 40px rgba(0, 0, 0, 0.6),
-    0 30px 80px rgba(0, 0, 0, 0.25),
-    inset 0 0 30px rgba(255, 255, 255, 0.1);
-}
-
-#multi-panel .glass-panel h2 {
-  font-size: 1.6rem;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  padding-bottom: 10px;
-  margin-top: 0;
-}
-
-.hidden-panel {
-  display: none !important;
-}
-
-@media (max-width: 768px) {
-  #multi-panel {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  #multi-panel .glass-panel {
-    max-width: 90%;
-    height: 45%;
-    transform: none;
-  }
-}
-
-
-</style>
+        </style>
    </head>
    <body cz-shortcut-listen="true">
   <div class="example-container">
