@@ -1,15 +1,17 @@
 <div id="multi-panel" class="panel-container hidden-panel">
     <div class="panel_parent">
         <div class="panel">
-            <h2>Cloudpost</h2>
-            <p>Mana Cost: {C}</p>
-            <p>Color: Colorless</p>
-            <p>Text: Add {C} for each Cloudpost you control.</p>
-            <p>Flavor Text: "A testament to the greatness of Mirrodin."</p>
-            <p>Block & Set: Mirrodin</p>
-            <p>Price: $10.50</p>
-            <p>Legal in: Legacy, Vintage</p>
-            <p>Suggested Decks: Ramp, Colorless Artifact</p>
+            <h2 class="panel_title">CARD DETAILS</h2>
+            <ul class="ul_items">
+                <li>Mana Cost: {C}</li>
+                <li>Color: Colorless</li>
+                <li>Text: Add {C} for each Cloudpost you control.</li>
+                <li>Flavor Text: "A testament to the greatness of Mirrodin."</li>
+                <li>Block & Set: Mirrodin</li>
+                <li>Price: $10.50</li>
+                <li>Legal in: Legacy, Vintage</li>
+                <li>Suggested Decks: Ramp, Colorless Artifact</li>
+            </ul>
         </div>
         <div class="panel">
             <h2>Cloudpost</h2>
