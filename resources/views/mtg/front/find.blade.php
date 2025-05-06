@@ -92,7 +92,6 @@
             }
 
             .panel_title{
-
                 font-family: 'magicTheGathering';
                 
             }
