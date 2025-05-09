@@ -5,12 +5,18 @@
 
     alert( 123 );
 
+    setTimeout(() => {
+        const evt = new Event('targetFound');
+        document.querySelector('[mytarget]').dispatchEvent(evt);
+    }, 2000);
+
+
     AFRAME.registerComponent('mytarget', {
 
         init: function () {
 
             alert('AA');
-            
+
             this.el.addEventListener('targetFound', event => {
 
                 alert(456);
