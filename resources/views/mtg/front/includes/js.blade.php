@@ -3,6 +3,8 @@
 
 <script>
 
+document.addEventListener('DOMContentLoaded', () => {
+
     const glassPanel = document.getElementById('multi-panel');
     const mytarget = document.getElementById('mytarget');
 
@@ -51,6 +53,7 @@
     mytarget.addEventListener('targetLost', () => {
         glassPanel.classList.add('hidden-panel');
     });
+});
 
 
 </script>
