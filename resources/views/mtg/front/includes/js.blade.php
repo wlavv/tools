@@ -15,6 +15,20 @@
         glassPanel.classList.add('hidden-panel');
     });
 
+
+    AFRAME.registerComponent('mytarget', {
+
+        init: function () {
+            this.el.addEventListener('targetFound', event => {
+                console.log("Target found!!");
+            });
+            this.el.addEventListener('targetLost', event => {
+                console.log("Target lost!!");
+            });
+        }
+
+    });
+
     function loadCardDetails(edition, collectorNumber) {
 
         alert(edition);
