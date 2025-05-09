@@ -117,8 +117,6 @@
       <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="far: 10000; objects: .clickable"></a-camera>
       <a-entity id="mytarget" mindar-image-target="targetIndex: 0"></a-entity>
     </a-scene>
-
-    @include("mtg.front.includes.AR_content")
     <video autoplay muted playsinline style="position: absolute; top: -242.5px; left: 0px; z-index: -2; width: 1920px; height: 1440px;" width="640" height="480"></video>
   </div>
 
@@ -134,9 +132,10 @@
     </div>
   </div>
 
-  <div class="mindar-ui-overlay mindar-ui-loading hidden">
-    <div class="loader"></div>
-  </div>
+    <div class="mindar-ui-overlay mindar-ui-loading hidden">
+        <div class="loader"></div>
+    </div>
+    @include("mtg.front.includes.AR_content")
 </body>
 
 </html>
