@@ -19,7 +19,7 @@ Route::resources([ 'mtg'            => mtgController::class]);
 Route::get('/mtg/showSet/{code}/{sub_set?}',   [mtgController::class, 'showSet'])->name('mtg.showSet');
 
 Route::get('/mtg/front/find',   [mtgController::class, 'findCard'])->name('mtg.findCard');
-Route::get('/mtg/front/postCardDetail',   [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
+Route::post('/mtg/front/postCardDetail',   [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
 
 
 
