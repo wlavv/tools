@@ -1,4 +1,4 @@
-<div id="multi-panel" class="panel-container hidden-panel">
+<div id="multi-panel" class="panel-container hidden-panel cardContainer">
     <div class="panel_parent">
         <div class="panel">
             <h2 class="panel_title">CARD DETAILS</h2>

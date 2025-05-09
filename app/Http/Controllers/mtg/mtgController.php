@@ -99,115 +99,13 @@ class mtgController extends Controller
             return View::make('mtg/front/find')->with($data);
         
     }
-    
-    public function findCardFromBase64(Request $request)
-    {
-        if (!$request->has('base64_image')) {
-            return response()->json(['error' => 'Imagem não fornecida.'], 400);
-        }
-    
-        $base64Image = $request->input('base64_image');
-    
-        // Limpar o prefixo base64 e decodificar
-        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-    
-        if (!$imageData) {
-            return response()->json(['error' => 'Imagem não foi decodificada corretamente.'], 400);
-        }
 
-        if (!preg_match('#^data:image/jpeg;base64,#', $base64Image)) {
-            return response()->json(['error' => 'Formato de imagem não suportado (requer JPEG).'], 400);
-        }
+    public function postCardDetail(Request $request){
+    
+        $card = Card::where('set_code', $request->input('edition'))->where('collector_number', $request->input('collector_number'))->firstOrFail();
 
-        // Criar imagem GD a partir dos dados
-        $image = imagecreatefromstring($imageData);
-    
-        imagejpeg($image, public_path('debug.jpg')); // ou public_path()
+        dd( $card );
 
-
-        if (!$image) {
-            return response()->json(['error' => 'Imagem inválida após conversão.'], 400);
-        }
-    
-        // Verificar dimensões da imagem (evita pHash inválido)
-        $width = imagesx($image);
-        $height = imagesy($image);
-        if ($width < 32 || $height < 32) {
-            return response()->json(['error' => 'Imagem demasiado pequena para gerar hash.'], 400);
-        }
-    
-        try {
-            $hasher = new \Jenssegers\ImageHash\ImageHash(new PerceptualHash());
-            $hash = $hasher->hash($image);
-    
-            if (!$hash instanceof \Jenssegers\ImageHash\Hash) {
-                return response()->json(['error' => 'Hash inválida (objeto não gerado)'], 500);
-            }
-    
-            $inputHash = $hash->toHex();
-    
-            if (empty($inputHash) || $inputHash === str_repeat('0', strlen($inputHash))) {
-                return response()->json(['error' => 'Hash não gerada ou inválida (zeros apenas)'], 400);
-            }
-    
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao gerar o hash da imagem: ' . $e->getMessage()], 500);
-        }
-    
-        // Lógica de comparação de hashes (deves garantir que é otimizada)
-        $card = $this->compareHashes($inputHash);
-    
-        if ($card) {
-            return response()->json([
-                'message' => 'Carta encontrada!',
-                'card' => [
-                    'id' => $card->id,
-                    'name' => $card->name,
-                    'set_code' => $card->set_code,
-                    'collector_number' => $card->collector_number,
-                    'image_url' => $card->image_url,
-                    'price' => $card->price,
-                    'card_hash' => $card->hash,
-                    'scan_hash' => $inputHash,
-                ]
-            ]);
-        } else {
-            return response()->json(['error' => 'Carta não encontrada.'], 404);
-        }
+        return view('mtg.AR_content', compact('card'));
     }
-    
-    
-    public function hammingDistance($hash1, $hash2){
-
-        if (strlen($hash1) !== strlen($hash2)) return false;
-
-        $distance = 0;
-        for ($i = 0; $i < strlen($hash1); $i++) {
-            if ($hash1[$i] !== $hash2[$i]) $distance++;
-        }
-
-        return $distance;
-    }
-
-    public function compareHashes($inputHash){
-
-        $userPrefix = substr($inputHash, 0, 8);
-
-        $cards = mtg_cards::where('hash', 'LIKE', $userPrefix . '%')->get();
-
-        foreach ($cards as $card) {
-            $distance = $this->hammingDistance($inputHash, $card->hash);
-
-            if ($distance < 10) return $card;
-        }
-
-        return null;
-    }
-
-    public function processImage(Request $request){
-
-        dd($request->all());
-
-    }
-
 }

@@ -15,11 +15,13 @@ use App\Http\Controllers\mtg\mtgController;
 
 /** MTG **/
 Route::resources([ 'mtg'            => mtgController::class]);
+
 Route::get('/mtg/showSet/{code}/{sub_set?}',   [mtgController::class, 'showSet'])->name('mtg.showSet');
 
 Route::get('/mtg/front/find',   [mtgController::class, 'findCard'])->name('mtg.findCard');
-Route::post('/mtg/find-card-base64', [mtgController::class, 'findCardFromBase64'])->name('mtg.findCardFromBase64');
-Route::post('/mtg/front/compare-hash', [mtgController::class, 'compareHash'])->name('mtg.compareHash');
+Route::get('/mtg/front/postCardDetail',   [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
+
+
 
 /** new approuch **/
 Route::post('/mtg/front/process-image', [mtgController::class, 'processImage'])->name('mtg.processImage');

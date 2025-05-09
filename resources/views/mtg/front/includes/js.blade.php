@@ -5,11 +5,33 @@
     AFRAME.registerComponent('mytarget', {
         init: function () {
             this.el.addEventListener('targetFound', event => {
-                console.log("Cloudpost!");
+                loadCardDetails('mir', 280)
             });
             this.el.addEventListener('targetLost', event => {
                 console.log("Target lost!!");
             });
         }
     });
+
+
+
+    function loadCardDetails(edition, collectorNumber) {
+        $.ajax({
+            url: "{{ route('mtg.postCardDetail') }}",
+            method: 'POST',
+            data: {
+                edition: edition,
+                collector_number: collectorNumber,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('.cardContainer').html(response);
+            },
+            error: function(xhr) {
+                console.error("Erro ao carregar os detalhes da carta:", xhr);
+                $('.cardContainer').html('<p>Erro ao carregar os dados.</p>');
+            }
+        });
+    }
+
 </script>
