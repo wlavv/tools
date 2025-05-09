@@ -101,7 +101,9 @@ class mtgController extends Controller
     }
 
     public function postCardDetail(Request $request){
-    
+
+        dd($request->all());
+
         $card = mtg_cards::where('set_code', $request->input('edition'))->where('collector_number', $request->input('collector_number'))->firstOrFail();
 
         dd( $card );
