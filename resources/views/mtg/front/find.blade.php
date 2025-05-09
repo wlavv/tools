@@ -5,6 +5,9 @@
       <meta aframe-injected="" name="mobile-web-app-capable" content="yes">
       <meta aframe-injected="" name="theme-color" content="black">
       @include("mtg.front.includes.css")
+
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
       @include("mtg.front.includes.js")
         <style>
 
