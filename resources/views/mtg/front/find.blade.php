@@ -5,8 +5,6 @@
       <meta aframe-injected="" name="mobile-web-app-capable" content="yes">
       <meta aframe-injected="" name="theme-color" content="black">
       @include("mtg.front.includes.css")
-      @include("mtg.front.includes.js")
-
         <style>
 
             @font-face {
@@ -138,6 +136,8 @@
     <div class="mindar-ui-overlay mindar-ui-loading hidden">
         <div class="loader"></div>
     </div>
+
+    @include("mtg.front.includes.js")
   </body>
 
 </html>
