@@ -7,8 +7,10 @@
 
     AFRAME.registerComponent('mytarget', {
 
-        alert('AA');
         init: function () {
+
+            alert('AA');
+            
             this.el.addEventListener('targetFound', event => {
 
                 alert(456);
