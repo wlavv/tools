@@ -103,7 +103,7 @@ class mtgController extends Controller
     public function postCardDetail(Request $request){
         
         $card = mtg_cards::where('set_code', $request->input('edition'))->where('collector_number', $request->input('collector_number'))->firstOrFail();
-        return view('mtg.AR_content', compact('card'));
-        
+        return view('mtg.front.includes.AR_content', compact('card'));
+
     }
 }
