@@ -3,34 +3,17 @@
 
 <script>
 
-    alert( 123 );
+    const glassPanel = document.getElementById('multi-panel');
+    const mytarget = document.getElementById('mytarget');
 
-    setTimeout(() => {
-        const evt = new Event('targetFound');
-        document.querySelector('[mytarget]').dispatchEvent(evt);
-    }, 2000);
-
-
-    AFRAME.registerComponent('mytarget', {
-
-        init: function () {
-
-            alert('AA');
-
-            this.el.addEventListener('targetFound', event => {
-
-                alert(456);
-
-                loadCardDetails('mir', 280)
-            });
-            this.el.addEventListener('targetLost', event => {
-                console.log("Target lost!!");
-            });
-        }
-
+    mytarget.addEventListener('targetFound', () => {
+        glassPanel.classList.remove('hidden-panel');
+        loadCardDetails('mir', 280);
     });
 
-
+    mytarget.addEventListener('targetLost', () => {
+        glassPanel.classList.add('hidden-panel');
+    });
 
     function loadCardDetails(edition, collectorNumber) {
 
