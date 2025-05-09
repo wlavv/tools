@@ -146,8 +146,8 @@
     const mytarget = document.getElementById('mytarget');
 
     mytarget.addEventListener('targetFound', () => {
-      glassPanel.classList.remove('hidden-panel');
       loadCardDetails('fin', 380);
+      glassPanel.classList.remove('hidden-panel');
     });
 
     mytarget.addEventListener('targetLost', () => {
