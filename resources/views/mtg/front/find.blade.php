@@ -166,7 +166,6 @@
             },
             success: function(response) {
                 $('.cardContainer').html(response);
-                glassPanel.classList.remove('hidden-panel');
             },
             error: function(xhr) {
                 console.error("Erro ao carregar os detalhes da carta:", xhr);
