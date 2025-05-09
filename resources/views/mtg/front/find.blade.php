@@ -144,6 +144,7 @@
 
     mytarget.addEventListener('targetFound', () => {
       glassPanel.classList.remove('hidden-panel');
+      loadCardDetails('mir', 280);
     });
 
     mytarget.addEventListener('targetLost', () => {
