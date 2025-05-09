@@ -5,6 +5,7 @@
       <meta aframe-injected="" name="mobile-web-app-capable" content="yes">
       <meta aframe-injected="" name="theme-color" content="black">
       @include("mtg.front.includes.css")
+      @include("mtg.front.includes.js")
         <style>
 
             @font-face {
@@ -133,11 +134,45 @@
     </div>
   </div>
 
-    <div class="mindar-ui-overlay mindar-ui-loading hidden">
-        <div class="loader"></div>
-    </div>
+  <div class="mindar-ui-overlay mindar-ui-loading hidden">
+    <div class="loader"></div>
+  </div>
 
-    @include("mtg.front.includes.js")
-  </body>
+  <script>
+    const glassPanel = document.getElementById('multi-panel');
+    const mytarget = document.getElementById('mytarget');
+
+    mytarget.addEventListener('targetFound', () => {
+      glassPanel.classList.remove('hidden-panel');
+      loadCardDetails('mir', 280);
+    });
+
+    mytarget.addEventListener('targetLost', () => {
+      glassPanel.classList.add('hidden-panel');
+    });
+
+
+
+    function loadCardDetails(edition, collectorNumber) {
+        $.ajax({
+            url: "{{ route('mtg.postCardDetail') }}",
+            method: 'POST',
+            data: {
+                edition: edition,
+                collector_number: collectorNumber,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('.cardContainer').html(response);
+            },
+            error: function(xhr) {
+                console.error("Erro ao carregar os detalhes da carta:", xhr);
+                $('.cardContainer').html('<p>Erro ao carregar os dados.</p>');
+            }
+        });
+    }
+
+  </script>
+</body>
 
 </html>
