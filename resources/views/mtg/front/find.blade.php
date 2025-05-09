@@ -147,7 +147,6 @@
 
     mytarget.addEventListener('targetFound', () => {
       loadCardDetails('fin', 380);
-      glassPanel.classList.remove('hidden-panel');
     });
 
     mytarget.addEventListener('targetLost', () => {
@@ -167,6 +166,7 @@
             },
             success: function(response) {
                 $('.cardContainer').html(response);
+                glassPanel.classList.remove('hidden-panel');
             },
             error: function(xhr) {
                 console.error("Erro ao carregar os detalhes da carta:", xhr);
