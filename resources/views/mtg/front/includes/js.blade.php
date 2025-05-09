@@ -2,6 +2,9 @@
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
 <script>
+
+    alert( 123 );
+
     AFRAME.registerComponent('mytarget', {
         init: function () {
             this.el.addEventListener('targetFound', event => {
