@@ -6,21 +6,28 @@
     alert( 123 );
 
     AFRAME.registerComponent('mytarget', {
+
         init: function () {
             this.el.addEventListener('targetFound', event => {
 
-                alert(123);
+                alert(456);
+
                 loadCardDetails('mir', 280)
             });
             this.el.addEventListener('targetLost', event => {
                 console.log("Target lost!!");
             });
         }
+
     });
 
 
 
     function loadCardDetails(edition, collectorNumber) {
+
+        alert(edition);
+        alert(collectorNumber);
+        
         $.ajax({
             url: "{{ route('mtg.postCardDetail') }}",
             method: 'POST',
