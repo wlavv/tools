@@ -6,16 +6,6 @@
     const glassPanel = document.getElementById('multi-panel');
     const mytarget = document.getElementById('mytarget');
 
-    mytarget.addEventListener('targetFound', () => {
-        glassPanel.classList.remove('hidden-panel');
-        loadCardDetails('mir', 280);
-    });
-
-    mytarget.addEventListener('targetLost', () => {
-        glassPanel.classList.add('hidden-panel');
-    });
-
-
     AFRAME.registerComponent('mytarget', {
 
         init: function () {
@@ -51,5 +41,16 @@
             }
         });
     }
+
+
+    mytarget.addEventListener('targetFound', () => {
+        glassPanel.classList.remove('hidden-panel');
+        loadCardDetails('mir', 280);
+    });
+
+    mytarget.addEventListener('targetLost', () => {
+        glassPanel.classList.add('hidden-panel');
+    });
+
 
 </script>
