@@ -5,6 +5,8 @@
     AFRAME.registerComponent('mytarget', {
         init: function () {
             this.el.addEventListener('targetFound', event => {
+
+                alert(123);
                 loadCardDetails('mir', 280)
             });
             this.el.addEventListener('targetLost', event => {
