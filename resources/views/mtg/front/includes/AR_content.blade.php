@@ -4,6 +4,43 @@
             <h2 class="panel_title">CARD DETAILS</h2>
             <ul class="ul_items">
                 <li>
+                    <span style="text-transform: uppercase; float: left;">Name: </span>
+                    <span style="float: left;">{{$card->name}} </span>
+                </li>
+
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Type: </span>
+                    <span style="float: left;">{{$card->card_type}} </span>
+                </li>
+
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Rarity: </span>
+                    <span style="float: left;">{{$card->rarity}} </span>
+                </li>
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Set: </span>
+                    <span style="float: left;"> <span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin </span>
+                </li>
+
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Collectors number: </span>
+                    <span style="float: left;">{{$card->collector_number}} </span>
+                </li>
+
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Power: </span>
+                    <span style="float: left;">{{$card->power}} </span>
+                </li>
+
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Toughness: </span>
+                    <span style="float: left;">{{$card->toughness}} </span>
+                </li>
+                <li>
+                    <span style="text-transform: uppercase; float: left;">Flavor text: </span>
+                    <span style="float: left;"> {{$card->flavor_text}} </span>
+                </li>
+                <li>
                     <span style="text-transform: uppercase; float: left;">Mana Cost: </span>
                     <span>Not applicable</span>
                     {{--
@@ -23,14 +60,6 @@
                         <br>Add {C} for each Cloudpost you control.
                     </span>
                 </li>
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Flavor text: </span>
-                    <span style="float: left;"> "A testament to the greatness of Mirrodin." </span>
-                </li>
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Set: </span>
-                    <span style="float: left;"> Mirrodin </span>
-                </li>
             </ul>
         </div>
         <div class="panel">
@@ -40,7 +69,7 @@
     <div class="panel_parent">
         <div class="panel">
             <h2 class="panel_title" style="text-align: center;">CLOUDPOST</h2>
-            <img src="/images/mtg/mir/cloudpost.jpg" style="max-width: 100%;margin: 0 auto;border-radius: 25px;">
+            <img src="{{$card->image_url}}" style="max-width: 100%;margin: 0 auto;border-radius: 25px;">
         </div>
     </div>
     <div class="panel_parent">
