@@ -55,8 +55,8 @@
     </div>
     <div class="panel_parent">
         <div class="panel">
-            <h2 class="panel_title" style="text-align: center;">CLOUDPOST</h2>
-            <img src="{{$card->image_url}}" style="max-width: 100%;margin: 0 auto;border-radius: 25px; border: 1px solid #333">
+            <h2 class="panel_title" style="text-align: center;">{{$card->name}}</h2>
+            <img src="{{$card->image_url}}" style="max-width: 100%;margin: 0 auto;border-radius: 25px; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);">
         </div>
     </div>
     <div class="panel_parent">
