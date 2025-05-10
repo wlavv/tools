@@ -121,7 +121,7 @@
       <a-entity id="mytarget" mindar-image-target="targetIndex: 0"></a-entity>
     </a-scene>
 
-    @include("mtg.front.includes.AR_content")
+    @include("mtg.front.includes.AR_content_clean")
     <video autoplay muted playsinline style="position: absolute; top: -242.5px; left: 0px; z-index: -2; width: 1920px; height: 1440px;" width="640" height="480"></video>
   </div>
 
