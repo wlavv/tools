@@ -20,7 +20,7 @@
                     <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin</td>
                 </tr>
                 <tr>
-                    <td class="card_detail_tag">Collectors number:</td>
+                    <td class="card_detail_tag">Collectors #:</td>
                     <td class="card_detail_value">{{$card->collector_number}}</td>
                 </tr>
                 <tr>
