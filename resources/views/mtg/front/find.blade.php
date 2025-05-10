@@ -11,6 +11,8 @@
       @include("mtg.front.includes.js")
         <style>
 
+            body{ background-color: #000; }
+            
             @font-face {
                 font-family: 'magicTheGathering';
                 src: url('/fonts/planewalker/Planewalker.otf');
@@ -116,7 +118,7 @@
               text-align: right;
               padding-right: 8px;
             }
-            
+
             .card_detail_value{}
             
         </style>
