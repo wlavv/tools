@@ -2,65 +2,55 @@
     <div class="panel_parent">
         <div class="panel">
             <h2 class="panel_title">CARD DETAILS</h2>
-            <ul class="ul_items">
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Name: </span>
-                    <span style="float: left;">{{$card->name}} </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Type: </span>
-                    <span style="float: left;">{{$card->card_type}} </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Rarity: </span>
-                    <span style="float: left;">{{$card->rarity}} </span>
-                </li>
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Set: </span>
-                    <span style="float: left;"> <span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Collectors number: </span>
-                    <span style="float: left;">{{$card->collector_number}} </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Power: </span>
-                    <span style="float: left;">{{$card->power}} </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Toughness: </span>
-                    <span style="float: left;">{{$card->toughness}} </span>
-                </li>
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Flavor text: </span>
-                    <span style="float: left;"> {{$card->flavor_text}} </span>
-                </li>
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Mana Cost: </span>
-                    <span>Not applicable</span>
-                    {{--
-                    <img src="/images/mtg/custom_images/C.svg" style="width: 35px; float: left;">
-                    --}}
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Color: </span>
-                    <span style="float: left;">Colorless </span>
-                </li>
-
-                <li>
-                    <span style="text-transform: uppercase; float: left;">Rules text: </span>
-                    <span style="float: left;"> 
+            <table>
+                <tr>
+                    <td>Name:</td>
+                    <td>{{$card->name}}</td>
+                </tr>
+                <tr>
+                    <td>Type:</td>
+                    <td>{{$card->card_type}}</td>
+                </tr>
+                <tr>
+                    <td>Rarity:</td>
+                    <td>{{$card->rarity}}</td>
+                </tr>
+                <tr>
+                    <td>Set:</td>
+                    <td><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin</td>
+                </tr>
+                <tr>
+                    <td>Collectors number:</td>
+                    <td>{{$card->collector_number}}</td>
+                </tr>
+                <tr>
+                    <td>Power:</td>
+                    <td>{{$card->power}}</td>
+                </tr>
+                <tr>
+                    <td>Toughness:</td>
+                    <td>{{$card->toughness}}</td>
+                </tr>
+                <tr>
+                    <td>Flavor text:</td>
+                    <td>{{$card->flavor_text}}</td>
+                </tr>
+                <tr>
+                    <td>Mana Cost:</td>
+                    <td>Not applicable</td>
+                </tr>
+                <tr>
+                    <td>Color:</td>
+                    <td>Colorless</td>
+                </tr>
+                <tr>
+                    <td>Rules text:</td>
+                    <td>
                         Cloudpost comes into play tapped
                         <br>Add {C} for each Cloudpost you control.
-                    </span>
-                </li>
-            </ul>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
     <div class="panel_parent">
