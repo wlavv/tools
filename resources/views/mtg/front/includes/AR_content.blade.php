@@ -62,9 +62,6 @@
                 </li>
             </ul>
         </div>
-        <div class="panel">
-            <h2 class="panel_title">KNOWN DECKS</h2>
-        </div>
     </div>
     <div class="panel_parent">
         <div class="panel">
@@ -73,6 +70,9 @@
         </div>
     </div>
     <div class="panel_parent">
+        <div class="panel">
+            <h2 class="panel_title">KNOWN DECKS</h2>
+        </div>
         <div class="panel">
             <h2 class="panel_title">ARTICLES</h2>            
         </div>
