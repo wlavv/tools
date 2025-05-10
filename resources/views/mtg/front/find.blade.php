@@ -108,7 +108,15 @@
                 
             }
 
-            .card_detail_tag{}
+            .card_detail_tag{
+              color: white;
+              font-weight: bolder;
+              font-size: 18px;
+              width: 160px;
+              text-align: right;
+              padding-right: 8px;
+            }
+            
             .card_detail_value{}
             
         </style>
