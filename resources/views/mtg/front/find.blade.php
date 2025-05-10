@@ -106,6 +106,8 @@
                 margin-left: 0;padding-left: 0;line-height: 1.8;font-weight: bold;
                 
             }
+
+            .ul_items li{ width: 100%; }
         </style>
    </head>
    <body cz-shortcut-listen="true">
