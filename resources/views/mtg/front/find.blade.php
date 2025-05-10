@@ -104,6 +104,7 @@
                 list-style: none;
                 text-align: left;
                 margin-left: 0;padding-left: 0;line-height: 1.8;font-weight: bold;
+                display: grid;
                 
             }
 
