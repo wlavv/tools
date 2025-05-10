@@ -3,7 +3,10 @@
         <div class="panel">
             <h2 class="panel_title">CARD DETAILS</h2>
             <ul class="ul_items">
-                <li>Mana Cost: {C}</li>
+                <li>
+                    <span style="text-transforme: uppercasa;"></span>
+                    <img src="/images/mtg/custom_images/C.svg" style="width: 35px; float: left;">
+                </li>
                 <li>Color: Colorless</li>
                 <li>Text: Add {C} for each Cloudpost you control.</li>
                 <li>Flavor Text: "A testament to the greatness of Mirrodin."</li>
