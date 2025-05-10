@@ -115,9 +115,10 @@
               color: white;
               font-weight: bolder;
               font-size: 18px;
-              width: 160px;
+              width: 221px;
               text-align: right;
               padding-right: 8px;
+              text-transform: uppercase;
             }
 
             .card_detail_value{}
