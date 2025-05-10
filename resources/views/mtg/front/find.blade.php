@@ -100,7 +100,7 @@
                 text-align: left;                
             }
 
-            .ul_items{
+            .card_detail_table{
                 list-style: none;
                 text-align: left;
                 margin-left: 0;padding-left: 0;line-height: 1.8;font-weight: bold;
@@ -108,7 +108,9 @@
                 
             }
 
-            .ul_items li{ width: 100%; }
+            .card_detail_tag{}
+            .card_detail_value{}
+            
         </style>
    </head>
    <body cz-shortcut-listen="true">

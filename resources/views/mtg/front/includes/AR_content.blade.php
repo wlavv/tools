@@ -2,50 +2,50 @@
     <div class="panel_parent">
         <div class="panel">
             <h2 class="panel_title">CARD DETAILS</h2>
-            <table>
+            <table class="card_detail_table">
                 <tr>
-                    <td>Name:</td>
-                    <td>{{$card->name}}</td>
+                    <td class="card_detail_tag">Name:</td>
+                    <td class="card_detail_value">{{$card->name}}</td>
                 </tr>
                 <tr>
-                    <td>Type:</td>
-                    <td>{{$card->card_type}}</td>
+                    <td class="card_detail_tag">Type:</td>
+                    <td class="card_detail_value">{{$card->card_type}}</td>
                 </tr>
                 <tr>
-                    <td>Rarity:</td>
-                    <td>{{$card->rarity}}</td>
+                    <td class="card_detail_tag">Rarity:</td>
+                    <td class="card_detail_value">{{$card->rarity}}</td>
                 </tr>
                 <tr>
-                    <td>Set:</td>
-                    <td><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin</td>
+                    <td class="card_detail_tag">Set:</td>
+                    <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin</td>
                 </tr>
                 <tr>
-                    <td>Collectors number:</td>
-                    <td>{{$card->collector_number}}</td>
+                    <td class="card_detail_tag">Collectors number:</td>
+                    <td class="card_detail_value">{{$card->collector_number}}</td>
                 </tr>
                 <tr>
-                    <td>Power:</td>
-                    <td>{{$card->power}}</td>
+                    <td class="card_detail_tag">Power:</td>
+                    <td class="card_detail_value">{{$card->power}}</td>
                 </tr>
                 <tr>
-                    <td>Toughness:</td>
-                    <td>{{$card->toughness}}</td>
+                    <td class="card_detail_tag">Toughness:</td>
+                    <td class="card_detail_value">{{$card->toughness}}</td>
                 </tr>
                 <tr>
-                    <td>Flavor text:</td>
-                    <td>{{$card->flavor_text}}</td>
+                    <td class="card_detail_tag">Flavor text:</td>
+                    <td class="card_detail_value">{{$card->flavor_text}}</td>
                 </tr>
                 <tr>
-                    <td>Mana Cost:</td>
-                    <td>Not applicable</td>
+                    <td class="card_detail_tag">Mana Cost:</td>
+                    <td class="card_detail_value">Not applicable</td>
                 </tr>
                 <tr>
-                    <td>Color:</td>
-                    <td>Colorless</td>
+                    <td class="card_detail_tag">Color:</td>
+                    <td class="card_detail_value">Colorless</td>
                 </tr>
                 <tr>
-                    <td>Rules text:</td>
-                    <td>
+                    <td class="card_detail_tag">Rules text:</td>
+                    <td class="card_detail_value">
                         Cloudpost comes into play tapped
                         <br>Add {C} for each Cloudpost you control.
                     </td>
