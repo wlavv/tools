@@ -123,9 +123,9 @@
             .card_detail_value{}
 
             #cardImageContainer{ display: block; }
-            #cardPriceContaine{ display: none; }
+            #cardPriceContainer{ display: none; }
             #cardBanningContainer{ display: none; }
-            
+
         </style>
    </head>
    <body cz-shortcut-listen="true">
