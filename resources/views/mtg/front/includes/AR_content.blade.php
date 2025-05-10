@@ -4,7 +4,7 @@
             <h2 class="panel_title">CARD DETAILS</h2>
             <ul class="ul_items">
                 <li>
-                    <span style="text-transforme: uppercase;" style="float: left;">Mana Cost: </span>
+                    <span style="text-transform: uppercase;" style="float: left;">Mana Cost: </span>
                     <span>Not applicable</span>
                     {{--
                     <img src="/images/mtg/custom_images/C.svg" style="width: 35px; float: left;">
@@ -12,23 +12,23 @@
                 </li>
 
                 <li>
-                    <span style="text-transforme: uppercase;" style="float: left;">Color: </span>
-                    <span style="float: left;">Colorless: </span>
+                    <span style="text-transform: uppercase;" style="float: left;">Color: </span>
+                    <span style="float: left;">Colorless </span>
                 </li>
 
                 <li>
-                    <span style="text-transforme: uppercase;" style="float: left;">Rules text: </span>
+                    <span style="text-transform: uppercase;" style="float: left;">Rules text: </span>
                     <span style="float: left;"> 
                         Cloudpost comes into play tapped
                         <br>Add {C} for each Cloudpost you control.
                     </span>
                 </li>
                 <li>
-                    <span style="text-transforme: uppercase;" style="float: left;">Flavor text: </span>
+                    <span style="text-transform: uppercase;" style="float: left;">Flavor text: </span>
                     <span style="float: left;"> "A testament to the greatness of Mirrodin." </span>
                 </li>
                 <li>
-                    <span style="text-transforme: uppercase;" style="float: left;">Set: </span>
+                    <span style="text-transform: uppercase;" style="float: left;">Set: </span>
                     <span style="float: left;"> Mirrodin </span>
                 </li>
             </ul>
