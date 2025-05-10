@@ -115,13 +115,15 @@
               color: white;
               font-weight: bolder;
               font-size: 18px;
-              width: 221px;
+              width: 150px;
               text-align: right;
               padding-right: 8px;
               text-transform: uppercase;
             }
 
-            .card_detail_value{}
+            .card_detail_value{
+              font-size: 18px;
+            }
 
             #cardImageContainer{ display: block; }
             #cardPriceContainer{ display: none; }
