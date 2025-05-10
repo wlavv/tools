@@ -121,6 +121,10 @@
             }
 
             .card_detail_value{}
+
+            #cardImageContainer{ display: block; }
+            #cardPriceContaine{ display: none; }
+            #cardBanningContainer{ display: none; }
             
         </style>
    </head>
