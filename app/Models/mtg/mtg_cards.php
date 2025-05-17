@@ -27,11 +27,17 @@ class mtg_cards extends Model
         'mana_cost',    // Custo de mana
         'power',        // Força (caso seja uma criatura)
         'toughness',    // Resistência (caso seja uma criatura)
+        'oracle_text',  // Texto de sabor (se houver)
         'flavor_text',  // Texto de sabor (se houver)
         'image_url',    // URL da imagem
         'set_code',     // Código do set
+        'set_name',     // Código do set
         'price',        // Preço da carta (se estiver sendo registrado)
         'scryfall_uri', // URL da carta na API do Scryfall
+        'artist',       // URL da carta na API do Scryfall
+        'link_gatherer',// URL da carta na API do Scryfall
+        'link_edhrec',  // URL da carta na API do Scryfall
+        'released_at',  // URL da carta na API do Scryfall
     ];
 
     public $timestamps = true;
@@ -126,12 +132,18 @@ class mtg_cards extends Model
                             'mana_cost' => $card['mana_cost'] ?? null,
                             'power' => $card['power'] ?? null,
                             'toughness' => $card['toughness'] ?? null,
+                            'oracle_text' => $card['oracle_text'] ?? null,
                             'flavor_text' => $card['flavor_text'] ?? null,
                             'image_url' => '/' . $path . '/' . $filename,
                             'set_code' => $set_code,
+                            'set_name' => $card['set_name'] ?? null,
                             'set_id' => $set_id,
                             'price' => 0.05,
                             'scryfall_uri' => $card['scryfall_uri'] ?? null,
+                            'artist' => $card['artist'] ?? null,
+                            'link_gatherer' => $card['link_gatherer'] ?? null,
+                            'link_edhrec' => $card['link_edhrec'] ?? null,
+                            'released_at' => $card['released_at'] ?? null,
                         ]
                     );
                 }
