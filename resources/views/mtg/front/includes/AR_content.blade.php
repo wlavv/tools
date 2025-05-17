@@ -1,7 +1,7 @@
 <div id="multi-panel" class="panel-container cardContainer">
     <div class="panel_parent">
         <div class="panel">
-            <h2 class="panel_title">CARD DETAILS</h2>
+            <h2 class="panel_title">Card details</h2>
             <table class="card_detail_table">
                 @if(!is_null($card->mana_cost))
                     <tr>
@@ -96,7 +96,7 @@
     </div>
     <div class="panel_parent">
         <div class="panel">
-            <h2 class="panel_title">KNOWN DECKS</h2>
+            <h2 class="panel_title">Known decks</h2>
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://archidekt.com/search/decks?name={{$card->name}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
@@ -125,7 +125,7 @@
             </div>
         </div>
         <div class="panel">
-            <h2 class="panel_title">ARTICLES | REVIEWS | VIDEOS</h2> 
+            <h2 class="panel_title">Articles | Reviews | Videos</h2> 
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
@@ -154,7 +154,7 @@
             </div>
         </div>
         <div class="panel">
-            <h2 class="panel_title">OFFICIAL INFO</h2>  
+            <h2 class="panel_title">Official info</h2>  
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="{{$card->gatherer}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
