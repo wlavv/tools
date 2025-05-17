@@ -213,9 +213,10 @@ class mtg_cards extends Model
             case 6: $color= 'MULTI COLOR'; break;
             case 7: $color= 'COLORLESS'; break;
             default: $color= 'UNKNOWN';
-
-            return $color
         }
+        
+        return $color;
+
     }
 
 }
