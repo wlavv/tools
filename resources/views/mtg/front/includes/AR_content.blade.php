@@ -57,6 +57,11 @@
                 @endif
 
                 <tr>
+                    <td class="card_detail_tag">Release date:</td>
+                    <td class="card_detail_value">{{$card->released_at}}</td>
+                </tr>
+
+                <tr>
                     <td class="card_detail_tag">Collectors #:</td>
                     <td class="card_detail_value">{{$card->collector_number}}</td>
                 </tr>
