@@ -91,9 +91,8 @@
         </div>
         <div class="panel">
             <h2 class="panel_title">ARTICLES | REVIEWS | VIDEOS</h2> 
-            
             <div>
-                <div>
+                <div style="text-align: left;">
                     <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
                         <div style="width: 50px; float: left;">
                             <svg style="width: 60px;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;">
@@ -106,8 +105,8 @@
                         <div style="width: calc( 100% - 50px); float: left;">{{$card->name}}: </div>
                     </a>
                 </div>
-
             </div>
+        </div>
         <div class="panel">
             <h2 class="panel_title">OFFICIAL INFO</h2>            
         </div>
