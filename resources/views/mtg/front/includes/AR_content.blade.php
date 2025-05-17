@@ -3,11 +3,6 @@
         <div class="panel">
             <h2 class="panel_title">CARD DETAILS</h2>
             <table class="card_detail_table">
-                <tr>
-                    <td class="card_detail_tag">Name:</td>
-                    <td class="card_detail_value">{{$card->name}}</td>
-                </tr>
-
                 @if(!is_null($card->mana_cost))
                     <tr>
                         <td class="card_detail_tag">Mana Cost:</td>
@@ -71,6 +66,7 @@
     </div>
     <div class="panel_parent">
         <div class="panel">
+            <h2 class="panel_title" style="text-align: center;">{{$card->name}}</h2>
             <div class="cardCenterContainer" id="cardImageContainer">
                 <img src="{{$card->image_url}}" style="max-width: 100%;margin: 0 auto;border-radius: 25px; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);">
             </div>
@@ -80,7 +76,7 @@
             <div class="cardCenterContainer" id="cardBanningContainer">
                 banning
             </div>
-            <div style="margin: 20px;">
+            <div style="margin: 20px 0px;">
                 <div onclick="$('.cardCenterContainer').css('display', 'none'); $('#cardImageContainer').css('display', 'block');" style="width: 33%; float: left; text-align: center; font-size: 26px; background-color: #FFF; color: #333;border: 1px solid #FFF;padding: 10px 0;"><i class="fa-solid fa-image"></i></div>
                 <div onclick="$('.cardCenterContainer').css('display', 'none'); $('#cardPriceContainer').css('display', 'block');" style="width: 32%; float: left; text-align: center; font-size: 26px; background-color: transparent; color: #fff;border: 1px solid #FFF;padding: 10px 0;"><i class="fa-solid fa-euro-sign"></i></div>
                 <div onclick="$('.cardCenterContainer').css('display', 'none'); $('#cardBanningContainer').css('display', 'block');" style="width: 33%; float: left; text-align: center; font-size: 26px; background-color: transparent; color: #fff;border: 1px solid #FFF;padding: 10px 0;"><i class="fa-solid fa-ban"></i></div>
