@@ -86,20 +86,12 @@
             }
 
 
-.panel h2 {
-    margin-top: 0;
-    font-size: 1.5em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding-bottom: 10px;
-}
-
-
-.panel h2.panel_title_top {
-    margin-top: 0;
-    font-size: 1.5em;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    padding-top: 10px;
-}
+            .panel h2 {
+                margin-top: 0;
+                font-size: 1.5em;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+                padding-bottom: 10px;
+            }
 
             .hidden-panel {
                 display: none;
