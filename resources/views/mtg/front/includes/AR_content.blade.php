@@ -90,7 +90,7 @@
             <h2 class="panel_title">KNOWN DECKS</h2>
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://edhrec.com/commanders/{{str_replace(' ', '-', $card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://edhrec.com/commanders/{{preg_replace('/[^A-Za-z0-9\-]/', '',str_replace(' ', '-', $card->name))}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="EDHREC" style="width: 150px;">
                         </div>
