@@ -191,11 +191,11 @@ class mtg_cards extends Model
 
         $html = $card->mana_cost;
 
-        /**white**/ $html = str_replace('{w}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
-        /**white**/ $html = str_replace('{u}', '<img src="/images/mtg/custom_images/w.png" alt="Blue mana">', $html);
-        /**white**/ $html = str_replace('{b}', '<img src="/images/mtg/custom_images/w.png" alt="Black mana">', $html);
-        /**white**/ $html = str_replace('{r}', '<img src="/images/mtg/custom_images/w.png" alt="Red mana">', $html);
-        /**white**/ $html = str_replace('{g}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
+        /**white**/ $html = str_replace('{W}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
+        /**white**/ $html = str_replace('{U}', '<img src="/images/mtg/custom_images/w.png" alt="Blue mana">', $html);
+        /**white**/ $html = str_replace('{B}', '<img src="/images/mtg/custom_images/w.png" alt="Black mana">', $html);
+        /**white**/ $html = str_replace('{R}', '<img src="/images/mtg/custom_images/w.png" alt="Red mana">', $html);
+        /**white**/ $html = str_replace('{G}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
 
         return $html;
     }
@@ -214,7 +214,7 @@ class mtg_cards extends Model
             case 7: $color= 'COLORLESS'; break;
             default: $color= 'UNKNOWN';
         }
-        
+
         return $color;
 
     }
