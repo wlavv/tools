@@ -37,25 +37,32 @@
                 </tr>
                 @endif
 
+                @if(!is_null($card->flavor_text ))
                 <tr>
                     <td class="card_detail_tag">Flavor text:</td>
                     <td class="card_detail_value">{{$card->flavor_text}}</td>
                 </tr>
+                @endif
+
+                @if(!is_null($card->mana_cost ))
                 <tr>
                     <td class="card_detail_tag">Mana Cost:</td>
                     <td class="card_detail_value">Not applicable</td>
                 </tr>
+                @endif
                 <tr>
                     <td class="card_detail_tag">Color:</td>
                     <td class="card_detail_value">Colorless</td>
                 </tr>
+
+                @if(!is_null($card->rules_text ))
+
                 <tr>
                     <td class="card_detail_tag">Rules text:</td>
-                    <td class="card_detail_value">
-                        Cloudpost comes into play tapped
-                        <br>Add {C} for each Cloudpost you control.
-                    </td>
+                    <td class="card_detail_value"> {{$card->rules_text}}</td>
                 </tr>
+
+                @endif
             </table>
         </div>
     </div>
