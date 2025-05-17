@@ -191,24 +191,24 @@ class mtg_cards extends Model
 
         $html = $card->mana_cost;
 
-        /**white**/ $html = str_replace('{W}', '<img style="width: 20px;margin: 5px;" src="/images/mtg/custom_images/W.svg" alt="Green mana">', $html);
-        /**blue**/  $html = str_replace('{U}', '<img style="width: 20px;margin: 5px;" src="/images/mtg/custom_images/U.svg" alt="Blue mana">', $html);
-        /**black**/ $html = str_replace('{B}', '<img style="width: 20px;margin: 5px;" src="/images/mtg/custom_images/B.svg" alt="Black mana">', $html);
-        /**red**/   $html = str_replace('{R}', '<img style="width: 20px;margin: 5px;" src="/images/mtg/custom_images/R.svg" alt="Red mana">', $html);
-        /**green**/ $html = str_replace('{G}', '<img style="width: 20px;margin: 5px;" src="/images/mtg/custom_images/G.svg" alt="Green mana">', $html);
-        /**0**/     $html = str_replace('{0}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">0</div>', $html);
-        /**0**/     $html = str_replace('{1}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">1</div>', $html);
-        /**0**/     $html = str_replace('{2}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">2</div>', $html);
-        /**0**/     $html = str_replace('{3}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">3</div>', $html);
-        /**0**/     $html = str_replace('{4}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">4</div>', $html);
-        /**0**/     $html = str_replace('{5}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">5</div>', $html);
-        /**0**/     $html = str_replace('{6}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">6</div>', $html);
-        /**0**/     $html = str_replace('{7}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">7</div>', $html);
-        /**0**/     $html = str_replace('{8}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">8</div>', $html);
-        /**0**/     $html = str_replace('{9}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">9</div>', $html);
-        /**0**/     $html = str_replace('{10}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">10</div>', $html);
-        /**0**/     $html = str_replace('{11}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">11</div>', $html);
-        /**0**/     $html = str_replace('{12}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 5px;">12</div>', $html);
+        /**white**/ $html = str_replace('{W}', '<img style="width: 20px;margin: 2px;" src="/images/mtg/custom_images/W.svg" alt="Green mana">', $html);
+        /**blue**/  $html = str_replace('{U}', '<img style="width: 20px;margin: 2px;" src="/images/mtg/custom_images/U.svg" alt="Blue mana">', $html);
+        /**black**/ $html = str_replace('{B}', '<img style="width: 20px;margin: 2px;" src="/images/mtg/custom_images/B.svg" alt="Black mana">', $html);
+        /**red**/   $html = str_replace('{R}', '<img style="width: 20px;margin: 2px;" src="/images/mtg/custom_images/R.svg" alt="Red mana">', $html);
+        /**green**/ $html = str_replace('{G}', '<img style="width: 20px;margin: 2px;" src="/images/mtg/custom_images/G.svg" alt="Green mana">', $html);
+        /**0**/     $html = str_replace('{0}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">0</div>', $html);
+        /**0**/     $html = str_replace('{1}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">1</div>', $html);
+        /**0**/     $html = str_replace('{2}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">2</div>', $html);
+        /**0**/     $html = str_replace('{3}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">3</div>', $html);
+        /**0**/     $html = str_replace('{4}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">4</div>', $html);
+        /**0**/     $html = str_replace('{5}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">5</div>', $html);
+        /**0**/     $html = str_replace('{6}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">6</div>', $html);
+        /**0**/     $html = str_replace('{7}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">7</div>', $html);
+        /**0**/     $html = str_replace('{8}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">8</div>', $html);
+        /**0**/     $html = str_replace('{9}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">9</div>', $html);
+        /**0**/     $html = str_replace('{10}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">10</div>', $html);
+        /**0**/     $html = str_replace('{11}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">11</div>', $html);
+        /**0**/     $html = str_replace('{12}', '<div style="width: 20px; height: 20px; border-radius: 50px; background: #ddd; float: left;line-height: 1;text-align: center;margin: 2px;">12</div>', $html);
 
         return $html;
     }

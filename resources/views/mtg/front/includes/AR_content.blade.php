@@ -11,13 +11,26 @@
                     <td class="card_detail_tag">Type:</td>
                     <td class="card_detail_value">{{$card->card_type}}</td>
                 </tr>
+
+                @if(!is_null($card->mana_cost))
+                    <tr>
+                        <td class="card_detail_tag">Mana Cost:</td>
+                        <td class="card_detail_value">{!!$card_cost!!}</td>
+                    </tr>
+                @endif
+
+                <tr>
+                    <td class="card_detail_tag">Color:</td>
+                    <td class="card_detail_value">{{$card_cost}}</td>
+                </tr>
+
                 <tr>
                     <td class="card_detail_tag">Rarity:</td>
                     <td class="card_detail_value">{{$card->rarity}}</td>
                 </tr>
                 <tr>
                     <td class="card_detail_tag">Set:</td>
-                    <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | Mirrodin</td>
+                    <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span></td>
                 </tr>
                 <tr>
                     <td class="card_detail_tag">Collectors #:</td>
@@ -43,17 +56,6 @@
                     <td class="card_detail_value">{{$card->flavor_text}}</td>
                 </tr>
                 @endif
-
-                @if(!is_null($card->mana_cost))
-                <tr>
-                    <td class="card_detail_tag">Mana Cost:</td>
-                    <td class="card_detail_value">{!!$card_cost!!}</td>
-                </tr>
-                @endif
-                <tr>
-                    <td class="card_detail_tag">Color:</td>
-                    <td class="card_detail_value">Colorless</td>
-                </tr>
 
                 @if(!is_null($card->rules_text ))
 
