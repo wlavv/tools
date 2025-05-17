@@ -36,7 +36,10 @@ class mtgController extends Controller
         //mtg_sets::updateSets();
 
         /** PROCURA POR NOVAS CARTAS E ATUALIZA OS ACTUAIS **/
+
+        mtg_cards::updateCardsFromSet(843, 'LGN');
         /**
+
         $counter = 0;
         $sets = mtg_sets::getByReleasedDate();
 
