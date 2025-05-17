@@ -105,6 +105,14 @@
                         <div style="width: calc( 100% - 50px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">{{$card->name}}</span> </div>
                     </a>
                 </div>
+                <div style="text-align: left;">
+                    <a href="https://mtg.wiki/index.php?title=Akroma,_{{str_replace(' ', '_', $card->name)}}&redirect=no" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
+                        <div style="width: 50px; float: left;">
+                            <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI">
+                        </div>
+                        <div style="width: calc( 100% - 50px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">{{$card->name}}</span> </div>
+                    </a>
+                </div>
             </div>
         </div>
         <div class="panel">
