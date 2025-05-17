@@ -93,16 +93,20 @@
             <h2 class="panel_title">ARTICLES | REVIEWS | VIDEOS</h2> 
             
             <div>
-                <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
-                    <svg style="width: 60px;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;">
-                        <g>
-                            <path fill="#FF0033" d="M21.58,7.19c-0.23-0.86-0.91-1.54-1.77-1.77C18.25,5,12,5,12,5S5.75,5,4.19,5.42   C3.33,5.65,2.65,6.33,2.42,7.19C2,8.75,2,12,2,12s0,3.25,0.42,4.81c0.23,0.86,0.91,1.54,1.77,1.77C5.75,19,12,19,12,19   s6.25,0,7.81-0.42c0.86-0.23,1.54-0.91,1.77-1.77C22,15.25,22,12,22,12S22,8.75,21.58,7.19z"></path>
-                            <polygon fill="#FFFFFF" points="10,15 15,12 10,9  "></polygon>
-                        </g>
-                    </svg>
-                    <span>{{$card->name}}: </span>
-                    </div>
-                </a>
+                <div>
+                    <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
+                        <div style="width: 50px; float: left;">
+                            <svg style="width: 60px;" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;">
+                                <g>
+                                    <path fill="#FF0033" d="M21.58,7.19c-0.23-0.86-0.91-1.54-1.77-1.77C18.25,5,12,5,12,5S5.75,5,4.19,5.42   C3.33,5.65,2.65,6.33,2.42,7.19C2,8.75,2,12,2,12s0,3.25,0.42,4.81c0.23,0.86,0.91,1.54,1.77,1.77C5.75,19,12,19,12,19   s6.25,0,7.81-0.42c0.86-0.23,1.54-0.91,1.77-1.77C22,15.25,22,12,22,12S22,8.75,21.58,7.19z"></path>
+                                    <polygon fill="#FFFFFF" points="10,15 15,12 10,9  "></polygon>
+                                </g>
+                            </svg>
+                        </div>
+                        <div style="width: calc( 100% - 50px); float: left;">{{$card->name}}: </div>
+                    </a>
+                </div>
+
             </div>
         <div class="panel">
             <h2 class="panel_title">OFFICIAL INFO</h2>            
