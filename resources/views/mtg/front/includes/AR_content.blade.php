@@ -88,6 +88,32 @@
     <div class="panel_parent">
         <div class="panel">
             <h2 class="panel_title">KNOWN DECKS</h2>
+            <div>
+                <div style="text-align: center;width: 33%;float: left;">
+                    <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                        <div style="text-align: center;">
+                            <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="MTG WIKI" style="width: 150px;">
+                        </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">YOUTUBE</span> </div>
+                    </a>
+                </div>
+                <div style="text-align: center;width: 33%;float: left;">
+                    <a href="https://www.reddit.com/r/EDH/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                        <div style="text-align: center;">
+                            <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="REDDIT" style="width: 150px;">
+                        </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">REDDIT</span> </div>
+                    </a>
+                </div>
+                <div style="text-align: center;width: 33%;float: left;">
+                    <a href="https://commanderspellbook.com/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                        <div style="text-align: center;">
+                            <img src="/images/mtg/custom_images/Moxdield.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
+                        </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">COMMANDER SPELLBOCK</span> </div>
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="panel">
             <h2 class="panel_title">ARTICLES | REVIEWS | VIDEOS</h2> 
