@@ -92,7 +92,7 @@
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://archidekt.com/search/decks?name={{$card->name}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/Archidekt.png?t=9" alt="archidekt" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/Archidekt.png?t=9" alt="ARCHIDEKT" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ARCHIDEKT</span> </div>
                     </a>
@@ -100,9 +100,9 @@
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://cubecobra.com/tool/searchcards?f={{urlencode($card->name)}}&p=0&s=Elo&d=descending&di=names" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="MTGGoldfish" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/CubeCobra.png" alt="CubeCobra" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTGGoldfish</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">CubeCobra</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
