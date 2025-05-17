@@ -23,14 +23,20 @@
                     <td class="card_detail_tag">Collectors #:</td>
                     <td class="card_detail_value">{{$card->collector_number}}</td>
                 </tr>
+                @if(!is_null($card->power ))
                 <tr>
                     <td class="card_detail_tag">Power:</td>
                     <td class="card_detail_value">{{$card->power}}</td>
                 </tr>
+                @endif
+
+                @if(!is_null($card->power ))
                 <tr>
                     <td class="card_detail_tag">Toughness:</td>
                     <td class="card_detail_value">{{$card->toughness}}</td>
                 </tr>
+                @endif
+
                 <tr>
                     <td class="card_detail_tag">Flavor text:</td>
                     <td class="card_detail_value">{{$card->flavor_text}}</td>

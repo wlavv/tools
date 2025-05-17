@@ -119,6 +119,7 @@
               text-align: right;
               padding-right: 8px;
               text-transform: uppercase;
+              vertical-align: baseline;
             }
 
             .card_detail_value{
