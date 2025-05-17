@@ -37,6 +37,8 @@ class mtgController extends Controller
 
         /** PROCURA POR NOVAS CARTAS E ATUALIZA OS ACTUAIS **/
 
+        mtg_cards::updateCardsFromSet(843, 'LGN');
+
         /**
 
         $counter = 0;
