@@ -86,7 +86,7 @@
                 <div onclick="$('.cardCenterContainer').css('display', 'none'); $('#cardBanningContainer').css('display', 'block');" style="width: 33%; float: left; text-align: center; font-size: 26px; background-color: transparent; color: #fff;border: 1px solid #FFF;padding: 10px 0;"><i class="fa-solid fa-ban"></i></div>
             </div>
             <div style="margin: 20px 0;">
-                <h2 class="panel_title" style="text-align: center;">{{$card->name}}</h2>
+                <h2 class="panel_title_top" style="text-align: center;">{{$card->name}}</h2>
             </div>
         </div>
     </div>
