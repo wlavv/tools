@@ -90,27 +90,27 @@
             <h2 class="panel_title">KNOWN DECKS</h2>
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://www.youtube.com/results?search_query={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://edhrec.com/commanders/{{str_replace(' ', '-', $card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="MTG WIKI" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="EDHREC" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">EDHREC</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://www.reddit.com/r/EDH/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://www.mtggoldfish.com/price/Legions/{{str_replace(' ', '+', $card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="REDDIT" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="MTGGoldfish" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTGGOLDFICH</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTGGoldfish</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://commanderspellbook.com/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://moxfield.com/search/cards?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/Moxfield.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/Moxfield.png" alt="Moxfield" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MOXFIELD</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">Moxfield</span> </div>
                     </a>
                 </div>
             </div>
@@ -148,9 +148,9 @@
             <h2 class="panel_title">OFFICIAL INFO</h2>  
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://gatherer.wizards.com/Pages/Search/Default.aspx?name={{$card->name}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/gatherer.png?t=9" alt="MTG WIKI" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/gatherer.png?t=9" alt="GATHERER" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">GATHERER</span> </div>
                     </a>
@@ -164,9 +164,9 @@
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="{{$card->scryfall_uri}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/scryfall.png" alt="MTG WIKI" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/scryfall.png" alt="SCRYFALL" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">SCRYFALL</span> </div>
                     </a>
