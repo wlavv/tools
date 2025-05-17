@@ -102,7 +102,7 @@
                                 </g>
                             </svg>
                         </div>
-                        <div style="width: calc( 100% - 50px); float: left;">{{$card->name}}: </div>
+                        <div style="width: calc( 100% - 50px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">{{$card->name}}</span> </div>
                     </a>
                 </div>
             </div>
