@@ -44,10 +44,10 @@
                 </tr>
                 @endif
 
-                @if(!is_null($card->mana_cost ))
+                @if(!is_null($card->mana_cost))
                 <tr>
                     <td class="card_detail_tag">Mana Cost:</td>
-                    <td class="card_detail_value">Not applicable</td>
+                    <td class="card_detail_value">{!!$card_cost!!}</td>
                 </tr>
                 @endif
                 <tr>

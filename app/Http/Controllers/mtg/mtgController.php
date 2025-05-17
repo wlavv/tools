@@ -94,18 +94,21 @@ class mtgController extends Controller
     public function findCard()
     {
         
-            $data = [ 
-                'mtg_icon' => '/images/mtg/mana/mtg.png',
-            ];
-    
-            return View::make('mtg/front/find')->with($data);
+        $data = [ 
+            'mtg_icon' => '/images/mtg/mana/mtg.png',
+        ];
+
+        return View::make('mtg/front/find')->with($data);
         
     }
 
     public function postCardDetail(Request $request){
         
         $card = mtg_cards::where('set_code', $request->input('edition'))->where('collector_number', $request->input('collector_number'))->firstOrFail();
-        return view('mtg.front.includes.AR_content', compact('card'));
+        $card_cost = mtg_cards::getCardCost($card);
+        $card_color = mtg_cards::getCardColor($card);
+        
+        return view('mtg.front.includes.AR_content', compact('card', 'card_cost', 'card_color'));
 
     }
 }

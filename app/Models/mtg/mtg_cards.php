@@ -186,5 +186,36 @@ class mtg_cards extends Model
         ];
 
     }
+    
+    public static function getCardCost($card){
+
+        $html = $card->mana_cost;
+
+        /**white**/ $html = str_replace('{w}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
+        /**white**/ $html = str_replace('{u}', '<img src="/images/mtg/custom_images/w.png" alt="Blue mana">', $html);
+        /**white**/ $html = str_replace('{b}', '<img src="/images/mtg/custom_images/w.png" alt="Black mana">', $html);
+        /**white**/ $html = str_replace('{r}', '<img src="/images/mtg/custom_images/w.png" alt="Red mana">', $html);
+        /**white**/ $html = str_replace('{g}', '<img src="/images/mtg/custom_images/w.png" alt="Green mana">', $html);
+
+        return $html;
+    }
+    
+    public static function getCardColor($card){
+
+        $color = 'UNKNOWN';
+
+        switch ($card->color_group) {
+            case 1: $color= 'WHITE'; break;
+            case 2: $color= 'BLUE'; break;
+            case 3: $color= 'BLACK'; break;
+            case 4: $color= 'RED'; break;
+            case 5: $color= 'GREEN'; break;
+            case 6: $color= 'MULTI COLOR'; break;
+            case 7: $color= 'COLORLESS'; break;
+            default: $color= 'UNKNOWN';
+
+            return $color
+        }
+    }
 
 }
