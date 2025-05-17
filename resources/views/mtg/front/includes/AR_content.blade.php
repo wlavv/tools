@@ -26,7 +26,7 @@
                 </tr>
                 <tr>
                     <td class="card_detail_tag">Set:</td>
-                    <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span></td>
+                    <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | {{$card->set_name}}</td>
                 </tr>
                 <tr>
                     <td class="card_detail_tag">Collectors #:</td>
@@ -53,13 +53,20 @@
                 </tr>
                 @endif
 
-                @if(!is_null($card->rules_text ))
+                @if(!is_null($card->oracle_text ))
 
-                <tr>
-                    <td class="card_detail_tag">Rules text:</td>
-                    <td class="card_detail_value"> {{$card->rules_text}}</td>
-                </tr>
+                    <tr>
+                        <td class="card_detail_tag">Oracle text:</td>
+                        <td class="card_detail_value"> {{$card->oracle_text}}</td>
+                    </tr>
 
+                @endif
+
+                @if(!is_null($card->artist ))
+                    <tr>
+                        <td class="card_detail_tag">Artist:</td>
+                        <td class="card_detail_value">{{$card->artist}}</td>
+                    </tr>
                 @endif
             </table>
         </div>
@@ -146,7 +153,7 @@
             <h2 class="panel_title">OFFICIAL INFO</h2>  
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://gatherer.wizards.com/Pages/Search/Default.aspx?name={{$card->name}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="{{$card->gatherer}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/gatherer.png?t=9" alt="GATHERER" style="width: 150px;">
                         </div>
