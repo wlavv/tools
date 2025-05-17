@@ -28,39 +28,38 @@
                     <td class="card_detail_tag">Set:</td>
                     <td class="card_detail_value"><span style="text-transform: uppercase;font-weight: bolder">{{$card->set_code}}</span> | {{$card->set_name}}</td>
                 </tr>
+
+                @if(!is_null($card->oracle_text ))
+                        <tr>
+                            <td class="card_detail_tag">Oracle text:</td>
+                            <td class="card_detail_value"> {{$card->oracle_text}}</td>
+                        </tr>
+                @endif
+
+                @if(!is_null($card->flavor_text ))
+                    <tr>
+                        <td class="card_detail_tag">Flavor text:</td>
+                        <td class="card_detail_value">{{$card->flavor_text}}</td>
+                    </tr>
+                @endif
+                @if(!is_null($card->power ))
+                    <tr>
+                        <td class="card_detail_tag">Power:</td>
+                        <td class="card_detail_value">{{$card->power}}</td>
+                    </tr>
+                @endif
+
+                @if(!is_null($card->power ))
+                    <tr>
+                        <td class="card_detail_tag">Toughness:</td>
+                        <td class="card_detail_value">{{$card->toughness}}</td>
+                    </tr>
+                @endif
+
                 <tr>
                     <td class="card_detail_tag">Collectors #:</td>
                     <td class="card_detail_value">{{$card->collector_number}}</td>
                 </tr>
-                @if(!is_null($card->power ))
-                <tr>
-                    <td class="card_detail_tag">Power:</td>
-                    <td class="card_detail_value">{{$card->power}}</td>
-                </tr>
-                @endif
-
-                @if(!is_null($card->power ))
-                <tr>
-                    <td class="card_detail_tag">Toughness:</td>
-                    <td class="card_detail_value">{{$card->toughness}}</td>
-                </tr>
-                @endif
-
-                @if(!is_null($card->flavor_text ))
-                <tr>
-                    <td class="card_detail_tag">Flavor text:</td>
-                    <td class="card_detail_value">{{$card->flavor_text}}</td>
-                </tr>
-                @endif
-
-                @if(!is_null($card->oracle_text ))
-
-                    <tr>
-                        <td class="card_detail_tag">Oracle text:</td>
-                        <td class="card_detail_value"> {{$card->oracle_text}}</td>
-                    </tr>
-
-                @endif
 
                 @if(!is_null($card->artist ))
                     <tr>
