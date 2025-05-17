@@ -94,7 +94,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="MTG WIKI" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">YOUTUBE</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">EDHREC</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -102,15 +102,15 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="REDDIT" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">REDDIT</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTGGOLDFICH</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://commanderspellbook.com/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/Moxdield.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/Moxfield.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">COMMANDER SPELLBOCK</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MOXFIELD</span> </div>
                     </a>
                 </div>
             </div>
