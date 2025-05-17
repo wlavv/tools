@@ -171,7 +171,7 @@
     const mytarget = document.getElementById('mytarget');
 
     mytarget.addEventListener('targetFound', () => {
-      loadCardDetails('LGN', 1);
+      loadCardDetails('LGN', 138);
       glassPanel.classList.remove('hidden-panel');
     });
 
