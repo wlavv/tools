@@ -90,15 +90,15 @@
             <h2 class="panel_title">KNOWN DECKS</h2>
             <div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://edhrec.com/commanders/{{preg_replace('/[^A-Za-z0-9\-]/', '',str_replace(' ', '-', $card->name))}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://archidekt.com/search/decks?name={{$card->name}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/EDHREC.png?t=9" alt="EDHREC" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/archidekt.png?t=9" alt="archidekt" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">EDHREC</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ARCHIDEKT</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
-                    <a href="https://www.mtggoldfish.com/price/Legions/{{str_replace(' ', '+', $card->name)}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
+                    <a href="https://cubecobra.com/tool/searchcards?f={{urlencode($card->name)}}&p=0&s=Elo&d=descending&di=names" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/MTGGoldfish.png" alt="MTGGoldfish" style="width: 150px;">
                         </div>
@@ -110,7 +110,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/Moxfield.png" alt="Moxfield" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">Moxfield</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - Moxfield</span> </div>
                     </a>
                 </div>
             </div>
@@ -123,7 +123,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/youtube.png?t=9" alt="MTG WIKI" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">YOUTUBE</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - YOUTUBE</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -131,7 +131,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/reddit.png" alt="REDDIT" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">REDDIT</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - REDDIT</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -139,7 +139,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/commanderspellbook.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">COMMANDER SPELLBOCK</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - COMMANDER SPELLBOCK</span> </div>
                     </a>
                 </div>
             </div>
@@ -160,7 +160,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTG WIKI</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - MTG WIKI</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -168,7 +168,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/scryfall.png" alt="SCRYFALL" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">SCRYFALL</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - SCRYFALL</span> </div>
                     </a>
                 </div>
             </div>           
