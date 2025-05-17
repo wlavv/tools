@@ -142,8 +142,8 @@ class mtg_cards extends Model
                             'price' => 0.05,
                             'scryfall_uri' => $card['scryfall_uri'] ?? null,
                             'artist' => $card['artist'] ?? null,
-                            'link_gatherer' => $card['link_gatherer'] ?? null,
-                            'link_edhrec' => $card['link_edhrec'] ?? null,
+                            'link_gatherer' => $card['related_uris']['gatherer'] ?? null,
+                            'link_edhrec' => $card['related_uris']['edhrec'] ?? null,
                             'released_at' => $card['released_at'] ?? null,
                         ]
                     );
