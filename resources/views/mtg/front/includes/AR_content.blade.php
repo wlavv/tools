@@ -105,7 +105,7 @@
                         <div style="width: calc( 100% - 60px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">VIDEOS</span> </div>
                     </a>
                 </div>
-                <div style="width: 60px; float: left;text-align: center;">
+                <div style="text-align: center;">
                     <a href="https://www.reddit.com/r/EDH/search/?q={{urlencode($card->name)}}" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
                         <div style="width: 60px; float: left;">
                             <img src="/images/mtg/custom_images/reddit.png" alt="MTG WIKI" style="width: 40px;">
