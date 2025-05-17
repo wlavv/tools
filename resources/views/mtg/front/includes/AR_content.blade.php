@@ -92,7 +92,7 @@
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://archidekt.com/search/decks?name={{$card->name}}" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/archidekt.png?t=9" alt="archidekt" style="width: 150px;">
+                            <img src="/images/mtg/custom_images/Archidekt.png?t=9" alt="archidekt" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ARCHIDEKT</span> </div>
                     </a>
