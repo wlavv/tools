@@ -7,10 +7,6 @@
                     <td class="card_detail_tag">Name:</td>
                     <td class="card_detail_value">{{$card->name}}</td>
                 </tr>
-                <tr>
-                    <td class="card_detail_tag">Type:</td>
-                    <td class="card_detail_value">{{$card->card_type}}</td>
-                </tr>
 
                 @if(!is_null($card->mana_cost))
                     <tr>
@@ -22,6 +18,11 @@
                 <tr>
                     <td class="card_detail_tag">Color:</td>
                     <td class="card_detail_value">{{$card_color}}</td>
+                </tr>
+
+                <tr>
+                    <td class="card_detail_tag">Type:</td>
+                    <td class="card_detail_value">{{$card->card_type}}</td>
                 </tr>
 
                 <tr>
@@ -112,7 +113,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/Moxfield.png" alt="Moxfield" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - Moxfield</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">Moxfield</span> </div>
                     </a>
                 </div>
             </div>
@@ -125,7 +126,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/youtube.png?t=9" alt="MTG WIKI" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - YOUTUBE</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">YOUTUBE</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -133,7 +134,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/reddit.png" alt="REDDIT" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - REDDIT</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">REDDIT</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -141,7 +142,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/commanderspellbook.png" alt="COMMANDER SPELLBOCK" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - COMMANDER SPELLBOCK</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">COMMANDER SPELLBOCK</span> </div>
                     </a>
                 </div>
             </div>
@@ -162,7 +163,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - MTG WIKI</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTG WIKI</span> </div>
                     </a>
                 </div>
                 <div style="text-align: center;width: 33%;float: left;">
@@ -170,7 +171,7 @@
                         <div style="text-align: center;">
                             <img src="/images/mtg/custom_images/scryfall.png" alt="SCRYFALL" style="width: 150px;">
                         </div>
-                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">ok - SCRYFALL</span> </div>
+                        <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">SCRYFALL</span> </div>
                     </a>
                 </div>
             </div>           
