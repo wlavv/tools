@@ -129,7 +129,7 @@
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI" style="width: 100px;">
+                            <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTG WIKI</span> </div>
                     </a>
@@ -137,7 +137,7 @@
                 <div style="text-align: center;width: 33%;float: left;">
                     <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="text-decoration-line: none;verticel-align: middle;text-transform: uppercase;">
                         <div style="text-align: center;">
-                            <img src="/images/mtg/custom_images/scryfall.png" alt="MTG WIKI" style="width: 100px;">
+                            <img src="/images/mtg/custom_images/scryfall.png" alt="MTG WIKI" style="width: 150px;">
                         </div>
                         <div style="padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">SCRYFALL</span> </div>
                     </a>
