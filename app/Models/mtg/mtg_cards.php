@@ -119,7 +119,6 @@ class mtg_cards extends Model
                         //$hash_image = (string) $hasher->hash($savePath . '/' . $filename);
                     }
 
-                    dd($card);
                     // Atualiza ou cria a carta no banco de dados
                     mtg_cards::updateOrCreate(
                         ['external_id' => $card['id']],
