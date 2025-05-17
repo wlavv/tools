@@ -121,9 +121,25 @@
                 <div style="text-align: left;">
                     <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
                         <div style="width: 60px; float: left;text-align: center;">
+                            <img src="/images/mtg/custom_images/gatherer.png" alt="MTG WIKI" style="width: 40px;">
+                        </div>
+                        <div style="width: calc( 100% - 60px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">GATHERER</span> </div>
+                    </a>
+                </div>
+                <div style="text-align: left;">
+                    <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
+                        <div style="width: 60px; float: left;text-align: center;">
                             <img src="/images/mtg/custom_images/mtgwiki.png" alt="MTG WIKI" style="width: 40px;">
                         </div>
                         <div style="width: calc( 100% - 60px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">MTG WIKI</span> </div>
+                    </a>
+                </div>
+                <div style="text-align: left;">
+                    <a href="https://mtg.wiki/index.php?title={{str_replace(' ', '_', $card->name)}}&redirect=yes" target="_blank" title="{{$card->name}}" style="verticel-align: middle;text-transform: uppercase;">
+                        <div style="width: 60px; float: left;text-align: center;">
+                            <img src="/images/mtg/custom_images/scryfall.png" alt="MTG WIKI" style="width: 40px;">
+                        </div>
+                        <div style="width: calc( 100% - 60px); float: left;padding: 11px 0;"> <span style="padding-left: 5px;color: #FFF;">SCRYFALL</span> </div>
                     </a>
                 </div>
             </div>           
