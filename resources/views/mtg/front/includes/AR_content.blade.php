@@ -21,7 +21,7 @@
 
                 <tr>
                     <td class="card_detail_tag">Color:</td>
-                    <td class="card_detail_value">{{$card_cost}}</td>
+                    <td class="card_detail_value">{{$card_color}}</td>
                 </tr>
 
                 <tr>
