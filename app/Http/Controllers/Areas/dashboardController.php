@@ -25,8 +25,7 @@ class dashboardController extends Controller
         $data = [
             'actions'       => $this->actions,
             'breadcrumbs'   => $this->breadcrumbs,
-            'counters'      => [],
-            'panels'        => [],
+            'panels'        => self::panels(),
         ];
 
         return View::make('areas/dashboard/index')->with($data);
@@ -34,6 +33,11 @@ class dashboardController extends Controller
 
     public function post(Request $request){
 
+    }
+
+    private static function panels(){
+        
+        return [];
     }
 
 

@@ -2,7 +2,7 @@
     <div class="navbar navbar-light customPanel" style="border-radius: 5px 5px 0 0">
         <div class="listUL" style="margin: 0 auto;display: table; text-transform: uppercase;font-weight: bolder;"> 
             @foreach($accessList AS $access)
-                <div class="rowStyling" style="width: 120px; height: 120px; text-align: center; float: left;border: 1px solid #ccc;padding: 20px 10px;margin: 0 10px;"> 
+                <div class="rowStyling" style="width: 120px; height: 120px; text-align: center; float: left;border: 1px solid #ccc;padding: 20px 10px;margin: 0;"> 
                     <a href="{{$access['url']}}"> 
                         <div>
                             @if( !is_null($access['icon']))    

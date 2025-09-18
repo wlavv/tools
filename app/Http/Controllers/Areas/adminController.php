@@ -25,16 +25,29 @@ class adminController extends Controller
             'actions'    => $this->actions,
             'counters'   => [],
             'breadcrumbs'=> $this->breadcrumbs,
-            'accessList' => []
+            'accessList' => $this->accessList()
         ];
 
         return View::make('areas/administration/index')->with($data);
     }
 
-    public function create() {}
-    public function store(Request $request) { }
-    public function show(string $id) { }
-    public function edit(string $id) { }
-    public function update(Request $request, string $id) { }
-    public function destroy(string $id) { }
+
+    public function accessList(){
+
+        return [
+            [
+                'url' => route('groupStructure.index'),
+                'name' => 'Projects',
+                'image' => null,            
+                'icon' => 'fa-solid fa-folder-tree'            
+            ],
+            [
+                'url' => route('budget.index'),
+                'name' => 'Budget',
+                'image' => null,            
+                'icon' => 'fa-solid fa-euro-sign'            
+            ],
+        ];
+    }
+    
 }

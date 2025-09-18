@@ -31,7 +31,7 @@ class customerSupportController extends Controller
             'breadcrumbs'   => $this->breadcrumbs
         ];
  
-        return View::make('areas/customer/index')->with($data);
+        return View::make('areas/customers/index')->with($data);
     }
 
 }

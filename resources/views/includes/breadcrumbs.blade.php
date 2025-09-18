@@ -1,7 +1,11 @@
+@php
+    $isMobile = preg_match('/Mobile|Android|iP(hone|od|ad)|IEMobile|BlackBerry|Opera Mini/i', request()->header('User-Agent'));
+@endphp
+
 <a class="navbar-brand sideMenuLogo" href="https://www.webtools-manager.com/" target="_blank">
     <img src="/admin/images/logo.png" style="width: 75px; @guest display: none; @endif">
 </a>
-<div style="display: inline-block;padding: 0;">
+<div style="display: inline-block;padding: 0; @if($isMobile) overflow-y: scroll; width: 100%; @endif">
         <div>
             <h3 id="breadcrumbs_h3">                            
                 @if( isset($breadcrumb['params']))

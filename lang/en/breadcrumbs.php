@@ -47,6 +47,21 @@ return [
     'mtg.index' => 'MAGIC THE GATHERING',
     'Magic the Gathering' => 'MAGIC THE GATHERING',
     'mtg.showSet' => 'MAGIC THE GATHERING SET',
-    'mtg.showSet_info' => ':set'
+    'mtg.showSet_info' => ':set',
+    
+    'todo.index' => 'ToDo',
+    
+    'admin' => 'Administration',
+    'todo' => 'ToDo',
+    
+    'groupStructure.index' => "Project's structure",
+    'Life-Style' => 'Life-Style - Group',
+    
+    'web.index' => 'WebMaster',
+    'webmaster' => 'WebMaster',
+    
+    'groupStructure' => "Project's structure", 
+    'projectDetails.index' => 'Project details',
+    'project' => 'Details'
     
 ];

@@ -37,7 +37,7 @@
             @else
                 @auth
                     <div class="mainContainer">
-                        <div class="navbar navbar-light shadow-sm top_container">
+                        <div class="navbar navbar-light shadow-sm top_container" style="z-index: 1">
                             <div style="display: contents;">
                                 <div style="width: 100%; background-color: #ccc; border-bottom: 1px solid #999;">
                                     <div id="extraMenu" class="text-center" style="height: auto; margin-bottom: 10px;height: 30px; float: right;display:none;"> 

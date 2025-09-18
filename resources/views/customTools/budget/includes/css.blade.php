@@ -18,14 +18,32 @@
 .extrasContent{ display: none; }
 .potesContent{ display: none; }
 
+.casa_content{ display: none; }
+.escola_content{ display: none; }
+.auto_content{ display: none; }
+.bemestar_content{ display: none; }
+.servicos_content{ display: none; }
+.alimentacao_content{ display: none; }
+.extras_content{ display: none; }
+.potes_content{ display: none; }
 
+.potes_totals_Content_stats{ display: none; }
 
-@include("customTools.budget.includes.panel", ['title' => 'CASA',                           'slug' => 'casa',       'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'ESCOLA',                         'slug' => 'escola',     'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'AUTOMÓVEIS',                     'slug' => 'auto',       'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'CUIDADOS PESSOAIS / BEM ESTAR',  'slug' => 'bemestar',   'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'SERVIÇOS',                       'slug' => 'servicos',   'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'ALIMENTAÇÃO',                    'slug' => 'alimentacao','data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'EXTRAS',                         'slug' => 'extras',     'data' => []])
-        @include("customTools.budget.includes.panel", ['title' => 'POTES',                          'slug' => 'potes',      'data' => []])
+td.alert-danger {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+    border-radius: 0;
+}
+
+td.alert-success {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important; 
+    border-radius: 0;
+}
+
+table td:first-child {
+    width: 120px !important;
+    max-width: 120px !important;
+    min-width: 120px !important;
+}
 </style>

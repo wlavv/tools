@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-    @include("areas.customer.includes.js")
-    @include("areas.customer.includes.css")
+    @include("areas.customers.includes.js")
+    @include("areas.customers.includes.css")
 
 @section('content')
 

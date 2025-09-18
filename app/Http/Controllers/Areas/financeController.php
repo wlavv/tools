@@ -36,16 +36,6 @@ class financeController extends Controller
         return View::make('areas/finance/index')->with($data);
     }
 
-    public function accessList(){
-
-        return [
-            [
-                'url' => route('budget.index'),
-                'name' => 'Budget',
-                'image' => null,            
-                'icon' => 'fa-solid fa-euro-sign'            
-            ],
-        ];
-    }
+    public function accessList(){ }
 
 }

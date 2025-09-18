@@ -1,0 +1,37 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/playfunc/webtools/scripts"
+PassengerBaseURI "/python"
+PassengerPython "/home/playfunc/virtualenv/webtools/scripts/3.9/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+    RewriteEngine On
+    # Redirect Trailing Slashes...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+    # Security Headers
+    <IfModule mod_headers.c>
+        Header always set X-Frame-Options "SAMEORIGIN"
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set X-Content-Type-Options "nosniff"
+    </IfModule>
+    # Prevent Direct Access to Sensitive Files
+    <FilesMatch "\.(env|json|log|md|sql|sqlite|xml)$">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+    # Prevent Access to Hidden Files and Directories
+    RedirectMatch 404 /\..*$
+    # Disable Directory Listing
+    Options -Indexes
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END

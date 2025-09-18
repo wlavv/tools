@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Areas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use App\Http\Controllers\Controller;
-use Milon\Barcode\DNS1D;
-use Milon\Barcode\DNS2D;
+
+use App\Models\prestashop\product;
 
 class webController extends Controller
 {
@@ -16,28 +16,32 @@ class webController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'web', 'url' => route('web.index')];
-
+        $this->breadcrumbs[] = [ 'name' =>  'webmaster', 'url' => route('web.index')];
     }
 
     public function index()
     {
-        
         $data = [
-            'counters'   => [],
-            'panels'     => [],
             'actions'    => $this->actions,
+            'counters'   => [],
             'breadcrumbs'=> $this->breadcrumbs,
-            'accessList' => []
+            'accessList' => $this->accessList()
         ];
-        
-        return View::make('areas/web/index')->with($data);
+
+        return View::make('areas/administration/index')->with($data);
     }
 
-    public function create() {}
-    public function store(Request $request) { }
-    public function show(string $id) { }
-    public function edit(string $id) { }
-    public function update(Request $request, string $id) { }
-    public function destroy(string $id) { }
+
+    public function accessList(){
+
+        return [
+            [
+                'url' => route('mtg.index'),
+                'name' => 'MTG',
+                'image' => '<img src="/images/mtg/mana/mtg.png" style="width: 70px;">',            
+                'icon' => null            
+            ]
+        ];
+    }
+    
 }

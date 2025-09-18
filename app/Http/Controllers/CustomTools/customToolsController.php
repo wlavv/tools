@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\CustomTools;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\URL;
 
 class customToolsController extends Controller
 {
@@ -14,8 +15,8 @@ class customToolsController extends Controller
 
     public function setViewData($options, $variableName = null)
     {
-        
-        
+        $this->middleware('auth');
+
         if (is_array($options)) {
             
             foreach ($options as $key => $value) $this->viewData[$key] = $value;
@@ -54,14 +55,31 @@ class customToolsController extends Controller
         $currentPath = '';
 
         foreach ($components as $component) {
-            $currentPath .= '/' . $component;
-            $breadcrumbs[] = [
-                'name' => str_replace(['-', '_'], ' ', $component),
-                'url' => $currentPath
-            ];
+            
+            if(!is_numeric($component)){
+                $currentPath .= '/' . $component;
+                $breadcrumbs[] = [
+                    'name' => str_replace(['-', '_'], ' ', $component),
+                    'url' => $currentPath
+                ];
+            }
         }
 
-        return array_slice($breadcrumbs, 0, 3);
+        $lastSegment = request()->segment(count(request()->segments()));
+    
+        if (ctype_digit($lastSegment)) {
+            
+            array_pop($components);
+            
+            array_pop($breadcrumbs);
+    
+            $breadcrumbs[] = [
+                'name' => str_replace(['-', '_'], ' ', end($components)),
+                'url' => url()->current()
+            ];
+        }
+        
+        return array_slice($breadcrumbs, 0, 4);
     }
 
 }

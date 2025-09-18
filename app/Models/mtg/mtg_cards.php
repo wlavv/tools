@@ -37,6 +37,7 @@ class mtg_cards extends Model
         'artist',       // URL da carta na API do Scryfall
         'link_gatherer',// URL da carta na API do Scryfall
         'link_edhrec',  // URL da carta na API do Scryfall
+        'descriptors',
         'released_at',  // URL da carta na API do Scryfall
     ];
 
@@ -72,7 +73,7 @@ class mtg_cards extends Model
     
             // Itera sobre as cartas retornadas
             foreach ($data['data'] as $key => $card) {
-    
+                
                 // Ignorar cartas digitais (Alchemy, Arena Only)
                 if (isset($card['digital']) && $card['digital'] === true) {
                     //echo '<br>' . $set_code . ' | ' . $card['collector_number'] . ' | ' . $card['name'];
@@ -139,6 +140,7 @@ class mtg_cards extends Model
                             'set_name' => $card['set_name'] ?? null,
                             'set_id' => $set_id,
                             'price' => 0.05,
+                            /**'descriptors' => self::getDescriptorsOf('https://webtools-manager.com/' . $path . '/' . $filename),**/
                             'scryfall_uri' => $card['scryfall_uri'] ?? null,
                             'artist' => $card['artist'] ?? null,
                             'link_gatherer' => $card['related_uris']['gatherer'] ?? null,
@@ -160,10 +162,47 @@ class mtg_cards extends Model
     
         return 0;
     }
-
     
-    public static function getColorIndex($colorGroup){
+    public static function getDescriptorsOf($url_image)
+    {
+        try {
+            // Baixa o conteúdo da imagem
+            $imageContent = file_get_contents($url_image);
+            if (!$imageContent) {
+                return null;
+            }
+    
+            // Cria uma imagem a partir do conteúdo usando Intervention Image
+            $image = Image::make($imageContent);
+    
+            // Salva a imagem em memória (formato PNG)
+            $imageStream = $image->encode('png')->getEncoded();
+    
+            // Cria o hasher pHash
+            $hasher = new ImageHash(new PerceptualHash());
+    
+            // Calcula o hash perceptual a partir do conteúdo da imagem (stream)
+            $hash = $hasher->hash($imageStream);
+    
+            // Prepara um array com o hash e metadados opcionais (exemplo)
+            $result = [
+                'phash' => (string)$hash,
+                'url' => $url_image,
+                'timestamp' => time(),
+            ];
+    
+            // Retorna JSON com os dados
+            return json_encode($result);
+    
+        } catch (\Exception $e) {
+            // Em caso de erro, retorna null
+            return null;
+        }
+    }
 
+
+    public static function getColorIndex($colorGroup){
+        
         $colorIndex = 0;
 
         switch ($colorGroup) {
