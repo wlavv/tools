@@ -57,7 +57,7 @@
                     <div class="mb-3 row">
                         <label class="col-md-4 col-form-label">Start Date</label>
                         <div class="col-md-8">
-                            <input type="date" id="start_date" name="start_date" class="form-control" required>
+                            <input type="date" id="start_date" name="start_date" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
                         </div>
                     </div>
                     <div class="mb-3 row">
