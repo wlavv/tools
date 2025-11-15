@@ -39,19 +39,17 @@ class mtgController extends Controller
         
         //mtg_cards::updateCardsFromSet(836, 'mrd');
 
-        /**
-
+        
         $counter = 0;
         $sets = mtg_sets::getByReleasedDate();
 
         foreach($sets AS $set){
             mtg_cards::updateCardsFromSet($set->id, $set->set_code);
-
             $counter +=1;
 
             if($counter > 10) break;
         }
-        **/
+        
 
         $data = [ 
             'breadcrumbs'=> $this->breadcrumbs,
