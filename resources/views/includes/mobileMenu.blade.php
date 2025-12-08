@@ -36,7 +36,7 @@
                 
             @endif
 
-            @if(auth()->user()->id == 1)
+            @if(auth()->user()->id == 2)
                 <div class="text-center mobileMenuItem @if(Route::is('budget.index') ) active-link @endif"> 
                     <a class="nav-link uppercase" href="{{ route('budget.index') }}">
                         <div><i class="fa-solid fa-euro-sign @if(Route::is('budget.index') ) active-link-icon @endif" style="font-size: 40px;"></i></div>

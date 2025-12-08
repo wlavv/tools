@@ -8,7 +8,7 @@ Use App\Http\Controllers\CustomTools\tasksController;
 Use App\Http\Controllers\CustomTools\groupStructureController;
 Use App\Http\Controllers\CustomTools\projectDetailsController;
 Use App\Http\Controllers\CustomTools\todoController;
-
+Use App\Http\Controllers\CustomTools\passwordManagerController;
 
 /****************************************** BUDGET ******************************************/
 Route::resources([ 'administration/budget'=>                     budgetController::class]);
@@ -79,3 +79,7 @@ Route::get('/webmaster/mtg/showSet/{code}/{sub_set?}',  [mtgController::class, '
 Route::get('/webmaster/mtg/front/find',                 [mtgController::class, 'findCard'])->name('mtg.findCard');
 Route::post('/webmaster/mtg/front/postCardDetail',      [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
 Route::get('/webmaster/mtg/generate/description/{id}',  [mtgController::class, 'generateDescription'])->name('mtg.generateDescription');
+
+
+Route::get('/administration/password',                       [passwordManagerController::class, 'index'])->name('password_manager.index');
+Route::post('/administration/password/actions',              [passwordManagerController::class, 'actions'])->name('password_manager.actions');

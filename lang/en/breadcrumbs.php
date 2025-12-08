@@ -62,6 +62,9 @@ return [
     
     'groupStructure' => "Project's structure", 
     'projectDetails.index' => 'Project details',
-    'project' => 'Details'
+    'project' => 'Details',
     
+    'password' => "PASSWORD MANAGER",
+    'password_manager.index' => "PASSWORD MANAGER"
+     
 ];

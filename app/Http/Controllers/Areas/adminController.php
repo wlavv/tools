@@ -47,6 +47,12 @@ class adminController extends Controller
                 'image' => null,            
                 'icon' => 'fa-solid fa-euro-sign'            
             ],
+            [
+                'url' => route('password_manager.index'),
+                'name' => "PASSWORD'S",
+                'image' => null,  
+                'icon' => 'fa-solid fa-key',            
+            ]
         ];
     }
     
