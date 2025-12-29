@@ -4,5 +4,4 @@
     @include("areas.dashboard.includes.css")
 
 @section('content')
-
 @endsection

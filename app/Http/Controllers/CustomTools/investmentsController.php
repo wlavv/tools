@@ -1,17 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Areas;
+namespace App\Http\Controllers\customTools;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\customTools\customToolsController;
 
-
-use App\Models\prestashop\orders;
-use App\Models\prestashop\product;
-
-class financeController extends customToolsController
+class investmentsController extends customToolsController
 {
     public $actions;
     public $breadcrumbs;
@@ -19,7 +14,7 @@ class financeController extends customToolsController
     public function __construct()
     {
         $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'finance', 'url' => route('finance.index')];
+        $this->breadcrumbs[] = [ 'name' =>  'investments', 'url' => route('investments.index')];
         $this->actions[]     = [];
     }
 
@@ -33,25 +28,33 @@ class financeController extends customToolsController
             'breadcrumbs'   => $this->breadcrumbs,
         ];
 
-        return View::make('areas/finance/index')->with($data);
+        $this->setViewData($data);
+        return View::make('areas/finance/index')->with($this->viewData);
     }
 
     public function accessList(){
 
         return [
             [
-                'url' => route('budget.index'),
-                'name' => 'Budget',
-                'image' => null,            
-                'icon' => 'fa-solid fa-euro-sign'            
+                'url' => route('broker-accounts.index'),
+                'name' => "Brokers",
+                'image' => null,  
+                'icon' => 'fa-solid fa-building-columns',            
             ],
             [
-                'url' => route('investments.index'),
-                'name' => "INVESTMENTS",
+                'url' => route('assets.index'),
+                'name' => "Assets",
+                'image' => null,  
+                'icon' => 'fa-solid fa-glasses',            
+            ],
+            [
+                'url' => route('positions.index'),
+                'name' => "Positions",
                 'image' => null,  
                 'icon' => 'fa-solid fa-money-bill-trend-up',            
             ]
         ];
+
     }
 
 }

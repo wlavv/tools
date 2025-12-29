@@ -10,6 +10,11 @@ Use App\Http\Controllers\CustomTools\projectDetailsController;
 Use App\Http\Controllers\CustomTools\todoController;
 Use App\Http\Controllers\CustomTools\passwordManagerController;
 
+use App\Http\Controllers\CustomTools\InvestmentsController;
+use App\Http\Controllers\CustomTools\InvestmentsPositionController;
+use App\Http\Controllers\CustomTools\InvestmentsAssetController;
+use App\Http\Controllers\CustomTools\InvestmentsBrokerAccountController;
+
 /****************************************** BUDGET ******************************************/
 Route::resources([ 'administration/budget'=>                     budgetController::class]);
 Route::post( 'administration/budget/update/data',                [budgetController::class, 'updateData'])->name('budget.updateData');
@@ -83,3 +88,12 @@ Route::get('/webmaster/mtg/generate/description/{id}',  [mtgController::class, '
 
 Route::get('/administration/password',                       [passwordManagerController::class, 'index'])->name('password_manager.index');
 Route::post('/administration/password/actions',              [passwordManagerController::class, 'actions'])->name('password_manager.actions');
+
+
+
+Route::get('finance/investments', [investmentsController::class, 'index'])->name('investments.index');
+Route::resource('finance/investments/positions', InvestmentsPositionController::class);
+Route::post('finance/investments/positions/{position}/simulate-step', [InvestmentsPositionController::class, 'simulateStep'])->name('positions.simulateStep');
+
+Route::resource('finance/investments/assets', InvestmentsAssetController::class)->only(['index', 'create', 'store']);
+Route::resource('finance/investments/broker-accounts', InvestmentsBrokerAccountController::class)->only(['index', 'create', 'store']);

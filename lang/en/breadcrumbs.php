@@ -65,6 +65,20 @@ return [
     'project' => 'Details',
     
     'password' => "PASSWORD MANAGER",
-    'password_manager.index' => "PASSWORD MANAGER"
-     
+    'password_manager.index' => "PASSWORD MANAGER",
+
+    'broker-accounts.index' => "Broker's list",
+    'assets.index' => "Assets list",
+    'positions.index' => "Positions list",
+    'assets.create' => "Create new asset",
+    'broker-accounts.create' => "Create new broker",
+    'investments.index' => "Investments dashboard",
+    'investments' => "Investments",
+    'broker accounts' => "Brokers account's",
+
+    'create' => "New",
+    'assets' => "Assets",
+    'positions' => "Positions",
+
+    'positions.create' => 'Create new position'
 ];

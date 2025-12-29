@@ -14,7 +14,7 @@
                         <div class="sideMenuText"> {{ __('menu.admin') }}</div>
                     </a> 
                 </div>
-                <div style="display: none;" class="text-center mobileMenuItem @if(Route::is('finance.index') ) active-link @endif"> 
+                <div class="text-center mobileMenuItem @if(Route::is('finance.index') ) active-link @endif"> 
                     <a class="nav-link uppercase" href="{{ route('finance.index') }}">
                         <div><i class="fa-solid fa-chart-line @if(Route::is('finance.index') ) active-link-icon @endif" style="font-size: 40px;"></i></div>
                         <div class="sideMenuText"> {{ __('menu.finance') }}</div>

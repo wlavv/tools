@@ -42,12 +42,6 @@ class adminController extends Controller
                 'icon' => 'fa-solid fa-folder-tree'            
             ],
             [
-                'url' => route('budget.index'),
-                'name' => 'Budget',
-                'image' => null,            
-                'icon' => 'fa-solid fa-euro-sign'            
-            ],
-            [
                 'url' => route('password_manager.index'),
                 'name' => "PASSWORD'S",
                 'image' => null,  
