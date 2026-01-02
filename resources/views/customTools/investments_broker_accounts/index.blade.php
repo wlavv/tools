@@ -22,13 +22,14 @@
 
                 <div>
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0 small align-middle text-center" style="border: 1px solid #aaa">
+                        <table class="table table-hover mb-0 small align-middle text-center" style="border: 1px solid #aaa; font-size: 16px;">
                             <thead class="table-light">
                                 <tr>
                                     <th>Nome</th>
                                     <th>Broker</th>
                                     <th>Moeda</th>
                                     <th>Tipo</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -42,10 +43,11 @@
                                                 {{ $acc->is_demo ? 'Demo' : 'Live' }}
                                             </span>
                                         </td>
+                                        <td><a href="{{ route('broker-accounts.edit', $acc->id) }}"><i class="fa-solid fa-pen" style="color: orange;font-size: 18px;"></i></a></td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-3">
+                                        <td colspan="5" class="text-center text-muted py-3">
                                             Sem contas ainda.
                                         </td>
                                     </tr>

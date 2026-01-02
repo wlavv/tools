@@ -17,12 +17,17 @@ class wt_investments_brokerAccount extends Model
         'is_demo',
         'balance',
         'settings',
+        'connection_status',
+        'last_sync_at',
+        'connection_error',
     ];
 
     protected $casts = [
         'is_demo' => 'boolean',
         'settings' => 'array',
+        'last_sync_at' => 'datetime',
     ];
+
 
     public function user(): BelongsTo
     {

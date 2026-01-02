@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\customTools\customToolsController;
 
-
 use App\Models\prestashop\orders;
 use App\Models\prestashop\product;
 

@@ -96,4 +96,7 @@ Route::resource('finance/investments/positions', InvestmentsPositionController::
 Route::post('finance/investments/positions/{position}/simulate-step', [InvestmentsPositionController::class, 'simulateStep'])->name('positions.simulateStep');
 
 Route::resource('finance/investments/assets', InvestmentsAssetController::class)->only(['index', 'create', 'store']);
-Route::resource('finance/investments/broker-accounts', InvestmentsBrokerAccountController::class)->only(['index', 'create', 'store']);
+Route::resource('finance/investments/broker-accounts', InvestmentsBrokerAccountController::class);
+Route::post('broker-accounts/{id}/ibkr/test', [InvestmentsBrokerAccountController::class, 'ibkrTest'])->name('broker-accounts.ibkr.test');
+Route::post('broker-accounts/{id}/ibkr/sync', [InvestmentsBrokerAccountController::class, 'ibkrSyncAccounts'])->name('broker-accounts.ibkr.sync');
+Route::post('broker-accounts/{id}/ibkr/select', [InvestmentsBrokerAccountController::class, 'ibkrSelectAccount'])->name('broker-accounts.ibkr.select');

@@ -3,39 +3,118 @@
 namespace App\Services\Brokers;
 
 use Illuminate\Support\Facades\Http;
-use App\Models\BrokerAccount;
+use GuzzleHttp\Cookie\CookieJar;
+use Illuminate\Http\Client\PendingRequest;
+use App\Models\webToolsManager\wt_investments_brokerAccount;
 use App\Models\Asset;
 use App\Models\Position;
 
 class IbkrClient
 {
+
+    protected CookieJar $cookieJar;
+
     public function __construct(
-        protected ?BrokerAccount $account = null
+        protected ?wt_investments_brokerAccount $account = null
     ) {}
 
-    protected function baseUrl(): string
+    public function withAccount(?wt_investments_brokerAccount $account): self
     {
-        return config('services.ibkr.base_url', 'https://localhost:5000/v1/api');
+        $this->account = $account;
+        return $this;
     }
 
-    protected function http()
+    protected function gatewayUrl(): string
     {
-        // Aqui no futuro podes gerir sessão e headers específicos
-        return Http::baseUrl($this->baseUrl())
+        return rtrim(config('services.ibkr.gateway_url', 'http://127.0.0.1:5000'), '/');
+    }
+
+    protected function timeout(): int
+    {
+        return (int) config('services.ibkr.timeout', 15);
+    }
+
+    /**
+    protected function http(): PendingRequest
+    {
+        return Http::baseUrl($this->gatewayUrl())
+            ->timeout($this->timeout())
             ->acceptJson();
     }
+    **/
 
+    protected function http(): PendingRequest
+    {
+        return Http::baseUrl($this->gatewayUrl())
+            ->timeout($this->timeout())
+            ->acceptJson()
+            ->withOptions([
+                'verify' => false, // DEV self-signed
+                'cookies' => $this->cookieJar,
+            ]);
+    }
+
+    /**
+     * Teste de sessão/autenticação do Gateway.
+     */
+    public function authStatus(): array
+    {
+        return $this->http()
+            ->get('/v1/api/iserver/auth/status')
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * Lista contas disponíveis no Gateway (IBKR).
+     */
+    public function portfolioAccounts(): array
+    {
+        return $this->http()
+            ->get('/v1/api/portfolio/accounts')
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * Posições do accountId (ex.: U1234567).
+     */
+    public function positions(string $accountId): array
+    {
+        return $this->http()
+            ->get("/v1/api/portfolio/{$accountId}/positions")
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * Sumário (saldo/valores). Endpoint pode variar conforme versão do Gateway.
+     * Ajustamos se necessário com base na resposta real.
+     */
+    public function accountSummary(string $accountId): array
+    {
+        return $this->http()
+            ->get("/v1/api/portfolio/{$accountId}/summary")
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * Devolve o account id associado no teu schema (external_account_id).
+     */
+    public function boundAccountId(): ?string
+    {
+        return $this->account?->external_account_id;
+    }
+
+    // Mantém os teus placeholders para fases futuras
     public function getLastPrice(Asset $asset): ?float
     {
-        // TODO: substituir pelo endpoint real da IBKR
-        // $res = $this->http()->get("/marketdata/{$asset->external_instrument_id}/last");
-        // return $res->json('price');
-
-        return null; // placeholder
+        return null;
     }
 
     public function closePosition(Position $position, float $price): void
     {
-        // TODO: enviar ordem de fecho para IBKR e atualizar a posição
+        // TODO
     }
 }

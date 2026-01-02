@@ -30,5 +30,10 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'ibkr' => [
+        'base_url' => env('IBKR_GATEWAY_URL', 'http://127.0.0.1:5000'),
+        'timeout' => env('IBKR_TIMEOUT', 15),
+    ],
+
 
 ];
