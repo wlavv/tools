@@ -132,11 +132,11 @@ class budgetController extends customToolsController
 
         $structure = array();
 
-        $incomeParents = wt_budget_categories::where('type', 'income')->where('id_parent', 0)->get();
+        $incomeParents = wt_budget_categories::where('forecast_year', $year)->where('type', 'income')->where('id_parent', 0)->get();
 
         foreach( $incomeParents AS $parent){
 
-            $sons = wt_budget_categories::where('type', 'income')->where('id_parent', $parent->id)->get();
+            $sons = wt_budget_categories::where('forecast_year', $year)->where('type', 'income')->where('id_parent', $parent->id)->get();
 
             $sonsDetail = array();
 
@@ -164,7 +164,7 @@ class budgetController extends customToolsController
 
         $structure = array();
 
-        $expenseParents = wt_budget_categories::where('type', 'expense')->where('id_parent', 0)->get();
+        $expenseParents = wt_budget_categories::where('forecast_year', $year)->where('type', 'expense')->where('id_parent', 0)->get();
 
         foreach( $expenseParents AS $parent){
 
@@ -173,10 +173,11 @@ class budgetController extends customToolsController
                      ->where('wt_budget_expense.year', $year)
                      ->where('wt_budget_expense.month', $month);
                 })
+                ->where('forecast_year', $year)
                 ->where('wt_budget_categories.type', 'expense')
                 ->where('wt_budget_categories.id_parent', $parent->id)
                 ->orderBy('wt_budget_categories.id')
-                ->get();
+                ->get();        
 
             $sonsDetail = array();
 
@@ -233,6 +234,8 @@ class budgetController extends customToolsController
     public function newYear(){
 
         /** PLEASE UNCOMENT TO START NEW YEAR **/
+        /** PLEASE FIX CATEGORIES SONS TO NEW FATHERS **/
+        /** PLEASE VERIFY EXPENSES VALUES **/
         /**          
         $currentYear  = date('Y');
         $previousYear = $currentYear - 1;
