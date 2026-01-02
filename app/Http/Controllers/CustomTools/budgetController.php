@@ -236,6 +236,7 @@ class budgetController extends customToolsController
         $previousYear = $currentYear - 1;
 
         /** PLEASE UNCOMENT TO START NEW YEAR **/
+        /** 
         $expenses = wt_budget_expense::where('year', $previousYear)->get();
 
         foreach ($expenses as $expense) {
@@ -243,9 +244,7 @@ class budgetController extends customToolsController
             $newExpense->year = $currentYear;
             $newExpense->save();
         }
-
-        dd($expenses);
-        
+        **/
         $categories = wt_budget_categories::where('forecast_year', $previousYear)->get();
 
         foreach ($categories as $category) {
