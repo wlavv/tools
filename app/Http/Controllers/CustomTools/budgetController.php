@@ -46,12 +46,13 @@ class budgetController extends customToolsController
         self::$forecast = wt_budget_categories::where('forecast_year', $year)->where('type', 'expense')->where('id_parent', '>', 0)->where('id_parent', '<>', 44)->sum('forecast');
         
         $already_spent_percent = wt_budget_expense::getSpentPercentMonth($year, $month);
+
+        
+        if(!isset($expenses) || $expenses == 0) $expenses = 1;
         
         echo $expenses;
         exit;
         
-        if(!isset($expenses) || $expenses == 0) $expenses = 1;
-
         $data = [
             'actions' => [],
             'year' => $year,
