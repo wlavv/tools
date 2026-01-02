@@ -1,7 +1,7 @@
 @if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
 <div class="col-lg-12" style="display: grid;">    
     <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>       
-        <div style="width: 500px; height: 42px; float: left;">
+        <div style="width: 400px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED YEAR: </div>
             <select id="yearSelector" class="form-select" style="width: 250px; font-size: 18px; @if( $isMobile )  float: right; @else float: left; @endif" onchange="onYearChange()">
                 <option @if($year == 2025) selected="selected" @endif value="2025"> 2025 </option>
@@ -26,7 +26,7 @@
             ];
         @endphp
         
-        <div style="width: 500px; height: 42px; float: left;">
+        <div style="width: 400px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED MONTH: </div>
             <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;@if( $isMobile )  float: right; @else float: left; @endif" onchange="changeYearMonth(this.value)">
                 <option value="0">Select month</option>
