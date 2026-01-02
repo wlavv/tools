@@ -231,12 +231,12 @@ class budgetController extends customToolsController
     }
     
     public function newYear(){
-         
+
+        /** PLEASE UNCOMENT TO START NEW YEAR **/
+        /**          
         $currentYear  = date('Y');
         $previousYear = $currentYear - 1;
 
-        /** PLEASE UNCOMENT TO START NEW YEAR **/
-        /** 
         $expenses = wt_budget_expense::where('year', $previousYear)->get();
 
         foreach ($expenses as $expense) {
@@ -244,7 +244,7 @@ class budgetController extends customToolsController
             $newExpense->year = $currentYear;
             $newExpense->save();
         }
-        **/
+        
         $categories = wt_budget_categories::where('forecast_year', $previousYear)->get();
 
         foreach ($categories as $category) {
@@ -252,7 +252,7 @@ class budgetController extends customToolsController
             $newCategory->forecast_year = $currentYear;
             $newCategory->save();
         }
-        
+        **/
     }
     
 }
