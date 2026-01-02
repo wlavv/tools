@@ -47,8 +47,8 @@ class budgetController extends customToolsController
         
         $already_spent_percent = wt_budget_expense::getSpentPercentMonth($year, $month);
         
-        if($expenses == 0) $expenses = 1;
-        
+        if(!isset($expenses) || $expenses == 0) $expenses = 1;
+
         $data = [
             'actions' => [],
             'year' => $year,
