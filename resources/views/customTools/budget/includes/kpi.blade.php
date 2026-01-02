@@ -26,7 +26,6 @@
             ];
         @endphp
         
-        {{$month}}
         <div style="width: 500px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED MONTH: </div>
             <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="changeYearMonth(this.value)">
