@@ -24,7 +24,9 @@
                 @php
                     $total_forecast = 0;
                     $total_diff = 0;
+                    $total_diff_percent = 0;
                     $total_expenses = 0;
+                    $color_total = 'style="background-color: #fff; color: #0f5132; border-radius: 0;font-weight: bolder;"';
                 @endphp
                 
                 @foreach($row->sons as $key => $item)

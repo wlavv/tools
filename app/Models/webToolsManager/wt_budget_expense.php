@@ -119,7 +119,7 @@ class wt_budget_expense extends Model
 
             $categories= self::where('year', $year)->where('month', $month)->orderBy('category')->groupBy('category')->get();
         }
-
+        
         $statusByCategory = array();
 
         foreach($categories AS $category){

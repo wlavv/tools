@@ -1,6 +1,13 @@
 @if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
-<div class="col-lg-12">    
-    <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>
+<div class="col-lg-12" style="display: grid;">    
+    <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>       
+        <div style="width: 500px; height: 42px; float: left;">
+            <div style="float: left; margin: 9px 5px 5px 0;">SELECTED YEAR: </div>
+            <select id="yearSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="onYearChange()">
+                <option @if($year == 2025) selected="selected" @endif value="2025"> 2025 </option>
+                <option @if($year == 2026) selected="selected" @endif value="2026"> 2026 </option>
+            </select>            
+        </div>
 
         @php
             $months = [
@@ -19,18 +26,36 @@
             ];
         @endphp
         
-        <div style="width: 100%; height: 42px;">
+        {{$month}}
+        <div style="width: 500px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED MONTH: </div>
-            <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="window.location.href=this.value">
+            <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="changeYearMonth(this.value)">
+                <option value="0">Select month</option>
                 @foreach ($months as $number => $name)
-                    <option @if($number == $month) selected="selected" @endif value="{{ route('budget.index', ['year' => date('Y'), 'month' => $number]) }}">
-                        {{ $name }}
-                    </option>
+                    <option @if($number == $month) selected="selected" @endif value="{{$number}}"> {{ $name }} </option>
                 @endforeach
             </select>            
         </div>
+
+        <script>
+            function onYearChange() {
+                const monthSelector = document.getElementById('monthSelector');
+                monthSelector.value = '0';
+            }
+
+            function changeYearMonth(month){
+
+                const budgetBaseUrl = "{!! route('budget.index', ['year' => '__YEAR__', 'month' => '__MONTH__']) !!}";
+
+                const year = document.getElementById('yearSelector').value;
+                const url = budgetBaseUrl.replace('__YEAR__', year).replace('__MONTH__', month);
+
+                window.location.href = url;
+            }
+        </script>
     </div>
 </div>
+
 
 @if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
 

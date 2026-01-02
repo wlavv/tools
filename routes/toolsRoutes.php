@@ -16,6 +16,9 @@ use App\Http\Controllers\CustomTools\InvestmentsAssetController;
 use App\Http\Controllers\CustomTools\InvestmentsBrokerAccountController;
 
 /****************************************** BUDGET ******************************************/
+
+Route::get( 'administration/budget/newYear',              [budgetController::class, 'newYear'])->name('budget.newYear');
+
 Route::resources([ 'administration/budget'=>                     budgetController::class]);
 Route::post( 'administration/budget/update/data',                [budgetController::class, 'updateData'])->name('budget.updateData');
 Route::post( 'administration/budget/update/forecast/data',       [budgetController::class, 'updateForecastData'])->name('budget.updateForecastData');
@@ -23,6 +26,7 @@ Route::post( 'administration/budget/update/detail',              [budgetControll
 Route::post( 'administration/budget/delete/detail',              [budgetController::class, 'deleteDetail'])->name('budget.deleteDetail');
 Route::post( 'administration/budget/objective/add',              [budgetController::class, 'addObjective'])->name('budget.addObjective');
 Route::post( 'administration/budget/objective/done',             [budgetController::class, 'setObjectiveAsDone'])->name('budget.setObjectiveAsDone');
+
 
 /************************************* GROUP STRUCTURE *************************************/
 Route::get(  'administration/groupStructure',                    [groupStructureController::class, 'index'])->name('groupStructure.index');
