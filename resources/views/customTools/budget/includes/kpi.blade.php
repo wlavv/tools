@@ -3,7 +3,7 @@
     <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>       
         <div style="width: 500px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED YEAR: </div>
-            <select id="yearSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="onYearChange()">
+            <select id="yearSelector" class="form-select" style="width: 250px; font-size: 18px; @if( $isMobile )  float: right; @else float: left; @endif" onchange="onYearChange()">
                 <option @if($year == 2025) selected="selected" @endif value="2025"> 2025 </option>
                 <option @if($year == 2026) selected="selected" @endif value="2026"> 2026 </option>
             </select>            
@@ -28,7 +28,7 @@
         
         <div style="width: 500px; height: 42px; float: left;">
             <div style="float: left; margin: 9px 5px 5px 0;">SELECTED MONTH: </div>
-            <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;float: left;" onchange="changeYearMonth(this.value)">
+            <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;@if( $isMobile )  float: right; @else float: left; @endif" onchange="changeYearMonth(this.value)">
                 <option value="0">Select month</option>
                 @foreach ($months as $number => $name)
                     <option @if($number == $month) selected="selected" @endif value="{{$number}}"> {{ $name }} </option>
