@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Areas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\customTools\customToolsController;
-
 use App\Models\prestashop\orders;
 use App\Models\prestashop\product;
+use App\Http\Controllers\Controller;
 
-class financeController extends customToolsController
+class financeController extends Controller
 {
     public $actions;
     public $breadcrumbs;

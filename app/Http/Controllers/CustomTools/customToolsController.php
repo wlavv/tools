@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\URL;
 
 class customToolsController extends Controller
 {
-    
     protected $viewData = array();
 
     public function __construct(){ 
