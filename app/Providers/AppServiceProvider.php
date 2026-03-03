@@ -12,8 +12,13 @@ class AppServiceProvider extends ServiceProvider
     
     protected $prestashop;
 
-    public function register(): void{ }
-    
+    public function register(): void{
+        
+        if (app()->environment('local')) {
+            config(['queue.default' => 'database']);
+        }
+    }
+
     public function boot(): void{
         Carbon::setLocale('pt');
      }

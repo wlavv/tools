@@ -46,6 +46,12 @@ class adminController extends Controller
                 'name' => "PASSWORD'S",
                 'image' => null,  
                 'icon' => 'fa-solid fa-key',            
+            ],
+            [
+                'url' => route('aiconsensus.index'),
+                'name' => "Consensus",
+                'image' => null,  
+                'icon' => 'fa-solid fa-star-of-life',            
             ]
         ];
     }
