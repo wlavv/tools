@@ -5,7 +5,6 @@
 /public/storage
 /storage/*.key
 /public/images/mtg
-/vendor
 .env
 .env.backup
 .env.production
