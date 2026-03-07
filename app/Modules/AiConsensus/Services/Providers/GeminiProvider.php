@@ -10,7 +10,7 @@ class GeminiProvider implements ProviderInterface
 
     public function generate(string $system, string $userPrompt, array $options = []): array
     {
-        $apiKey = 'AIzaSyC876hL5GAeOFeHlkHyju9i_uqUtMa219k';
+        $apiKey = '';
         if (!$apiKey) throw new \RuntimeException('Missing GEMINI_API_KEY');
 
         $model = $options['model'] ?? config('aiconsensus.models.gemini', 'gemini-2.5-pro');

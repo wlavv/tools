@@ -10,7 +10,7 @@ class AnthropicProvider implements ProviderInterface
 
     public function generate(string $system, string $userPrompt, array $options = []): array
     {
-        $apiKey = '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';
+        $apiKey = '';
         if (!$apiKey) throw new \RuntimeException('Missing ANTHROPIC_API_KEY');
 
         $model = $options['model'] ?? config('aiconsensus.models.anthropic', 'claude-sonnet-4');
