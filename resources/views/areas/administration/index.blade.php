@@ -9,9 +9,9 @@
         <div class="row">
 
             @foreach($projects AS $key => $project)
-                <div class="col-lg-12" style="cursor: pointer;">
+                <div class="col-lg-12" style="cursor: pointer; margin-bottom: 20px;">
                     <div class="navbar navbar-light customPanel" style="display: flow-root;">
-                        <div onclick="addProject()" data-bs-toggle="modal" data-bs-target="#meuModal" style="cursor: pointer;border: 1px solid darkgreen;padding: 7px 10px;float: left;" onclick="$('#newProject').css('display', 'block');">
+                        <div onclick="addProject()" data-bs-toggle="modal" data-bs-target="#meuModal" style="cursor: pointer;padding: 7px 10px;float: left;" onclick="$('#newProject').css('display', 'block');">
                             <span><i class="fa-solid fa-plus" style="color: darkgreen; font-size: 20px;margin: 0 10px;"></i></span> 
                         </div>
                         <div style="float: left; width: calc( 100% - 70px ); margin-left: 10px;" onclick="$('#projectsContainer_{{$project['father']->id}}').toggle()" ><h3 style="padding: 5px 0 0 0;">{{$project['father']->name}}</h3></div>
@@ -21,7 +21,7 @@
                     <div class="row" id="projectsContainer_{{$project['father']->id}}" @if($key == 0) style="display: flex;" @else style="display: none;" @endif>
                         @if(count($project['sons']) > 0)
                             @foreach($project['sons'] AS $son)
-                                <div id="projectContainer_{{$son->id}}" class="col-lg-2">
+                                <div id="projectContainer_{{$son->id}}" class="col-lg-2" style="margin-bottom: 20px;">
                                     <div class="navbar navbar-light customPanel" style="text-align: center;padding: 0;">
                                         <div>
                                             <div>
@@ -32,9 +32,9 @@
                                                             <div  class="btn btn-success" style="border: 1px solid #bbb; border-radius: 5px;  @if($son->have_details == 1) cursor: pointer; @else cursor: default; @endif color: #FFF;padding: 0;margin: 10px;background-color: #FFF;">
                                                                 
                                                                 @if(strlen($son->logo) > 10)
-                                                                    <img style="width: 128px;margin: 0 auto;border-radius: 5px;" src="{{$son->logo}}"  @if($son->have_details == 1) onclick="showDetails({{$son->id}})" @endif>
+                                                                    <img style="width: 128px;margin: 0 auto;border-radius: 12px;" src="{{$son->logo}}"  @if($son->have_details == 1) onclick="showDetails({{$son->id}})" @endif>
                                                                 @else
-                                                                    <img style="width: 128px;margin: 0 auto;border-radius: 5px;" src="/images/unknown.png"  @if($son->have_details == 1) onclick="showDetails({{$son->id}})" @endif>
+                                                                    <img style="width: 128px;margin: 0 auto;border-radius: 12px;" src="/images/unknown.png"  @if($son->have_details == 1) onclick="showDetails({{$son->id}})" @endif>
                                                                 @endif
                                                             </div>
                                                         </td>
@@ -54,7 +54,7 @@
                                                     </tr>
                                                     <tr>
                                                         <td>
-                                                            <div class="projectStatus {{str_replace(' ', '', $son->status)}}">{{$son->status}}</div> 
+                                                            <div class="projectStatus {{str_replace(' ', '', $son->status)}}" style="border-radius: 0 0 10px 10px;border-top: 1px solid #888;">{{$son->status}}</div> 
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -73,7 +73,13 @@
             @endforeach    
         </div>
         
+    <style>
+
+    .input-group-text{ background-color: rgba(255, 255, 255, 0) !important; min-height: 48px !important; border-radius: 12px 0 0 12px !important; }
+    .form-control, input[type="text"], input[type="number"]{ border-radius: 0 12px 12px 0 !important; border-radius: 0 12px 12px 0 !important; }
     
+    </style>
+
     <!-- Modal -->
     <div class="modal fade" id="meuModal" tabindex="-1" aria-labelledby="meuModalLabel" aria-hidden="true">
         <div class="modal-dialog">

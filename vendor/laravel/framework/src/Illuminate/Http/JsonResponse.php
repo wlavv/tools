@@ -27,28 +27,10 @@ class JsonResponse extends BaseJsonResponse
      */
     public function __construct($data = null, $status = 200, $headers = [], $options = 0, $json = false)
     {
-        $this->setCorsHeaders($headers);
-        
         $this->encodingOptions = $options;
 
         parent::__construct($data, $status, $headers, $json);
     }
-    
-    
-    protected function setCorsHeaders(array &$headers)
-    {
-        // Check if the headers array is already set, if not, initialize it
-        if (!$headers) {
-            $headers = [];
-        }
-
-        // Add CORS headers
-        $headers['Access-Control-Allow-Origin'] = '*'; // Allow all origins, change this as needed
-        $headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'; // Allow all methods
-        $headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'; // Allow headers
-        $headers['Access-Control-Allow-Credentials'] = 'true'; // Allow credentials (cookies, etc.)
-    }
-    
 
     /**
      * {@inheritdoc}

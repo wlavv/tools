@@ -5,10 +5,17 @@
 
 @section('content')
 
+    <style>
+
+    .input-group-text{ background-color: rgba(255, 255, 255, 0) !important; min-height: 48px !important; border-radius: 12px 0 0 12px !important; }
+    .form-control, input[type="text"], input[type="number"]{ border-radius: 0 12px 12px 0 !important; border-radius: 0 12px 12px 0 !important; }
+    
+    </style>
+    
     <div class="row">    
         @include("customTools.customers.includes.tools")
         <div class="col-lg-12">    
-            <div class="navbar navbar-light customPanel">
+            <div class="navbar navbar-light customPanel" style="margin-top: 15px;">
                 <table class="table table-striped table-hover text-center">
                     <tr>
                         <td></td>

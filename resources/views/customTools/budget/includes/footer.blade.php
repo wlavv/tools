@@ -1,19 +1,19 @@
 @if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
 <div class="col-lg-12">    
-    <div class="navbar navbar-light customPanel" style="margin-top: 0;@if( $isMobile ) padding: 0;@endif">
+    <div class="navbar navbar-light customPanel" style="@if( $isMobile )margin-top: 0; @else padding: 0; margin: 5px;@endif">
         <div style="text-align: center;text-transform: uppercase;font-size: 25px;cursor: pointer;" onclick="$('#objectives').toggle();">OBJECTIVOS</div>
         <div id="objectives" style="display: none;min-height: 100px;height: 100%;text-align: center;">
             @if( !$isMobile )
             <div style="border-top: 1px solid #bbb;margin-top: 10px;padding-top: 15px;display: flex;">
-                <div class="btn btn-info"       style="text-align: center;text-transform: uppercase;float: left;width: 33%;border-radius: 0px;font-size: 20px;">CURTO PRAZO<br><span style="font-size: 14px;">< 1 ano</span></div>
-                <div class="btn btn-warning"    style="text-align: center;text-transform: uppercase;float: left;width: 34%;border-radius: 0px;font-size: 20px;">MÉDIO PRAZO<br><span style="font-size: 14px;">< 5 anos</span></div>
-                <div class="btn btn-danger"     style="text-align: center;text-transform: uppercase;float: left;width: 33%;border-radius: 0px;font-size: 20px;">LONGO PRAZO<br><span style="font-size: 14px;">> 5 anos</span></div>
+                <div class="btn btn-info"       style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 33%;border-radius: 0px;font-size: 20px;">CURTO PRAZO<br><span style="font-size: 14px;">< 1 ano</span></div>
+                <div class="btn btn-warning"    style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 34%;border-radius: 0px;font-size: 20px;">MÉDIO PRAZO<br><span style="font-size: 14px;">< 5 anos</span></div>
+                <div class="btn btn-danger"     style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 33%;border-radius: 0px;font-size: 20px;">LONGO PRAZO<br><span style="font-size: 14px;">> 5 anos</span></div>
             </div>
             @endif
             <div id="objectives_short"  style="float: left;@if( $isMobile ) width: 100%; @else width: 33%; @endif"> 
-                @if( $isMobile )<div class="btn btn-info"       style="text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">CURTO PRAZO<br><span style="font-size: 14px;">< 1 ano</span></div>@endif
+                @if( $isMobile )<div class="btn btn-info"       style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">CURTO PRAZO<br><span style="font-size: 14px;">< 1 ano</span></div>@endif
                 <div>
-                    <table class="table table-striped" style="width: 100%;text-align: center;margin-bottom: 0;display: table;">
+                    <table class="table table-striped" style="width: calc( 100% - 10px ) !important;text-align: center;margin: 5px; display: table;">
                         <tr>
                             <td style="min-width: 50%;">NAME</td>
                             <td style="min-width: 25%;">VALUE</td>
@@ -48,12 +48,12 @@
                         @endif
                     </table>
                 </div> 
-                <button class="btn btn-success" type="button" onclick="addObjective(1)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 150px; margin: 10px 0;"> ADD OBJECTIVE</button>
+                <button class="btn btn-success" type="button" onclick="addObjective(1)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 90%; margin: 10px 0;"> ADD OBJECTIVE</button>
             </div>
             <div id="objectives_medium" style="float: left;@if( $isMobile ) width: 100%; @else width: 34%; @endif"> 
-                @if( $isMobile ) <div class="btn btn-warning"    style="text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">MÉDIO PRAZO<br><span style="font-size: 14px;">< 5 anos</span></div> @endif
+                @if( $isMobile ) <div class="btn btn-warning"    style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">MÉDIO PRAZO<br><span style="font-size: 14px;">< 5 anos</span></div> @endif
                 <div>
-                    <table class="table table-striped" style="width: 100%;text-align: center;margin-bottom: 0;display: table;">
+                    <table class="table table-striped" style="width: calc( 100% - 10px ) !important;text-align: center;margin: 5px; display: table;">
                         <tr>
                             <td style="min-width: 50%;">NAME</td>
                             <td style="min-width: 25%;">VALUE</td>
@@ -88,12 +88,12 @@
                         @endif
                     </table>
                 </div>
-                <button class="btn btn-success" type="button" onclick="addObjective(2)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 150px; margin: 10px 0;"> ADD OBJECTIVE</button> 
+                <button class="btn btn-success" type="button" onclick="addObjective(2)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 90%; margin: 10px 0;"> ADD OBJECTIVE</button> 
             </div>
             <div id="objectives_long"   style="float: left;@if( $isMobile ) width: 100%; @else width: 33%; @endif">  
-                @if( $isMobile ) <div class="btn btn-danger"     style="text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">LONGO PRAZO<br><span style="font-size: 14px;">> 5 anos</span></div> @endif
+                @if( $isMobile ) <div class="btn btn-danger"     style="margin: 5px; text-align: center;text-transform: uppercase;float: left;width: 100%;border-radius: 0px;font-size: 20px;">LONGO PRAZO<br><span style="font-size: 14px;">> 5 anos</span></div> @endif
                 <div>
-                    <table class="table table-striped" style="width: 100%;text-align: center;margin-bottom: 0;display: table;">
+                    <table class="table table-striped" style="width: calc( 100% - 10px ) !important;text-align: center;margin: 5px; display: table;">
                         <tr>
                             <td style="min-width: 50%;">NAME</td>
                             <td style="min-width: 25%;">VALUE</td>
@@ -128,7 +128,7 @@
                         @endif
                     </table>
                 </div>
-                <button class="btn btn-success" type="button" onclick="addObjective(3)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 150px; margin: 10px 0;"> ADD OBJECTIVE</button> 
+                <button class="btn btn-success" type="button" onclick="addObjective(3)" data-bs-toggle="modal" data-bs-target="#meuModal" style="width: 90%; margin: 10px 0;"> ADD OBJECTIVE</button> 
             </div>
         </div>
     </div>
@@ -187,6 +187,10 @@
   </div>
 </div>
 
+<style>
+
+.swal2-popup > input[type="text"], .swal2-popup > input[type="number"]{ max-width: 80% !important;border: 1px solid #bbb !important; }
+</style>
 <script>
     function addObjective(type) {
         document.getElementById('objective_type').value = type;

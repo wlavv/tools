@@ -1,8 +1,8 @@
 @if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
 <div class="col-lg-12" style="display: grid;">    
     <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>       
-        <div style="width: 385px; height: 42px; float: left;">
-            <div style="float: left; margin: 9px 5px 5px 0;">YEAR: </div>
+        <div style="width: 385px; height: 52px; float: left;">
+            <div style="float: left; margin: 16px 5px 5px 0;">YEAR: </div>
             <select id="yearSelector" class="form-select" style="width: 250px; font-size: 18px; @if( $isMobile )  float: right; @else float: left; @endif" onchange="onYearChange()">
                 <option @if($year == 2025) selected="selected" @endif value="2025"> 2025 </option>
                 <option @if($year == 2026) selected="selected" @endif value="2026"> 2026 </option>
@@ -27,7 +27,7 @@
         @endphp
         
         <div style="width: 385px; height: 42px; float: left;">
-            <div style="float: left; margin: 9px 5px 5px 0;">MONTH: </div>
+            <div style="float: left; margin: 16px 5px 5px 0;">MONTH: </div>
             <select id="monthSelector" class="form-select" style="width: 250px; font-size: 18px;@if( $isMobile )  float: right; @else float: left; @endif" onchange="changeYearMonth(this.value)">
                 <option value="0">Select month</option>
                 @foreach ($months as $number => $name)
@@ -55,11 +55,11 @@
     </div>
 </div>
 
-
-@if( !$isMobile ) <div class="col-lg-12"> <div class="spacer-10"></div> </div> @endif
+<div class="col-lg-12"> <div class="spacer-10"></div> </div>
+<div class="col-lg-12"> <div class="spacer-10"></div> </div>
 
 <div class="col-lg-4">
-    <div class="card text-center bg-success text-white" @if( $isMobile ) style="border-radius: 0" @endif>
+    <div class="card text-center bg-success text-white" @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 5px 0 0 5px" @endif>
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;" onclick="$('#incomeDetail').toggle()"> 
                 <span>RENDIMENTOS: </span>
@@ -74,19 +74,19 @@
         <div class="card-body" style="display: none; margin: 0 10px 10px 10px;" id="incomeDetail">
             <table style="width: 100%; margin: 0;padding: 0;" class="table table-striped shortSpacing">
                 <tr>
-                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;width: 40%;">DATA:</td>
+                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;width: 40%;">DATA:</td>
                     <td style="padding-left: 5px;">
-                        <table style="width: 100%; border: 1px solid #EBEDEF;background-color: #EBEDEF;margin: 0;padding: 3px;" class="table shortSpacing">
+                        <table style="width: 100%; margin: 0;padding: 3px;" class="table shortSpacing">
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;background-color: #EBEDEF;">ANO:</td>
-                                <td style="width: 50%;padding-left: 5px;background-color: #EBEDEF;cursor: pointer;"> 
+                                <td class="text-right" style="width: 50%;padding-right: 5px;">ANO:</td>
+                                <td style="width: 50%;padding-left: 5px;cursor: pointer;"> 
                                     <span id="display_year">{{$year}}</span> 
                                     <input type="hidden" value="{{$year}}" id="input_year"> 
                                 </td>
                             </tr>
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;background-color: #EBEDEF;">MÊS:</td>
-                                <td style="width: 50%;padding-left: 5px;background-color: #EBEDEF;cursor: pointer;">
+                                <td class="text-right" style="width: 50%;padding-right: 5px;">MÊS:</td>
+                                <td style="width: 50%;padding-left: 5px;cursor: pointer;">
                                     <span id="display_month">{{$month}}</span> 
                                     <input type="hidden" value="{{$month}}" id="input_month"> 
                                 </td>
@@ -95,9 +95,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;">BRUNO:</td>
+                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;">BRUNO:</td>
                     <td style="padding-left: 5px;">
-                        <table style="width: 100%; border: 1px solid #EBEDEF;border: 1px solid #FFF;margin-bottom: 0;padding: 3px;" class="table shortSpacing">
+                        <table style="width: 100%; margin-bottom: 0;padding: 3px;" class="table shortSpacing">
                             <tr>
                                 <td class="text-right" style="width: 50%;padding-right: 5px;">Vencimento:</td>
                                 <td onclick="updateValue('bruno_salary', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;"> 
@@ -127,34 +127,34 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;">MÁRCIA:</td>
+                    <td class="text-right" style="padding-right: 5px;vertical-align: middle;">MÁRCIA:</td>
                     <td style="padding-left: 5px;">
-                        <table style="width: 100%; margin-bottom: 0;padding: 3px;border: 1px solid #EBEDEF" class="table shortSpacing">
+                        <table style="width: 100%; margin-bottom: 0;padding: 3px;" class="table shortSpacing">
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;background-color: #EBEDEF;">Vencimento:</td>
-                                <td onclick="updateValue('marcia_salary', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;background-color: #EBEDEF;">
+                                <td class="text-right" style="width: 50%;padding-right: 5px;">Vencimento:</td>
+                                <td onclick="updateValue('marcia_salary', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;">
                                     <span id="display_marcia_salary">{{number_format($marcia_salary, 2, ',', ' ')}} €</span>
                                     <input type="hidden" value="{{$marcia_salary}}" id="input_marcia_salary"></inpput>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;background-color: #EBEDEF;">Oriflame:</td>
-                                <td onclick="updateValue('marcia_oriflame', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;background-color: #EBEDEF;">
+                                <td class="text-right" style="width: 50%;padding-right: 5px;">Oriflame:</td>
+                                <td onclick="updateValue('marcia_oriflame', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;">
                                     <span id="display_marcia_oriflame">{{number_format($marcia_oriflame, 2, ',', ' ')}} €</span>
                                     <input type="hidden" value="{{$marcia_oriflame}}" id="input_marcia_oriflame"></inpput>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;font-weight: bolder;background-color: #EBEDEF;">TOTAL:</td>
-                                <td style="width: 50%;padding-left: 5px;font-weight: bolder;color: darkgreen;background-color: #EBEDEF;"> <span id="display_marcia_income">{{number_format($marcia_income, 2, ',', ' ')}} €</span></td>
+                                <td class="text-right" style="width: 50%;padding-right: 5px;font-weight: bolder;">TOTAL:</td>
+                                <td style="width: 50%;padding-left: 5px;font-weight: bolder;color: darkgreen;"> <span id="display_marcia_income">{{number_format($marcia_income, 2, ',', ' ')}} €</span></td>
                             </tr>
                         </table>
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;">MENINAS:</td>
+                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;">MENINAS:</td>
                     <td style="width: 65%;padding-left: 5px;">
-                        <table style="width: 100%; border: 1px solid #FFF;margin-bottom: 0;padding: 3px;" class="table shortSpacing">
+                        <table style="width: 100%; margin-bottom: 0;padding: 3px;" class="table shortSpacing">
                             <tr>
                                 <td class="text-right" style="width: 50%;padding-right: 5px;"></td>
                                 <td onclick="updateValue('meninas_income', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;">
@@ -166,12 +166,12 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;">EXTRA:</td>
+                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;">EXTRA:</td>
                     <td style="width: 65%;padding-left: 5px;">
-                        <table style="width: 100%;border: 1px solid #EBEDEF;margin-bottom: 0;padding: 3px;" class="table">
+                        <table style="width: 100%;margin-bottom: 0;padding: 3px;" class="table">
                             <tr>
-                                <td class="text-right" style="width: 50%;padding-right: 5px;background-color: #EBEDEF;"></td>
-                                <td onclick="updateValue('extra_income', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;background-color: #EBEDEF;">
+                                <td class="text-right" style="width: 50%;padding-right: 5px;"></td>
+                                <td onclick="updateValue('extra_income', 'income', '')" style="width: 50%;padding-left: 5px;cursor: pointer;">
                                     <span id="display_extra_income">{{number_format($extra_income, 2, ',', ' ')}} €</span>
                                     <input type="hidden" value="{{$extra_income}}" id="input_extra_income"></inpput>
                                 </td>
@@ -180,7 +180,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;border-right: 1px solid #bbb;font-weight: bolder;">TOTAL:</td>
+                    <td class="text-right" style="width: 35%;padding-right: 5px;vertical-align: middle;font-weight: bolder;">TOTAL:</td>
                     <td style="width: 50%;padding-left: 5px;">
                         <table style="width: 100%;margin-bottom: 0;padding: 3px;" class="table shortSpacing">
                             <tr>
@@ -194,7 +194,7 @@
     </div>    
 </div>
 <div class="col-lg-4">
-    <div class="card text-center text-white bg-danger" @if( $isMobile ) style="border-radius: 0" @endif>
+    <div class="card text-center text-white bg-danger" style="border-radius: 0">
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;" onclick="$('#expenseDetail').toggle()"> 
                 <span>DESPESAS: </span>
@@ -237,7 +237,7 @@
     </div>
 </div>        
 <div class="col-lg-4">
-    <div class="card text-center text-white bg-info"  @if( $isMobile ) style="border-radius: 0"@endif>
+    <div class="card text-center text-white bg-info"  @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 0 5px 5px 0" @endif>
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;"> 
                 <span>POUPANÇA: </span>
@@ -251,3 +251,6 @@
         @endif
     </div>
 </div>
+
+<div class="col-lg-12"> <div class="spacer-10"></div> </div>
+<div class="col-lg-12"> <div class="spacer-10"></div> </div>

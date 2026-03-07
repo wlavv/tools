@@ -1,6 +1,6 @@
 
 <div class="col-lg-4" style="">    
-    <div class="navbar navbar-light customPanel" style="padding: 0;@if( $isMobile )margin-top: 0;@endif">
+    <div class="navbar navbar-light customPanel" style="@if( $isMobile )margin-top: 0; @else padding: 0; margin: 5px;@endif">
         <div style=" height: 50px;">
             <div style="text-align: left;cursor: pointer;width: calc(100% - 60px); vertical-align: middle;font-size: 25px;padding: 5px;float: left;" onclick="$('.{{$slug}}_Content').toggle()"><span style="display: block;width: 60px;float: left;text-align: center;font-size: 14px;margin-right: 10px;line-height: 2; background-color: {{(isset($spent[$slug])) ? $spent[$slug]['color'] : '#FFF'}}; border-radius: 5px; border: 1px solid #999; padding: 5px 0;">@if(isset($spent[$slug])){{number_format($spent[$slug]['detail']->percent, 0, ',', '')}} % @else 0 % @endif</span>{{$title}}</div>
             <div style="text-align: center;cursor: pointer; display: none;" onclick="alert('SHOW GRAPH')">

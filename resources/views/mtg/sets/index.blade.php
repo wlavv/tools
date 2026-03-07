@@ -6,7 +6,7 @@
     <div class="row">    
         @foreach($sets AS $set)
             <div class="col-lg-2" style="text-align: center;">
-                <div style="height: 190px;margin: 10px 0; background-color: #dedede; border: 1px solid #666;padding: 10px;border-radius: 5px;cursor: pointer;">
+                <div style="height: 190px;margin: 10px 0; background-color: #666; border: 1px solid #666;padding: 10px;border-radius: 5px;cursor: pointer;">
                     <a href="{{route('mtg.showSet', [$set->sub_set_code, ( isset( $sub_set ) ) ? 1 : null])}}" style="text-decoration: none;">
                         <div style="height: 130px;display: flex;">
                             @if(isset($set->icon_svg_uri))

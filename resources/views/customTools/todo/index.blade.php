@@ -5,17 +5,17 @@
 
 @section('content')
 
-<div class="navbar navbar-light customPanel" style="display: flow-root;">
-    <div onclick="addMainTask(0)" style="cursor: pointer;border: 1px solid darkgreen;padding: 7px 10px;float: left;">
+<div class="navbar navbar-light customPanel" style="display: flow-root;margin-top: 0;">
+    <div onclick="addMainTask(0)" style="cursor: pointer;padding: 7px 10px;float: left;">
         <span><i class="fa-solid fa-plus" style="color: darkgreen; font-size: 20px;margin: 0 10px;"></i></span> 
     </div>
     <div style="float: left; width: 200px; margin-left: 10px;"><h3 style="padding: 5px 0 0 0;">Project tasks</h3></div>
-    <div onclick="$('.toHide').css('display', 'block');$('.drop-placeholder').css('display', 'block');$(this).remove()" style="cursor: pointer;border: 1px solid orange;padding: 7px 10px;float: right;">
+    <div onclick="$('.toHide').css('display', 'block');$('.drop-placeholder').css('display', 'block');$(this).remove()" style="cursor: pointer;padding: 7px 10px;float: right;">
         <span><i class="fa-solid fa-pencil" style="color: orange; font-size: 20px;margin: 0 10px;"></i></span> 
     </div>
 </div>
 
-<div class="navbar navbar-light customPanel" style="text-align: center;padding: 0;">
+<div class="navbar navbar-light customPanel" style="text-align: center;padding: 0;margin-top: 0;">
 
     @if(isset($mainTasks) && count($mainTasks) > 0 )
         <ul id="taskRoot1" class="task-list">

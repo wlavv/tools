@@ -6,7 +6,7 @@
 @section('content')
 
     <div class="row">    
-        <div class="col-lg-8">    
+        <div class="col-lg-12">    
             <div class="navbar navbar-light customPanel">
                 <table class="table table-striped table-hover text-center">
                     <tr>
@@ -41,9 +41,9 @@
                         @endforeach
                     @endif
                         <tr>
-                            <td><input type="text" class="text-center" id="passwordManager_project" value=""></td>
-                            <td><input type="text" class="text-center" id="passwordManager_username" value=""></td>
-                            <td><input type="password" class="text-center" id="passwordManager_password" value=""></td>
+                            <td><input type="text" class="text-center" id="passwordManager_project" value="" style="width: 95% !important;"></td>
+                            <td><input type="text" class="text-center" id="passwordManager_username" value="" style="width: 95% !important;"></td>
+                            <td><input type="password" class="text-center" id="passwordManager_password" value="" style="width: 95% !important;"></td>
                             <td><button class="btn btn-success" style="padding: 10px;" onclick="submitAddCredentials()">  <i class="fa fa-plus" aria-hidden="true"></i> </button></td>
                         </tr>
                 </table>

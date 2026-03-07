@@ -7,7 +7,7 @@
 <style>
     .counter{ font-size: 35px; vertical-align: middle; padding-left: 10px;}
 
-    .color_filter{ float: left; width: 12%; border: 1px solid #dedede;text-align: center; padding: 10px;background-color: #ddd; }
+    .color_filter{ float: left; width: 12%;text-align: center; padding: 10px; }
 </style>
 <div class="navbar navbar-light customPanel" style="display: flex;">
     <div class="color_filter">
@@ -60,11 +60,11 @@
     </div>
 </div>
 
-<div class="navbar navbar-light customPanel">
+<div class="navbar navbar-light customPanel" style="margin-top: 0;">
     <div class="row">    
         @foreach($cards AS $card)
             <div class="col-lg-2" style="text-align: center;">
-                <div style="height: 430px;margin: 10px 0; background-color: #dedede; border: 1px solid #666;border-radius: 5px;cursor: pointer;">
+                <div style="height: 430px;margin: 10px 0; background-color: #666; border: 1px solid #666;border-radius: 5px;cursor: pointer;">
                     <div style="height: 330px;display: flex;padding: 10px;">
                         <img src="/images/mtg/{{$card->set_code}}/{{$card->collector_number}}.jpg" style="width: 250px;margin: 0 auto;vertical-align: middle;border-radius: 5px;">
                     </div>
@@ -90,5 +90,6 @@
 
 .card-name {  font-weight: bold; text-align: center; text-transform: uppercase; }
 
+.counter-box{background-color: #666; }
 </style>
 @endsection

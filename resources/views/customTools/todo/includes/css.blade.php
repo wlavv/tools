@@ -5,9 +5,9 @@
     width: 100%;
     box-sizing: border-box;
     padding: 8px 10px;
-    border: 1px solid #ccc;
+    //border: 1px solid #ccc;
     margin-bottom: 5px;
-    background: #ddd;
+    //background: #ddd;
     display: flex;
     flex-direction: column;
 }
@@ -46,7 +46,7 @@
 .task-list.sortable-applied {
     border: 2px dashed #ddd;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    //background-color: #f9f9f9;
     position: relative;
 }
 
@@ -61,7 +61,7 @@
 /* Subtarefas reais */
 .task-list > .task-item {
     margin: 5px 0;
-    background: #fff;
+    //background: #fff;
     padding-left: 15px;
 }
 
