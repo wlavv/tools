@@ -10,7 +10,7 @@ class OpenAIProvider implements ProviderInterface
 
     public function generate(string $system, string $userPrompt, array $options = []): array
     {
-        $apiKey = '';
+        $apiKey = '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';
         if (!$apiKey) throw new \RuntimeException('Missing OPENAI_API_KEY');
 
         $model = $options['model'] ?? config('aiconsensus.models.openai', 'gpt-5');
