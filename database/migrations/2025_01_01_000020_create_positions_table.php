@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        if (Schema::hasTable('wt_investments_positions')) return;
+
         Schema::create('wt_investments_positions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('broker_account_id')->constrained()->cascadeOnDelete();

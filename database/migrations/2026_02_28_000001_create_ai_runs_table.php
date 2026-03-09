@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
+
+            if (Schema::hasTable('ai_runs')) return;
+
         Schema::create('ai_runs', function (Blueprint $table) {
             $table->id();
             $table->string('title')->nullable();

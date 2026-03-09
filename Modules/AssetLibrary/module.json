@@ -1,0 +1,13 @@
+{
+  "name": "AssetLibrary",
+  "slug": "asset-library",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Centralized asset library for WebCatalogue files, previews and technical media.",
+  "provider": "Modules\\AssetLibrary\\Providers\\AssetLibraryServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "SystemLogs",
+  "description": "Module for creating, storing, and viewing system logs from the backoffice.",
+  "slug": "system-logs",
+  "enabled": true,
+  "version": "1.0",
+  "provider": "Modules\\SystemLogs\\Providers\\SystemLogsServiceProvider"
+}

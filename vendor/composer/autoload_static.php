@@ -117,6 +117,7 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'M' => 
         array (
             'Monolog\\' => 8,
+            'Modules\\' => 8,
             'Mockery\\' => 8,
             'Masterminds\\' => 12,
         ),
@@ -329,8 +330,8 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         ),
         'Spatie\\Ignition\\' => 
         array (
-            0 => __DIR__ . '/..' . '/spatie/ignition/src',
-            1 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/ignition',
+            0 => __DIR__ . '/..' . '/spatie/error-solutions/legacy/ignition',
+            1 => __DIR__ . '/..' . '/spatie/ignition/src',
         ),
         'Spatie\\FlareClient\\' => 
         array (
@@ -366,8 +367,8 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -399,12 +400,16 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         ),
         'Nette\\' => 
         array (
-            0 => __DIR__ . '/..' . '/nette/utils/src',
-            1 => __DIR__ . '/..' . '/nette/schema/src',
+            0 => __DIR__ . '/..' . '/nette/schema/src',
+            1 => __DIR__ . '/..' . '/nette/utils/src',
         ),
         'Monolog\\' => 
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'Modules\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/Modules',
         ),
         'Mockery\\' => 
         array (
@@ -539,12 +544,14 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'Database\\Seeders\\' => 
         array (
             0 => __DIR__ . '/../..' . '/database/seeders',
-            1 => __DIR__ . '/..' . '/laravel/pint/database/seeders',
+            1 => __DIR__ . '/../..' . '/database/seeders',
+            2 => __DIR__ . '/..' . '/laravel/pint/database/seeders',
         ),
         'Database\\Factories\\' => 
         array (
             0 => __DIR__ . '/../..' . '/database/factories',
-            1 => __DIR__ . '/..' . '/laravel/pint/database/factories',
+            1 => __DIR__ . '/../..' . '/database/factories',
+            2 => __DIR__ . '/..' . '/laravel/pint/database/factories',
         ),
         'Cron\\' => 
         array (
@@ -565,7 +572,8 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
-            1 => __DIR__ . '/..' . '/laravel/pint/app',
+            1 => __DIR__ . '/../..' . '/app',
+            2 => __DIR__ . '/..' . '/laravel/pint/app',
         ),
     );
 
@@ -580,7 +588,14 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\MakeCustomModuleCommand' => __DIR__ . '/../..' . '/app/Console/Commands/MakeCustomModuleCommand.php',
+        'App\\Console\\Commands\\ModulesCheckCommand' => __DIR__ . '/../..' . '/app/Console/Commands/ModulesCheckCommand.php',
+        'App\\Console\\Commands\\ModulesListCommand' => __DIR__ . '/../..' . '/app/Console/Commands/ModulesListCommand.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
+        'App\\Core\\Modules\\Module' => __DIR__ . '/../..' . '/app/Core/Modules/Module.php',
+        'App\\Core\\Modules\\ModuleManager' => __DIR__ . '/../..' . '/app/Core/Modules/ModuleManager.php',
+        'App\\Core\\Modules\\ModuleManifest' => __DIR__ . '/../..' . '/app/Core/Modules/ModuleManifest.php',
+        'App\\Core\\Modules\\ModuleRegistry' => __DIR__ . '/../..' . '/app/Core/Modules/ModuleRegistry.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\Areas\\adminController' => __DIR__ . '/../..' . '/app/Http/Controllers/Areas/adminController.php',
         'App\\Http\\Controllers\\Areas\\customerSupportController' => __DIR__ . '/../..' . '/app/Http/Controllers/Areas/customerSupportController.php',
@@ -666,6 +681,7 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'App\\Providers\\AuthServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AuthServiceProvider.php',
         'App\\Providers\\BroadcastServiceProvider' => __DIR__ . '/../..' . '/app/Providers/BroadcastServiceProvider.php',
         'App\\Providers\\EventServiceProvider' => __DIR__ . '/../..' . '/app/Providers/EventServiceProvider.php',
+        'App\\Providers\\ModulesServiceProvider' => __DIR__ . '/../..' . '/app/Providers/ModulesServiceProvider.php',
         'App\\Providers\\RouteServiceProvider' => __DIR__ . '/../..' . '/app/Providers/RouteServiceProvider.php',
         'App\\Services\\Brokers\\IbkrClient' => __DIR__ . '/../..' . '/app/Services/Brokers/IbkrClient.php',
         'App\\Services\\Trading\\StopEngineService' => __DIR__ . '/../..' . '/app/Services/Trading/StopEngineService.php',
@@ -3919,6 +3935,27 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'Mockery\\Undefined' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/Undefined.php',
         'Mockery\\VerificationDirector' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/VerificationDirector.php',
         'Mockery\\VerificationExpectation' => __DIR__ . '/..' . '/mockery/mockery/library/Mockery/VerificationExpectation.php',
+        'Modules\\AIConsensus\\Database\\Seeders\\AIConsensusSeeder' => __DIR__ . '/../..' . '/Modules/AIConsensus/Database/Seeders/AIConsensusSeeder.php',
+        'Modules\\AIConsensus\\Models\\AIProviderCredential' => __DIR__ . '/../..' . '/Modules/AIConsensus/Models/AIProviderCredential.php',
+        'Modules\\AIConsensus\\Services\\AIConsensusService' => __DIR__ . '/../..' . '/Modules/AIConsensus/Services/AIConsensusService.php',
+        'Modules\\AssetLibrary\\Database\\Seeders\\AssetLibrarySeeder' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Database/Seeders/AssetLibrarySeeder.php',
+        'Modules\\AssetLibrary\\Http\\Controllers\\AssetLibraryController' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Http/Controllers/AssetLibraryController.php',
+        'Modules\\AssetLibrary\\Http\\Requests\\StoreAssetLibraryRequest' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Http/Requests/StoreAssetLibraryRequest.php',
+        'Modules\\AssetLibrary\\Http\\Requests\\UpdateAssetLibraryRequest' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Http/Requests/UpdateAssetLibraryRequest.php',
+        'Modules\\AssetLibrary\\Models\\AssetLibrary' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Models/AssetLibrary.php',
+        'Modules\\AssetLibrary\\Providers\\AssetLibraryServiceProvider' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Providers/AssetLibraryServiceProvider.php',
+        'Modules\\AssetLibrary\\Services\\AssetLibraryService' => __DIR__ . '/../..' . '/Modules/AssetLibrary/Services/AssetLibraryService.php',
+        'Modules\\PasswordManager\\Database\\Seeders\\PasswordManagerSeeder' => __DIR__ . '/../..' . '/Modules/PasswordManager/Database/Seeders/PasswordManagerSeeder.php',
+        'Modules\\PasswordManager\\Http\\Controllers\\PasswordManagerController' => __DIR__ . '/../..' . '/Modules/PasswordManager/Http/Controllers/PasswordManagerController.php',
+        'Modules\\PasswordManager\\Http\\Requests\\StorePasswordEntryRequest' => __DIR__ . '/../..' . '/Modules/PasswordManager/Http/Requests/StorePasswordEntryRequest.php',
+        'Modules\\PasswordManager\\Http\\Requests\\UpdatePasswordEntryRequest' => __DIR__ . '/../..' . '/Modules/PasswordManager/Http/Requests/UpdatePasswordEntryRequest.php',
+        'Modules\\PasswordManager\\Models\\PasswordEntry' => __DIR__ . '/../..' . '/Modules/PasswordManager/Models/PasswordEntry.php',
+        'Modules\\PasswordManager\\Providers\\PasswordManagerServiceProvider' => __DIR__ . '/../..' . '/Modules/PasswordManager/Providers/PasswordManagerServiceProvider.php',
+        'Modules\\PasswordManager\\Services\\PasswordManagerService' => __DIR__ . '/../..' . '/Modules/PasswordManager/Services/PasswordManagerService.php',
+        'Modules\\SystemLogs\\Http\\Controllers\\SystemLogsController' => __DIR__ . '/../..' . '/Modules/SystemLogs/Http/Controllers/SystemLogsController.php',
+        'Modules\\SystemLogs\\Models\\SystemLog' => __DIR__ . '/../..' . '/Modules/SystemLogs/Models/SystemLog.php',
+        'Modules\\SystemLogs\\Providers\\SystemLogsServiceProvider' => __DIR__ . '/../..' . '/Modules/SystemLogs/Providers/SystemLogsServiceProvider.php',
+        'Modules\\SystemLogs\\Services\\SystemLogsService' => __DIR__ . '/../..' . '/Modules/SystemLogs/Services/SystemLogsService.php',
         'Monolog\\Attribute\\AsMonologProcessor' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Attribute/AsMonologProcessor.php',
         'Monolog\\Attribute\\WithMonologChannel' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/Attribute/WithMonologChannel.php',
         'Monolog\\DateTimeImmutable' => __DIR__ . '/..' . '/monolog/monolog/src/Monolog/DateTimeImmutable.php',

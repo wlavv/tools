@@ -48,7 +48,7 @@ class adminController extends Controller
                 'icon' => 'fa-solid fa-key',            
             ],
             [
-                'url' => route('aiconsensus.index'),
+                'url' => route('ai_consensus.index'),
                 'name' => "Consensus",
                 'image' => null,  
                 'icon' => 'fa-solid fa-star-of-life',            

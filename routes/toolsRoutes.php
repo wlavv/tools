@@ -1,7 +1,5 @@
 <?php
 
-require base_path('routes/aiconsensus_routes.php');
-
 //Use App\Http\Controllers\CustomTools\uploadsController;
 Use App\Http\Controllers\CustomTools\oriflameController;
 Use App\Http\Controllers\CustomTools\customersController;

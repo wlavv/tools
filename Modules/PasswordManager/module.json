@@ -1,0 +1,13 @@
+{
+  "name": "PasswordManager",
+  "slug": "password-manager",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Módulo para gestão segura de passwords, logins, APIs e notas privadas.",
+  "provider": "Modules\\PasswordManager\\Providers\\PasswordManagerServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "AIConsensus",
+  "slug": "ai-consensus",
+  "description": "Agrega respostas de múltiplos providers de IA e produz uma resposta final consolidada.",
+  "enabled": true,
+  "version": "1.1.0",
+  "provider": "Modules\\AIConsensus\\Providers\\AIConsensusServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

@@ -40,7 +40,22 @@ class webController extends Controller
                 'name' => 'MTG',
                 'image' => '<img src="/images/mtg/mana/mtg.png" style="width: 70px;">',            
                 'icon' => null            
+            ],
+            [
+                'url' => route('asset_library.index'),
+                'name' => 'WebCatalog - ASSETS',
+                'image' => null,            
+                'icon' => 'fa-folder-open'           
             ]
+,
+            [
+                'url' => route('system_logs.index'),
+                'name' => 'System Logs',
+                'image' => null,            
+                'icon' => 'fa-glasses'           
+            ]
+
+            
         ];
     }
     

@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
+
+        if (Schema::hasTable('ai_run_responses')) return;
+
         Schema::create('ai_run_responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ai_run_id')->constrained()->onDelete('cascade');
