@@ -1,0 +1,13 @@
+{
+  "name": "ProjectManager",
+  "slug": "project-manager",
+  "description": "Módulo de gestão de projetos, branding, equipa, contactos, documentação e tasks.",
+  "enabled": true,
+  "version": "1.0.0",
+  "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

@@ -1,6 +1,6 @@
 <style>
 .ai-consensus-page .ai-card{
-    background: rgba(255,255,255,0.03);
+    background: linear-gradient(180deg,rgba(37,47,59,.94) 0%,rgba(32,40,51,.96) 100%);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 14px;
     padding: 16px;
@@ -8,7 +8,7 @@
 }
 .ai-consensus-page .ai-grid{
     display:grid;
-    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
     gap:16px;
 }
 .ai-consensus-page .ai-stat-value{
@@ -19,7 +19,7 @@
     opacity:.75;
 }
 .ai-consensus-page textarea.ai-textarea{
-    min-height: 280px;
+    min-height: 320px;
     width: 100%;
 }
 .ai-consensus-page .ai-pre{

@@ -80,5 +80,14 @@ return [
     'assets' => "Assets",
     'positions' => "Positions",
 
-    'positions.create' => 'Create new position'
+    'positions.create' => 'Create new position',
+
+    'ai_consensus.index' => 'AI CONSENSUS - Chats',
+    'ai_consensus.show'  => 'AI CONSENSUS - Details',
+    'ai_consensus.edit'  => 'AI CONSENSUS - Edit',
+    'ai_consensus.create'=> 'AI CONSENSUS - NEW REQUEST',
+
+    'password_manager.create' => 'Password manager - new credential',
+    'password_manager.edit' => 'Password manager - edit credential',
+    'password_manager.show' => 'Password manager - show credential',
 ];

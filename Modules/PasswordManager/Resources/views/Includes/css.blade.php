@@ -12,7 +12,6 @@
 .password-manager-toolbar,
 .password-manager-card,
 .password-manager-form-card {
-    border: 1px solid #e5e7eb;
     border-radius: 16px;
     padding: 1rem;
     box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
@@ -53,7 +52,7 @@
 .password-manager-table td {
     padding: 0.85rem 0.75rem;
     border-bottom: 1px solid #eef2f7;
-    text-align: left;
+    text-align: center;
     vertical-align: top;
 }
 
@@ -77,6 +76,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    text-align: center;
 }
 
 .password-manager-btn,
@@ -179,5 +179,12 @@
         border-radius: 14px;
         padding: 0.9rem;
     }
+}
+
+.passwordManager-card{
+  background: linear-gradient(180deg,rgba(37,47,59,.94) 0%,rgba(32,40,51,.96) 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
 }
 </style>

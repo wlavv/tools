@@ -3,7 +3,7 @@
 @section('content')
     @include('password-manager::Includes.css')
 
-    <div class="password-manager-page">
+    <div class="password-manager-page passwordManager-card">
         <div class="password-manager-shell">
             @include('password-manager::Includes._components.header')
 

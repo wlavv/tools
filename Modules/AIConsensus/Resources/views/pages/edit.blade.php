@@ -1,13 +1,8 @@
 @extends(config('ai_consensus.layout', 'layouts.app'))
 
 @section('content')
-<div class="container-fluid ai-consensus-page py-3">
+<div class="ai-consensus-page">
     @include('ai-consensus::Includes.css')
-
-    <div class="ai-card">
-        <h1 class="mb-1">Editar pedido #{{ $run->id }}</h1>
-        <div class="ai-muted">Atualiza prompt, opções e anexa novos ficheiros.</div>
-    </div>
 
     @if($errors->any())
         <div class="alert alert-danger">

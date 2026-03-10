@@ -1,9 +1,8 @@
 <div class="ai-card">
     <div class="table-responsive">
-        <table class="table align-middle">
+        <table class="table align-middle text-center;" style="text-align: center !important">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Título</th>
                     <th>Template</th>
                     <th>Estado</th>
@@ -11,13 +10,12 @@
                     <th>Custo</th>
                     <th>Ficheiros</th>
                     <th>Respostas</th>
-                    <th class="text-end">Ações</th>
+                    <th style="width: 140px;">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($runs as $run)
                     <tr>
-                        <td>#{{ $run->id }}</td>
                         <td>{{ $run->title ?: 'Sem título' }}</td>
                         <td>{{ $run->template_key }}</td>
                         <td>{{ $run->status }}</td>
@@ -27,12 +25,16 @@
                         <td>{{ $run->responses_count }}</td>
                         <td class="text-end">
                             <div class="ai-actions justify-content-end">
-                                <a href="{{ route('ai_consensus.show', $run->id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                <a href="{{ route('ai_consensus.edit', $run->id) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                <a href="{{ route('ai_consensus.show', $run->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ route('ai_consensus.edit', $run->id) }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </a>
                                 <form method="POST" action="{{ route('ai_consensus.destroy', $run->id) }}" onsubmit="return confirm('Remover este run?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Apagar</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"> <i class="fa-solid fa-trash"></i> </button>
                                 </form>
                             </div>
                         </td>

@@ -3,7 +3,7 @@
 @section('content')
     @include('password-manager::Includes.css')
 
-    <div class="password-manager-page">
+    <div class="password-manager-page passwordManager-card">
         <div class="password-manager-shell">
             @include('password-manager::Includes._components.header')
 
@@ -26,8 +26,7 @@
 
                 <div class="password-manager-grid" style="margin-top:1rem;">
                     <div class="password-manager-meta">
-                        <strong>Email</strong>
-                        <div>{{ $entry->account_email ?: '—' }}</div>
+                        <strong>Email</strong> {{ $entry->account_email ?: '—' }}
                     </div>
 
                     <div class="password-manager-meta">
@@ -47,12 +46,12 @@
 
                     <div class="password-manager-meta">
                         <strong>Password</strong>
-                        <div>{{ $revealed['password'] ?: '—' }}</div>
+                        <div>**********</div>
                     </div>
 
                     <div class="password-manager-meta">
                         <strong>Secret / token</strong>
-                        <div>{{ $revealed['secret'] ?: '—' }}</div>
+                        <div>**********</div>
                     </div>
 
                     <div class="password-manager-meta password-manager-grid-1">

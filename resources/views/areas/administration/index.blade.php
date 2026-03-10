@@ -44,7 +44,7 @@
                                                             <div>
                                                                 <button class="btn btn-danger"  style="width: 23%;" onclick="removeProject({{$son->id}})"><i style="color: #FFF;" class="fa-solid fa-trash"></i></button>
                                                                 <button class="btn btn-warning" style="width: 23%;" onclick="editProject({{$son->id}})"><i style="color: #FFF;" class="fa-solid fa-pencil"></i></button>
-                                                                <button @if( count($son->tasks) > 0) class="btn btn-dark" style="width: 23%; padding: 2px;color: red;font-weight: bolder;" @else class="btn btn-primary" style="width: 23%; padding: 2px;" @endif onclick="showTasks({{$son->id}})">{{count($son->tasks)}}</button>
+                                                                <button @if( count($son->tasks) > 0) class="btn btn-dark" style="width: 23%; padding: 2px;color: red;font-weight: bolder;border: 1px solid rgba(200, 0, 0, 0.5);" @else class="btn btn-primary" style="width: 23%; padding: 2px;border: 1px solid rgba(200, 0, 0, 0.5);" @endif onclick="showTasks({{$son->id}})">{{count($son->tasks)}}</button>
                                                                 @if(strlen($son->url) > 0) <a class="btn btn-success" style="width: 23%;" href="{{$son->url}}"><i style="color: #FFF;" class="fa-solid fa-link"></i></a> @endif
                                                             </div> 
                                                         </td>

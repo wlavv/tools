@@ -34,7 +34,7 @@
             <label class="password-manager-label">Password</label>
             <div style="display:grid; grid-template-columns:1fr auto; gap:0.5rem;">
                 <input id="password-field" type="password" name="password" value="{{ old('password', $revealed['password'] ?? '') }}" class="password-manager-input" {{ $method === 'POST' ? 'required' : '' }}>
-                <button type="button" class="password-manager-btn" data-password-toggle="password-field">Mostrar</button>
+                <button type="button" class="password-manager-btn password-manager-btn-primary" data-password-toggle="password-field"><i class="fa-solid fa-eye"></i></button>
             </div>
         </div>
 
@@ -58,8 +58,8 @@
 
         <div class="password-manager-grid-1">
             <div class="password-manager-actions">
-                <button type="submit" class="password-manager-btn password-manager-btn-primary">Guardar</button>
-                <a href="{{ route('password_manager.index') }}" class="password-manager-btn">Cancelar</a>
+                <button type="submit" class="password-manager-btn password-manager-btn-primary"><i class="fa-regular fa-floppy-disk" style="font-size: 20px;"></i></button>
+                <a href="{{ route('password_manager.index') }}" class="password-manager-btn"><i class="fa-solid fa-arrow-rotate-left"></i></a>
             </div>
         </div>
     </form>

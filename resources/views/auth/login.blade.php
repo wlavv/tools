@@ -56,16 +56,17 @@
                         </div>
 
                         <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="button" class="btn btn-primary" onclick="submitForm()">
+                            <div class="col-md-8 offset-md-2">
+                                <button type="button" class="btn btn-primary" onclick="submitForm()" style="width: 100%;text-align: center;">
                                     {{ __('Login') }}
                                 </button>
-
+                                {{--
                                 @if (Route::has('password.request'))
                                     <a class="btn btn-link" href="{{ route('password.request') }}">
                                         {{ __('Forgot Your Password?') }}
                                     </a>
                                 @endif
+                                --}}
                             </div>
                         </div>
                     </form>
@@ -118,5 +119,19 @@
         return str;
     }
 </script>
+
+<style>
+    .card-header{
+    display: block;
+    text-align: center;
+    padding: 10px;
+    border-bottom: none;
+    }
+
+    .card-body {
+    border-radius: 0 0 5px 5px;
+    border: 0px dashed #000;
+    }
+</style>
 
 @endsection

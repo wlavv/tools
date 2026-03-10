@@ -6,12 +6,12 @@
         <div class="password-manager-shell">
             @include('password-manager::Includes._components.header')
 
-            @if(session('success'))
-                <div class="password-manager-alert">{{ session('success') }}</div>
-            @endif
+            @if(session('success')) <div class="password-manager-alert">{{ session('success') }}</div> @endif
+            <div>
+                @include('password-manager::Includes._components.toolbar', ['search' => $search])
+                @include('password-manager::Includes._components.stats', ['entries' => $entries])
+            </div>
 
-            @include('password-manager::Includes._components.toolbar', ['search' => $search])
-            @include('password-manager::Includes._components.stats', ['entries' => $entries])
             @include('password-manager::Includes._components.table', ['entries' => $entries])
         </div>
 
