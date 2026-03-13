@@ -253,7 +253,7 @@ class AIConsensusService
             $latency = (int) round((microtime(true) - $start) * 1000);
             $cost = $this->estimateProviderCost(
                 'openai',
-                $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'))),
+                $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), '')),
                 (int) ($result['tokens_in'] ?? 0),
                 (int) ($result['tokens_out'] ?? 0),
                 $settings?->meta ?? []
@@ -263,7 +263,7 @@ class AIConsensusService
                 'status' => 'done',
                 'final_answer' => $result['text'] ?? '',
                 'final_provider' => 'openai',
-                'final_model' => $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'))),
+                'final_model' => $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), '')),
                 'meta' => array_merge($run->meta ?? [], [
                     'openai_latency_ms' => $latency,
                 ]),
