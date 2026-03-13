@@ -1,13 +1,8 @@
 {
   "name": "ProjectManager",
   "slug": "project-manager",
-  "description": "Módulo de gestão de projetos, branding, equipa, contactos, documentação e tasks.",
+  "description": "Mission Control style project manager with grouped cards, tabs and Font Awesome actions.",
   "enabled": true,
-  "version": "1.0.0",
-  "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+  "version": "1.6.0",
+  "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider"
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace Modules\ProjectManager\Services;
 
 use Illuminate\Support\Str;
@@ -8,145 +7,53 @@ use Modules\ProjectManager\Models\ProjectTask;
 
 class ProjectManagerService
 {
-    public function getIndexData()
+    public function getGroups()
     {
-        return ProjectManager::withCount([
-                'tasks as tasks_total_count',
-                'tasks as tasks_done_count' => fn ($query) => $query->where('status', 'Done'),
-            ])
-            ->with('children')
-            ->orderBy('priority')
-            ->orderBy('name')
-            ->get()
-            ->map(function (ProjectManager $project) {
-                $project->progress_percent = $this->calculateProgress(
-                    $project->tasks_total_count,
-                    $project->tasks_done_count
-                );
-                return $project;
+        return ProjectManager::where('id_parent',0)
+            ->with(['children','tasks','children.tasks'])
+            ->withCount(['children'])
+            ->orderBy('priority')->orderBy('name')->get()
+            ->map(function ($group) {
+                $total = $group->tasks->count();
+                $done = $group->tasks->where('status','Done')->count();
+                foreach ($group->children as $child) {
+                    $child->tasks_total_count = $child->tasks->count();
+                    $child->tasks_done_count = $child->tasks->where('status','Done')->count();
+                    $child->progress_percent = $child->tasks_total_count > 0 ? (int) round(($child->tasks_done_count / $child->tasks_total_count) * 100) : 0;
+                    $total += $child->tasks_total_count;
+                    $done += $child->tasks_done_count;
+                }
+                $group->aggregated_tasks_total = $total;
+                $group->aggregated_tasks_done = $done;
+                $group->progress_percent = $total > 0 ? (int) round(($done / $total) * 100) : 0;
+                return $group;
             });
     }
 
     public function getStats(): array
     {
-        $projects = ProjectManager::count();
-        $openProjects = ProjectManager::whereNotIn('status', ['Done', 'Cancelled'])->count();
-        $tasks = ProjectTask::count();
-        $tasksDone = ProjectTask::where('status', 'Done')->count();
-
         return [
-            'projects' => $projects,
-            'open_projects' => $openProjects,
-            'tasks' => $tasks,
-            'tasks_done' => $tasksDone,
+            'projects' => ProjectManager::count(),
+            'root_projects' => ProjectManager::where('id_parent',0)->count(),
+            'tasks' => ProjectTask::count(),
+            'tasks_done' => ProjectTask::where('status','Done')->count(),
         ];
     }
 
-    public function createProject(array $data): ProjectManager
+    public function store(array $data): ProjectManager
     {
-        $data['slug'] = $this->normalizeSlug($data['slug'] ?? null, $data['name']);
-        $data['id_parent'] = $data['id_parent'] ?? 0;
+        $data['slug'] = Str::slug($data['slug'] ?? $data['name']);
         $data['priority'] = $data['priority'] ?? 0;
-
+        $data['id_parent'] = $data['id_parent'] ?? 0;
         return ProjectManager::create($data);
     }
 
-    public function updateProject(ProjectManager $project, array $data): ProjectManager
+    public function update(ProjectManager $project, array $data): ProjectManager
     {
-        $data['slug'] = $this->normalizeSlug($data['slug'] ?? null, $data['name']);
-        $data['id_parent'] = $data['id_parent'] ?? 0;
+        $data['slug'] = Str::slug($data['slug'] ?? $data['name']);
         $data['priority'] = $data['priority'] ?? 0;
-
+        $data['id_parent'] = $data['id_parent'] ?? 0;
         $project->update($data);
-
         return $project->refresh();
-    }
-
-    public function deleteProject(ProjectManager $project): void
-    {
-        $project->tasks()->delete();
-        $project->delete();
-    }
-
-    public function getProjectDetail(ProjectManager $project): ProjectManager
-    {
-        $project->load([
-            'children',
-            'tasks',
-            'rootTasks.children.children',
-        ]);
-
-        $total = $project->tasks()->count();
-        $done = $project->tasks()->where('status', 'Done')->count();
-
-        $project->progress_percent = $this->calculateProgress($total, $done);
-        $project->tasks_total_count = $total;
-        $project->tasks_done_count = $done;
-
-        return $project;
-    }
-
-    public function createTask(ProjectManager $project, array $data): ProjectTask
-    {
-        $data['id_project'] = $project->id;
-        $data['id_parent'] = $data['id_parent'] ?? 0;
-        $data['priority'] = $data['priority'] ?? 0;
-
-        return ProjectTask::create($data);
-    }
-
-    public function updateTask(ProjectManager $project, ProjectTask $task, array $data): ProjectTask
-    {
-        if ((int) $task->id_project !== (int) $project->id) {
-            abort(404);
-        }
-
-        $task->update($data);
-
-        return $task->refresh();
-    }
-
-    public function deleteTask(ProjectManager $project, ProjectTask $task): void
-    {
-        if ((int) $task->id_project !== (int) $project->id) {
-            abort(404);
-        }
-
-        $this->deleteChildren($task);
-        $task->delete();
-    }
-
-    public function toggleTask(ProjectManager $project, ProjectTask $task): ProjectTask
-    {
-        if ((int) $task->id_project !== (int) $project->id) {
-            abort(404);
-        }
-
-        $task->status = $task->status === 'Done' ? 'Pending' : 'Done';
-        $task->save();
-
-        return $task->refresh();
-    }
-
-    protected function deleteChildren(ProjectTask $task): void
-    {
-        foreach ($task->children as $child) {
-            $this->deleteChildren($child);
-            $child->delete();
-        }
-    }
-
-    protected function normalizeSlug(?string $slug, string $fallback): string
-    {
-        return Str::slug($slug ?: $fallback);
-    }
-
-    protected function calculateProgress(int $total, int $done): int
-    {
-        if ($total < 1) {
-            return 0;
-        }
-
-        return (int) round(($done / $total) * 100);
     }
 }

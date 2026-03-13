@@ -1,7 +1,3 @@
 <?php
-
 namespace Modules\ProjectManager\Http\Requests;
-
-class UpdateProjectManagerRequest extends StoreProjectManagerRequest
-{
-}
+class UpdateProjectManagerRequest extends StoreProjectManagerRequest {}
