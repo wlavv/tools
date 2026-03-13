@@ -4,8 +4,6 @@ namespace Modules\AIConsensus\Services;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -133,12 +131,19 @@ class AIConsensusService
 
     public function saveProviderCredentials(array $data): AIProviderCredential
     {
-        $provider = $data['provider'];
+        $provider = (string) $data['provider'];
 
         $credential = AIProviderCredential::firstOrNew(['provider' => $provider]);
         $credential->label = $data['label'] ?? Str::headline($provider);
-        $credential->base_url = $data['base_url'] ?: data_get(config('ai_consensus.providers'), $provider . '.api_base');
-        $credential->default_model = $data['default_model'] ?: data_get(config('ai_consensus.providers'), $provider . '.default_model');
+
+        if (array_key_exists('base_url', $data)) {
+            $credential->base_url = $data['base_url'];
+        }
+
+        if (array_key_exists('default_model', $data)) {
+            $credential->default_model = $data['default_model'];
+        }
+
         $credential->is_active = (bool) ($data['is_active'] ?? true);
 
         if (!empty($data['api_key'])) {
@@ -173,13 +178,46 @@ class AIConsensusService
                 continue;
             }
 
+            try {
+                $this->resolveProviderConfig($provider);
+            } catch (\Throwable $e) {
+                AIRunResponse::updateOrCreate(
+                    ['ai_run_id' => $run->id, 'provider' => $provider],
+                    [
+                        'model' => null,
+                        'status' => 'failed',
+                        'error' => $e->getMessage(),
+                    ]
+                );
+                continue;
+            }
+
             $this->runProvider($run, $provider, $effectivePrompt);
         }
 
         $run->update(['status' => 'integrating']);
 
         if ((bool) data_get($run->options, 'run_openai_final', true)) {
-            $this->runOpenAIFinal($run, $basePrompt, $filePromptBlock);
+            try {
+                $this->resolveProviderConfig('openai');
+                $this->runOpenAIFinal($run, $basePrompt, $filePromptBlock);
+            } catch (\Throwable $e) {
+                AIRunResponse::updateOrCreate(
+                    ['ai_run_id' => $run->id, 'provider' => 'openai'],
+                    [
+                        'model' => null,
+                        'status' => 'failed',
+                        'error' => $e->getMessage(),
+                    ]
+                );
+
+                $run->update([
+                    'status' => 'failed',
+                    'meta' => array_merge($run->meta ?? [], [
+                        'integration_error' => $e->getMessage(),
+                    ]),
+                ]);
+            }
         }
 
         $this->refreshRunTotals($run);
@@ -188,11 +226,12 @@ class AIConsensusService
     protected function runProvider(AIConsensus $run, string $provider, string $prompt): AIRunResponse
     {
         $settings = $this->getProviderCredential($provider);
+        $resolved = $this->resolveProviderConfig($provider, $settings);
 
         $responseRecord = AIRunResponse::updateOrCreate(
             ['ai_run_id' => $run->id, 'provider' => $provider],
             [
-                'model' => $settings?->default_model ?: data_get(config('ai_consensus.providers'), $provider . '.default_model'),
+                'model' => $resolved['model'],
                 'status' => 'running',
                 'error' => null,
             ]
@@ -243,6 +282,7 @@ class AIConsensusService
     protected function runOpenAIFinal(AIConsensus $run, string $basePrompt, string $filePromptBlock = ''): void
     {
         $settings = $this->getProviderCredential('openai');
+        $resolved = $this->resolveProviderConfig('openai', $settings);
         $responses = $run->responses()->where('status', 'done')->orderBy('provider')->get();
 
         $integrationPrompt = $this->buildIntegrationPrompt($run, $basePrompt, $responses, $filePromptBlock);
@@ -253,7 +293,7 @@ class AIConsensusService
             $latency = (int) round((microtime(true) - $start) * 1000);
             $cost = $this->estimateProviderCost(
                 'openai',
-                $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), '')),
+                $result['model'] ?? $resolved['model'],
                 (int) ($result['tokens_in'] ?? 0),
                 (int) ($result['tokens_out'] ?? 0),
                 $settings?->meta ?? []
@@ -263,7 +303,7 @@ class AIConsensusService
                 'status' => 'done',
                 'final_answer' => $result['text'] ?? '',
                 'final_provider' => 'openai',
-                'final_model' => $result['model'] ?? ($settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), '')),
+                'final_model' => $result['model'] ?? $resolved['model'],
                 'meta' => array_merge($run->meta ?? [], [
                     'openai_latency_ms' => $latency,
                 ]),
@@ -294,7 +334,7 @@ class AIConsensusService
             AIRunResponse::updateOrCreate(
                 ['ai_run_id' => $run->id, 'provider' => 'openai'],
                 [
-                    'model' => $settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), ''),
+                    'model' => $resolved['model'],
                     'status' => 'failed',
                     'error' => $e->getMessage(),
                     'latency_ms' => (int) round((microtime(true) - $start) * 1000),
@@ -311,7 +351,11 @@ class AIConsensusService
         $tokensOut = (int) $run->responses->sum(fn ($item) => (int) $item->tokens_out);
         $cost = (float) $run->responses->sum(fn ($item) => (float) $item->cost_estimate_usd);
 
-        $finalStatus = $run->final_answer ? 'done' : ($run->responses->where('status', 'failed')->count() === $run->responses->count() ? 'failed' : $run->status);
+        $finalStatus = $run->final_answer
+            ? 'done'
+            : ($run->responses->count() > 0 && $run->responses->where('status', 'failed')->count() === $run->responses->count()
+                ? 'failed'
+                : $run->status);
 
         $run->update([
             'status' => $finalStatus,
@@ -329,24 +373,48 @@ class AIConsensusService
             ->first();
     }
 
-    protected function callAnthropic(string $prompt, ?AIProviderCredential $credential): array
+    protected function resolveProviderConfig(string $provider, ?AIProviderCredential $credential = null): array
     {
-        $apiKey = $credential?->api_key ?: env('ANTHROPIC_API_KEY');
-        if (blank($apiKey)) {
-            throw new \RuntimeException('Anthropic API key não configurada.');
+        $credential = $credential ?: $this->getProviderCredential($provider);
+
+        if (!$credential) {
+            throw new \RuntimeException("Provider [$provider] sem credencial ativa na base de dados.");
         }
 
-        $model = $credential?->default_model ?: data_get(config('ai_consensus.providers.anthropic'), 'default_model');
-        $baseUrl = rtrim($credential?->base_url ?: data_get(config('ai_consensus.providers.anthropic'), 'api_base'), '/');
+        if (blank($credential->api_key)) {
+            throw new \RuntimeException("Provider [$provider] sem API key na base de dados.");
+        }
+
+        if (blank($credential->base_url)) {
+            throw new \RuntimeException("Provider [$provider] sem base URL na base de dados.");
+        }
+
+        if (blank($credential->default_model)) {
+            throw new \RuntimeException("Provider [$provider] sem modelo por defeito na base de dados.");
+        }
+
+        return [
+            'credential' => $credential,
+            'api_key' => (string) $credential->api_key,
+            'base_url' => rtrim((string) $credential->base_url, '/'),
+            'model' => (string) $credential->default_model,
+            'meta' => $credential->meta ?? [],
+        ];
+    }
+
+    protected function callAnthropic(string $prompt, ?AIProviderCredential $credential): array
+    {
+        $resolved = $this->resolveProviderConfig('anthropic', $credential);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
             ->withHeaders([
-                'x-api-key' => $apiKey,
+                'x-api-key' => $resolved['api_key'],
                 'anthropic-version' => '2023-06-01',
+                'content-type' => 'application/json',
             ])
-            ->post($baseUrl . '/v1/messages', [
-                'model' => $model,
+            ->post($resolved['base_url'] . '/v1/messages', [
+                'model' => $resolved['model'],
                 'max_tokens' => 4000,
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
@@ -362,7 +430,7 @@ class AIConsensusService
 
         return [
             'text' => $text,
-            'model' => $json['model'] ?? $model,
+            'model' => $json['model'] ?? $resolved['model'],
             'tokens_in' => data_get($json, 'usage.input_tokens'),
             'tokens_out' => data_get($json, 'usage.output_tokens'),
             'meta' => $json,
@@ -371,17 +439,11 @@ class AIConsensusService
 
     protected function callGemini(string $prompt, ?AIProviderCredential $credential): array
     {
-        $apiKey = $credential?->api_key ?: env('GEMINI_API_KEY');
-        if (blank($apiKey)) {
-            throw new \RuntimeException('Gemini API key não configurada.');
-        }
-
-        $model = $credential?->default_model ?: data_get(config('ai_consensus.providers.gemini'), 'default_model');
-        $baseUrl = rtrim($credential?->base_url ?: data_get(config('ai_consensus.providers.gemini'), 'api_base'), '/');
+        $resolved = $this->resolveProviderConfig('gemini', $credential);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
-            ->post($baseUrl . '/v1beta/models/' . $model . ':generateContent?key=' . urlencode($apiKey), [
+            ->post($resolved['base_url'] . '/models/' . $resolved['model'] . ':generateContent?key=' . urlencode($resolved['api_key']), [
                 'contents' => [
                     [
                         'parts' => [
@@ -396,11 +458,10 @@ class AIConsensusService
         }
 
         $json = $response->json();
-        $text = data_get($json, 'candidates.0.content.parts.0.text', '');
 
         return [
-            'text' => $text,
-            'model' => $model,
+            'text' => data_get($json, 'candidates.0.content.parts.0.text', ''),
+            'model' => $resolved['model'],
             'tokens_in' => data_get($json, 'usageMetadata.promptTokenCount'),
             'tokens_out' => data_get($json, 'usageMetadata.candidatesTokenCount'),
             'meta' => $json,
@@ -409,19 +470,13 @@ class AIConsensusService
 
     protected function callOpenAI(string $prompt, ?AIProviderCredential $credential): array
     {
-        $apiKey = $credential?->api_key ?: env('OPENAI_API_KEY');
-        if (blank($apiKey)) {
-            throw new \RuntimeException('OpenAI API key não configurada.');
-        }
-
-        $model = $credential?->default_model ?: data_get(config('ai_consensus.providers.openai'), 'default_model');
-        $baseUrl = rtrim($credential?->base_url ?: data_get(config('ai_consensus.providers.openai'), 'api_base'), '/');
+        $resolved = $this->resolveProviderConfig('openai', $credential);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
-            ->withToken($apiKey)
-            ->post($baseUrl . '/responses', [
-                'model' => $model,
+            ->withToken($resolved['api_key'])
+            ->post($resolved['base_url'] . '/responses', [
+                'model' => $resolved['model'],
                 'input' => $prompt,
             ]);
 
@@ -430,11 +485,10 @@ class AIConsensusService
         }
 
         $json = $response->json();
-        $text = $this->extractOpenAIText($json);
 
         return [
-            'text' => $text,
-            'model' => $json['model'] ?? $model,
+            'text' => $this->extractOpenAIText($json),
+            'model' => $json['model'] ?? $resolved['model'],
             'tokens_in' => data_get($json, 'usage.input_tokens'),
             'tokens_out' => data_get($json, 'usage.output_tokens'),
             'meta' => $json,
@@ -450,7 +504,7 @@ class AIConsensusService
                 $content = data_get($item, 'content', []);
                 if (is_array($content)) {
                     foreach ($content as $block) {
-                        $text = data_get($block, 'text');
+                        $text = data_get($block, 'text', null);
                         if (filled($text)) {
                             return $text;
                         }
@@ -459,7 +513,7 @@ class AIConsensusService
             }
         }
 
-        return (string) (data_get($json, 'output_text') ?: data_get($json, 'choices.0.message.content') ?: '');
+        return (string) (data_get($json, 'output_text', '') ?: data_get($json, 'choices.0.message.content', ''));
     }
 
     protected function buildIntegrationPrompt(AIConsensus $run, string $basePrompt, EloquentCollection $responses, string $filePromptBlock = ''): string
@@ -543,7 +597,7 @@ class AIConsensusService
 
         try {
             return match ($extension) {
-                'txt', 'md', 'csv', 'json', 'xml', 'html', 'htm', 'log', 'yaml', 'yml', 'sql', 'php', 'js', 'ts', 'css', 'blade.php' => $this->limitExtract($this->readPlainTextFile($fullPath)),
+                'txt', 'md', 'csv', 'json', 'xml', 'html', 'htm', 'log', 'yaml', 'yml', 'sql', 'php', 'js', 'ts', 'css' => $this->limitExtract($this->readPlainTextFile($fullPath)),
                 'docx' => $this->limitExtract($this->readDocx($fullPath)),
                 'pdf' => $this->limitExtract($this->readPdfBestEffort($fullPath)),
                 default => '',
