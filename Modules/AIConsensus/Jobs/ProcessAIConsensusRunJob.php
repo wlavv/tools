@@ -18,10 +18,10 @@ class ProcessAIConsensusRunJob implements ShouldQueue
 
     public int $timeout = 1800;
     public int $tries = 1;
-    public string $queue = 'ai-consensus';
 
     public function __construct(public int $runId)
     {
+        $this->onQueue('ai-consensus');
     }
 
     public function handle(AIConsensusService $service): void
