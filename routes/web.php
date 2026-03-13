@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', function () { return view('auth.login'); });
 
@@ -16,8 +17,7 @@ Route::get('/language/{locale}', function (string $locale) {
 
 });
 
-use Illuminate\Support\Facades\Artisan;
-
+/**
 Route::get('/tmp-run-migrations', function () {
     Artisan::call('queue:table');
     $out1 = Artisan::output();
@@ -30,3 +30,4 @@ Route::get('/tmp-run-migrations', function () {
 
     return nl2br($out1 . "\n" . $out2 . "\n" . $out3);
 });
+**/
