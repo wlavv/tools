@@ -15,18 +15,20 @@ class AIProviderCredential extends Model
         'api_key_encrypted',
         'base_url',
         'default_model',
-        'is_active',
+        'enabled',
         'meta',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'enabled' => 'boolean',
         'meta' => 'array',
     ];
 
     public function setApiKeyAttribute(?string $value): void
     {
-        $this->attributes['api_key_encrypted'] = filled($value) ? Crypt::encryptString($value) : null;
+        $this->attributes['api_key_encrypted'] = filled($value)
+            ? Crypt::encryptString($value)
+            : null;
     }
 
     public function getApiKeyAttribute(): ?string
@@ -40,5 +42,15 @@ class AIProviderCredential extends Model
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return (bool) ($this->attributes['enabled'] ?? false);
+    }
+
+    public function setIsActiveAttribute(bool $value): void
+    {
+        $this->attributes['enabled'] = $value ? 1 : 0;
     }
 }

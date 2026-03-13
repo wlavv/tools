@@ -3345,6 +3345,7 @@ return array(
     'Modules\\AIConsensus\\Http\\Controllers\\AIConsensusController' => $baseDir . '/Modules/AIConsensus/Http/Controllers/AIConsensusController.php',
     'Modules\\AIConsensus\\Http\\Requests\\StoreAIConsensusRequest' => $baseDir . '/Modules/AIConsensus/Http/Requests/StoreAIConsensusRequest.php',
     'Modules\\AIConsensus\\Http\\Requests\\UpdateAIConsensusRequest' => $baseDir . '/Modules/AIConsensus/Http/Requests/UpdateAIConsensusRequest.php',
+    'Modules\\AIConsensus\\Jobs\\ProcessAIConsensusRunJob' => $baseDir . '/Modules/AIConsensus/Jobs/ProcessAIConsensusRunJob.php',
     'Modules\\AIConsensus\\Models\\AIConsensus' => $baseDir . '/Modules/AIConsensus/Models/AIConsensus.php',
     'Modules\\AIConsensus\\Models\\AIFile' => $baseDir . '/Modules/AIConsensus/Models/AIFile.php',
     'Modules\\AIConsensus\\Models\\AIProviderCredential' => $baseDir . '/Modules/AIConsensus/Models/AIProviderCredential.php',

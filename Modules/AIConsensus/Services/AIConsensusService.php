@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\AIConsensus\Jobs\ProcessAIConsensusRunJob;
 use Modules\AIConsensus\Models\AIConsensus;
 use Modules\AIConsensus\Models\AIFile;
 use Modules\AIConsensus\Models\AIProviderCredential;
@@ -56,14 +57,12 @@ class AIConsensusService
 
     public function getProviderSettings(): EloquentCollection
     {
-        return AIProviderCredential::query()
-            ->orderBy('provider')
-            ->get();
+        return AIProviderCredential::query()->orderBy('provider')->get();
     }
 
     public function createRun(array $data, array $files = [], ?int $userId = null): AIConsensus
     {
-        return DB::transaction(function () use ($data, $files, $userId) {
+        $run = DB::transaction(function () use ($data, $files, $userId) {
             $run = AIConsensus::create([
                 'created_by' => $userId,
                 'title' => $data['title'] ?? null,
@@ -71,16 +70,17 @@ class AIConsensusService
                 'prompt' => $data['prompt'],
                 'status' => 'queued',
                 'options' => $data['options'] ?? [],
-                'meta' => [
-                    'source' => 'manual',
-                ],
+                'meta' => ['source' => 'manual'],
             ]);
 
             $this->storeUploadedFiles($run, $files);
-            $this->processRun($run);
 
-            return $run->fresh(['responses', 'files']);
+            return $run;
         });
+
+        ProcessAIConsensusRunJob::dispatch($run->id)->afterCommit();
+
+        return $run->fresh(['responses', 'files']);
     }
 
     public function updateRun(AIConsensus $run, array $data, array $files = []): AIConsensus
@@ -113,20 +113,33 @@ class AIConsensusService
 
     public function reprocessRun(AIConsensus $run): AIConsensus
     {
-        $run->responses()->delete();
-        $run->update([
-            'status' => 'queued',
-            'final_answer' => null,
-            'final_provider' => null,
-            'final_model' => null,
-            'total_tokens_in' => null,
-            'total_tokens_out' => null,
-            'total_cost_estimate_usd' => null,
-        ]);
+        DB::transaction(function () use ($run) {
+            $run->responses()->delete();
+            $run->update([
+                'status' => 'queued',
+                'final_answer' => null,
+                'final_provider' => null,
+                'final_model' => null,
+                'total_tokens_in' => null,
+                'total_tokens_out' => null,
+                'total_cost_estimate_usd' => null,
+            ]);
+        });
 
-        $this->processRun($run);
+        ProcessAIConsensusRunJob::dispatch($run->id)->afterCommit();
 
         return $run->fresh(['responses', 'files']);
+    }
+
+    public function processQueuedRun(int $runId): void
+    {
+        $run = AIConsensus::query()->with(['files', 'responses'])->find($runId);
+
+        if (!$run) {
+            return;
+        }
+
+        $this->processRun($run);
     }
 
     public function saveProviderCredentials(array $data): AIProviderCredential
@@ -144,7 +157,7 @@ class AIConsensusService
             $credential->default_model = $data['default_model'];
         }
 
-        $credential->is_active = (bool) ($data['is_active'] ?? true);
+        $credential->enabled = (bool) ($data['enabled'] ?? $data['is_active'] ?? true);
 
         if (!empty($data['api_key'])) {
             $credential->api_key = $data['api_key'];
@@ -183,11 +196,7 @@ class AIConsensusService
             } catch (\Throwable $e) {
                 AIRunResponse::updateOrCreate(
                     ['ai_run_id' => $run->id, 'provider' => $provider],
-                    [
-                        'model' => null,
-                        'status' => 'failed',
-                        'error' => $e->getMessage(),
-                    ]
+                    ['model' => null, 'status' => 'failed', 'error' => $e->getMessage()]
                 );
                 continue;
             }
@@ -204,18 +213,12 @@ class AIConsensusService
             } catch (\Throwable $e) {
                 AIRunResponse::updateOrCreate(
                     ['ai_run_id' => $run->id, 'provider' => 'openai'],
-                    [
-                        'model' => null,
-                        'status' => 'failed',
-                        'error' => $e->getMessage(),
-                    ]
+                    ['model' => null, 'status' => 'failed', 'error' => $e->getMessage()]
                 );
 
                 $run->update([
                     'status' => 'failed',
-                    'meta' => array_merge($run->meta ?? [], [
-                        'integration_error' => $e->getMessage(),
-                    ]),
+                    'meta' => array_merge($run->meta ?? [], ['integration_error' => $e->getMessage()]),
                 ]);
             }
         }
@@ -230,11 +233,7 @@ class AIConsensusService
 
         $responseRecord = AIRunResponse::updateOrCreate(
             ['ai_run_id' => $run->id, 'provider' => $provider],
-            [
-                'model' => $resolved['model'],
-                'status' => 'running',
-                'error' => null,
-            ]
+            ['model' => $resolved['model'], 'status' => 'running', 'error' => null]
         );
 
         $start = microtime(true);
@@ -267,12 +266,10 @@ class AIConsensusService
                 'meta' => $result['meta'] ?? [],
             ]);
         } catch (\Throwable $e) {
-            $latency = (int) round((microtime(true) - $start) * 1000);
-
             $responseRecord->update([
                 'status' => 'failed',
                 'error' => $e->getMessage(),
-                'latency_ms' => $latency,
+                'latency_ms' => (int) round((microtime(true) - $start) * 1000),
             ]);
         }
 
@@ -304,9 +301,7 @@ class AIConsensusService
                 'final_answer' => $result['text'] ?? '',
                 'final_provider' => 'openai',
                 'final_model' => $result['model'] ?? $resolved['model'],
-                'meta' => array_merge($run->meta ?? [], [
-                    'openai_latency_ms' => $latency,
-                ]),
+                'meta' => array_merge($run->meta ?? [], ['openai_latency_ms' => $latency]),
             ]);
 
             AIRunResponse::updateOrCreate(
@@ -326,9 +321,7 @@ class AIConsensusService
         } catch (\Throwable $e) {
             $run->update([
                 'status' => 'failed',
-                'meta' => array_merge($run->meta ?? [], [
-                    'integration_error' => $e->getMessage(),
-                ]),
+                'meta' => array_merge($run->meta ?? [], ['integration_error' => $e->getMessage()]),
             ]);
 
             AIRunResponse::updateOrCreate(
@@ -369,7 +362,7 @@ class AIConsensusService
     {
         return AIProviderCredential::query()
             ->where('provider', $provider)
-            ->where('is_active', true)
+            ->where('enabled', true)
             ->first();
     }
 
@@ -416,9 +409,7 @@ class AIConsensusService
             ->post($resolved['base_url'] . '/v1/messages', [
                 'model' => $resolved['model'],
                 'max_tokens' => 4000,
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
-                ],
+                'messages' => [['role' => 'user', 'content' => $prompt]],
             ]);
 
         if (!$response->successful()) {
@@ -426,7 +417,7 @@ class AIConsensusService
         }
 
         $json = $response->json();
-        $text = collect($json['content'] ?? [])->pluck('text')->filter()->implode("\n\n");
+        $text = collect($json['content'] ?? [])->pluck('text')->filter()->implode("\\n\\n");
 
         return [
             'text' => $text,
@@ -444,13 +435,9 @@ class AIConsensusService
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
             ->post($resolved['base_url'] . '/models/' . $resolved['model'] . ':generateContent?key=' . urlencode($resolved['api_key']), [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                        ],
-                    ],
-                ],
+                'contents' => [[
+                    'parts' => [['text' => $prompt]],
+                ]],
             ]);
 
         if (!$response->successful()) {
@@ -519,22 +506,22 @@ class AIConsensusService
     protected function buildIntegrationPrompt(AIConsensus $run, string $basePrompt, EloquentCollection $responses, string $filePromptBlock = ''): string
     {
         $blocks = [];
-        $blocks[] = "PROMPT ORIGINAL:\n" . $basePrompt;
+        $blocks[] = "PROMPT ORIGINAL:\\n" . $basePrompt;
 
         if (filled($filePromptBlock)) {
-            $blocks[] = "CONTEÚDO EXTRAÍDO DOS FICHEIROS:\n" . $filePromptBlock;
+            $blocks[] = "CONTEÚDO EXTRAÍDO DOS FICHEIROS:\\n" . $filePromptBlock;
         }
 
         foreach ($responses as $response) {
-            $blocks[] = strtoupper($response->provider) . " (" . ($response->model ?: 'n/a') . "):\n" . ($response->raw_output ?: '[sem conteúdo]');
+            $blocks[] = strtoupper($response->provider) . " (" . ($response->model ?: 'n/a') . "):\\n" . ($response->raw_output ?: '[sem conteúdo]');
         }
 
-        $blocks[] = "INSTRUÇÕES DE INTEGRAÇÃO:\n"
+        $blocks[] = "INSTRUÇÕES DE INTEGRAÇÃO:\\n"
             . "Produz uma resposta final consolidada, em português, clara e técnica. "
             . "Identifica convergências, divergências, riscos, lacunas e propõe uma resposta final útil e objetiva. "
             . "Se os ficheiros anexados forem relevantes, incorpora explicitamente esse conteúdo.";
 
-        return implode("\n\n====================\n\n", $blocks);
+        return implode("\\n\\n====================\\n\\n", $blocks);
     }
 
     public function buildStoredFilesPromptBlock(AIConsensus $run): string
@@ -548,13 +535,13 @@ class AIConsensusService
                 continue;
             }
 
-            $chunks[] = "FICHEIRO: {$file->original_name}\n"
-                . "MIME: " . ($file->mime_type ?: 'n/a') . "\n"
-                . "CONTEÚDO EXTRAÍDO:\n"
+            $chunks[] = "FICHEIRO: {$file->original_name}\\n"
+                . "MIME: " . ($file->mime_type ?: 'n/a') . "\\n"
+                . "CONTEÚDO EXTRAÍDO:\\n"
                 . $text;
         }
 
-        return implode("\n\n------------------------------\n\n", $chunks);
+        return implode("\\n\\n------------------------------\\n\\n", $chunks);
     }
 
     protected function storeUploadedFiles(AIConsensus $run, array $files): void
@@ -569,7 +556,7 @@ class AIConsensusService
 
             $storedPath = $file->storeAs(
                 $folder . '/' . $run->id,
-                Str::uuid()->toString() . '_' . preg_replace('/[^A-Za-z0-9\.\-_]/', '_', $file->getClientOriginalName()),
+                Str::uuid()->toString() . '_' . preg_replace('/[^A-Za-z0-9\\.\\-_]/', '_', $file->getClientOriginalName()),
                 $disk
             );
 
@@ -610,11 +597,9 @@ class AIConsensusService
     protected function readPlainTextFile(string $path): string
     {
         $content = @file_get_contents($path);
-
         if ($content === false) {
             return '';
         }
-
         return trim(mb_convert_encoding($content, 'UTF-8', 'UTF-8'));
     }
 
@@ -638,7 +623,7 @@ class AIConsensusService
             return '';
         }
 
-        $text = strip_tags(str_replace(['</w:p>', '</w:tr>'], ["\n", "\n"], $xml));
+        $text = strip_tags(str_replace(['</w:p>', '</w:tr>'], ["\\n", "\\n"], $xml));
         return trim(html_entity_decode($text, ENT_QUOTES | ENT_XML1, 'UTF-8'));
     }
 
@@ -649,15 +634,15 @@ class AIConsensusService
             return '';
         }
 
-        preg_match_all('/\(([^()]*(?:\\\\.[^()]*)*)\)/s', $content, $matches);
+        preg_match_all('/\\(([^()]*(?:\\\\\\\\.[^()]*)*)\\)/s', $content, $matches);
         $texts = array_map(function ($item) {
-            $item = preg_replace('/\\\\([nrtbf()\\\\])/', ' ', $item);
-            $item = preg_replace('/\\\\\d{3}/', ' ', $item);
+            $item = preg_replace('/\\\\\\\\([nrtbf()\\\\\\\\])/', ' ', $item);
+            $item = preg_replace('/\\\\\\\\\\d{3}/', ' ', $item);
             return trim($item);
         }, $matches[1] ?? []);
 
         $joined = trim(implode(' ', array_filter($texts)));
-        return preg_replace('/\s+/', ' ', $joined);
+        return preg_replace('/\\s+/', ' ', $joined);
     }
 
     protected function limitExtract(string $text, int $maxChars = 20000): string
@@ -668,7 +653,7 @@ class AIConsensusService
             return $text;
         }
 
-        return mb_substr($text, 0, $maxChars) . "\n\n[conteúdo truncado]";
+        return mb_substr($text, 0, $maxChars) . "\\n\\n[conteúdo truncado]";
     }
 
     protected function estimateProviderCost(string $provider, string $model, int $tokensIn, int $tokensOut, array $meta = []): float
