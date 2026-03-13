@@ -294,7 +294,7 @@ class AIConsensusService
             AIRunResponse::updateOrCreate(
                 ['ai_run_id' => $run->id, 'provider' => 'openai'],
                 [
-                    'model' => $settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model')),
+                    'model' => $settings?->default_model ?: data_get(config('ai_consensus.providers.openai.default_model'), ''),
                     'status' => 'failed',
                     'error' => $e->getMessage(),
                     'latency_ms' => (int) round((microtime(true) - $start) * 1000),
