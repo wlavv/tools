@@ -26,7 +26,7 @@ return [
         'anthropic' => [
             'label' => 'Claude',
             'api_base' => env('ANTHROPIC_API_BASE', 'https://api.anthropic.com'),
-            'default_model' => env('ANTHROPIC_DEFAULT_MODEL', 'claude-3-7-sonnet-latest'),
+            'default_model' => env('ANTHROPIC_DEFAULT_MODEL', 'claude-3-5-sonnet-latest'),
         ],
         'gemini' => [
             'label' => 'Gemini',
@@ -36,7 +36,7 @@ return [
         'openai' => [
             'label' => 'OpenAI',
             'api_base' => env('OPENAI_API_BASE', 'https://api.openai.com/v1'),
-            'default_model' => env('OPENAI_DEFAULT_MODEL', 'gpt-5'),
+            'default_model' => env('OPENAI_DEFAULT_MODEL', 'gpt-4o'),
         ],
     ],
 
