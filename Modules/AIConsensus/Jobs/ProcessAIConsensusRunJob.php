@@ -17,7 +17,7 @@ class ProcessAIConsensusRunJob implements ShouldQueue
     use SerializesModels;
 
     public int $timeout = 1800;
-    public int $tries = 1;
+    public int $tries = 3;
 
     public function __construct(public int $runId)
     {
@@ -26,6 +26,16 @@ class ProcessAIConsensusRunJob implements ShouldQueue
 
     public function handle(AIConsensusService $service): void
     {
-        $service->processQueuedRun($this->runId);
+        try {
+            $service->processQueuedRun($this->runId);
+        } catch (\Throwable $e) {
+            \Log::error('AI Consensus job failed', [
+                'run_id' => $this->runId,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            throw $e;
+        }
     }
 }

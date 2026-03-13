@@ -133,6 +133,8 @@ class AIConsensusService
 
     public function processQueuedRun(int $runId): void
     {
+        \Log::info('Processing AI Consensus run', ['run_id' => $runId]);
+        
         $run = AIConsensus::query()->with(['files', 'responses'])->find($runId);
 
         if (!$run) {
