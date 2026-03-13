@@ -17,7 +17,6 @@ Route::get('/language/{locale}', function (string $locale) {
 });
 
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
 
 Route::get('/tmp-run-migrations', function () {
     Artisan::call('queue:table');
