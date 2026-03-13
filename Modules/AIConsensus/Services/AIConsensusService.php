@@ -157,7 +157,7 @@ class AIConsensusService
             $credential->default_model = $data['default_model'];
         }
 
-        $credential->enabled = (bool) ($data['enabled'] ?? $data['is_active'] ?? true);
+        $credential->enabled = (bool) ($data['is_active'] ?? $data['is_active'] ?? true);
 
         if (!empty($data['api_key'])) {
             $credential->api_key = $data['api_key'];
@@ -362,7 +362,7 @@ class AIConsensusService
     {
         return AIProviderCredential::query()
             ->where('provider', $provider)
-            ->where('enabled', true)
+            ->where('is_active', true)
             ->first();
     }
 
