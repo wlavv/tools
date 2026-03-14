@@ -1,14 +1,9 @@
 <?php
 
-//Use App\Http\Controllers\CustomTools\uploadsController;
 Use App\Http\Controllers\CustomTools\oriflameController;
 Use App\Http\Controllers\CustomTools\customersController;
 Use App\Http\Controllers\CustomTools\budgetController;
 Use App\Http\Controllers\CustomTools\tasksController;
-Use App\Http\Controllers\CustomTools\groupStructureController;
-Use App\Http\Controllers\CustomTools\projectDetailsController;
-Use App\Http\Controllers\CustomTools\todoController;
-Use App\Http\Controllers\CustomTools\passwordManagerController;
 
 use App\Http\Controllers\CustomTools\InvestmentsController;
 use App\Http\Controllers\CustomTools\InvestmentsPositionController;
@@ -28,34 +23,10 @@ Route::post( 'finance/budget/delete/detail',              [budgetController::cla
 Route::post( 'finance/budget/objective/add',              [budgetController::class, 'addObjective'])->name('budget.addObjective');
 Route::post( 'finance/budget/objective/done',             [budgetController::class, 'setObjectiveAsDone'])->name('budget.setObjectiveAsDone');
 
-
-/************************************* GROUP STRUCTURE *************************************/
-Route::get(  'administration/groupStructure',                    [groupStructureController::class, 'index'])->name('groupStructure.index');
-Route::post( 'administration/groupStructure/remove',             [groupStructureController::class, 'destroy'])->name('groupStructure.destroy');
-Route::get(  'administration/groupStructure/{id}/edit',          [groupStructureController::class, 'edit'])->name('groupStructure.edit');
-Route::post( 'administration/groupStructure/new/project',        [groupStructureController::class, 'newProject'])->name('groupStructure.newProject');
-
-/************************************* PROJECT DETAILS *************************************/
-Route::get( 'administration/groupStructure/project/{id}',[projectDetailsController::class, 'index'])->name('projectDetails.index');
-
-/************************************* PROJECT DETAILS *************************************/
-Route::get( 'administration/groupStructure/todo/{id}',  [todoController::class, 'index'])->name('todo.index');
-Route::post('administration/groupStructure/todo/store', [todoController::class, 'store'])->name('todo.store');
-Route::post('administration/groupStructure/todo/update/order', [todoController::class, 'saveOrder'])->name('todo.saveOrder');
-Route::delete('administration/groupStructure/todo/destroy/{id}', [todoController::class, 'destroy'])->name('todo.destroy');
-Route::post('administration/groupStructure/todo/done/{id}', [todoController::class, 'setDone'])->name('todo.setDone');
-
-
 /******************************************  TASKS ******************************************/
 Route::resources([ 'tasks'=>                            tasksController::class]);
 Route::post('/taks/update',                             [TasksController::class, 'updateDone'])->name('tasks.updateDone');
 Route::get( '/taks/calendar/{year}/{month}',            [TasksController::class, 'getMonthInfo'])->name('tasks.getMonthInfo');
-
-
-/******************************************  UPLOADS ******************************************/
-//Route::post( 'customTools/uploads/upload',              [uploadsController::class, 'upload'])->name('uploads.upload');
-//Route::resources([ 'customTools/uploads'=>              uploadsController::class]);
-
 
 /****************************************** ORIFLAME ******************************************/
 Route::resources([ 'sales/oriflame'=>                   oriflameController::class]);
@@ -89,12 +60,6 @@ Route::get('/webmaster/mtg/showSet/{code}/{sub_set?}',  [mtgController::class, '
 Route::get('/webmaster/mtg/front/find',                 [mtgController::class, 'findCard'])->name('mtg.findCard');
 Route::post('/webmaster/mtg/front/postCardDetail',      [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
 Route::get('/webmaster/mtg/generate/description/{id}',  [mtgController::class, 'generateDescription'])->name('mtg.generateDescription');
-
-
-Route::get('/administration/password',                       [passwordManagerController::class, 'index'])->name('password_manager.index');
-Route::post('/administration/password/actions',              [passwordManagerController::class, 'actions'])->name('password_manager.actions');
-
-
 
 Route::get('finance/investments', [investmentsController::class, 'index'])->name('investments.index');
 Route::resource('finance/investments/positions', InvestmentsPositionController::class);
