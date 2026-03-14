@@ -42,7 +42,7 @@ class adminController extends Controller
                 'icon' => 'fa-solid fa-folder-tree'            
             ],
             [
-                'url' => route('password-manager.index'),
+                'url' => route('password_manager.index'),
                 'name' => "PASSWORD'S",
                 'image' => null,  
                 'icon' => 'fa-solid fa-key',            
