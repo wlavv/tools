@@ -36,13 +36,13 @@ class adminController extends Controller
 
         return [
             [
-                'url' => route('groupStructure.index'),
+                'url' => route('project_manager.index'),
                 'name' => 'Projects',
                 'image' => null,            
                 'icon' => 'fa-solid fa-folder-tree'            
             ],
             [
-                'url' => route('password_manager.index'),
+                'url' => route('password-manager.index'),
                 'name' => "PASSWORD'S",
                 'image' => null,  
                 'icon' => 'fa-solid fa-key',            
