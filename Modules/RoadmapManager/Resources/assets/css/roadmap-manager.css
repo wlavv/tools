@@ -1,0 +1,76 @@
+.roadmap-manager-page {
+    color: inherit;
+    background: transparent;
+}
+
+.roadmap-manager-page .rm-panel {
+    background: transparent;
+    color: inherit;
+    border: 1px solid rgba(128,128,128,0.15);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.roadmap-manager-page .rm-panel-header {
+    background: transparent;
+    color: inherit;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(128,128,128,0.12);
+}
+
+.roadmap-manager-page .rm-panel-body {
+    padding: 1rem 1.25rem;
+    color: inherit;
+}
+
+.roadmap-manager-page .rm-title,
+.roadmap-manager-page .rm-subtitle,
+.roadmap-manager-page h1,
+.roadmap-manager-page h2,
+.roadmap-manager-page h3,
+.roadmap-manager-page h4,
+.roadmap-manager-page h5 {
+    color: inherit;
+}
+
+.roadmap-manager-page .rm-table {
+    width: 100%;
+    color: inherit;
+    background: transparent;
+}
+
+.roadmap-manager-page .rm-table th,
+.roadmap-manager-page .rm-table td {
+    background: transparent;
+    color: inherit;
+    border-color: rgba(128,128,128,0.12);
+    vertical-align: middle;
+}
+
+.roadmap-manager-page .rm-muted {
+    opacity: .75;
+}
+
+.roadmap-manager-page .rm-kpi {
+    border: 1px solid rgba(128,128,128,0.12);
+    border-radius: 12px;
+    padding: 1rem;
+    background: transparent;
+    color: inherit;
+}
+
+.roadmap-manager-page .rm-kanban-column,
+.roadmap-manager-page .rm-gantt-wrap,
+.roadmap-manager-page .rm-tree-wrap {
+    border: 1px solid rgba(128,128,128,0.12);
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+}
+
+.roadmap-manager-page .btn,
+.roadmap-manager-page .badge,
+.roadmap-manager-page .alert {
+    box-shadow: none;
+}

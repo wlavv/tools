@@ -1,0 +1,16 @@
+{
+  "name": "modules/roadmap-manager",
+  "description": "LS Group Roadmap Manager",
+  "autoload": {
+    "psr-4": {
+      "Modules\\\\RoadmapManager\\\\": ""
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Modules\\\\RoadmapManager\\\\Providers\\\\RoadmapManagerServiceProvider"
+      ]
+    }
+  }
+}

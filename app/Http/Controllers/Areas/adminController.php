@@ -52,6 +52,18 @@ class adminController extends Controller
                 'name' => "Consensus",
                 'image' => null,  
                 'icon' => 'fa-solid fa-star-of-life',            
+            ],
+            [
+                'url' => route('productivityManager.index'),
+                'name' => "Productivity",
+                'image' => null,  
+                'icon' => 'fa-solid fa-star-of-life',            
+            ],
+            [
+                'url' => route('roadmap-manager.index'),
+                'name' => "Roadmap - LSG",
+                'image' => null,  
+                'icon' => 'fa-solid fa-star-of-life',            
             ]
         ];
     }

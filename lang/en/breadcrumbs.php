@@ -90,10 +90,20 @@ return [
     'password_manager.create' => 'Password manager - new credential',
     'password_manager.edit' => 'Password manager - edit credential',
     'password_manager.show' => 'Password manager - show credential',
+    'password manager' => 'Password manager',
 
 
     'project_manager.index' => 'Project manager - Global',
     'project_manager.create' => 'Project manager - New',
     'project_manager.edit' => 'Project manager - Edit',
     'project_manager.show' => 'Project manager - Details',
+
+    'edit' => 'EDIT',
+
+
+    'productivityManager.settings' => 'Productivity Manager Settings',
+    'productivity manager' => 'Productivity Manager',
+    'settings' => 'Settings',
+    'productivityManager.index'  => 'Productivity Manager',
+    'productivityManager.dashboard' => 'Dashboard'
 ];

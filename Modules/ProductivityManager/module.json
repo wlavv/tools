@@ -1,0 +1,28 @@
+{
+  "name": "ProductivityManager",
+  "alias": "productivitymanager",
+  "slug": "productivity-manager",
+  "description": "Unified productivity dashboard and action center for tasks, blocked items, alerts, and Stream Deck / n8n integrations.",
+  "keywords": [
+    "productivity",
+    "dashboard",
+    "tasks",
+    "streamdeck",
+    "n8n"
+  ],
+  "version": "1.0.0",
+  "priority": 0,
+  "enabled": true,
+  "provider": "Modules\\ProductivityManager\\Providers\\ProductivityManagerServiceProvider",
+  "providers": [
+    "Modules\\ProductivityManager\\Providers\\ProductivityManagerServiceProvider"
+  ],
+  "files": [],
+  "requires": [],
+  "authors": [
+    {
+      "name": "OpenAI",
+      "email": "support@openai.com"
+    }
+  ]
+}
