@@ -2,61 +2,18 @@
 
 namespace App\Http\Controllers\Areas;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use App\Http\Controllers\Controller;
 
-use App\Models\prestashop\product;
+class webController extends Controller{
 
-class webController extends Controller
-{
-    public $actions;
-    public $breadcrumbs;
-    
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'webmaster', 'url' => route('web.index')];
-    }
+    public function index(){
 
-    public function index()
-    {
-        $data = [
-            'actions'    => $this->actions,
-            'counters'   => [],
-            'breadcrumbs'=> $this->breadcrumbs,
-            'accessList' => $this->accessList()
-        ];
-
-        return View::make('areas/administration/index')->with($data);
-    }
-
-
-    public function accessList(){
-
-        return [
-            [
-                'url' => route('mtg.index'),
-                'name' => 'MTG',
-                'image' => '<img src="/images/mtg/mana/mtg.png" style="width: 70px;">',            
-                'icon' => null            
-            ],
-            [
-                'url' => route('asset_library.index'),
-                'name' => 'WebCatalog - ASSETS',
-                'image' => null,            
-                'icon' => 'fa-folder-open'           
-            ]
-,
-            [
-                'url' => route('system_logs.index'),
-                'name' => 'System Logs',
-                'image' => null,            
-                'icon' => 'fa-glasses'           
-            ]
-
-            
-        ];
+        $this->setIndexPage('webmaster', 'web.index');
+        $this->addAccess( route('mtg.index'), 'MTG', null, '<img src="/images/mtg/mana/mtg.png" style="width: 70px;">');
+        $this->addAccess( route('asset_library.index'), 'WebCatalog - ASSETS', 'fa-folder-open'           );
+        $this->addAccess( route('system_logs.index'), 'System Logs', 'fa-glasses');
+        $this->addAccess( route('notifications.index'), 'Notifications', 'fa-regular fa-bell');
+        return $this->view('areas/web/index');
     }
     
 }

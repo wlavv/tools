@@ -3,15 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\App;
 
+use Modules\Tasks\Http\Controllers\TasksController;
+
 Route::get('/', function () { return view('auth.login'); });
 
-Auth::routes();
-
- 
-Route::get('/language/{locale}', function (string $locale) {
-
-    app()->setLocale($locale);
-    session()->put('locale', $locale);
-    return redirect()->back();
-
+Route::prefix('tablet/tasks')->name('tasks.tablet.public.')->group(function () {
+    Route::get('/', [TasksController::class, 'tabletPublic'])->name('index');
+    Route::post('/task-toggle', [TasksController::class, 'tabletPublicToggleTask'])->name('task.toggle');
+    Route::post('/events', [TasksController::class, 'tabletPublicStoreEvent'])->name('event.store');
 });
+
+Auth::routes();

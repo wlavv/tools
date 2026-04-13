@@ -1,3 +1,23 @@
+@php
+    $menuItems = [
+        ['route' => 'administration.index', 'label' => 'Admin', 'icon' => 'fa-solid fa-people-roof'],
+        ['route' => 'web.index', 'label' => 'Webmaster', 'icon' => 'fa-solid fa-code'],
+        ['route' => 'sales.index', 'label' => 'Sales', 'icon' => 'fa-solid fa-chart-line'],
+        ['route' => 'finance.index', 'label' => 'Finance', 'icon' => 'fa-solid fa-wallet'],
+        ['route' => 'marketing.index', 'label' => 'Marketing', 'icon' => 'fa-solid fa-bullhorn'],
+        ['route' => 'customerSupport.index', 'label' => 'Support', 'icon' => 'fa-solid fa-headset'],
+        ['route' => 'hr.index', 'label' => 'HR', 'icon' => 'fa-solid fa-user-group'],
+    ];
+@endphp
+
+@php
+    $menuItemsExtra = [
+        ['route' => 'family.index', 'label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child'],
+        ['route' => 'webCatalogue.index', 'label' => 'Web Catalogue', 'icon' => 'fa-solid fa-book-open'],
+        ['route' => 'multiStore.index', 'label' => "Store's", 'icon' => 'fa-solid fa-store'],
+    ];
+@endphp
+
 <div id="mobileMenu" class="sidebar-menu">
     <div class="sidebar-brand">
         <a class="sidebar-brand-link" href="{{ route('dashboard.index') }}">
@@ -8,98 +28,49 @@
         </a>
     </div>
 
-    <div class="sidebar-section-label">Navigation</div>
-
-    <div class="sidebar-nav-list">
-        <div class="sidebar-nav-item @if(Route::is('dashboard.index')) active-link @endif">
-            <a class="nav-link uppercase" href="{{ route('dashboard.index') }}">
-                <div class="sidebar-nav-icon"><i class="fa-solid fa-chart-pie @if(Route::is('dashboard.index')) active-link-icon @endif"></i></div>
-                <div class="sideMenuText">{{ __('menu.dashboard') }}</div>
-            </a>
-        </div>
-
-        @if(auth()->user()->id == 1)
-            <div class="sidebar-nav-item @if(Route::is('administration.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('administration.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-people-roof @if(Route::is('administration.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">{{ __('menu.admin') }}</div>
-                </a>
-            </div>
-            <div class="sidebar-nav-item @if(Route::is('finance.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('finance.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-chart-line @if(Route::is('finance.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">{{ __('menu.finance') }}</div>
-                </a>
-            </div>
-            <div class="sidebar-nav-item @if(Route::is('marketing.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('marketing.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-bullhorn @if(Route::is('marketing.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">{{ __('menu.marketing') }}</div>
-                </a>
-            </div>
-            <div style="display: none;" class="sidebar-nav-item @if(Route::is('customerSupport.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('customerSupport.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-headset @if(Route::is('customerSupport.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">{{ __('menu.customer support') }}</div>
-                </a>
-            </div>
-        @endif
-
-        @if(auth()->user()->id == 2)
-            <div class="sidebar-nav-item @if(Route::is('budget.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('budget.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-euro-sign @if(Route::is('budget.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">Budget</div>
-                </a>
-            </div>
-        @endif
-
-        <div class="sidebar-nav-item @if(Route::is('tasks.index')) active-link @endif">
-            <a class="nav-link uppercase" href="{{ route('tasks.index') }}">
-                <div class="sidebar-nav-icon"><i class="fa-solid fa-box @if(Route::is('tasks.index')) active-link-icon @endif"></i></div>
-                <div class="sideMenuText">{{ __('menu.tasks') }}</div>
-            </a>
-        </div>
-
-        <div class="sidebar-nav-item @if(Route::is('sales.index')) active-link @endif">
-            <a class="nav-link uppercase" href="{{ route('sales.index') }}">
-                <div class="sidebar-nav-icon"><i class="fa-solid fa-eur @if(Route::is('sales.index')) active-link-icon @endif"></i></div>
-                <div class="sideMenuText">{{ __('menu.sales') }}</div>
-            </a>
-        </div>
-
-        @if(auth()->user()->id == 1)
-            <div class="sidebar-nav-item @if(Route::is('web.index')) active-link @endif">
-                <a class="nav-link uppercase" href="{{ route('web.index') }}">
-                    <div class="sidebar-nav-icon"><i class="fa-solid fa-code @if(Route::is('web.index')) active-link-icon @endif"></i></div>
-                    <div class="sideMenuText">{{ __('menu.webmaster') }}</div>
-                </a>
-            </div>
-        @endif
+    <div class="sidebar-nav-list sidebar-nav-main-list">
+        @foreach($menuItems as $item)
+            @if(Route::has($item['route']))
+                <div class="sidebar-nav-item {{ Route::is($item['route']) ? 'active-link' : '' }}">
+                    <a class="nav-link uppercase" href="{{ route($item['route']) }}">
+                        <div class="sidebar-nav-icon"><i class="{{ $item['icon'] }} {{ Route::is($item['route']) ? 'active-link-icon' : '' }}"></i></div>
+                        <div class="sideMenuText">{{ $item['label'] }}</div>
+                    </a>
+                </div>
+            @endif
+        @endforeach
     </div>
 
-    <div class="sidebar-section-label sidebar-section-bottom">Session</div>
-    <div class="sidebar-nav-list">
-        <div class="sidebar-nav-item sidebar-nav-item-logout">
-            <a class="nav-link uppercase" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                <div class="sidebar-nav-icon"><i class="fa-solid fa-sign-out"></i></div>
-                <div class="sideMenuText">{{ __('menu.logout') }}</div>
-            </a>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                @csrf
-            </form>
-        </div>
+    <div style="margin-top: 10px;">OTHER AREAS</div>
+    <div class="sidebar-nav-list sidebar-nav-main-list">
+        @foreach($menuItemsExtra as $item)
+            @if(Route::has($item['route']))
+                <div class="sidebar-nav-item {{ Route::is($item['route']) ? 'active-link' : '' }}">
+                    <a class="nav-link uppercase" href="{{ route($item['route']) }}">
+                        <div class="sidebar-nav-icon"><i class="{{ $item['icon'] }} {{ Route::is($item['route']) ? 'active-link-icon' : '' }}"></i></div>
+                        <div class="sideMenuText">{{ $item['label'] }}</div>
+                    </a>
+                </div>
+            @endif
+        @endforeach
+    </div>
+
+    <div class="sidebar-footer-tools">
+        <button type="button" class="sidebar-footer-tool" data-sidebar-toggle aria-label="Condensar menu" title="Condensar menu">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+
+        <button type="button" class="sidebar-footer-tool" data-theme-toggle aria-label="Alternar tema" title="Alternar tema">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+
+        <a class="sidebar-footer-tool" href="{{ route('logout') }}" aria-label="Logout" title="Logout"
+           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
     </div>
 </div>
-
-<script>
-function openMobileMenu(closed){
-    if(closed==1){
-        $('#openMobileMenuTrigger').replaceWith('<div id="openMobileMenuTrigger" class="mobile-sidebar-toggle" onclick="openMobileMenu(0)"><i class="fa-solid fa-chevron-up"></i></div>');
-        $('#mainMenuMobileContainer').addClass('is-open');
-    }else{
-        $('#openMobileMenuTrigger').replaceWith('<div id="openMobileMenuTrigger" class="mobile-sidebar-toggle" onclick="openMobileMenu(1)"><i class="fa-solid fa-chevron-down"></i></div>');
-        $('#mainMenuMobileContainer').removeClass('is-open');
-    }
-}
-</script>

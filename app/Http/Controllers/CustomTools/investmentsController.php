@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
 
-class investmentsController extends customToolsController
+class investmentsController extends Controller
 {
     public $actions;
     public $breadcrumbs;
@@ -14,7 +14,7 @@ class investmentsController extends customToolsController
     public function __construct()
     {
         $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'investments', 'url' => route('investments.index')];
+        //$this->breadcrumbs[] = [ 'name' =>  'investments', 'url' => route('investments.index')];
         $this->actions[]     = [];
     }
 

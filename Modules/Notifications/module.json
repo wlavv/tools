@@ -1,0 +1,8 @@
+{
+  "name": "Notifications",
+  "slug": "notifications",
+  "enabled": true,
+  "version": "4.0.0",
+  "description": "Central notification system with internal inbox, testing console and multi-channel delivery.",
+  "provider": "Modules\\Notifications\\Providers\\NotificationServiceProvider"
+}

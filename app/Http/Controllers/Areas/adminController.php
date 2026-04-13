@@ -2,70 +2,21 @@
 
 namespace App\Http\Controllers\Areas;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use App\Http\Controllers\Controller;
 
-use App\Models\prestashop\product;
+class adminController extends Controller{
 
-class adminController extends Controller
-{
-    public $actions;
-    public $breadcrumbs;
-    
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'administration', 'url' => route('administration.index')];
-    }
+    public function index(){
 
-    public function index()
-    {
-        $data = [
-            'actions'    => $this->actions,
-            'counters'   => [],
-            'breadcrumbs'=> $this->breadcrumbs,
-            'accessList' => $this->accessList()
-        ];
+        $this->setIndexPage('administration', 'administration.index');
 
-        return View::make('areas/administration/index')->with($data);
-    }
+        $this->addAccess( route('project_manager.index'),       'Projects',         'fa-solid fa-folder-tree' );
+        $this->addAccess( route('password_manager.index'),      "PASSWORD'S",       'fa-solid fa-key' );           
+        $this->addAccess( route('ai_consensus.index'),          "Consensus",        'fa-solid fa-star-of-life' );
+        $this->addAccess( route('productivityManager.index'),   "Productivity",     'fa-solid fa-star-of-life' );
+        $this->addAccess( route('roadmap.dashboard'),           "Roadmap - LSG",    'fa-solid fa-star-of-life' );
 
-
-    public function accessList(){
-
-        return [
-            [
-                'url' => route('project_manager.index'),
-                'name' => 'Projects',
-                'image' => null,            
-                'icon' => 'fa-solid fa-folder-tree'            
-            ],
-            [
-                'url' => route('password_manager.index'),
-                'name' => "PASSWORD'S",
-                'image' => null,  
-                'icon' => 'fa-solid fa-key',            
-            ],
-            [
-                'url' => route('ai_consensus.index'),
-                'name' => "Consensus",
-                'image' => null,  
-                'icon' => 'fa-solid fa-star-of-life',            
-            ],
-            [
-                'url' => route('productivityManager.index'),
-                'name' => "Productivity",
-                'image' => null,  
-                'icon' => 'fa-solid fa-star-of-life',            
-            ],
-            [
-                'url' => route('roadmap-manager.index'),
-                'name' => "Roadmap - LSG",
-                'image' => null,  
-                'icon' => 'fa-solid fa-star-of-life',            
-            ]
-        ];
+        return $this->view('areas/administration/index');
     }
     
 }

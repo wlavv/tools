@@ -1,0 +1,8 @@
+{
+  "name": "Tasks",
+  "slug": "tasks",
+  "enabled": true,
+  "version": "2.0.0",
+  "description": "Family tasks management module with members, task CRUD, daily execution and monthly dashboard.",
+  "provider": "Modules\\Tasks\\Providers\\TasksServiceProvider"
+}

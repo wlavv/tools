@@ -1,0 +1,14 @@
+{
+    "name": "Budget Manager",
+    "slug": "budget",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Budget management module with reports and charts",
+    "provider": "Modules\\Budget\\Providers\\BudgetServiceProvider",
+    "translate": {
+        "name": "Budget",
+        "plural": "Budgets",
+        "menu": "Budget",
+        "description": "Gestão de orçamento"
+    }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Calendar",
+  "slug": "calendar",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Calendar module with contexts, categories, events and tablet feed.",
+  "provider": "Modules\\Calendar\\Providers\\CalendarServiceProvider"
+}

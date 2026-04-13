@@ -2,31 +2,20 @@
 
 Use App\Http\Controllers\CustomTools\oriflameController;
 Use App\Http\Controllers\CustomTools\customersController;
-Use App\Http\Controllers\CustomTools\budgetController;
-Use App\Http\Controllers\CustomTools\tasksController;
-
 use App\Http\Controllers\CustomTools\InvestmentsController;
 use App\Http\Controllers\CustomTools\InvestmentsPositionController;
 use App\Http\Controllers\CustomTools\InvestmentsAssetController;
 use App\Http\Controllers\CustomTools\InvestmentsBrokerAccountController;
 
-
-/****************************************** BUDGET ******************************************/
-
-Route::get( 'finance/budget/newYear',              [budgetController::class, 'newYear'])->name('budget.newYear');
-
-Route::resources([ 'finance/budget'=>                     budgetController::class]);
-Route::post( 'finance/budget/update/data',                [budgetController::class, 'updateData'])->name('budget.updateData');
-Route::post( 'finance/budget/update/forecast/data',       [budgetController::class, 'updateForecastData'])->name('budget.updateForecastData');
-Route::post( 'finance/budget/update/detail',              [budgetController::class, 'updateDetail'])->name('budget.updateDetail');
-Route::post( 'finance/budget/delete/detail',              [budgetController::class, 'deleteDetail'])->name('budget.deleteDetail');
-Route::post( 'finance/budget/objective/add',              [budgetController::class, 'addObjective'])->name('budget.addObjective');
-Route::post( 'finance/budget/objective/done',             [budgetController::class, 'setObjectiveAsDone'])->name('budget.setObjectiveAsDone');
-
-/******************************************  TASKS ******************************************/
-Route::resources([ 'tasks'=>                            tasksController::class]);
-Route::post('/taks/update',                             [TasksController::class, 'updateDone'])->name('tasks.updateDone');
-Route::get( '/taks/calendar/{year}/{month}',            [TasksController::class, 'getMonthInfo'])->name('tasks.getMonthInfo');
+/****************************************** INVESTMENTS ******************************************/
+Route::get('finance/investments', [investmentsController::class, 'index'])->name('investments.index');
+Route::resource('finance/investments/positions', InvestmentsPositionController::class);
+Route::post('finance/investments/positions/{position}/simulate-step', [InvestmentsPositionController::class, 'simulateStep'])->name('positions.simulateStep');
+Route::resource('finance/investments/assets', InvestmentsAssetController::class)->only(['index', 'create', 'store']);
+Route::resource('finance/investments/broker-accounts', InvestmentsBrokerAccountController::class);
+Route::post('broker-accounts/{id}/ibkr/test', [InvestmentsBrokerAccountController::class, 'ibkrTest'])->name('broker-accounts.ibkr.test');
+Route::post('broker-accounts/{id}/ibkr/sync', [InvestmentsBrokerAccountController::class, 'ibkrSyncAccounts'])->name('broker-accounts.ibkr.sync');
+Route::post('broker-accounts/{id}/ibkr/select', [InvestmentsBrokerAccountController::class, 'ibkrSelectAccount'])->name('broker-accounts.ibkr.select');
 
 /****************************************** ORIFLAME ******************************************/
 Route::resources([ 'sales/oriflame'=>                   oriflameController::class]);
@@ -39,13 +28,11 @@ Route::post( 'sales/oriflame/order/products/added',     [oriflameController::cla
 Route::post( 'sales/oriflame/order/products/update',    [oriflameController::class, 'updateProductQuantity'])->name('oriflame.updateProductQuantity');
 Route::post( 'sales/oriflame/order/products/remove',    [oriflameController::class, 'removeProduct'])->name('oriflame.removeProduct');
 
-
 /******************************************  CUSTOMER ******************************************/
 Route::resources([ 'sales/customers'=>                  customersController::class]);
 Route::post( 'sales/customers/getCustomer',             [customersController::class, 'getCustomerInfo'])->name('customer.getCustomerInfo');
 Route::post( 'sales/customers/active',                  [customersController::class, 'active'])->name('customers.active');
 Route::put('sales/customers/{id}',                      [customersController::class, 'update']);
-
 
 /******************************************  READING ******************************************/
 use App\Http\Controllers\ImageController;
@@ -60,13 +47,3 @@ Route::get('/webmaster/mtg/showSet/{code}/{sub_set?}',  [mtgController::class, '
 Route::get('/webmaster/mtg/front/find',                 [mtgController::class, 'findCard'])->name('mtg.findCard');
 Route::post('/webmaster/mtg/front/postCardDetail',      [mtgController::class, 'postCardDetail'])->name('mtg.postCardDetail');
 Route::get('/webmaster/mtg/generate/description/{id}',  [mtgController::class, 'generateDescription'])->name('mtg.generateDescription');
-
-Route::get('finance/investments', [investmentsController::class, 'index'])->name('investments.index');
-Route::resource('finance/investments/positions', InvestmentsPositionController::class);
-Route::post('finance/investments/positions/{position}/simulate-step', [InvestmentsPositionController::class, 'simulateStep'])->name('positions.simulateStep');
-
-Route::resource('finance/investments/assets', InvestmentsAssetController::class)->only(['index', 'create', 'store']);
-Route::resource('finance/investments/broker-accounts', InvestmentsBrokerAccountController::class);
-Route::post('broker-accounts/{id}/ibkr/test', [InvestmentsBrokerAccountController::class, 'ibkrTest'])->name('broker-accounts.ibkr.test');
-Route::post('broker-accounts/{id}/ibkr/sync', [InvestmentsBrokerAccountController::class, 'ibkrSyncAccounts'])->name('broker-accounts.ibkr.sync');
-Route::post('broker-accounts/{id}/ibkr/select', [InvestmentsBrokerAccountController::class, 'ibkrSelectAccount'])->name('broker-accounts.ibkr.select');

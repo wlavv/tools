@@ -1,6 +1,5 @@
 <style>
 .ai-consensus-page .ai-card{
-    background: linear-gradient(180deg,rgba(37,47,59,.94) 0%,rgba(32,40,51,.96) 100%);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 14px;
     padding: 16px;

@@ -2,36 +2,14 @@
 
 namespace App\Http\Controllers\Areas;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use App\Http\Controllers\Controller;
 
-use App\Models\prestashop\product;
-use App\Models\prestashop\orders;
+class customerSupportController extends Controller{
 
-class customerSupportController extends Controller
-{
-    public $actions;
-    public $breadcrumbs;
+    public function index(){
+        $this->setIndexPage('customer support', 'customerSupport.index');
+
+        return $this->view('areas/customers/index');
+    }
     
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'customer support', 'url' => route('customerSupport.index')];
-
-    }
-
-    public function index()
-    {
-        $data = [
-            'counters'      => [],
-            'panels'        => [],
-            'accessList'    => [],
-            'actions'       => $this->actions,
-            'breadcrumbs'   => $this->breadcrumbs
-        ];
- 
-        return View::make('areas/customers/index')->with($data);
-    }
-
 }

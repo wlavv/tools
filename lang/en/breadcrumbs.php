@@ -4,32 +4,32 @@ return [
     'home' => 'home',
     'home.index' => 'Dashboard',
     
-    'dashboard' => 'dashboard',
+    'dashboard' => 'Dashboard',
     'dashboard.index' => 'Dashboard',
     
-    'administration' => 'administration',
-    'administration.index' => 'administration',
+    'administration' => 'Administration',
+    'administration.index' => 'Administration',
     
-    'finance' => 'finance',
-    'finance.index' => 'finance',
+    'finance' => 'Finance',
+    'finance.index' => 'Finance',
     
-    'sales' => 'sales',
-    'sales.index' => 'sales',
+    'sales' => 'Sales',
+    'sales.index' => 'Sales',
 
     'oriflame' => 'Oriflame',
     'oriflame.index' => 'Oriflame',
     
-    'logistics' => 'logistics',
-    'logistics.index' => 'logistics',
+    'logistics' => 'Logistics',
+    'logistics.index' => 'Logistics',
     
-    'marketing' => 'marketing',
-    'marketing.index' => 'marketing',
+    'marketing' => 'Marketing',
+    'marketing.index' => 'Marketing',
 
-    'customer support' => 'customer support',
-    'customerSupport.index' => 'customer support',
+    'customer support' => 'Customer support',
+    'customerSupport.index' => 'Customer support',
 
-    'customers' => 'customers',
-    'customers.index' => 'customers',
+    'customers' => 'Customers',
+    'customers.index' => 'Customers',
     
     'oriflame.list' => 'Oriflame',
 
@@ -105,5 +105,16 @@ return [
     'productivity manager' => 'Productivity Manager',
     'settings' => 'Settings',
     'productivityManager.index'  => 'Productivity Manager',
-    'productivityManager.dashboard' => 'Dashboard'
+    'productivityManager.dashboard' => 'Dashboard',
+
+    'hr' => "HR",
+    "hr.index" => "Human Resources",
+    "family" => "Family reserved area",
+
+    "Settings" => "Settings",
+    "Teste de notificação" => "Teste de notificação",
+
+    "webCatalogue" => "webCatalogue",
+
+    "multiStore" => "Store's"
 ];

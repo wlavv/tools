@@ -2,54 +2,17 @@
 
 namespace App\Http\Controllers\Areas;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\DB;
-use App\Models\prestashop\orders;
-use App\Models\prestashop\product;
 use App\Http\Controllers\Controller;
 
-class financeController extends Controller
-{
-    public $actions;
-    public $breadcrumbs;
-
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = [ 'name' =>  'finance', 'url' => route('finance.index')];
-        $this->actions[]     = [];
-    }
+class financeController extends Controller{
 
     public function index(){
-        
-        $data = [
-            'counters'      => [],
-            'panels'        => [],
-            'accessList'    => $this->accessList(),
-            /**'actions'       => $this->actions,**/
-            'breadcrumbs'   => $this->breadcrumbs,
-        ];
 
-        return View::make('areas/finance/index')->with($data);
+        $this->setIndexPage('finance', 'finance.index');
+        $this->addAccess( route('budget.index'),        'Budget',       'fa-solid fa-euro-sign' );
+        $this->addAccess( route('investments.index'),   "Investments",  'fa-solid fa-money-bill-trend-up',  );
+    
+        return $this->view('areas/finance/index');
     }
-
-    public function accessList(){
-
-        return [
-            [
-                'url' => route('budget.index'),
-                'name' => 'Budget',
-                'image' => null,            
-                'icon' => 'fa-solid fa-euro-sign'            
-            ],
-            [
-                'url' => route('investments.index'),
-                'name' => "INVESTMENTS",
-                'image' => null,  
-                'icon' => 'fa-solid fa-money-bill-trend-up',            
-            ]
-        ];
-    }
-
+    
 }

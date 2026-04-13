@@ -10,20 +10,20 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="{{asset('admin/css/sweetalert2.min.css')}}">
-    <link rel="stylesheet" href="{{asset('admin/css/dropzone.min.css')}}"/>
-    <link rel="stylesheet" href="{{asset('admin/css/app.css')}}?t={{rand()}}">
+    <link rel="stylesheet" href="{{ asset('admin/css/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('admin/css/dropzone.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('admin/css/app.css') }}?t={{ rand() }}">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{asset('admin/js/sweetalert2.min.js')}}"></script>
-    <script src="{{asset('admin/js/dropzone.min.js')}}"></script>
+    <script src="{{ asset('admin/js/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('admin/js/dropzone.min.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
     @include('includes.js')
 </head>
-<body>
+<body data-theme="dark" class="theme-dark">
     <div id="app">
         <main>
             @guest
@@ -36,6 +36,8 @@
                         $hasTopbarActions = isset($actions) && is_array($actions) && count($actions) > 0;
                     @endphp
                     <div class="app-shell">
+                        <div class="app-sidebar-backdrop" data-mobile-menu-close></div>
+
                         <aside id="mainMenuMobileContainer" class="app-sidebar">
                             <div class="app-sidebar-inner">
                                 @include('includes.mobileMenu')
@@ -63,19 +65,19 @@
 
                             <div id="mainContentView" class="app-content">
                                 <div class="page-content-stack">
-                                @if(isset($accessList))
-                                    @include('includes.accessList', $accessList)
-                                @endif
+                                    @if(isset($accessList))
+                                        @include('includes.accessList', $accessList)
+                                    @endif
 
-                                @if(isset($counters))
-                                    <div class="row g-3 dashboard-counters-row">
-                                        @foreach($counters AS $counter)
-                                            @include('includes.counters', $counter)
-                                        @endforeach
-                                    </div>
-                                @endif
+                                    @if(isset($counters))
+                                        <div class="row g-3 dashboard-counters-row">
+                                            @foreach($counters as $counter)
+                                                @include('includes.counters', $counter)
+                                            @endforeach
+                                        </div>
+                                    @endif
 
-                                @yield('content')
+                                    @yield('content')
                                 </div>
                             </div>
                         </section>

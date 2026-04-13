@@ -3,18 +3,18 @@
 .pm-title h1{margin:0;font-size:1.9rem;font-weight:800;letter-spacing:.03em}
 .pm-subtitle{opacity:.72;font-size:.88rem;text-transform:uppercase}
 .pm-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
-.pm-stat{border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:1rem 1.1rem;background: linear-gradient(180deg,rgba(37,47,59,.94) 0%,rgba(32,40,51,.96) 100%);box-shadow:0 14px 28px rgba(0,0,0,.18)}
+.pm-stat{border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:1rem 1.1rem;box-shadow:0 14px 28px rgba(0,0,0,.18)}
 .pm-groups{display:flex;flex-direction:column;gap:1.15rem}
-.pm-group{border:1px solid rgba(255,255,255,.06);border-radius:18px;background: linear-gradient(180deg,rgba(37,47,59,.94) 0%,rgba(32,40,51,.96) 100%);box-shadow:0 14px 30px rgba(0,0,0,.22);overflow:hidden}
+.pm-group{border:1px solid rgba(255,255,255,.06);border-radius:18px;box-shadow:0 14px 30px rgba(0,0,0,.22);overflow:hidden}
 .pm-group-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.15rem 1.3rem;cursor:pointer}
 .pm-group-left{display:flex;align-items:center;gap:1rem}
 .pm-group-plus{font-size:1.55rem;font-weight:700;color:#00d11f;width:30px;line-height:1}
 .pm-group-title{font-size:1.18rem;font-weight:800}
 .pm-group-meta{display:flex;gap:1rem;flex-wrap:wrap;opacity:.8;font-size:.92rem;margin-top:.15rem}
 .pm-group-body{display:none;padding:1rem 0 1.2rem 0;border-top:1px solid rgba(255,255,255,.05)}
-.pm-group.is-open .pm-group-body{display:block; background: rgba( 10, 10, 10, 0.4);}
+.pm-group.is-open .pm-group-body{display:block;}
 .pm-group-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,206px));gap:1rem;padding:0 1rem;align-items:start}
-.pm-project-card{width:206px;border-radius:18px;background:linear-gradient(180deg,rgba(41,58,84,.95),rgba(29,42,60,.92));border:1px solid rgba(255,255,255,.07);box-shadow:0 16px 24px rgba(0,0,0,.24);overflow:hidden}
+.pm-project-card{width:206px;border-radius:18px;border:1px solid rgba(255,255,255,.07);box-shadow:0 16px 24px rgba(0,0,0,.24);overflow:hidden}
 .pm-project-inner{padding:.85rem 0 0 0}
 .pm-project-title{text-align:center;font-size:1.02rem;font-weight:800;line-height:1.2;min-height:2.2rem;margin-bottom:.6rem}
 .pm-project-logo-wrap{display:flex;justify-content:center;margin-bottom:.75rem}

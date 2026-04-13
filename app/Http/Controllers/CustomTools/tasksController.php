@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use App\Models\webToolsManager\wt_tasks;
 use App\Models\webToolsManager\wt_tasks_done;
 
-class tasksController extends Controller
+class tasksController extends customToolsController
 {
     public $actions;
     public $breadcrumbs;
@@ -39,7 +39,9 @@ class tasksController extends Controller
                             ]
         ];
 
-        return View::make('areas/tasks/index')->with($data);
+        $this->setViewData($data);
+
+        return View::make('areas/tasks/index')->with($this->viewData);
     }
 
     public function updateDone(Request $request){
