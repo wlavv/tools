@@ -1,79 +1,52 @@
-@extends('layouts.app')
+@extends('layouts.blank')
 
 @section('content')
-{{--
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Register') }}</div>
+<div class="ls-login-page">
+    <div class="ls-login-bg">
+        <div class="ls-login-orb orb-1"></div>
+        <div class="ls-login-orb orb-2"></div>
+        <div class="ls-login-grid"></div>
+    </div>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('register') }}">
-                        @csrf
-
-                        <div class="row mb-3">
-                            <label for="name" class="col-md-4 col-form-label text-md-end">{{ __('Name') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
-
-                                @error('name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
-                        </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Register') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+    <div class="ls-login-shell">
+        <div class="ls-login-card">
+            <div class="ls-login-top">
+                <div class="ls-login-brand">
+                    <img src="/admin/images/logo.png?t={{ rand() }}" alt="Webtools Manager Logo">
                 </div>
+
+                <div class="ls-login-copy">
+                    <h1>Registration Disabled</h1>
+                    <p>This platform does not allow public user registration.</p>
+                </div>
+            </div>
+
+            <div class="ls-register-notice">
+                <div class="ls-register-icon">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+
+                <div class="ls-register-text">
+                    <p>
+                        If you need access to this platform, please contact the administrator
+                        and request that an account be created for you.
+                    </p>
+                </div>
+            </div>
+
+            <div class="ls-login-actions">
+                <a href="{{ route('login') }}" class="ls-login-btn">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Login</span>
+                </a>
             </div>
         </div>
     </div>
 </div>
----}}
+@endsection
+
+@section('styles')
+<style>
+html,body{height:100%}body{margin:0;padding:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,#1e293b 0,#0f172a 45%,#020617 100%);color:#e2e8f0;overflow:hidden}.ls-login-page{position:relative;min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:24px}.ls-login-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}.ls-login-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:36px 36px;mask-image:radial-gradient(circle at center,black 35%,transparent 90%);opacity:.35}.ls-login-orb{position:absolute;border-radius:999px;filter:blur(80px);opacity:.35}.ls-login-orb.orb-1{width:340px;height:340px;background:rgba(59,130,246,.35);top:-60px;left:-40px}.ls-login-orb.orb-2{width:300px;height:300px;background:rgba(250,204,21,.18);right:-40px;bottom:-40px}.ls-login-shell{position:relative;z-index:2;width:100%;max-width:460px}.ls-login-card{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.11) 0,rgba(255,255,255,.06) 100%);border:1px solid rgba(255,255,255,.12);border-radius:22px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(2,6,23,.45),inset 0 1px 0 rgba(255,255,255,.08);padding:30px}.ls-login-card:before{content:"";position:absolute;inset:0;border-radius:22px;padding:1px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}.ls-login-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;margin-bottom:24px}.ls-login-brand{width:100%;display:flex;justify-content:center}.ls-login-brand img{max-width:240px;width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 10px 24px rgba(0,0,0,.2))}.ls-login-copy h1{margin:0;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:-.03em;color:#fff}.ls-login-copy p{margin:6px 0 0;font-size:14px;line-height:1.55;color:#cbd5e1}.ls-register-notice{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 16px;border:1px solid rgba(255,255,255,.08);background:rgba(15,23,42,.38);border-radius:16px;margin-bottom:20px}.ls-register-icon{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(37,99,235,.22) 0,rgba(96,165,250,.12) 100%);border:1px solid rgba(96,165,250,.18);color:#93c5fd;font-size:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}.ls-register-text{text-align:center}.ls-register-text p{margin:0;font-size:14px;line-height:1.7;color:#cbd5e1}.ls-login-actions{display:flex;justify-content:center}.ls-login-btn{height:50px;padding:0 18px;border:0;border-radius:14px;background:linear-gradient(135deg,#2563eb 0,#3b82f6 55%,#60a5fa 100%);color:#fff;font-size:14px;font-weight:700;letter-spacing:.02em;display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 16px 28px rgba(37,99,235,.35),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;text-decoration:none;min-width:210px}.ls-login-btn:hover{transform:translateY(-1px);box-shadow:0 20px 34px rgba(37,99,235,.42),inset 0 1px 0 rgba(255,255,255,.24);filter:brightness(1.03);color:#fff}.ls-login-btn:active{transform:translateY(0)}@media (max-width:575.98px){.ls-login-page{padding:16px}.ls-login-card{padding:22px 18px;border-radius:18px}.ls-login-card:before{border-radius:18px}.ls-login-copy h1{font-size:24px}.ls-login-brand img{max-width:200px}.ls-login-btn{height:46px;min-width:100%}}
+</style>
 @endsection
