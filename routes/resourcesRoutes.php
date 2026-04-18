@@ -23,12 +23,9 @@ Route::resources([
     'marketing'       => marketingController::class,
     'customerSupport' => customerSupportController::class,
     'sales'           => salesController::class,
-]);
+])->only(['index']);
 
 Route::get('/hr/tasks/tablet', [TasksController::class, 'tablet'])->name('tasks.tablet');
-
-Route::resource('hr', hrController::class)->only(['index']);
-
 
 Route::resource('family', familyController::class)->only(['index']);
 Route::resource('webCatalogue', webCatalogueController::class)->only(['index']);
