@@ -8,22 +8,30 @@ use Illuminate\Support\Facades\DB;
 use Modules\RoadmapManager\Models\Project;
 use Modules\RoadmapManager\Models\ProjectGroup;
 
-class RoadmapProjectController extends Controller
-{
-    public function index()
-    {
-        $projects = Project::with('roadmapGroups')->orderBy('updated_at', 'desc')->paginate(20);
-        return view('roadmap-manager::projects.index', compact('projects'));
+class RoadmapProjectController extends Controller{
+
+    public function __construct( ) {
+        $this->setIndexPage('roadmap', 'roadmap.index');
+        $this->middleware('auth');
     }
 
-    public function create()
-    {
-        $groups = ProjectGroup::orderBy('sort_order')->get();
-        return view('roadmap-manager::projects.form', [
+    public function index(){
+
+        $data = [ 
+            'projects' => Project::with('roadmapGroups')->orderBy('updated_at', 'desc')->paginate(20) 
+        ];
+        return $this->view('roadmap-manager::projects.index', $data);
+    }
+
+    public function create(){
+
+        $data = [
             'project' => new Project(),
-            'groups' => $groups,
+            'groups' => ProjectGroup::orderBy('sort_order')->get(),
             'selectedGroups' => [],
-        ]);
+        ];
+
+        return $this->view('roadmap-manager::projects.form', $data);
     }
 
     public function store(Request $request)

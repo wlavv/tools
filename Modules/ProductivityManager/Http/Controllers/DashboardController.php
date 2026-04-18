@@ -9,16 +9,16 @@ use Modules\ProductivityManager\Services\ProductivityDashboardService;
 class DashboardController extends Controller
 {
     public array $breadcrumbs = [];
-    public array $actions = [];
 
-    public function __construct(
-        protected ProductivityDashboardService $dashboardService
-    ) {
+    public function __construct( protected ProductivityDashboardService $dashboardService) {
+    
         $this->middleware('auth');
-        $this->breadcrumbs[] = ['name' => 'administration', 'url' => route('administration.index')];
-        $this->breadcrumbs[] = ['name' => 'productivity manager', 'url' => route('productivityManager.index')];
+        $this->setIndexPage('productivity manager', 'productivityManager.index');
+    }
 
-        $this->actions = [
+    public function index(): View{
+
+        $actions = [
             [
                 'url' => route('productivityManager.dashboard'),
                 'name' => 'Dashboard',
@@ -32,19 +32,16 @@ class DashboardController extends Controller
                 'class' => 'outline-primary',
             ],
         ];
-    }
 
-    public function index(): View
-    {
-        return view('productivitymanager::dashboard.index', [
-            'actions' => $this->actions,
+        $data = [
+            'actions' => $actions,
             'breadcrumbs' => $this->breadcrumbs,
             'dashboard' => $this->dashboardService->getDashboardData(),
-        ]);
+        ];
+        return $this->view('productivitymanager::dashboard.index', $data );
     }
 
-    public function dashboard(): View
-    {
+    public function dashboard(): View{
         return $this->index();
     }
 }

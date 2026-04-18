@@ -9,31 +9,26 @@ use Modules\RoadmapManager\Models\ProjectGroup;
 use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\TaskItem;
 
-class DashboardController extends Controller
-{
+class DashboardController extends Controller{
+
+    public function __construct( ) {
+        $this->setIndexPage('roadmap', 'roadmap.dashboard');
+        $this->middleware('auth');
+    }
+
     public function index()
     {
-        $projectCount = Project::count();
-        $groupCount = ProjectGroup::count();
-        $milestoneCount = Milestone::count();
-        $taskCount = TaskItem::count();
+        $data = [
+            'projectCount' => Project::count(),
+            'groupCount' => ProjectGroup::count(),
+            'milestoneCount' => Milestone::count(),
+            'taskCount' => TaskItem::count(),
+            'taskStatus' => TaskItem::select('status', DB::raw('COUNT(*) as total'))->groupBy('status')->pluck('total', 'status')->toArray(),
+            'groupProjects' => ProjectGroup::withCount('projects')->orderBy('sort_order')->get(),
+            'recentProjects' => Project::latest('updated_at')->limit(8)->get(),
+            'upcomingMilestones' => Milestone::with('project')->whereNotNull('planned_end_date')->orderBy('planned_end_date')->limit(8)->get(),
+        ];
 
-        $taskStatus = TaskItem::select('status', DB::raw('COUNT(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
-
-        $groupProjects = ProjectGroup::withCount('projects')->orderBy('sort_order')->get();
-
-        $recentProjects = Project::latest('updated_at')->limit(8)->get();
-        $upcomingMilestones = Milestone::with('project')
-            ->whereNotNull('planned_end_date')
-            ->orderBy('planned_end_date')
-            ->limit(8)
-            ->get();
-
-        return view('roadmap-manager::dashboard.index', compact(
-            'projectCount', 'groupCount', 'milestoneCount', 'taskCount', 'taskStatus', 'groupProjects', 'recentProjects', 'upcomingMilestones'
-        ));
+        return $this->view('roadmap-manager::dashboard.index', $data);
     }
 }

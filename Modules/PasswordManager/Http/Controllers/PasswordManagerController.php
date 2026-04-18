@@ -2,40 +2,32 @@
 
 namespace Modules\PasswordManager\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 use Modules\PasswordManager\Http\Requests\StorePasswordEntryRequest;
 use Modules\PasswordManager\Http\Requests\UpdatePasswordEntryRequest;
 use Modules\PasswordManager\Models\PasswordEntry;
 use Modules\PasswordManager\Services\PasswordManagerService;
 
-use App\Http\Controllers\CustomTools\customToolsController;
-
-class PasswordManagerController extends customToolsController
+class PasswordManagerController extends Controller
 {
     public function __construct( protected PasswordManagerService $service ) {
-
-        $this->breadcrumbs[] = [ 'name' =>  'Budget', 'url' => route('budget.index')];
+        $this->setIndexPage('password_manager', 'password_manager.index');
+        $this->middleware('auth');
     }
 
-    public function index(Request $request): View
-    {
+    public function index(Request $request): View{
+
         $entries = $this->service->listForUser(
             userId: (int) $request->user()->id,
             search: $request->string('q')->toString(),
             perPage: (int) config('password-manager.pagination', 15),
         );
 
-        $data = [
-            'entries' => $entries,
-            'search' => $request->string('q')->toString(),
-        ];
-
-        $this->setViewData($data);
-
-        return view('password-manager::Index', $this->viewData);
+        return $this->view('password-manager::Index', [ 'entries' => $entries, 'search' => $request->string('q')->toString() ]);
     }
 
     public function create(): View{
@@ -47,9 +39,7 @@ class PasswordManagerController extends customToolsController
             'method' => 'POST',
         ];
 
-        $this->setViewData($data);
-
-        return view('password-manager::pages.form', $this->viewData);
+        return $this->view('password-manager::pages.form', $data);
     }
 
     public function store(StorePasswordEntryRequest $request): RedirectResponse{
@@ -67,9 +57,7 @@ class PasswordManagerController extends customToolsController
 
         $data = [ 'entry' => $passwordEntry, 'revealed' => $revealed ];
 
-        $this->setViewData($data);
-
-        return view('password-manager::pages.show', $this->viewData);
+        return $this->view('password-manager::pages.show', $data);
     }
 
     public function edit(PasswordEntry $passwordEntry): View{
@@ -83,8 +71,7 @@ class PasswordManagerController extends customToolsController
             'method' => 'PUT',
         ];
 
-        $this->setViewData($data);
-        return view('password-manager::pages.form', $this->viewData);
+        return $this->view('password-manager::pages.form', $data);
     }
 
     public function update(UpdatePasswordEntryRequest $request, PasswordEntry $passwordEntry): RedirectResponse{
@@ -97,14 +84,13 @@ class PasswordManagerController extends customToolsController
     public function destroy(PasswordEntry $passwordEntry): RedirectResponse{
 
         $this->authorizeEntry($passwordEntry);
-
         $this->service->deleteForUser($passwordEntry);
 
         return redirect()->route('password_manager.index')->with('success', 'Registo removido com sucesso.');
     }
 
     protected function authorizeEntry(PasswordEntry $entry): void{
-
+        
         abort_unless((int) $entry->user_id === (int) auth()->id(), 403);
     }
 }

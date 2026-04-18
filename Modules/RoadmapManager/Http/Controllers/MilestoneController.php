@@ -8,20 +8,24 @@ use Illuminate\Support\Str;
 use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\Project;
 
-class MilestoneController extends Controller
-{
+class MilestoneController extends Controller{
+
+    public function __construct( ) {
+        $this->setIndexPage('milestones', 'roadmap.index');
+        $this->middleware('auth');
+    }
+
     public function index()
     {
         $milestones = Milestone::with('project')->orderBy('planned_end_date')->paginate(20);
-        return view('roadmap-manager::milestones.index', compact('milestones'));
+        return $this->view('roadmap-manager::milestones.index', $milestones);
     }
 
-    public function create()
-    {
-        $projects = Project::orderBy('name')->get();
-        return view('roadmap-manager::milestones.form', [
+    public function create(){
+
+        return $this->view('roadmap-manager::milestones.form', [
             'milestone' => new Milestone(),
-            'projects' => $projects,
+            'projects' => Project::orderBy('name')->get(),
         ]);
     }
 
@@ -49,20 +53,19 @@ class MilestoneController extends Controller
         return redirect()->route('roadmap.milestones.index')->with('success', 'Milestone created successfully.');
     }
 
-    public function show(Milestone $milestone)
-    {
+    public function show(Milestone $milestone){
+
         $milestone->load(['project', 'tasks']);
-        return view('roadmap-manager::milestones.show', compact('milestone'));
+        return $this->view('roadmap-manager::milestones.show', $milestone);
     }
 
-    public function edit(Milestone $milestone)
-    {
-        $projects = Project::orderBy('name')->get();
-        return view('roadmap-manager::milestones.form', compact('milestone', 'projects'));
+    public function edit(Milestone $milestone){
+
+        return $this->view('roadmap-manager::milestones.form', ['milestones' => $milestone, $projects => Project::orderBy('name')->get()]);
     }
 
-    public function update(Request $request, Milestone $milestone)
-    {
+    public function update(Request $request, Milestone $milestone){
+
         $data = $request->validate([
             'project_id' => 'required|integer|exists:wt_projects,id',
             'name' => 'required|string|max:200',

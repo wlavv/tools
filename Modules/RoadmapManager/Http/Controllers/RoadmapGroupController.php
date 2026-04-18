@@ -8,12 +8,16 @@ use Illuminate\Support\Str;
 use Modules\RoadmapManager\Models\Project;
 use Modules\RoadmapManager\Models\ProjectGroup;
 
-class RoadmapGroupController extends Controller
-{
-    public function index()
-    {
-        $groups = ProjectGroup::withCount('projects')->orderBy('sort_order')->paginate(20);
-        return view('roadmap-manager::groups.index', compact('groups'));
+class RoadmapGroupController extends Controller{
+    
+    public function __construct( ) {
+        $this->setIndexPage('groups', 'milestones.groups.index');
+        $this->middleware('auth');
+    }
+
+    public function index(){
+
+        return $this->view('roadmap-manager::groups.index', ['groups' => ProjectGroup::withCount('projects')->orderBy('sort_order')->paginate(20) ]);
     }
 
     public function create()
