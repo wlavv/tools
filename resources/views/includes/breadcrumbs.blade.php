@@ -17,27 +17,29 @@
                     </a>
                 </li>
 
-                @foreach ($breadcrumbs as $breadcrumb)
-                    <li class="breadcrumbs-separator">
-                        <i class="fa fa-chevron-right"></i>
-                    </li>
+                @if ( isset($breadcrumbs))
+                    @foreach ($breadcrumbs as $breadcrumb)
+                        <li class="breadcrumbs-separator">
+                            <i class="fa fa-chevron-right"></i>
+                        </li>
 
-                    <li>
-                        @if($breadcrumb['url'])
-                            <a href="{{ $breadcrumb['url'] }}">
-                        @endif
+                        <li>
+                            @if($breadcrumb['url'])
+                                <a href="{{ $breadcrumb['url'] }}">
+                            @endif
 
-                        @if(isset($breadcrumb['translate']) && $breadcrumb['translate'])
-                            {{ __('breadcrumbs.' . $breadcrumb['label'], $breadcrumb['params'] ?? []) }}
-                        @else
-                            {{ $breadcrumb['label'] ?? '' }}
-                        @endif
+                            @if(isset($breadcrumb['translate']) && $breadcrumb['translate'])
+                                {{ __('breadcrumbs.' . $breadcrumb['label'], $breadcrumb['params'] ?? []) }}
+                            @else
+                                {{ $breadcrumb['label'] ?? '' }}
+                            @endif
 
-                        @if($breadcrumb['url'])
-                            </a>
-                        @endif
-                    </li>
-                @endforeach
+                            @if($breadcrumb['url'])
+                                </a>
+                            @endif
+                        </li>
+                    @endforeach
+                @endif
             </ul>
         </div>
 

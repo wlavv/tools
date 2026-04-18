@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\ProjectManager\Http\Controllers\ProjectManagerController;
 
-Route::middleware(['web','auth'])->prefix('project-manager')->name('project_manager.')->group(function(){
+Route::middleware(['web','auth'])->prefix('administration/project-manager')->name('project_manager.')->group(function(){
     Route::get('/', [ProjectManagerController::class,'index'])->name('index');
     Route::get('/create', [ProjectManagerController::class,'create'])->name('create');
     Route::post('/', [ProjectManagerController::class,'store'])->name('store');
