@@ -2,10 +2,6 @@
 @section('content')
 @include('project-manager::Includes.css')
 <div class="pm-page">
-    <div class="d-flex gap-2 mb-3">
-        <a href="{{ route('project_manager.index') }}" class="btn btn-outline-primary"><i class="fa fa-angle-left" aria-hidden="true"></i></a>
-        <a href="{{ route('project_manager.edit',$project) }}" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-pencil"></i></a>
-    </div>
     <div class="pm-card">
         <h2>{{ $project->name }}</h2>
         <p>{{ $project->description }}</p>
