@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 class marketingController extends Controller{
 
     public function index(){
-        $this->setIndexPage('marketing', 'marketing.index');
         return $this->view('areas/marketing/index');
     }
     

@@ -16,8 +16,8 @@ class DashboardController extends Controller{
         $this->middleware('auth');
     }
 
-    public function index()
-    {
+    public function index(){
+        
         $data = [
             'projectCount' => Project::count(),
             'groupCount' => ProjectGroup::count(),

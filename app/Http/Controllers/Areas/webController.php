@@ -7,8 +7,6 @@ use App\Http\Controllers\Controller;
 class webController extends Controller{
 
     public function index(){
-
-        $this->setIndexPage('webmaster', 'web.index');
         $this->addAccess( route('mtg.index'), 'MTG', null, '<img src="/images/mtg/mana/mtg.png" style="width: 70px;">');
         $this->addAccess( route('asset_library.index'), 'WebCatalog - ASSETS', 'fa-folder-open'           );
         $this->addAccess( route('system_logs.index'), 'System Logs', 'fa-glasses');

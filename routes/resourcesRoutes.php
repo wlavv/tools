@@ -23,8 +23,6 @@ Route::resource('marketing', marketingController::class)->only(['index']);
 Route::resource('customerSupport', customerSupportController::class)->only(['index']);
 Route::resource('sales', salesController::class)->only(['index']);
 
-Route::get('/hr/tasks/tablet', [TasksController::class, 'tablet'])->name('tasks.tablet');
-
 Route::resource('family', familyController::class)->only(['index']);
 Route::resource('webCatalogue', webCatalogueController::class)->only(['index']);
 Route::resource('multiStore', multiStoreController::class)->only(['index']);

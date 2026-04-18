@@ -10,21 +10,32 @@
                 {{ __('breadcrumbs.' . ($pageTitle ?? 'home')) }}
             </h3>
 
-            <ul>
-                <li>
-                    <a href="{{ route('dashboard.index') }}">
-                        {{ __('breadcrumbs.home') }}
-                    </a>
-                </li>
+            @php
+                $hasBreadcrumbs = isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs) > 0;
 
-                @if ( isset($breadcrumbs))
+                $showTrail = true;
+
+                if ($hasBreadcrumbs && count($breadcrumbs) === 1) {
+                    $single = $breadcrumbs[0]['label'] ?? null;
+                    $title  = $pageTitle ?? 'home';
+
+                    if ($single === $title) {
+                        $showTrail = false;
+                    }
+                }
+            @endphp
+
+            @if($hasBreadcrumbs && $showTrail)
+                <ul>
                     @foreach ($breadcrumbs as $breadcrumb)
-                        <li class="breadcrumbs-separator">
-                            <i class="fa fa-chevron-right"></i>
-                        </li>
+                        @if(!$loop->first)
+                            <li class="breadcrumbs-separator">
+                                <i class="fa fa-chevron-right"></i>
+                            </li>
+                        @endif
 
                         <li>
-                            @if($breadcrumb['url'])
+                            @if(!empty($breadcrumb['url']) && !$loop->last)
                                 <a href="{{ $breadcrumb['url'] }}">
                             @endif
 
@@ -34,13 +45,13 @@
                                 {{ $breadcrumb['label'] ?? '' }}
                             @endif
 
-                            @if($breadcrumb['url'])
+                            @if(!empty($breadcrumb['url']) && !$loop->last)
                                 </a>
                             @endif
                         </li>
                     @endforeach
-                @endif
-            </ul>
+                </ul>
+            @endif
         </div>
 
     </div>

@@ -7,9 +7,6 @@ use App\Http\Controllers\Controller;
 class webCatalogueController extends Controller{
 
     public function index(){
-
-        $this->setIndexPage('webCatalogue', 'webCatalogue.index');
-
         return $this->view('areas/webCatalogue/index');
     }
     
