@@ -3,7 +3,7 @@
 @include('project-manager::Includes.css')
 @include('project-manager::Includes.js')
 <div class="pm-page">
-    @include('project-manager::Includes._components.header', ['title' => 'Editar Projeto', 'subtitle' => $project->name])
+    @include('project-manager::Includes._components.header', ['title' => __('project-manager::project_manager.edit_project'), 'subtitle' => $project->name])
     <div class="pm-card">
         <form method="POST" action="{{ route('project_manager.update', $project) }}">
             @csrf

@@ -15,6 +15,7 @@ class AIConsensusController extends Controller
 {
     public function __construct( protected AIConsensusService $service ) {
 
+        parent::__construct();
         $this->setIndexPage('ai_consensus', 'ai_consensus.index');
         $this->middleware('auth');
     }

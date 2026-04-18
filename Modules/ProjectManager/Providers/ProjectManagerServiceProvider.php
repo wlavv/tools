@@ -14,6 +14,7 @@ class ProjectManagerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../Routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../Resources/views','project-manager');
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
+        $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'project-manager');
 
     }
 }

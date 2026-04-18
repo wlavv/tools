@@ -1,0 +1,247 @@
+@import "variables";
+
+body {
+    background: $color-bg-dark;
+    color: $text-primary-dark;
+}
+
+body.theme-light,
+body[data-theme="light"] {
+    background: $color-bg-light;
+    color: $text-primary-light;
+}
+
+.card {
+    background: linear-gradient(180deg, rgba(37,47,59,.94) 0%, rgba(32,40,51,.96) 100%);
+    border: 1px solid $border-soft-dark;
+    border-radius: $radius-sm;
+    box-shadow: $shadow-soft;
+    transition: $transition-fast;
+}
+
+.card:hover {
+    box-shadow: $shadow-medium;
+}
+
+body.theme-light .card,
+body[data-theme="light"] .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(247,249,252,.98) 100%);
+    border: 1px solid $border-soft-light;
+}
+
+.btn {
+    border-radius: $radius-sm;
+    font-weight: 600;
+    transition: $transition-fast;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.form-label,
+label {
+    color: $text-primary-dark;
+    font-weight: 600;
+}
+
+body.theme-light .form-label,
+body.theme-light label,
+body[data-theme="light"] .form-label,
+body[data-theme="light"] label {
+    color: $text-primary-light;
+}
+
+.form-control,
+.form-select,
+textarea.form-control,
+input.form-control,
+select.form-select {
+    border-radius: $radius-sm;
+    border: 1px solid rgba(148, 163, 184, .34);
+    background: rgba(15, 23, 42, .78);
+    color: $text-primary-dark;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.form-control::placeholder,
+textarea.form-control::placeholder {
+    color: rgba(148, 163, 184, .78);
+}
+
+.form-control:hover,
+.form-select:hover,
+textarea.form-control:hover,
+input.form-control:hover,
+select.form-select:hover {
+    border-color: rgba(148, 163, 184, .48);
+    background: rgba(15, 23, 42, .86);
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus,
+input.form-control:focus,
+select.form-select:focus {
+    border-color: rgba(37, 99, 235, .88);
+    background: rgba(15, 23, 42, .92);
+    color: $text-primary-dark;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.16), inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+    background: rgba(15, 23, 42, .55);
+    border-color: rgba(148, 163, 184, .18);
+    color: rgba(148, 163, 184, .72);
+    opacity: 1;
+}
+
+.form-check-input {
+    background-color: rgba(15, 23, 42, .82);
+    border: 1px solid rgba(148, 163, 184, .42);
+}
+
+.form-check-input:focus {
+    border-color: rgba(37, 99, 235, .88);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.16);
+}
+
+.form-check-input:checked {
+    background-color: $color-primary;
+    border-color: $color-primary;
+}
+
+.input-group-text {
+    border-radius: $radius-sm;
+    border: 1px solid rgba(148, 163, 184, .34);
+    background: rgba(15, 23, 42, .9);
+    color: rgba(226, 232, 240, .88);
+}
+
+body.theme-light .form-control,
+body.theme-light .form-select,
+body.theme-light textarea.form-control,
+body.theme-light input.form-control,
+body.theme-light select.form-select,
+body[data-theme="light"] .form-control,
+body[data-theme="light"] .form-select,
+body[data-theme="light"] textarea.form-control,
+body[data-theme="light"] input.form-control,
+body[data-theme="light"] select.form-select {
+    background: #ffffff;
+    border: 1px solid rgba(100, 116, 139, .28);
+    color: $text-primary-light;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+body.theme-light .form-control::placeholder,
+body.theme-light textarea.form-control::placeholder,
+body[data-theme="light"] .form-control::placeholder,
+body[data-theme="light"] textarea.form-control::placeholder {
+    color: rgba(100, 116, 139, .82);
+}
+
+body.theme-light .form-control:hover,
+body.theme-light .form-select:hover,
+body.theme-light textarea.form-control:hover,
+body.theme-light input.form-control:hover,
+body.theme-light select.form-select:hover,
+body[data-theme="light"] .form-control:hover,
+body[data-theme="light"] .form-select:hover,
+body[data-theme="light"] textarea.form-control:hover,
+body[data-theme="light"] input.form-control:hover,
+body[data-theme="light"] select.form-select:hover {
+    border-color: rgba(100, 116, 139, .42);
+    background: #ffffff;
+}
+
+body.theme-light .form-control:focus,
+body.theme-light .form-select:focus,
+body.theme-light textarea.form-control:focus,
+body.theme-light input.form-control:focus,
+body.theme-light select.form-select:focus,
+body[data-theme="light"] .form-control:focus,
+body[data-theme="light"] .form-select:focus,
+body[data-theme="light"] textarea.form-control:focus,
+body[data-theme="light"] input.form-control:focus,
+body[data-theme="light"] select.form-select:focus {
+    border-color: rgba(37, 99, 235, .72);
+    background: #ffffff;
+    color: $text-primary-light;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+body.theme-light .form-control:disabled,
+body.theme-light .form-control[readonly],
+body.theme-light .form-select:disabled,
+body[data-theme="light"] .form-control:disabled,
+body[data-theme="light"] .form-control[readonly],
+body[data-theme="light"] .form-select:disabled {
+    background: rgba(241, 245, 249, .92);
+    border-color: rgba(100, 116, 139, .18);
+    color: rgba(100, 116, 139, .82);
+}
+
+body.theme-light .form-check-input,
+body[data-theme="light"] .form-check-input {
+    background-color: #ffffff;
+    border: 1px solid rgba(100, 116, 139, .32);
+}
+
+body.theme-light .input-group-text,
+body[data-theme="light"] .input-group-text {
+    background: rgba(248, 250, 252, .98);
+    border: 1px solid rgba(100, 116, 139, .24);
+    color: #475569;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: $text-muted-dark;
+}
+
+.table td {
+    border-top: 1px solid $border-soft-dark;
+}
+
+body.theme-light .table th,
+body[data-theme="light"] .table th {
+    color: $text-muted-light;
+}
+
+body.theme-light .table td,
+body[data-theme="light"] .table td {
+    border-top: 1px solid $border-soft-light;
+}
+
+.text-muted {
+    color: $text-muted-dark !important;
+}
+
+body.theme-light .text-muted,
+body[data-theme="light"] .text-muted {
+    color: $text-muted-light !important;
+}
+
+.empty-state {
+    border: 1px dashed $border-soft-dark;
+    border-radius: $radius-sm;
+    padding: 1rem;
+    color: $text-muted-dark;
+}
+
+body.theme-light .empty-state,
+body[data-theme="light"] .empty-state {
+    border: 1px dashed $border-soft-light;
+    color: $text-muted-light;
+}

@@ -23,7 +23,7 @@
 
             <div class="ls-register-notice">
                 <div class="ls-register-icon">
-                    <i class="fa-solid fa-lock"></i>
+                    <i class="fa-solid fa-user-lock"></i>
                 </div>
 
                 <div class="ls-register-text">

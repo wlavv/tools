@@ -5,14 +5,14 @@
             <div>
                 <div class="pm-group-title">{{ $group->name }}</div>
                 <div class="pm-group-meta">
-                    <span>{{ $group->children_count ?? $group->children->count() }} subprojetos</span>
-                    <span>{{ $group->aggregated_tasks_done ?? 0 }}/{{ $group->aggregated_tasks_total ?? 0 }} tasks</span>
+                    <span>{{ $group->children_count ?? $group->children->count() }} {{ __('project-manager::project_manager.subprojects') }}</span>
+                    <span>{{ $group->aggregated_tasks_done ?? 0 }}/{{ $group->aggregated_tasks_total ?? 0 }} {{ __('project-manager::project_manager.tasks') }}</span>
                     <span>{{ $group->progress_percent ?? 0 }}%</span>
                 </div>
             </div>
         </div>
         <div>
-            <a href="{{ route('project_manager.show', $group) }}" class="btn btn-sm btn-outline-primary"> <i class="fa-solid fa-eye"></i> </a>
+            <a href="{{ route('project_manager.show', $group) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
         </div>
     </div>
     <div class="pm-group-body">

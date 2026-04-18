@@ -8,7 +8,7 @@
             @forelse($groups as $group)
                 @include('project-manager::Includes._components.group-block', ['group' => $group])
             @empty
-                <div class="pm-empty">Sem grupos de projetos.</div>
+                <div class="pm-empty">{{ __('project-manager::project_manager.empty_groups') }}</div>
             @endforelse
         </div>
     </div>

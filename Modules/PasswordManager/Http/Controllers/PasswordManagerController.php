@@ -15,7 +15,9 @@ use Modules\PasswordManager\Services\PasswordManagerService;
 class PasswordManagerController extends Controller
 {
     public function __construct( protected PasswordManagerService $service ) {
-        $this->setIndexPage('password_manager', 'password_manager.index');
+        
+        parent::__construct();
+        $this->pageTitle = $this->resolvePageTitle();
         $this->middleware('auth');
     }
 
