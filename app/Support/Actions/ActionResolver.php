@@ -45,7 +45,7 @@ class ActionResolver
             routeParameters: $route->parameters(),
         );
 
-        $definitions = $this->applyRouteConfigToDefinitions($definitions, $routeConfig, $routeParameters = $route->parameters());
+        $definitions = $this->applyRouteConfigToDefinitions($definitions, $routeConfig, $route->parameters());
         $definitions = $this->removeDisabled($definitions, $disabledKeys);
         $definitions = $this->mergeCustomActions($definitions, $customActions);
         $definitions = $this->filterOnly($definitions, $onlyKeys);
@@ -64,6 +64,7 @@ class ActionResolver
         $defaults = [];
         $createRoute = $routeConfig['create_route'] ?? ($modulePrefix ? $modulePrefix . '.create' : null);
         $editRoute = $routeConfig['edit_route'] ?? ($modulePrefix ? $modulePrefix . '.edit' : null);
+        $showRoute = $routeConfig['show_route'] ?? ($modulePrefix ? $modulePrefix . '.show' : null);
         $deleteRoute = $routeConfig['delete_route'] ?? $routeName;
 
         switch ($routeAction) {
@@ -86,6 +87,7 @@ class ActionResolver
                 $defaults['back'] = $this->makeBackAction($moduleHomeRoute);
                 $defaults['new'] = $this->makeNewAction($createRoute);
                 $defaults['save'] = $this->makeSaveAction();
+                $defaults['show'] = $this->makeShowAction($showRoute, $routeParameters);
                 $defaults['delete'] = $this->makeDeleteAction($deleteRoute, $routeParameters);
                 break;
         }
@@ -95,7 +97,7 @@ class ActionResolver
 
     protected function applyRouteConfigToDefinitions(array $definitions, array $routeConfig, array $routeParameters): array
     {
-        $reserved = ['module_home_route', 'create_route', 'edit_route', 'delete_route'];
+        $reserved = ['module_home_route', 'create_route', 'edit_route', 'show_route', 'delete_route'];
 
         foreach ($routeConfig as $key => $value) {
             if (in_array($key, $reserved, true)) {
@@ -112,12 +114,19 @@ class ActionResolver
             }
 
             if (is_string($value)) {
-                $definitions[$key] = $this->applyRouteToAction($definitions[$key] ?? $this->makeActionByKey($key), $value, $routeParameters);
+                $baseAction = $definitions[$key] ?? $this->makeActionByKey($key);
+                if ($baseAction) {
+                    $definitions[$key] = $this->applyRouteToAction($baseAction, $value, $routeParameters);
+                }
                 continue;
             }
 
             if (is_array($value)) {
                 $action = $definitions[$key] ?? $this->makeActionByKey($key);
+
+                if (!$action) {
+                    continue;
+                }
 
                 if (isset($value['route'])) {
                     $action = $this->applyRouteToAction($action, $value['route'], $routeParameters);
@@ -138,23 +147,43 @@ class ActionResolver
         return $action;
     }
 
-    protected function makeActionByKey(string $key): array
+    protected function makeActionByKey(string $key): ?array
     {
         return match ($key) {
-            'new' => $this->makeNewAction(null),
-            'edit' => $this->makeEditAction(null, []),
-            'delete' => $this->makeDeleteAction(null, []),
-            'save' => $this->makeSaveAction(),
-            'back' => $this->makeBackAction(null),
-            default => [
+            'new'       => $this->makeNewAction(null),
+            'edit'      => $this->makeEditAction(null, []),
+            'show'      => $this->makeShowAction(null, []),
+            'delete'    => $this->makeDeleteAction(null, []),
+            'save'      => $this->makeSaveAction(),
+            'back'      => $this->makeBackAction(null),
+            default     => [
                 'key' => $key,
                 'name' => ucfirst(str_replace('_', ' ', $key)),
+                'label' => ucfirst(str_replace('_', ' ', $key)),
                 'icon' => 'fa-solid fa-cog',
-                'class' => 'btn btn-outline-primary',
+                'class' => 'lsg-action-btn lsg-action-btn--neutral',
                 'url' => null,
                 'type' => 'link',
             ],
         };
+    }
+
+    protected function makeShowAction(?string $routeName, array $routeParameters = []): ?array
+    {
+        if (!$routeName) {
+            return null;
+        }
+
+        return [
+            'key' => 'show',
+            'name' => 'Show',
+            'label' => 'Show',
+            'icon' => 'fa-solid fa-eye',
+            'class' => 'lsg-action-btn lsg-action-btn--neutral',
+            'route' => $routeName,
+            'url' => $this->safeRoute($routeName, $routeParameters),
+            'type' => 'link',
+        ];
     }
 
     protected function makeBackAction(?string $routeName): ?array
@@ -166,8 +195,9 @@ class ActionResolver
         return [
             'key' => 'back',
             'name' => 'Back',
+            'label' => 'Back',
             'icon' => 'fa-solid fa-angle-left',
-            'class' => 'btn btn-outline-primary',
+            'class' => 'lsg-action-btn lsg-action-btn--back',
             'route' => $routeName,
             'url' => $this->safeRoute($routeName),
             'type' => 'link',
@@ -183,8 +213,9 @@ class ActionResolver
         return [
             'key' => 'new',
             'name' => 'New',
+            'label' => 'New',
             'icon' => 'fa-solid fa-plus',
-            'class' => 'btn btn-outline-success',
+            'class' => 'lsg-action-btn lsg-action-btn--success',
             'route' => $routeName,
             'url' => $this->safeRoute($routeName),
             'type' => 'link',
@@ -200,8 +231,9 @@ class ActionResolver
         return [
             'key' => 'edit',
             'name' => 'Edit',
+            'label' => 'Edit',
             'icon' => 'fa-solid fa-pencil',
-            'class' => 'btn btn-outline-warning',
+            'class' => 'lsg-action-btn lsg-action-btn--warning',
             'route' => $routeName,
             'url' => $this->safeRoute($routeName, $routeParameters),
             'type' => 'link',
@@ -217,8 +249,9 @@ class ActionResolver
         return [
             'key' => 'delete',
             'name' => 'Delete',
+            'label' => 'Delete',
             'icon' => 'fa-solid fa-trash',
-            'class' => 'btn btn-outline-danger',
+            'class' => 'lsg-action-btn lsg-action-btn--danger',
             'route' => $routeName,
             'url' => $this->safeRoute($routeName, $routeParameters),
             'type' => 'delete',
@@ -232,8 +265,9 @@ class ActionResolver
         return [
             'key' => 'save',
             'name' => 'Save',
+            'label' => 'Save',
             'icon' => 'fa-solid fa-floppy-disk',
-            'class' => 'btn btn-outline-primary',
+            'class' => 'lsg-action-btn lsg-action-btn--gold',
             'url' => null,
             'type' => 'submit',
         ];
@@ -287,6 +321,10 @@ class ActionResolver
 
             if (!$key) {
                 continue;
+            }
+
+            if (!isset($action['class'])) {
+                $action['class'] = 'lsg-action-btn lsg-action-btn--neutral';
             }
 
             $normalized[$key] = $action;
