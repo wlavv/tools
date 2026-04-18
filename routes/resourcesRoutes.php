@@ -14,16 +14,14 @@ use App\Http\Controllers\Areas\{
     multiStoreController
 };
 
-Route::resources([
-    'home'            => dashboardController::class,
-    'dashboard'       => dashboardController::class,
-    'administration'  => adminController::class,
-    'web'             => webController::class,
-    'finance'         => financeController::class,
-    'marketing'       => marketingController::class,
-    'customerSupport' => customerSupportController::class,
-    'sales'           => salesController::class,
-])->only(['index']);
+Route::resource('home', dashboardController::class)->only(['index']);
+Route::resource('dashboard', dashboardController::class)->only(['index']);
+Route::resource('administration', adminController::class)->only(['index']);
+Route::resource('web', webController::class)->only(['index']);
+Route::resource('finance', financeController::class)->only(['index']);
+Route::resource('marketing', marketingController::class)->only(['index']);
+Route::resource('customerSupport', customerSupportController::class)->only(['index']);
+Route::resource('sales', salesController::class)->only(['index']);
 
 Route::get('/hr/tasks/tablet', [TasksController::class, 'tablet'])->name('tasks.tablet');
 
