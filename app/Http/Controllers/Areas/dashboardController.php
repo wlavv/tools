@@ -9,6 +9,8 @@ use Modules\Tasks\Services\FamilyPlannerThoughtService;
 
 class dashboardController extends Controller{
 
+    protected bool $hasPageActions = false;
+
     public function index(){
 
         $this->setBreadcrumbs([]);

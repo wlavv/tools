@@ -27,6 +27,8 @@ class Controller extends BaseController
     protected ?array $onlyActionKeys = null;
     protected ?string $moduleHomeRoute = null;
 
+    protected bool $hasPageActions = true;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -238,6 +240,8 @@ class Controller extends BaseController
 
     protected function resolveActions(): array
     {
+        if (!$this->hasPageActions) return [];
+
         return app(ActionResolver::class)->resolve(
             disabledKeys: $this->disabledDefaultActions,
             onlyKeys: $this->onlyActionKeys,

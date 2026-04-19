@@ -25,5 +25,6 @@ class PasswordManagerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'password-manager');
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
+        $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'password-manager');
     }
 }

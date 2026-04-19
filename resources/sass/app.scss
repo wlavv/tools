@@ -1124,7 +1124,7 @@ select {
     min-height: 44px;
     padding: 0.7rem 0.9rem;
     background: rgba(255,255,255,0.045) !important;
-    border: 2px solid #ddd !important;
+    border: 1px solid #ddd !important;
     color: var(--text-primary) !important;
     border-radius: 5px !important;
     transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
@@ -1138,9 +1138,17 @@ textarea {
 .form-control:hover,
 .form-select:hover,
 textarea:hover,
+select:hover,
 .customInput:hover,
-.customInput20:hover {
-    border: 2px solid var(--accent) !important;
+.customInput20:hover,
+input[type="url"]:hover,
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="number"]:hover,
+input[type="date"]:hover,
+input[type="search"]:hover {
+    border: 1px solid var(--accent) !important;
     background: rgba(255,255,255,0.055) !important;
 }
 

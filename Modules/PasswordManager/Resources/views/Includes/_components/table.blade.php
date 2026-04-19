@@ -1,42 +1,54 @@
 <div class="password-manager-card passwordManager-card">
     <div class="password-manager-table-wrap">
-        <table class="password-manager-table text-center">
+        <table class="password-manager-table">
             <thead>
                 <tr>
-                    <th>Título</th>
-                    <th>Categoria</th>
+                    <th>Title</th>
+                    <th>Category</th>
                     <th>Login</th>
                     <th>URL</th>
-                    <th>Estado</th>
-                    <th style="width: 100px;">Ações</th>
+                    <th>Status</th>
+                    <th class="text-center" style="width: 140px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($entries as $entry)
                     <tr>
                         <td>
-                            <strong>{{ $entry->title }}: </strong> <small>{{ $entry->account_email ?: 'Sem email' }}</small>
+                            <div class="pm-table-title">
+                                <strong>{{ $entry->title }}</strong>
+                                <span>{{ $entry->account_email ?: 'No email' }}</span>
+                            </div>
                         </td>
                         <td>{{ $entry->category ?: '—' }}</td>
                         <td>{{ $entry->login_username ?: '—' }}</td>
-                        <td>{{ $entry->url ?: '—' }}</td>
+                        <td class="pm-table-url">{{ $entry->url ?: '—' }}</td>
                         <td>
                             @if($entry->is_favorite)
-                                <span class="password-manager-badge" style="background: darkgreen;">Favorito</span>
+                                <span class="password-manager-badge password-manager-badge--favorite">Favorite</span>
                             @else
-                                <span class="password-manager-badge" style="background: grey;">Normal</span>
+                                <span class="password-manager-badge password-manager-badge--neutral">Normal</span>
                             @endif
                         </td>
                         <td>
-                            <div class="password-manager-actions">
-                                <a href="{{ route('password_manager.show', $entry) }}" class="password-manager-btn" style="padding: 0 5px; border: 0px solid dodgerblue;"><i class="fa-solid fa-eye" style="font-size: 20px;"></i></a>
-                                <a href="{{ route('password_manager.edit', $entry) }}" class="password-manager-btn" style="padding: 0 5px; border: 0px solid orange;"><i class="fa-solid fa-pencil" style="font-size: 20px;"></i></a>
+                            <div class="password-manager-actions password-manager-actions--center">
+                                <a href="{{ route('password_manager.show', $entry) }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact" title="Show">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact" title="Edit">
+                                    <i class="fa-solid fa-pencil"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6">Sem registos encontrados.</td>
+                        <td colspan="6">
+                            <div class="pm-empty-state">
+                                <strong>{{ config('password-manager.ui.empty_state.title', 'No entries found') }}</strong>
+                                <span>{{ config('password-manager.ui.empty_state.text', 'Create a secure entry or adjust the current filters.') }}</span>
+                            </div>
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
@@ -45,21 +57,28 @@
 
     <div class="password-manager-mobile-list">
         @forelse($entries as $entry)
-            <div class="password-manager-mobile-item">
-                <strong>{{ $entry->title }}</strong>
-                <div style="color:#64748b; margin-top:0.25rem;">{{ $entry->account_email ?: ($entry->login_username ?: 'Sem login') }}</div>
-                <div style="margin-top:0.35rem;">{{ $entry->category ?: 'Sem categoria' }}</div>
-                <div class="password-manager-actions" style="margin-top:0.75rem;">
-                    <a href="{{ route('password_manager.show', $entry) }}" class="password-manager-btn">Ver</a>
-                    <a href="{{ route('password_manager.edit', $entry) }}" class="password-manager-btn">Editar</a>
+            <div class="password-manager-mobile-item passwordManager-card">
+                <div class="pm-mobile-item__header">
+                    <div>
+                        <strong>{{ $entry->title }}</strong>
+                        <div class="pm-mobile-item__sub">{{ $entry->account_email ?: ($entry->login_username ?: 'No login') }}</div>
+                    </div>
+                    @if($entry->is_favorite)
+                        <span class="password-manager-badge password-manager-badge--favorite">Favorite</span>
+                    @endif
+                </div>
+                <div class="pm-mobile-item__category">{{ $entry->category ?: 'No category' }}</div>
+                <div class="password-manager-actions" style="margin-top:0.85rem;">
+                    <a href="{{ route('password_manager.show', $entry) }}" class="lsg-action-btn lsg-action-btn--primary"><i class="fa-solid fa-eye"></i><span>Show</span></a>
+                    <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning"><i class="fa-solid fa-pencil"></i><span>Edit</span></a>
                 </div>
             </div>
         @empty
-            <div class="password-manager-mobile-item">Sem registos encontrados.</div>
+            <div class="password-manager-mobile-item passwordManager-card">{{ config('password-manager.ui.empty_state.text', 'No entries found.') }}</div>
         @endforelse
     </div>
 
-    <div style="margin-top:1rem;">
+    <div class="pm-pagination-wrap">
         {{ $entries->links() }}
     </div>
 </div>

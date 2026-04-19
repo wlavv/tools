@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 
 class marketingController extends Controller{
 
+    protected bool $hasPageActions = false;
+
     public function index(){
         return $this->view('areas/marketing/index');
     }

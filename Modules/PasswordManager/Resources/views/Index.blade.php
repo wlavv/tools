@@ -3,17 +3,18 @@
 @section('content')
     @include('password-manager::Includes.css')
 
-        <div class="password-manager-shell">
-            @include('password-manager::Includes._components.header')
+    <div class="password-manager-shell">
+        @if(session('success'))
+            <div class="password-manager-alert">{{ session('success') }}</div>
+        @endif
 
-            @if(session('success')) <div class="password-manager-alert">{{ session('success') }}</div> @endif
-            <div>
-                @include('password-manager::Includes._components.toolbar', ['search' => $search])
-                @include('password-manager::Includes._components.stats', ['entries' => $entries])
-            </div>
-
-            @include('password-manager::Includes._components.table', ['entries' => $entries])
+        <div class="pm-dashboard-grid">
+            @include('password-manager::Includes._components.toolbar', ['search' => $search])
+            @include('password-manager::Includes._components.stats', ['entries' => $entries])
         </div>
+
+        @include('password-manager::Includes._components.table', ['entries' => $entries])
+    </div>
 
     @include('password-manager::Includes.js')
 @endsection

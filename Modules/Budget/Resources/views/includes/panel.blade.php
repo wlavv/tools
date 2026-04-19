@@ -3,11 +3,6 @@
     <div class="navbar navbar-light customPanel" style="@if( $isMobile )margin-top: 0; @else padding: 0; margin: 5px;@endif">
         <div style=" height: 50px;">
             <div style="text-align: left;cursor: pointer;width: calc(100% - 60px); vertical-align: middle;font-size: 25px;padding: 5px;float: left;" onclick="$('.{{$slug}}_Content').toggle()"><span style="display: block;width: 60px;float: left;text-align: center;font-size: 14px;margin-right: 10px;line-height: 2; background-color: {{(isset($spent[$slug])) ? $spent[$slug]['color'] : '#FFF'}}; border-radius: 5px; border: 1px solid #999; padding: 5px 0;">@if(isset($spent[$slug])){{number_format($spent[$slug]['detail']->percent, 0, ',', '')}} % @else 0 % @endif</span>{{$title}}</div>
-            <div style="text-align: center;cursor: pointer; display: none;" onclick="alert('SHOW GRAPH')">
-                <button class="btn btn-primary" style="color: #FFF;width: 40px;height: 40px;margin: 5px;;float: right;">
-                    <i class="fa-solid fa-chart-simple"></i> 
-                </button>
-            </div>
         </div>
         <table class="table table-striped" style="width: 100%;text-align: center;margin-bottom: 0;display: table;">
 

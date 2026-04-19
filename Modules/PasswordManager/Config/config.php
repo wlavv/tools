@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'route_prefix' => 'password-manager',
-    'middleware' => ['web', 'auth'],
+    'layout' => 'layouts.app',
     'pagination' => 15,
 ];

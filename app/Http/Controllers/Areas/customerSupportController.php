@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 
 class customerSupportController extends Controller{
 
+    protected bool $hasPageActions = false;
+
     public function index(){
         return $this->view('areas/customers/index');
     }

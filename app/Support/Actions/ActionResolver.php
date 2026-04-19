@@ -270,6 +270,7 @@ class ActionResolver
             'class' => 'lsg-action-btn lsg-action-btn--gold',
             'url' => null,
             'type' => 'submit',
+            'form' => 'lsg-form',
         ];
     }
 
