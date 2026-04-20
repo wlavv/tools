@@ -13,7 +13,7 @@ class ApiController extends Controller
     public function __construct(
         protected ProductivityDashboardService $dashboardService
     ) {
-        $this->middleware('auth');
+        parent::__construct();
     }
 
     public function dashboard(): JsonResponse

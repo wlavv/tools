@@ -1,7 +1,7 @@
 <div class="modal fade" id="providerCredentialModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="{{ route('ai_consensus.credentials.save') }}">
+            <form method="POST" action="{{ route('ai_consensus.credentials.save') }}" data-ai-loading-form>
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Credenciais provider</h5>
@@ -37,13 +37,26 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">API key</label>
-                            <input type="password" name="api_key" class="form-control" autocomplete="off">
+                            <div class="ai-copy-block">
+                                <div class="ai-copy-toolbar">
+                                    <button type="button" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact" data-secret-toggle="credential_api_key" data-show-title="Show API key" data-hide-title="Hide API key" title="Show API key">
+                                        <span class="lsg-action-btn__icon"><i class="fa-solid fa-eye"></i></span>
+                                    </button>
+                                    <button type="button" class="lsg-action-btn lsg-action-btn--success lsg-action-btn--compact" data-copy-target="credential_api_key" data-copy-title="{{ __('ai-consensus::actions.copy') }}" data-copied-title="{{ __('ai-consensus::actions.copied') }}" title="{{ __('ai-consensus::actions.copy') }}">
+                                        <span class="lsg-action-btn__icon"><i class="fa-solid fa-copy"></i></span>
+                                    </button>
+                                </div>
+                                <input id="credential_api_key" type="password" name="api_key" class="form-control ai-copy-input" autocomplete="off">
+                            </div>
                             <div class="small ai-muted mt-1">Só é alterada se preencheres este campo.</div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary" type="submit">Guardar credenciais</button>
+                    <button class="lsg-action-btn lsg-action-btn--success" type="submit" data-loading-label="Guardar credenciais">
+                        <span class="lsg-action-btn__icon"><i class="fa-solid fa-floppy-disk"></i></span>
+                        <span class="lsg-action-btn__label">Guardar credenciais</span>
+                    </button>
                 </div>
             </form>
         </div>

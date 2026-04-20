@@ -1,6 +1,6 @@
-<div class="ai-card">
+<div class="ai-card" style="margin-top: 15px;">
     <div class="table-responsive">
-        <table class="table align-middle text-center;" style="text-align: center !important">
+        <table class="table align-middle text-center" style="text-align: center !important">
             <thead>
                 <tr>
                     <th>Título</th>
@@ -10,7 +10,7 @@
                     <th>Custo</th>
                     <th>Ficheiros</th>
                     <th>Respostas</th>
-                    <th style="width: 140px;">Ações</th>
+                    <th style="width: 180px;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,18 +23,22 @@
                         <td>${{ number_format((float) $run->total_cost_estimate_usd, 4) }}</td>
                         <td>{{ $run->files_count }}</td>
                         <td>{{ $run->responses_count }}</td>
-                        <td class="text-end">
-                            <div class="ai-actions justify-content-end">
-                                <a href="{{ route('ai_consensus.show', $run->id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fa-solid fa-eye"></i>
+                        <td>
+                            <div class="ai-table-actions">
+                                <a href="{{ route('ai_consensus.show', $run->id) }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact">
+                                    <span class="lsg-action-btn__icon"><i class="fa-solid fa-eye"></i></span>
                                 </a>
-                                <a href="{{ route('ai_consensus.edit', $run->id) }}" class="btn btn-sm btn-outline-warning">
-                                    <i class="fa-solid fa-pencil"></i>
+
+                                <a href="{{ route('ai_consensus.edit', $run->id) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact">
+                                    <span class="lsg-action-btn__icon"><i class="fa-solid fa-pencil"></i></span>
                                 </a>
-                                <form method="POST" action="{{ route('ai_consensus.destroy', $run->id) }}" onsubmit="return confirm('Remover este run?')">
+
+                                <form method="POST" action="{{ route('ai_consensus.destroy', $run->id) }}" class="lsg-action-form" data-ai-loading-form onsubmit="return confirm('{{ __('ai-consensus::actions.confirm_delete') }}')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"> <i class="fa-solid fa-trash"></i> </button>
+                                    <button type="submit" class="lsg-action-btn lsg-action-btn--danger lsg-action-btn--compact">
+                                        <span class="lsg-action-btn__icon"><i class="fa-solid fa-trash"></i></span>
+                                    </button>
                                 </form>
                             </div>
                         </td>

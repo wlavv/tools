@@ -3,43 +3,28 @@
 namespace Modules\AIConsensus\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\AIConsensus\Services\AIConsensusService;
 
 class AIConsensusServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $configPath = dirname(__DIR__) . '/Config/config.php';
+        $modulePath = dirname(__DIR__);
 
-        if (file_exists($configPath)) {
-            $this->mergeConfigFrom($configPath, 'ai-consensus');
+        if (file_exists($modulePath . '/Config/config.php')) {
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'ai_consensus');
         }
+
+        $this->app->singleton(AIConsensusService::class, fn () => new AIConsensusService());
     }
 
     public function boot(): void
     {
-        $moduleRoot = dirname(__DIR__);
+        $modulePath = dirname(__DIR__);
 
-        $routesPath = $moduleRoot . '/Routes/web.php';
-        $viewsPath = $moduleRoot . '/Resources/views';
-        $migrationsPath = $moduleRoot . '/Database/Migrations';
-        $configPath = $moduleRoot . '/Config/config.php';
-
-        if (file_exists($routesPath)) {
-            $this->loadRoutesFrom($routesPath);
-        }
-
-        if (is_dir($viewsPath)) {
-            $this->loadViewsFrom($viewsPath, 'ai-consensus');
-        }
-
-        if (is_dir($migrationsPath)) {
-            $this->loadMigrationsFrom($migrationsPath);
-        }
-
-        if (file_exists($configPath)) {
-            $this->publishes([
-                $configPath => config_path('ai-consensus.php'),
-            ], 'ai-consensus-config');
-        }
+        $this->loadRoutesFrom($modulePath . '/Routes/web.php');
+        $this->loadViewsFrom($modulePath . '/Resources/views', 'ai-consensus');
+        $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
+        $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'ai-consensus');
     }
 }

@@ -13,77 +13,79 @@ use Modules\AIConsensus\Services\AIConsensusService;
 
 class AIConsensusController extends Controller
 {
-    public function __construct( protected AIConsensusService $service ) {
-
+    public function __construct(protected AIConsensusService $service)
+    {
         parent::__construct();
-        $this->setIndexPage('ai_consensus', 'ai_consensus.index');
         $this->middleware('auth');
     }
 
-    public function index(Request $request): View{
-
-        return $this->view('ai-consensus::Index', $this->service->getIndexData($request->all()) );
+    public function index(Request $request): View
+    {
+        return $this->view('ai-consensus::Index', $this->service->getIndexData($request->all()));
     }
 
-    public function create(): View{
-        
-        $data = [
+    public function create(): View
+    {
+        return $this->view('ai-consensus::pages.create', [
             'providerSettings' => $this->service->getProviderSettings(),
-            'defaults' => [ 'template_key' => config('ai_consensus.defaults.template_key', 'module_scaffold_v1') ],
-        ];
-
-        return $this->view('ai-consensus::pages.create', $data );
+            'defaults' => ['template_key' => config('ai_consensus.defaults.template_key', 'module_scaffold_v1')],
+        ]);
     }
 
-    public function store(StoreAIConsensusRequest $request): RedirectResponse{
-
+    public function store(StoreAIConsensusRequest $request): RedirectResponse
+    {
         $run = $this->service->createRun(
             $request->validated(),
             $request->file('files', []),
             optional($request->user())->id
         );
 
-        return redirect()->route('ai_consensus.show', $run->id)->with('success', 'Pedido AI Consensus criado e processado.');
+        return redirect()
+            ->route('ai_consensus.show', $run->id)
+            ->with('success', 'Pedido AI Consensus criado e processado.');
     }
 
-    public function show(AIConsensus $run): View{
-
-        $data = [
+    public function show(AIConsensus $run): View
+    {
+        return $this->view('ai-consensus::pages.show', [
             'run' => $run->load(['responses', 'files']),
             'providerSettings' => $this->service->getProviderSettings(),
             'parsedFilesPreview' => $this->service->buildStoredFilesPromptBlock($run),
-        ];
-        return $this->view('ai-consensus::pages.show', $data );
+        ]);
     }
 
-    public function edit(AIConsensus $run): View{
-
-        $data = [ 
-            'run' => $run->load(['responses', 'files']), 
-            'providerSettings' => $this->service->getProviderSettings() 
-        ];
-        return $this->view('ai-consensus::pages.edit', $data );
+    public function edit(AIConsensus $run): View
+    {
+        return $this->view('ai-consensus::pages.edit', [
+            'run' => $run->load(['responses', 'files']),
+            'providerSettings' => $this->service->getProviderSettings(),
+        ]);
     }
 
-    public function update(UpdateAIConsensusRequest $request, AIConsensus $run): RedirectResponse{
-
+    public function update(UpdateAIConsensusRequest $request, AIConsensus $run): RedirectResponse
+    {
         $this->service->updateRun(
             $run,
             $request->validated(),
             $request->file('files', [])
         );
 
-        return redirect()->route('ai_consensus.show', $run->id)->with('success', 'Pedido atualizado com sucesso.');
+        return redirect()
+            ->route('ai_consensus.show', $run->id)
+            ->with('success', 'Pedido atualizado com sucesso.');
     }
 
-    public function destroy(AIConsensus $run): RedirectResponse{
-
+    public function destroy(AIConsensus $run): RedirectResponse
+    {
         $this->service->deleteRun($run);
-        return redirect()->route('ai_consensus.index')->with('success', 'Pedido removido com sucesso.');
+
+        return redirect()
+            ->route('ai_consensus.index')
+            ->with('success', 'Pedido removido com sucesso.');
     }
 
-    public function saveCredentials(Request $request): RedirectResponse{
-
+    public function saveCredentials(Request $request): RedirectResponse
+    {
         $data = $request->validate([
             'provider' => ['required', 'in:anthropic,gemini,openai'],
             'label' => ['nullable', 'string', 'max:120'],
@@ -94,12 +96,16 @@ class AIConsensusController extends Controller
         ]);
 
         $this->service->saveProviderCredentials($data);
+
         return back()->with('success', 'Credenciais guardadas com sucesso.');
     }
 
-    public function reprocess(AIConsensus $run): RedirectResponse{
-
+    public function reprocess(AIConsensus $run): RedirectResponse
+    {
         $this->service->reprocessRun($run);
-        return redirect()->route('ai_consensus.show', $run->id)->with('success', 'Pedido reprocessado com sucesso.');
+
+        return redirect()
+            ->route('ai_consensus.show', $run->id)
+            ->with('success', 'Pedido reprocessado com sucesso.');
     }
 }

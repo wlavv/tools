@@ -256,7 +256,7 @@ class ActionResolver
             'url' => $this->safeRoute($routeName, $routeParameters),
             'type' => 'delete',
             'method' => 'DELETE',
-            'confirm' => true,
+            'confirm' => __('actions.confirm_delete'),
         ];
     }
 

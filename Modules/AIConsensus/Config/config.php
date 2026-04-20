@@ -3,6 +3,9 @@
 return [
     'layout' => 'layouts.app',
 
+    'middleware' => ['web', 'auth'],
+    'route_prefix' => 'ai-consensus',
+
     'tables' => [
         'runs' => 'ai_runs',
         'responses' => 'ai_run_responses',

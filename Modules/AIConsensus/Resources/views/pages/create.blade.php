@@ -3,16 +3,19 @@
 @section('content')
 <div class="ai-consensus-page">
     @include('ai-consensus::Includes.css')
+    @include('ai-consensus::Includes._components.header')
+
     @if($errors->any())
-        <div class="alert alert-danger">
+        <div class="ai-alert ai-alert--error">
             <div><strong>Existem erros no formulário.</strong></div>
-            <ul class="mb-0">
+            <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
         </div>
     @endif
+
     @include('ai-consensus::Includes._components.form', [ 'action' => route('ai_consensus.store'), 'method' => 'POST', 'submitLabel' => 'Criar e processar' ])
     @include('ai-consensus::Includes._components.modals')
 </div>

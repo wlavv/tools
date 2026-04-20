@@ -3,11 +3,14 @@
 @section('content')
 <div class="ai-consensus-page">
     @include('ai-consensus::Includes.css')
+    @if(session('success'))
+        <div class="ai-alert ai-alert--success">{{ session('success') }}</div>
+    @endif
 
     @if($errors->any())
-        <div class="alert alert-danger">
+        <div class="ai-alert ai-alert--error">
             <div><strong>Existem erros no formulário.</strong></div>
-            <ul class="mb-0">
+            <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach

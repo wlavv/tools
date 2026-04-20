@@ -85,4 +85,33 @@
 .pm-pagination-wrap { margin-top:1rem; }
 @media (max-width: 991px) { .pm-dashboard-grid,.password-manager-stats,.password-manager-grid { grid-template-columns:1fr; } .password-manager-grid-1 { grid-column:span 1; } }
 @media (max-width: 768px) { .password-manager-page { padding:.75rem; } .pm-page-header,.password-manager-card,.password-manager-form-card,.password-manager-toolbar { padding:.9rem; } .pm-page-header__main { flex-direction:column; } .pm-page-header__identity { width:100%; } .pm-page-header__actions,.lsg-page-actions { width:100%; justify-content:flex-start; } .pm-toolbar-search { grid-template-columns:1fr; } .password-manager-table-wrap { display:none; } .password-manager-mobile-list { display:grid; gap:.75rem; } }
+
+.pm-password-field {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto auto;
+    gap:.6rem;
+    align-items:start;
+}
+.pm-password-field--meta {
+    margin-top:.45rem;
+}
+.pm-password-field--textarea {
+    align-items:start;
+}
+.pm-password-field--textarea .lsg-action-btn {
+    align-self:start;
+}
+.pm-secret-textarea {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(100,116,139,.85);
+    caret-color: transparent;
+    user-select: none;
+}
+.pm-secret-textarea--revealed {
+    color: var(--text-primary, #18212b);
+    text-shadow: none;
+    caret-color: auto;
+    user-select: text;
+}
+
 </style>

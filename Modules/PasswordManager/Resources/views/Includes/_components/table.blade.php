@@ -8,7 +8,7 @@
                     <th>Login</th>
                     <th>URL</th>
                     <th>Status</th>
-                    <th class="text-center" style="width: 140px;">Actions</th>
+                    <th class="text-center" style="width: 170px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +38,7 @@
                                 <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact" title="Edit">
                                     <i class="fa-solid fa-pencil"></i>
                                 </a>
+                                <a href="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-btn lsg-action-btn--danger"><i class="fa-solid fa-trash"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -71,6 +72,7 @@
                 <div class="password-manager-actions" style="margin-top:0.85rem;">
                     <a href="{{ route('password_manager.show', $entry) }}" class="lsg-action-btn lsg-action-btn--primary"><i class="fa-solid fa-eye"></i><span>Show</span></a>
                     <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning"><i class="fa-solid fa-pencil"></i><span>Edit</span></a>
+                    <a href="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-btn lsg-action-btn--danger"><i class="fa-solid fa-trash"></i><span>Delete</span></a>
                 </div>
             </div>
         @empty
