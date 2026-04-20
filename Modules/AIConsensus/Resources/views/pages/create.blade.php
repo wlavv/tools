@@ -3,7 +3,6 @@
 @section('content')
 <div class="ai-consensus-page">
     @include('ai-consensus::Includes.css')
-    @include('ai-consensus::Includes._components.header')
 
     @if($errors->any())
         <div class="ai-alert ai-alert--error">
