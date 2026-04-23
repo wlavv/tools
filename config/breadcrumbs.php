@@ -12,6 +12,8 @@ return [
     'customerSupport.index' => [ 'label'  => 'customerSupport', 'parent' => 'dashboard.index' ],
     'sales.index'           => [ 'label'  => 'sales',           'parent' => 'dashboard.index' ],
     'family.index'          => [ 'label'  => 'family',          'parent' => 'dashboard.index' ],
-    'webCatalogue.index'    => [ 'label'  => 'webCatalogue',    'parent' => 'web.index' ],
+    'webCatalogue.index'    => [ 'label'  => 'webCatalogue',    'parent' => 'dashboard.index' ],
     'multiStore.index'      => [ 'label'  => 'multiStore',      'parent' => 'dashboard.index' ],
+    'shortcuts.index'       => [ 'label'  => 'shortcuts',       'parent' => 'dashboard.index' ],
+    'settings.index'        => [ 'label'  => 'settings',        'parent' => 'dashboard.index' ],
 ];

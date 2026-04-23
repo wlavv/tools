@@ -40,6 +40,7 @@ class Controller extends BaseController
         $this->breadcrumbs = $this->resolveBreadcrumbs();
         $this->showBreadcrumbs = !$this->isDashboardLikeRoute();
         $this->actions = $this->resolveActions();
+
     }
 
     protected function setPageTitle(?string $title): void
@@ -162,6 +163,8 @@ class Controller extends BaseController
     protected function resolveBreadcrumbs(): array
     {
         $route = request()->route();
+        
+        //system_log('info', 'Visited ' . $route->getName());
 
         if (!$route) {
             return [];

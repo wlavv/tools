@@ -97,4 +97,26 @@ table td:first-child {
     color: inherit !important;
 }
 
+.panel-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+/* opcional: melhora visual */
+.panel-table-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.panel-table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+body.theme-dark .panel-table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+}
+
 </style>

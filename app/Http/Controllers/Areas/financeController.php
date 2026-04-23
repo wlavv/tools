@@ -9,8 +9,6 @@ class financeController extends Controller{
     protected bool $hasPageActions = false;
 
     public function index(){
-        $this->addAccess( route('budget.index'),        'Budget',       'fa-solid fa-euro-sign' );
-        $this->addAccess( route('investments.index'),   "Investments",  'fa-solid fa-money-bill-trend-up',  );
         return $this->view('areas/finance/index');
     }
     

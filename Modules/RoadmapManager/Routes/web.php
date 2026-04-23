@@ -7,8 +7,8 @@ use Modules\RoadmapManager\Http\Controllers\RoadmapProjectController;
 use Modules\RoadmapManager\Http\Controllers\MilestoneController;
 use Modules\RoadmapManager\Http\Controllers\TaskController;
 
-Route::middleware(['web', 'auth'])->prefix(config('roadmap-manager.route_prefix', 'roadmap'))->name('roadmap.')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['web', 'auth'])->prefix(config('roadmap_manager.route_prefix', 'roadmap'))->name('roadmap_manager.')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('index');
 
     Route::resource('groups', RoadmapGroupController::class)->except(['destroy']);
     Route::resource('projects', RoadmapProjectController::class)->except(['destroy']);

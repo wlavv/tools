@@ -1,25 +1,20 @@
-@extends('roadmap-manager::layouts.page')
+@extends('layouts.app')
 
-@section('roadmap-content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">{{ $group->name }}</h1>
-    <a href="{{ route('roadmap.groups.edit', $group->id) }}" class="btn btn-outline-warning"><i class="fa-solid fa-pencil"></i> Edit</a>
-</div>
-<div class="card shadow-sm mb-3">
-    <div class="card-body">
-        <p><strong>Slug:</strong> {{ $group->slug }}</p>
-        <p><strong>Status:</strong> {{ $group->status }}</p>
-        <p class="mb-0"><strong>Description:</strong> {{ $group->description }}</p>
+@section('content')
+@include('roadmap-manager::partials.styles')
+@include('roadmap-manager::partials.alerts')
+<div class="rm-title-row"><h2 class="rm-title-row__title">{{ $group->name }}</h2><a href="{{ route('roadmap_manager.groups.edit', $group->id) }}" class="lsg-action-btn lsg-action-btn--warning"><i class="fa-solid fa-pencil"></i><span>Edit</span></a></div>
+<div class="rm-stack">
+    <div class="rm-panel">
+        <div class="rm-meta-grid">
+            <div class="rm-meta"><div class="rm-meta__label">Slug</div><div class="rm-meta__value">{{ $group->slug ?: '-' }}</div></div>
+            <div class="rm-meta"><div class="rm-meta__label">Status</div><div class="rm-meta__value">{{ $group->status }}</div></div>
+            <div class="rm-meta rm-form-grid__full"><div class="rm-meta__label">Description</div><div class="rm-meta__value">{{ $group->description ?: '-' }}</div></div>
+        </div>
     </div>
-</div>
-<div class="card shadow-sm">
-    <div class="card-header">Linked Projects</div>
-    <ul class="list-group list-group-flush">
-        @forelse($group->projects as $project)
-            <li class="list-group-item"><a href="{{ route('roadmap.projects.show', $project->id) }}">{{ $project->name }}</a></li>
-        @empty
-            <li class="list-group-item text-muted">No linked projects.</li>
-        @endforelse
-    </ul>
+    <div class="rm-panel">
+        <div class="rm-title-row" style="margin-bottom:.75rem"><h3 class="rm-title-row__title">Linked Projects</h3></div>
+        <ul class="rm-list">@forelse($group->projects as $project)<li><a href="{{ route('roadmap_manager.projects.show', $project->id) }}">{{ $project->name }}</a></li>@empty<li class="rm-muted">No linked projects.</li>@endforelse</ul>
+    </div>
 </div>
 @endsection

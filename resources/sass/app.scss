@@ -793,11 +793,11 @@ textarea::placeholder {
     }
 
     .app-topbar {
-        padding: 14px 14px 0;
+        padding: 7px;
     }
 
     .app-content {
-        padding: 12px 14px 20px;
+        padding: 7px;
     }
 
     .breadcrumbs-card {
@@ -895,16 +895,8 @@ textarea::placeholder {
     --bs-card-bg: var(--bo-card-bg);
 }
 
-/**
-body.theme-light .card,
-body[data-theme="light"] .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(247,249,252,0.98) 100%);
-    color: #18212b;
-    border: 1px solid rgba(21, 32, 51, 0.2) !important;
-}
-**/
 
-body.theme-light .card:not([class*="bg-"]),
+body.theme-light .card:not([class*="bg-"]):not(#rendimentos):not(#expenses):not(#savings),
 body[data-theme="light"] .card:not([class*="bg-"]) {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 249, 252, 0.98) 100%);
   background-color: transparent;
@@ -934,7 +926,7 @@ body[data-theme="light"] .card:not([class*="bg-"]) {
 }
 **/
 
-.card:not([class*="bg-"]) {
+.card:not([class*="bg-"]):not(#rendimentos):not(#expenses):not(#savings) {
   background: linear-gradient(180deg, rgba(37, 47, 59, 0.94) 0%, rgba(32, 40, 51, 0.96) 100%);
   color: var(--text-primary);
   border: 1px solid var(--border-soft) !important;
@@ -1293,7 +1285,7 @@ select[disabled] {
     border: 1px solid rgba(255,255,255,0.08);
 }
 
-.alert-success { background: rgba(75,183,130,0.16); color: #dbf7e7; }
+.alert-success { background: rgba(75,183,130,0.16); color: #122c1d; }
 .alert-warning { background: rgba(217,170,89,0.14); color: #fff1d4; }
 .alert-danger  { background: rgba(200,110,114,0.16); color: #ffe4e6; }
 .alert-info    { background: rgba(111,149,216,0.14); color: #e8f0ff; }
@@ -1359,11 +1351,11 @@ hr {
     }
 
     .app-topbar {
-        padding: 14px 16px 0;
+        padding: 7px;
     }
 
     .app-content {
-        padding: 12px 16px 20px;
+        padding: 7px;
     }
 
     .app-topbar-inner,
@@ -1566,6 +1558,11 @@ body.sidebar-collapsed .sidebar-footer-tool {
 }
 
 @media (max-width: 991.98px) {
+
+    .navbar.navbar-light.customPanel, .customPanel {
+        padding: 5px;
+    }
+
     .app-sidebar {
         transform: translateX(-100%);
         transition: transform .22s ease;
@@ -1681,3 +1678,32 @@ body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-bt
 @media (max-width:991.98px){.lsg-page-actions{justify-content:flex-start}}
 @media (max-width:575.98px){.lsg-page-actions{width:100%}.lsg-action-form{flex:1 1 calc(50% - .35rem)}.lsg-action-btn{width:100%;padding:0 .8rem}.lsg-action-btn__label{font-size:.75rem}}
 
+#rendimentos.card,
+body.theme-light #rendimentos.card,
+body[data-theme="light"] #rendimentos.card{
+  background: #198754 !important;
+  background-image: none !important;
+  background-color: #198754 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#expenses.card,
+body.theme-light #expenses.card,
+body[data-theme="light"] #expenses.card {
+  background: rgba(220, 53, 69,1) !important;
+  background-image: none !important;
+  background-color: rgba(220, 53, 69,1) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#savings.card,
+body.theme-light #savings.card,
+body[data-theme="light"] #savings.card {
+  background: rgba(13, 202, 240,1) !important;
+  background-image: none !important;
+  background-color: rgba(13, 202, 240,1) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

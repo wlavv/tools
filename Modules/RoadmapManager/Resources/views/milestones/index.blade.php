@@ -1,32 +1,7 @@
-@extends('roadmap-manager::layouts.page')
-
-@section('roadmap-content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Milestones</h1>
-    <a href="{{ route('roadmap.milestones.create') }}" class="btn btn-outline-success"><i class="fa-solid fa-plus"></i> New</a>
-</div>
-<div class="card shadow-sm">
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead><tr><th>Name</th><th>Project</th><th>Status</th><th>End</th><th></th></tr></thead>
-            <tbody>
-            @forelse($milestones as $milestone)
-                <tr>
-                    <td>{{ $milestone->name }}</td>
-                    <td>{{ $milestone->project->name ?? '-' }}</td>
-                    <td>{{ $milestone->status }}</td>
-                    <td>{{ optional($milestone->planned_end_date)->format('Y-m-d') }}</td>
-                    <td class="text-end">
-                        <a href="{{ route('roadmap.milestones.show', $milestone->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
-                        <a href="{{ route('roadmap.milestones.edit', $milestone->id) }}" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-pencil"></i></a>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="text-muted">No milestones found.</td></tr>
-            @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
-<div class="mt-3">{{ $milestones->links() }}</div>
+@extends('layouts.app')
+@section('content')
+@include('roadmap-manager::partials.styles')
+@include('roadmap-manager::partials.alerts')
+<div class="rm-title-row"><h2 class="rm-title-row__title">Milestones</h2><a href="{{ route('roadmap_manager.milestones.create') }}" class="lsg-action-btn lsg-action-btn--success"><i class="fa-solid fa-plus"></i><span>New</span></a></div>
+<div class="rm-panel"><div class="rm-table-wrap"><table class="rm-table"><thead><tr><th>Name</th><th>Project</th><th>Status</th><th>End</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($milestones as $milestone)<tr><td>{{ $milestone->name }}</td><td>{{ $milestone->project->name ?? '-' }}</td><td>{{ $milestone->status }}</td><td>{{ optional($milestone->planned_end_date)->format('Y-m-d') }}</td><td class="text-end"><div class="rm-table-actions"><a href="{{ route('roadmap_manager.milestones.show', $milestone->id) }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact"><i class="fa-solid fa-eye"></i></a><a href="{{ route('roadmap_manager.milestones.edit', $milestone->id) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact"><i class="fa-solid fa-pencil"></i></a></div></td></tr>@empty<tr><td colspan="5" class="rm-muted">No milestones found.</td></tr>@endforelse</tbody></table></div></div><div class="mt-3">{{ $milestones->links() }}</div>
 @endsection

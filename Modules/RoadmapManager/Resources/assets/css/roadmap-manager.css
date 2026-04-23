@@ -1,76 +1,174 @@
-.roadmap-manager-page {
-    color: inherit;
-    background: transparent;
+.roadmap-manager-page{
+    padding:1rem;
+    color:var(--text-primary,inherit);
 }
 
-.roadmap-manager-page .rm-panel {
-    background: transparent;
-    color: inherit;
-    border: 1px solid rgba(128,128,128,0.15);
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    overflow: hidden;
+.rm-panel,
+.rm-form-card,
+.rm-kpi,
+.rm-kanban-column,
+.rm-gantt-wrap,
+.rm-tree-wrap{
+    border:1px solid var(--border-soft,rgba(21,32,51,.12));
+    border-radius:5px;
+    box-shadow:var(--shadow-soft,0 8px 24px rgba(15,23,42,.05));
 }
 
-.roadmap-manager-page .rm-panel-header {
-    background: transparent;
-    color: inherit;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(128,128,128,0.12);
+/* COUNTERS */
+.rm-counters{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:.75rem;
 }
 
-.roadmap-manager-page .rm-panel-body {
-    padding: 1rem 1.25rem;
-    color: inherit;
+.rm-kpi{
+    padding:.95rem;
+    display:grid;
+    gap:.3rem;
 }
 
-.roadmap-manager-page .rm-title,
-.roadmap-manager-page .rm-subtitle,
-.roadmap-manager-page h1,
-.roadmap-manager-page h2,
-.roadmap-manager-page h3,
-.roadmap-manager-page h4,
-.roadmap-manager-page h5 {
-    color: inherit;
+.rm-kpi__label{
+    font-size:.76rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-muted,#64748b);
 }
 
-.roadmap-manager-page .rm-table {
-    width: 100%;
-    color: inherit;
-    background: transparent;
+.rm-kpi__value{
+    font-size:1.35rem;
+    line-height:1;
+    color:var(--text-primary,inherit);
 }
 
-.roadmap-manager-page .rm-table th,
-.roadmap-manager-page .rm-table td {
-    background: transparent;
-    color: inherit;
-    border-color: rgba(128,128,128,0.12);
-    vertical-align: middle;
+/* TABLE */
+.rm-table-wrap{
+    overflow-x:auto;
 }
 
-.roadmap-manager-page .rm-muted {
-    opacity: .75;
+.rm-table{
+    width:100%;
+    border-collapse:collapse;
 }
 
-.roadmap-manager-page .rm-kpi {
-    border: 1px solid rgba(128,128,128,0.12);
-    border-radius: 12px;
-    padding: 1rem;
-    background: transparent;
-    color: inherit;
+.rm-table td.text-end{
+    text-align:right;
 }
 
-.roadmap-manager-page .rm-kanban-column,
-.roadmap-manager-page .rm-gantt-wrap,
-.roadmap-manager-page .rm-tree-wrap {
-    border: 1px solid rgba(128,128,128,0.12);
-    border-radius: 12px;
-    background: transparent;
-    color: inherit;
+.rm-table-title{
+    display:grid;
+    gap:.15rem;
 }
 
-.roadmap-manager-page .btn,
-.roadmap-manager-page .badge,
-.roadmap-manager-page .alert {
-    box-shadow: none;
+.rm-table-title strong{
+    color:var(--text-primary,inherit);
+}
+
+.rm-muted{
+    color:var(--text-muted,#64748b);
+}
+
+/* ACTIONS */
+.rm-table-actions{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:.5rem;
+    flex-wrap:wrap;
+}
+
+/* FORM */
+.rm-form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:1rem;
+}
+
+.rm-form-grid__full{
+    grid-column:span 2;
+}
+
+.rm-label{
+    display:block;
+    margin-bottom:.45rem;
+    font-size:.78rem;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--text-muted,#64748b);
+}
+
+.rm-input,
+.rm-select,
+.rm-textarea{
+    width:100%;
+    border:1px solid var(--border-soft,rgba(148,163,184,.28));
+    padding:.75rem .85rem;
+    background:var(--input-bg,transparent);
+    color:var(--text-primary,inherit);
+    border-radius:5px;
+}
+
+.rm-textarea{
+    min-height:140px;
+    resize:vertical;
+}
+
+/* KANBAN */
+.rm-board{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:1rem;
+}
+
+.rm-kanban-column__header{
+    padding:.85rem 1rem;
+    border-bottom:1px solid var(--border-soft);
+    font-weight:700;
+    color:var(--text-primary,inherit);
+}
+
+.rm-kanban-item{
+    padding:.75rem;
+    border:1px solid var(--border-soft);
+    border-radius:5px;
+    background:var(--card-bg-soft,transparent);
+}
+
+/* GANTT */
+.rm-gantt-bar-wrap{
+    position:relative;
+    background:rgba(148,163,184,.14);
+    height:28px;
+    border-radius:6px;
+    overflow:hidden;
+}
+
+.rm-gantt-bar{
+    position:absolute;
+    top:4px;
+    bottom:4px;
+    border-radius:4px;
+    background:rgba(37,99,235,.72);
+}
+
+/* ALERT */
+.rm-alert{
+    padding:.85rem 1rem;
+    border-radius:5px;
+    border:1px solid rgba(34,197,94,.18);
+    color:#166534;
+    background:rgba(34,197,94,.08);
+}
+
+/* RESPONSIVE */
+@media (max-width:991px){
+    .rm-counters,
+    .rm-form-grid,
+    .rm-board{
+        grid-template-columns:1fr;
+    }
+
+    .rm-form-grid__full{
+        grid-column:span 1;
+    }
 }

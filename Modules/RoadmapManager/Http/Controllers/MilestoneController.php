@@ -3,33 +3,35 @@
 namespace Modules\RoadmapManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\Project;
 
-class MilestoneController extends Controller{
-
-    public function __construct( ) {
-        $this->setIndexPage('milestones', 'roadmap.index');
-        $this->middleware('auth');
+class MilestoneController extends Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
     }
 
-    public function index()
+    public function index(): View
     {
         $milestones = Milestone::with('project')->orderBy('planned_end_date')->paginate(20);
-        return $this->view('roadmap-manager::milestones.index', $milestones);
+        return $this->view('roadmap-manager::milestones.index', compact('milestones'));
     }
 
-    public function create(){
-
+    public function create(): View
+    {
         return $this->view('roadmap-manager::milestones.form', [
             'milestone' => new Milestone(),
             'projects' => Project::orderBy('name')->get(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'project_id' => 'required|integer|exists:wt_projects,id',
@@ -50,22 +52,25 @@ class MilestoneController extends Controller{
 
         Milestone::create($data);
 
-        return redirect()->route('roadmap.milestones.index')->with('success', 'Milestone created successfully.');
+        return redirect()->route('roadmap_manager.milestones.index')->with('success', 'Milestone created successfully.');
     }
 
-    public function show(Milestone $milestone){
-
+    public function show(Milestone $milestone): View
+    {
         $milestone->load(['project', 'tasks']);
-        return $this->view('roadmap-manager::milestones.show', $milestone);
+        return $this->view('roadmap-manager::milestones.show', compact('milestone'));
     }
 
-    public function edit(Milestone $milestone){
-
-        return $this->view('roadmap-manager::milestones.form', ['milestones' => $milestone, $projects => Project::orderBy('name')->get()]);
+    public function edit(Milestone $milestone): View
+    {
+        return $this->view('roadmap-manager::milestones.form', [
+            'milestone' => $milestone,
+            'projects' => Project::orderBy('name')->get(),
+        ]);
     }
 
-    public function update(Request $request, Milestone $milestone){
-
+    public function update(Request $request, Milestone $milestone): RedirectResponse
+    {
         $data = $request->validate([
             'project_id' => 'required|integer|exists:wt_projects,id',
             'name' => 'required|string|max:200',
@@ -82,6 +87,6 @@ class MilestoneController extends Controller{
 
         $milestone->update($data);
 
-        return redirect()->route('roadmap.milestones.index')->with('success', 'Milestone updated successfully.');
+        return redirect()->route('roadmap_manager.milestones.index')->with('success', 'Milestone updated successfully.');
     }
 }

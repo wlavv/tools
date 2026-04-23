@@ -1,8 +1,7 @@
-@extends(config('roadmap-manager.layout', 'layouts.app'))
+@extends('layouts.app')
 
 @section('content')
-<div class="roadmap-manager-page">
-    @include('roadmap-manager::partials.alerts')
-    @yield('roadmap-content')
-</div>
+@include('roadmap-manager::partials.styles')
+@include('roadmap-manager::partials.alerts')
+@yield('roadmap-content')
 @endsection

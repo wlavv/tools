@@ -3,8 +3,9 @@
 namespace Modules\RoadmapManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\Project;
@@ -15,15 +16,20 @@ use Modules\RoadmapManager\Models\TaskTimeLog;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function __construct()
     {
-        $tasks = TaskItem::with(['project', 'milestone', 'parent'])->orderBy('updated_at', 'desc')->paginate(30);
-        return view('roadmap-manager::tasks.index', compact('tasks'));
+        parent::__construct();
     }
 
-    public function create()
+    public function index(): View
     {
-        return view('roadmap-manager::tasks.form', [
+        $tasks = TaskItem::with(['project', 'milestone', 'parent'])->orderBy('updated_at', 'desc')->paginate(30);
+        return $this->view('roadmap-manager::tasks.index', compact('tasks'));
+    }
+
+    public function create(): View
+    {
+        return $this->view('roadmap-manager::tasks.form', [
             'task' => new TaskItem(),
             'projects' => Project::orderBy('name')->get(),
             'milestones' => Milestone::orderBy('name')->get(),
@@ -31,7 +37,7 @@ class TaskController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
         $data['uuid'] = (string) Str::uuid();
@@ -39,18 +45,18 @@ class TaskController extends Controller
         $task = TaskItem::create($data);
         $task->update(['path' => '/' . $task->id . '/', 'depth' => $task->parent_id ? 1 : 0]);
 
-        return redirect()->route('roadmap.tasks.index')->with('success', 'Task created successfully.');
+        return redirect()->route('roadmap_manager.tasks.index')->with('success', 'Task created successfully.');
     }
 
-    public function show(TaskItem $task)
+    public function show(TaskItem $task): View
     {
         $task->load(['project', 'milestone', 'parent', 'children', 'comments', 'attachments', 'timeLogs', 'dependencies']);
-        return view('roadmap-manager::tasks.show', compact('task'));
+        return $this->view('roadmap-manager::tasks.show', compact('task'));
     }
 
-    public function edit(TaskItem $task)
+    public function edit(TaskItem $task): View
     {
-        return view('roadmap-manager::tasks.form', [
+        return $this->view('roadmap-manager::tasks.form', [
             'task' => $task,
             'projects' => Project::orderBy('name')->get(),
             'milestones' => Milestone::orderBy('name')->get(),
@@ -58,13 +64,14 @@ class TaskController extends Controller
         ]);
     }
 
-    public function update(Request $request, TaskItem $task)
+    public function update(Request $request, TaskItem $task): RedirectResponse
     {
         $task->update($this->validated($request));
-        return redirect()->route('roadmap.tasks.show', $task)->with('success', 'Task updated successfully.');
+
+        return redirect()->route('roadmap_manager.tasks.show', $task)->with('success', 'Task updated successfully.');
     }
 
-    public function tree()
+    public function tree(): View
     {
         $roots = TaskItem::with(['children.children.children', 'project', 'milestone'])
             ->whereNull('parent_id')
@@ -72,10 +79,10 @@ class TaskController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('roadmap-manager::tasks.tree', compact('roots'));
+        return $this->view('roadmap-manager::tasks.tree', compact('roots'));
     }
 
-    public function gantt()
+    public function gantt(): View
     {
         $tasks = TaskItem::with(['project', 'milestone'])
             ->whereNotNull('planned_start_date')
@@ -83,20 +90,21 @@ class TaskController extends Controller
             ->limit(300)
             ->get();
 
-        return view('roadmap-manager::tasks.gantt', compact('tasks'));
+        return $this->view('roadmap-manager::tasks.gantt', compact('tasks'));
     }
 
-    public function kanban()
+    public function kanban(): View
     {
         $statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'blocked', 'completed'];
         $columns = [];
         foreach ($statuses as $status) {
             $columns[$status] = TaskItem::with('project')->where('status', $status)->orderBy('priority')->limit(100)->get();
         }
-        return view('roadmap-manager::tasks.kanban', compact('columns'));
+
+        return $this->view('roadmap-manager::tasks.kanban', compact('columns'));
     }
 
-    public function storeComment(Request $request, TaskItem $task)
+    public function storeComment(Request $request, TaskItem $task): RedirectResponse
     {
         $data = $request->validate(['content' => 'required|string']);
         TaskComment::create([
@@ -108,7 +116,7 @@ class TaskController extends Controller
         return back()->with('success', 'Comment added successfully.');
     }
 
-    public function storeTimeLog(Request $request, TaskItem $task)
+    public function storeTimeLog(Request $request, TaskItem $task): RedirectResponse
     {
         $data = $request->validate([
             'logged_hours' => 'required|numeric|min:0.25',
@@ -127,7 +135,7 @@ class TaskController extends Controller
         return back()->with('success', 'Time log added successfully.');
     }
 
-    public function storeAttachment(Request $request, TaskItem $task)
+    public function storeAttachment(Request $request, TaskItem $task): RedirectResponse
     {
         $request->validate(['file' => 'required|file|max:20480']);
 
@@ -147,29 +155,20 @@ class TaskController extends Controller
         return back()->with('success', 'Attachment uploaded successfully.');
     }
 
-    private function validated(Request $request): array
+    protected function validated(Request $request): array
     {
         return $request->validate([
-            'parent_id' => 'nullable|integer|exists:wt_task_items,id',
             'project_id' => 'required|integer|exists:wt_projects,id',
             'milestone_id' => 'nullable|integer|exists:wt_milestones,id',
-            'level' => 'nullable|integer|min:1|max:9',
-            'code' => 'nullable|string|max:30',
-            'title' => 'required|string|max:300',
+            'parent_id' => 'nullable|integer|exists:wt_task_items,id',
+            'type' => 'required|in:main_task,task,mini_task,micro_task',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:backlog,todo,in_progress,in_review,blocked,completed,cancelled,deferred',
-            'priority' => 'required|in:low,medium,high,critical',
-            'progress_percentage' => 'nullable|integer|min:0|max:100',
+            'status' => 'required|in:backlog,todo,in_progress,in_review,blocked,completed,cancelled',
+            'priority' => 'required|integer|min:1|max:5',
             'planned_start_date' => 'nullable|date',
             'planned_end_date' => 'nullable|date',
-            'actual_start_date' => 'nullable|date',
-            'actual_end_date' => 'nullable|date',
-            'deadline' => 'nullable|date',
-            'estimated_hours' => 'nullable|numeric|min:0',
-            'logged_hours' => 'nullable|numeric|min:0',
-            'remaining_hours' => 'nullable|numeric|min:0',
-            'assigned_to' => 'nullable|integer',
-            'risk_level' => 'nullable|in:none,low,medium,high,critical',
+            'planned_hours' => 'nullable|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
         ]);
     }

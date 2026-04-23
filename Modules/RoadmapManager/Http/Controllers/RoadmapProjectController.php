@@ -3,38 +3,38 @@
 namespace Modules\RoadmapManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Modules\RoadmapManager\Models\Project;
 use Modules\RoadmapManager\Models\ProjectGroup;
 
-class RoadmapProjectController extends Controller{
-
-    public function __construct( ) {
-        $this->setIndexPage('roadmap', 'roadmap.index');
-        $this->middleware('auth');
+class RoadmapProjectController extends Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
     }
 
-    public function index(){
-
-        $data = [ 
-            'projects' => Project::with('roadmapGroups')->orderBy('updated_at', 'desc')->paginate(20) 
-        ];
-        return $this->view('roadmap-manager::projects.index', $data);
+    public function index(): View
+    {
+        return $this->view('roadmap-manager::projects.index', [
+            'projects' => Project::with('roadmapGroups')->orderBy('updated_at', 'desc')->paginate(20),
+        ]);
     }
 
-    public function create(){
-
-        $data = [
+    public function create(): View
+    {
+        return $this->view('roadmap-manager::projects.form', [
             'project' => new Project(),
             'groups' => ProjectGroup::orderBy('sort_order')->get(),
             'selectedGroups' => [],
-        ];
-
-        return $this->view('roadmap-manager::projects.form', $data);
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -55,7 +55,7 @@ class RoadmapProjectController extends Controller{
             'name' => $data['name'],
             'status' => $data['status'] ?? '1',
             'priority' => $data['priority'] ?? null,
-            'slug' => $data['slug'] ?: \Illuminate\Support\Str::slug($data['name']),
+            'slug' => $data['slug'] ?: Str::slug($data['name']),
             'description' => $data['description'] ?? null,
             'website' => $data['website'] ?? null,
             'start_date' => $data['start_date'] ?? null,
@@ -69,24 +69,24 @@ class RoadmapProjectController extends Controller{
             );
         }
 
-        return redirect()->route('roadmap.projects.index')->with('success', 'Project created successfully.');
+        return redirect()->route('roadmap_manager.projects.index')->with('success', 'Project created successfully.');
     }
 
-    public function show(Project $project)
+    public function show(Project $project): View
     {
         $project->load(['roadmapGroups', 'milestones', 'tasks']);
-        return view('roadmap-manager::projects.show', compact('project'));
+        return $this->view('roadmap-manager::projects.show', compact('project'));
     }
 
-    public function edit(Project $project)
+    public function edit(Project $project): View
     {
         $groups = ProjectGroup::orderBy('sort_order')->get();
         $selectedGroups = $project->roadmapGroups()->pluck('wt_roadmap_groups.id')->toArray();
 
-        return view('roadmap-manager::projects.form', compact('project', 'groups', 'selectedGroups'));
+        return $this->view('roadmap-manager::projects.form', compact('project', 'groups', 'selectedGroups'));
     }
 
-    public function update(Request $request, Project $project)
+    public function update(Request $request, Project $project): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -103,7 +103,7 @@ class RoadmapProjectController extends Controller{
 
         $project->update([
             'name' => $data['name'],
-            'slug' => $data['slug'] ?: \Illuminate\Support\Str::slug($data['name']),
+            'slug' => $data['slug'] ?: Str::slug($data['name']),
             'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? $project->status,
             'priority' => $data['priority'] ?? null,
@@ -120,6 +120,6 @@ class RoadmapProjectController extends Controller{
             );
         }
 
-        return redirect()->route('roadmap.projects.index')->with('success', 'Project updated successfully.');
+        return redirect()->route('roadmap_manager.projects.index')->with('success', 'Project updated successfully.');
     }
 }

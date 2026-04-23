@@ -1,8 +1,8 @@
 <div class="col-lg-12" style="display: grid;">    
     <div class="navbar navbar-light customPanel" @if( $isMobile ) style="margin-top: 0;" @endif>       
-        <div style="width: 150px; height: 52px; float: left;">
+        <div style="width: 275px; float: left;">
             <div style="float: left; margin: 16px 5px 5px 0;">YEAR: </div>
-            <select id="yearSelector" class="form-select" style="border: 1px solid #ddd !important; width: 90px; font-size: 18px; @if( $isMobile )  float: right; @else float: left; @endif" onchange="onYearChange()">
+            <select id="yearSelector" class="form-select" style="border: 1px solid #ddd !important; width: 150px; font-size: 18px; @if( $isMobile ) margin-bottom: 5px; float: right; @else float: left; @endif" onchange="onYearChange()">
                 <option @if($year == 2025) selected="selected" @endif value="2025"> 2025 </option>
                 <option @if($year == 2026) selected="selected" @endif value="2026"> 2026 </option>
             </select>            
@@ -25,9 +25,9 @@
             ];
         @endphp
         
-        <div style="width: 275px; height: 42px; float: left;">
+        <div style="width: 275px; float: left;">
             <div style="float: left; margin: 16px 5px 5px 0;">MONTH: </div>
-            <select id="monthSelector" class="form-select" style="border: 1px solid #ddd !important; width: 150px; font-size: 18px;@if( $isMobile )  float: right; @else float: left; @endif" onchange="changeYearMonth(this.value)">
+            <select id="monthSelector" class="form-select" style="border: 1px solid #ddd !important; width: 150px; font-size: 18px;@if( $isMobile ) margin-bottom: 5px; float: right; @else float: left; @endif" onchange="changeYearMonth(this.value)">
                 <option value="0">Select month</option>
                 @foreach ($months as $number => $name)
                     <option @if($number == $month) selected="selected" @endif value="{{$number}}"> {{ $name }} </option>
@@ -58,7 +58,7 @@
 <div class="col-lg-12"> <div class="spacer-10"></div> </div>
 
 <div class="col-lg-4">
-    <div class="card text-center bg-success text-white" @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 5px 0 0 5px" @endif>
+    <div id="rendimentos" class="card text-center bg-success text-white" @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 5px 0 0 5px" @endif>
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;" onclick="$('#incomeDetail').toggle()"> 
                 <span>RENDIMENTOS: </span>
@@ -193,7 +193,7 @@
     </div>    
 </div>
 <div class="col-lg-4">
-    <div class="card text-center text-white bg-danger" style="border-radius: 0">
+    <div id="expenses" class="card text-center text-white bg-danger" style="border-radius: 0">
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;" onclick="$('#expenseDetail').toggle()"> 
                 <span>DESPESAS: </span>
@@ -236,7 +236,7 @@
     </div>
 </div>        
 <div class="col-lg-4">
-    <div class="card text-center text-white bg-info"  @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 0 5px 5px 0" @endif>
+    <div id="savings" class="card text-center text-white bg-info"  @if( $isMobile ) style="border-radius: 0" @else style="border-radius: 0 5px 5px 0" @endif>
         @if( $isMobile )
             <div class="card-header" style="font-weight: bolder;font-size: 15px;cursor: pointer;border-bottom: none;"> 
                 <span>POUPANÇA: </span>

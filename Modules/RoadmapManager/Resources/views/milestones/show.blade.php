@@ -1,23 +1,7 @@
-@extends('roadmap-manager::layouts.page')
-
-@section('roadmap-content')
-<h1 class="h3 mb-3">{{ $milestone->name }}</h1>
-<div class="card shadow-sm mb-3">
-    <div class="card-body">
-        <p><strong>Project:</strong> {{ $milestone->project->name ?? '-' }}</p>
-        <p><strong>Status:</strong> {{ $milestone->status }}</p>
-        <p><strong>End:</strong> {{ optional($milestone->planned_end_date)->format('Y-m-d') }}</p>
-        <p class="mb-0"><strong>Description:</strong> {{ $milestone->description }}</p>
-    </div>
-</div>
-<div class="card shadow-sm">
-    <div class="card-header">Tasks</div>
-    <ul class="list-group list-group-flush">
-        @forelse($milestone->tasks as $task)
-            <li class="list-group-item"><a href="{{ route('roadmap.tasks.show', $task->id) }}">{{ $task->title }}</a></li>
-        @empty
-            <li class="list-group-item text-muted">No tasks found.</li>
-        @endforelse
-    </ul>
-</div>
+@extends('layouts.app')
+@section('content')
+@include('roadmap-manager::partials.styles')
+@include('roadmap-manager::partials.alerts')
+<div class="rm-title-row"><h2 class="rm-title-row__title">{{ $milestone->name }}</h2><a href="{{ route('roadmap_manager.milestones.edit', $milestone->id) }}" class="lsg-action-btn lsg-action-btn--warning"><i class="fa-solid fa-pencil"></i><span>Edit</span></a></div>
+<div class="rm-stack"><div class="rm-panel"><div class="rm-meta-grid"><div class="rm-meta"><div class="rm-meta__label">Project</div><div class="rm-meta__value">{{ $milestone->project->name ?? '-' }}</div></div><div class="rm-meta"><div class="rm-meta__label">Status</div><div class="rm-meta__value">{{ $milestone->status }}</div></div><div class="rm-meta"><div class="rm-meta__label">Planned End</div><div class="rm-meta__value">{{ optional($milestone->planned_end_date)->format('Y-m-d') ?: '-' }}</div></div><div class="rm-meta"><div class="rm-meta__label">Progress</div><div class="rm-meta__value">{{ $milestone->progress_percentage }}%</div></div><div class="rm-meta rm-form-grid__full"><div class="rm-meta__label">Description</div><div class="rm-meta__value">{{ $milestone->description ?: '-' }}</div></div></div></div><div class="rm-panel"><div class="rm-title-row" style="margin-bottom:.75rem"><h3 class="rm-title-row__title">Tasks</h3></div><ul class="rm-list">@forelse($milestone->tasks as $task)<li><a href="{{ route('roadmap_manager.tasks.show', $task->id) }}">{{ $task->title }}</a></li>@empty<li class="rm-muted">No tasks linked.</li>@endforelse</ul></div></div>
 @endsection

@@ -3,21 +3,22 @@
 namespace Modules\RoadmapManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\Project;
 use Modules\RoadmapManager\Models\ProjectGroup;
-use Modules\RoadmapManager\Models\Milestone;
 use Modules\RoadmapManager\Models\TaskItem;
 
-class DashboardController extends Controller{
-
-    public function __construct( ) {
-        $this->setIndexPage('roadmap', 'roadmap.dashboard');
-        $this->middleware('auth');
+class DashboardController extends Controller
+{
+    public function __construct()
+    {
+        parent::__construct();
     }
 
-    public function index(){
-        
+    public function index(): View
+    {
         $data = [
             'projectCount' => Project::count(),
             'groupCount' => ProjectGroup::count(),

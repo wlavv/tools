@@ -3,29 +3,32 @@
 namespace Modules\RoadmapManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Modules\RoadmapManager\Models\Project;
 use Modules\RoadmapManager\Models\ProjectGroup;
 
-class RoadmapGroupController extends Controller{
-    
-    public function __construct( ) {
-        $this->setIndexPage('groups', 'milestones.groups.index');
-        $this->middleware('auth');
-    }
-
-    public function index(){
-
-        return $this->view('roadmap-manager::groups.index', ['groups' => ProjectGroup::withCount('projects')->orderBy('sort_order')->paginate(20) ]);
-    }
-
-    public function create()
+class RoadmapGroupController extends Controller
+{
+    public function __construct()
     {
-        return view('roadmap-manager::groups.form', ['group' => new ProjectGroup()]);
+        parent::__construct();
     }
 
-    public function store(Request $request)
+    public function index(): View
+    {
+        return $this->view('roadmap-manager::groups.index', [
+            'groups' => ProjectGroup::withCount('projects')->orderBy('sort_order')->paginate(20),
+        ]);
+    }
+
+    public function create(): View
+    {
+        return $this->view('roadmap-manager::groups.form', ['group' => new ProjectGroup()]);
+    }
+
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:150',
@@ -37,27 +40,25 @@ class RoadmapGroupController extends Controller{
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
-        $data['uuid'] = (string) Str::uuid();
         $data['slug'] = $data['slug'] ?: Str::slug($data['name']);
-        $data['color'] = $data['color'] ?: '#6366f1';
-
         ProjectGroup::create($data);
 
-        return redirect()->route('roadmap.groups.index')->with('success', 'Group created successfully.');
+        return redirect()->route('roadmap_manager.groups.index')->with('success', 'Group created successfully.');
     }
 
-    public function show(ProjectGroup $group)
+    public function show(ProjectGroup $group): View
     {
+        $group->loadCount('projects');
         $group->load('projects');
-        return view('roadmap-manager::groups.show', compact('group'));
+        return $this->view('roadmap-manager::groups.show', compact('group'));
     }
 
-    public function edit(ProjectGroup $group)
+    public function edit(ProjectGroup $group): View
     {
-        return view('roadmap-manager::groups.form', compact('group'));
+        return $this->view('roadmap-manager::groups.form', compact('group'));
     }
 
-    public function update(Request $request, ProjectGroup $group)
+    public function update(Request $request, ProjectGroup $group): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:150',
@@ -72,6 +73,6 @@ class RoadmapGroupController extends Controller{
         $data['slug'] = $data['slug'] ?: Str::slug($data['name']);
         $group->update($data);
 
-        return redirect()->route('roadmap.groups.index')->with('success', 'Group updated successfully.');
+        return redirect()->route('roadmap_manager.groups.index')->with('success', 'Group updated successfully.');
     }
 }

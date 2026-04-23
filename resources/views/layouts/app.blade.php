@@ -89,5 +89,6 @@
             @endguest
         </main>
     </div>
+    @include('includes.floating-tools')
 </body>
 </html>

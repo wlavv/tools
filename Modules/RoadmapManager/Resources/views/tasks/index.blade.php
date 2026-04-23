@@ -1,38 +1,6 @@
-@extends('roadmap-manager::layouts.page')
-
-@section('roadmap-content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Tasks</h1>
-    <div class="btn-group">
-        <a href="{{ route('roadmap.tasks.tree') }}" class="btn btn-outline-primary"><i class="fa-solid fa-sitemap"></i> Tree</a>
-        <a href="{{ route('roadmap.tasks.gantt') }}" class="btn btn-outline-primary"><i class="fa-solid fa-chart-gantt"></i> Gantt</a>
-        <a href="{{ route('roadmap.tasks.kanban') }}" class="btn btn-outline-primary"><i class="fa-solid fa-table-columns"></i> Kanban</a>
-        <a href="{{ route('roadmap.tasks.create') }}" class="btn btn-outline-success"><i class="fa-solid fa-plus"></i> New</a>
-    </div>
-</div>
-<div class="card shadow-sm">
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead><tr><th>Title</th><th>Project</th><th>Status</th><th>Priority</th><th>Deadline</th><th></th></tr></thead>
-            <tbody>
-            @forelse($tasks as $task)
-                <tr>
-                    <td>{{ $task->title }}</td>
-                    <td>{{ $task->project->name ?? '-' }}</td>
-                    <td>{{ $task->status }}</td>
-                    <td>{{ $task->priority }}</td>
-                    <td>{{ optional($task->deadline)->format('Y-m-d') }}</td>
-                    <td class="text-end">
-                        <a href="{{ route('roadmap.tasks.show', $task->id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
-                        <a href="{{ route('roadmap.tasks.edit', $task->id) }}" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-pencil"></i></a>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="6" class="text-muted">No tasks found.</td></tr>
-            @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
-<div class="mt-3">{{ $tasks->links() }}</div>
+@extends('layouts.app')
+@section('content')
+@include('roadmap-manager::partials.styles')
+@include('roadmap-manager::partials.alerts')
+<div class="rm-panel"><div class="rm-table-wrap"><table class="rm-table"><thead><tr><th>Title</th><th>Project</th><th>Status</th><th>Priority</th><th>Deadline</th><th class="text-end">Actions</th></tr></thead><tbody>@forelse($tasks as $task)<tr><td>{{ $task->title }}</td><td>{{ $task->project->name ?? '-' }}</td><td>{{ $task->status }}</td><td>{{ $task->priority }}</td><td>{{ optional($task->deadline)->format('Y-m-d') }}</td><td class="text-end"><div class="rm-table-actions"><a href="{{ route('roadmap_manager.tasks.show', $task->id) }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact"><i class="fa-solid fa-eye"></i></a><a href="{{ route('roadmap_manager.tasks.edit', $task->id) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact"><i class="fa-solid fa-pencil"></i></a></div></td></tr>@empty<tr><td colspan="6" class="rm-muted">No tasks found.</td></tr>@endforelse</tbody></table></div></div><div class="mt-3">{{ $tasks->links() }}</div>
 @endsection
