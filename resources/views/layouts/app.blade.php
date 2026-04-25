@@ -45,7 +45,6 @@
                         </aside>
 
                         <section class="app-main">
-                            @if (!empty($breadcrumbs))
 
                             <header class="app-topbar top_container">
                                 <div class="app-topbar-inner {{ $hasTopbarActions ? 'has-topbar-actions' : 'no-topbar-actions' }}">
@@ -64,7 +63,6 @@
                                     @endif
                                 </div>
                             </header>
-                            @endif
 
                             <div id="mainContentView" class="app-content">
                                 <div class="page-content-stack">

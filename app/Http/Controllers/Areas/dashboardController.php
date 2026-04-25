@@ -15,7 +15,6 @@ class dashboardController extends Controller{
 
         $this->setBreadcrumbs([]);
 
-
         $heroStats = [
             ['label' => 'Areas', 'value' => 9, 'icon' => 'fa-solid fa-grip'],
             ['label' => 'Modules', 'value' => 12, 'icon' => 'fa-solid fa-cubes'],

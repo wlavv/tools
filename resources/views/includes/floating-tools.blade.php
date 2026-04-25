@@ -372,7 +372,31 @@
                 padding-bottom: 88px;
             }
         }
-    </style>
+
+        @media (min-width: 768px) {
+            #lsgFloatingTools {
+                transition: transform .18s ease, opacity .18s ease;
+            }
+
+            #lsgFloatingTools:not(:hover):not(:focus-within) {
+                transform: translateX(calc(100% - 20px));
+                opacity: 1;
+            }
+
+            #lsgFloatingTools:hover,
+            #lsgFloatingTools:focus-within {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            #lsgFloatingTools {
+                transform: none !important;
+                opacity: 1 !important;
+            }
+        }
+</style>
 
     <button type="button"
             class="lsg-floating-tools__item"

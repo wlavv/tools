@@ -15,7 +15,6 @@
                     <h4 class="mb-0">Tarefas</h4>
                     <div class="muted-small">Periodicidade, impacto no progresso e valor acumulado</div>
                 </div>
-                <a href="{{ route('tasks.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i></a>
             </div>
 
             <div class="table-responsive">
@@ -42,7 +41,7 @@
                                         <option value="weekly">Semanal</option>
                                         <option value="monthly">Mensal</option>
                                     </select>
-                                    <div class="inline-days compact-cell" style="width: 300px;">
+                                    <div class="inline-days compact-cell">
                                         @foreach(\Modules\Tasks\Models\Task::weekdayOptions() as $dayNum => $dayLabel)
                                             <label><input type="checkbox" name="days_mask[]" value="{{ $dayNum }}">{{ $dayLabel }}</label>
                                         @endforeach
@@ -67,7 +66,7 @@
                             @php $selectedDays = $task->selectedDays(); $selectedDayLabels = $task->selectedDaysLabels(); @endphp
                             <tr>
                                 <td>
-                                    <form method="POST" action="{{ route('tasks.manage.update', $task->id) }}" class="task-line w-100">
+                                    <form method="POST" action="{{ route('tasks.manage.update', $task->id) }}" class="task-line w-100" style="margin-bottom: 0;">
                                         @csrf
                                         <input type="number" class="form-control form-control-sm compact-input" name="sort_order" value="{{ $task->sort_order }}">
                                         <input style="width: 200px !important;" type="text" class="form-control form-control-sm compact-input" name="task" value="{{ $task->task }}" required>
@@ -82,14 +81,11 @@
                                             <option value="monthly" @selected(($task->frequency ?? 'daily') === 'monthly')>Mensal</option>
                                         </select>
                                         <div class="compact-cell days-cell">
-                                            <div class="inline-days" style="width: 300px;">
+                                            <div class="inline-days">
                                                 @foreach(\Modules\Tasks\Models\Task::weekdayOptions() as $dayNum => $dayLabel)
                                                     <label><input type="checkbox" name="days_mask[]" value="{{ $dayNum }}" @checked(in_array($dayNum, $selectedDays, true))>{{ $dayLabel }}</label>
                                                 @endforeach
                                             </div>
-                                            @if(($task->frequency ?? 'daily') === 'weekly')
-                                                <div class="selected-days-preview">{{ !empty($selectedDayLabels) ? implode(' · ', $selectedDayLabels) : 'Sem dias selecionados' }}</div>
-                                            @endif
                                         </div>
                                         <input type="number" min="1" max="31" class="form-control form-control-sm compact-input" name="monthly_day" value="{{ $task->monthly_day }}" placeholder="Dia mês">
                                         <select name="counts_for_completion" class="form-select form-select-sm compact-select">
@@ -101,7 +97,7 @@
                                             <option value="subtract" @selected(($task->value_mode ?? 'add') === 'subtract')>Desconta</option>
                                         </select>
                                         <input type="number" step="0.01" class="form-control form-control-sm compact-input" name="value" value="{{ $task->value }}">
-                                        <div class="text-center"><input type="checkbox" class="form-check-input" name="is_active" value="1" @checked($task->is_active == 1)></div>
+                                        <div class="text-center"><input type="checkbox" class="" name="is_active" value="1" @checked($task->is_active == 1)></div>
                                         <button class="btn btn-sm btn-outline-primary" title="Guardar"><i class="fa-solid fa-floppy-disk"></i></button>
                                     </form>
                                 </td>

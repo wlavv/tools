@@ -35,7 +35,7 @@
 .task-title{font-size:1rem;font-weight:700;margin:0}
 .task-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:.82rem;opacity:.92}
 .task-image{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border-soft, rgba(255,255,255,.12))}
-.task-status-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;font-size:.78rem;border:1px solid var(--border-soft, rgba(255,255,255,.08));background:transparent}
+.task-status-pill{display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:6px 10px;font-size:.78rem;border:1px solid var(--border-soft, rgba(255,255,255,.08));background:transparent}
 .task-status-pill--accent{font-weight:700}
 .task-state-badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;font-size:.78rem;font-weight:700;border:1px solid var(--border-soft, rgba(255,255,255,.08))}
 .task-state-badge.is-done{color:#198754;border-color:rgba(25,135,84,.35)}
@@ -54,7 +54,7 @@
 .muted-small{font-size:.78rem;opacity:.72;text-transform:uppercase;letter-spacing:.04em}
 .table.tasks-table td,.table.tasks-table th{vertical-align:middle;padding:.6rem .65rem}
 .weekday-badges,.inline-days{display:flex;flex-wrap:wrap;gap:5px}
-.weekday-badges .badge,.inline-days label{font-size:.72rem;padding:.35rem .5rem;border:1px solid var(--border-soft, rgba(255,255,255,.08));border-radius:8px;background:transparent;cursor:pointer;margin:0}
+.weekday-badges .badge,.inline-days label{font-size:.72rem;padding:.35rem .5rem;border:0px solid var(--border-soft, rgba(255,255,255,.08));border-radius:8px;background:transparent;cursor:pointer;margin:0}
 .inline-days input{margin-right:4px}
 .selected-days-preview{margin-top:6px;font-size:.72rem;opacity:.78;line-height:1.2}
 .days-cell{display:flex;flex-direction:column;justify-content:center}
@@ -72,7 +72,7 @@
 .inline-create-row td{background:rgba(255,255,255,.02)}
 .member-line,.task-line,.reward-line{display:grid;gap:8px;align-items:center;width:100%}
 .member-line{grid-template-columns:minmax(280px,2.2fr) 140px 140px 100px 90px minmax(180px,1.2fr) 44px 44px}
-.task-line{grid-template-columns:80px minmax(220px,2fr) 160px 110px minmax(220px,1.5fr) 90px 120px 120px 100px 70px 44px}
+.task-line{grid-template-columns:80px minmax(120px,2fr) 100px 90px minmax(400px,1.5fr) 90px 120px 120px 100px 70px 44px;}
 .reward-line{grid-template-columns:160px 90px minmax(200px,1.5fr) minmax(260px,2fr) 90px 60px 90px}
 .reward-line-override{grid-template-columns:90px 70px 160px 90px minmax(180px,1.4fr) minmax(220px,2fr) 90px 60px 90px}
 .compact-input,.compact-select{width:100%;min-width:0}

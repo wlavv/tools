@@ -18,9 +18,8 @@
                 <form method="GET" action="{{ route('tasks.rewards.index') }}" class="d-flex gap-2 align-items-center flex-wrap">
                     <input type="number" name="year" class="form-control form-control-sm compact-input" value="{{ $year }}" style="width:100px;">
                     <input type="number" name="month" class="form-control form-control-sm compact-input" value="{{ $month }}" min="1" max="12" style="width:80px;">
-                    <button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-filter"></i></button>
+                    <button class="btn btn-sm btn-outline-primary" style="height: 43px;width: 43px;"><i class="fa-solid fa-filter"></i></button>
                 </form>
-                <a href="{{ route('tasks.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i></a>
             </div>
         </div>
     </div>

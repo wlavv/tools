@@ -1173,12 +1173,10 @@ select[disabled] {
 }
 
 .form-check-input {
-    background-color: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.18);
 }
 
 .form-check-input:checked {
-    background-color: var(--accent-2);
     border-color: var(--accent-2);
 }
 
@@ -1707,3 +1705,114 @@ body[data-theme="light"] #savings.card {
   border: 0 !important;
   box-shadow: none !important;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   LSG ACTION SYSTEM V2
+========================================= */
+
+.lsg-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px;
+    border-radius: 8px;
+
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(6px);
+
+}
+
+/* Base */
+.lsg-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 12px;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    border-radius: 6px;
+    border: 1px solid var(--border-soft);
+
+    background: rgba(255,255,255,0.05);
+
+    transition: all 0.15s ease;
+}
+
+/* Hover */
+.lsg-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    background: rgba(255,255,255,0.08);
+}
+
+/* Icon */
+.lsg-action-btn__icon {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+/* PRIMARY */
+.lsg-action-btn--primary {
+    background: linear-gradient(180deg, #4f8cff, #3b6fd8);
+    border: none;
+    color: #fff;
+}
+
+/* NEUTRAL */
+.lsg-action-btn--neutral {
+    background: rgba(255,255,255,0.03);
+}
+
+/* WARNING */
+.lsg-action-btn--warning {
+    color: #d9aa59;
+}
+
+/* DANGER */
+.lsg-action-btn--danger {
+    color: #c86e72;
+    background: rgba(200,110,114,0.08);
+}
+
+.lsg-action-btn__glow { display: none !important; }
