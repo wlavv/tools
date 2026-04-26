@@ -1,0 +1,13 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use Modules\ProjectManager\Http\Controllers\ProjectManagerController;
+
+Route::middleware(['web','auth'])->prefix('administration/project-manager')->name('project_manager.')->group(function(){
+    Route::get('/', [ProjectManagerController::class,'index'])->name('index');
+    Route::get('/create', [ProjectManagerController::class,'create'])->name('create');
+    Route::post('/', [ProjectManagerController::class,'store'])->name('store');
+    Route::get('/{project}', [ProjectManagerController::class,'show'])->name('show');
+    Route::get('/{project}/edit', [ProjectManagerController::class,'edit'])->name('edit');
+    Route::put('/{project}', [ProjectManagerController::class,'update'])->name('update');
+    Route::delete('/{project}', [ProjectManagerController::class,'destroy'])->name('destroy');
+});

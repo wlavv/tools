@@ -21,7 +21,6 @@
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-    @include('includes.js')
 </head>
 <body data-theme="dark" class="theme-dark">
     <div id="app">
@@ -40,7 +39,7 @@
 
                         <aside id="mainMenuMobileContainer" class="app-sidebar">
                             <div class="app-sidebar-inner">
-                                @include('includes.mobileMenu')
+                                @include('includes.menu')
                             </div>
                         </aside>
 
@@ -70,13 +69,6 @@
                                         @include('includes.accessList', $accessList)
                                     @endif
 
-                                    @if(isset($counters))
-                                        <div class="row g-3 dashboard-counters-row">
-                                            @foreach($counters as $counter)
-                                                @include('includes.counters', $counter)
-                                            @endforeach
-                                        </div>
-                                    @endif
 
                                     @yield('content')
                                 </div>

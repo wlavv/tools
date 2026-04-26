@@ -1,0 +1,11 @@
+{
+  "name": "SystemTools",
+  "alias": "system-tools",
+  "slug": "system-tools",
+  "description": "Ferramentas de manutenção e diagnóstico do sistema.",
+  "keywords": ["system", "maintenance", "artisan", "diagnostics"],
+  "priority": 0,
+  "provider": "Modules\\SystemTools\\Providers\\SystemToolsServiceProvider",
+  "enabled": true,
+  "version": "1.0"
+}

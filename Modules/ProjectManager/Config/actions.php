@@ -30,5 +30,16 @@ return [
             'save' => true,
             'delete' => true,
         ],
+
+        'project_manager.tasks.create' => [
+            'back' => 'project_manager.index',
+            'save' => true,
+        ],
+
+        'project_manager.tasks.edit' => [
+            'back' => 'project_manager.index',
+            'save' => true,
+            'delete' => true,
+        ],
     ],
 ];

@@ -414,17 +414,6 @@
             </span>
         @endif
     </button>
-
-    <button type="button"
-            class="lsg-floating-tools__item"
-            data-url="{{ route('system_logs.index') }}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="left"
-            title="Logs"
-            aria-label="Logs">
-        <i class="fa-regular fa-file-lines"></i>
-    </button>
-
     <button type="button"
             class="lsg-floating-tools__item"
             data-url="{{ route('settings.index') }}"
@@ -447,22 +436,22 @@
 
     <button type="button"
             class="lsg-floating-tools__item"
-            data-submit-form="lsgFloatingLogoutForm"
-            data-bs-toggle="tooltip"
-            data-bs-placement="left"
-            title="Logout"
-            aria-label="Logout">
-        <i class="fa-solid fa-right-from-bracket"></i>
-    </button>
-
-    <button type="button"
-            class="lsg-floating-tools__item"
             data-url="{{ route('shortcuts.index') }}"
             data-bs-toggle="tooltip"
             data-bs-placement="left"
             title="Shortcuts"
             aria-label="Shortcuts">
         <i class="fa-solid fa-grip"></i>
+    </button>
+
+    <button type="button"
+            class="lsg-floating-tools__item"
+            data-submit-form="lsgFloatingLogoutForm"
+            data-bs-toggle="tooltip"
+            data-bs-placement="left"
+            title="Logout"
+            aria-label="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i>
     </button>
 
     <form id="lsgFloatingLogoutForm" method="POST" action="{{ route('logout') }}" class="d-none">

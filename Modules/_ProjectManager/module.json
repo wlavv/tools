@@ -1,0 +1,8 @@
+{
+  "name": "ProjectManager",
+  "slug": "project-manager",
+  "description": "Mission Control style project manager with grouped cards, tabs and Font Awesome actions.",
+  "enabled": true,
+  "version": "1.6.0",
+  "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider"
+}
