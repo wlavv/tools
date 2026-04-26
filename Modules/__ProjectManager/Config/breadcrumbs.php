@@ -21,4 +21,14 @@ return [
         'parent' => 'project_manager.index',
         'translate' => false,
     ],
+    'project_manager.tasks.create' => [
+        'label' => __('project-manager::breadcrumbs.project_task_new'),
+        'parent' => 'project_manager.index',
+        'translate' => false,
+    ],
+    'project_manager.tasks.edit' => [
+        'label' => __('project-manager::breadcrumbs.project_task_edit'),
+        'parent' => 'project_manager.index',
+        'translate' => false,
+    ],
 ];

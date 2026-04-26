@@ -386,7 +386,6 @@
                                             data-url="{{ route('system-tools.run', ['action' => $key]) }}"
                                         >
                                             <i class="fa-solid fa-play me-1"></i>
-                                            Executar
                                         </button>
                                     </div>
                                 @endforeach

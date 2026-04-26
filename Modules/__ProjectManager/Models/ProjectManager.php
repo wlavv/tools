@@ -19,6 +19,5 @@ class ProjectManager extends Model
     protected $casts = ['start_date' => 'date', 'deadline' => 'date'];
 
     public function children() { return $this->hasMany(self::class, 'id_parent')->orderBy('priority')->orderBy('name'); }
-    public function tasks() { return $this->hasMany(ProjectTask::class, 'id_project')->orderBy('execution_order')->orderByDesc('priority')->orderBy('id'); }
-    public function rootTasks() { return $this->hasMany(ProjectTask::class, 'id_project')->where(function($q){ $q->where('id_parent', 0)->orWhereNull('id_parent'); })->orderBy('execution_order')->orderByDesc('priority')->orderBy('id'); }
+    public function tasks() { return $this->hasMany(ProjectTask::class, 'id_project')->orderBy('priority'); }
 }
