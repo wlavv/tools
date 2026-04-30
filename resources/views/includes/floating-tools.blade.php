@@ -1,6 +1,24 @@
 <div class="lsg-floating-tools" id="lsgFloatingTools">
     @php
-        $floatingNotificationsCount = $floatingNotificationsCount ?? 0;
+        $floatingNotificationsCount = $floatingNotificationsCount ?? null;
+
+        if ($floatingNotificationsCount === null && auth()->check()) {
+            try {
+                if (class_exists(\Modules\Notifications\Models\NotificationRecipient::class)) {
+                    $floatingNotificationsCount = \Modules\Notifications\Models\NotificationRecipient::query()
+                        ->where('user_id', auth()->id())
+                        ->whereNull('read_at')
+                        ->whereNull('dismissed_at')
+                        ->count();
+                } else {
+                    $floatingNotificationsCount = 0;
+                }
+            } catch (\Throwable $e) {
+                $floatingNotificationsCount = 0;
+            }
+        }
+
+        $floatingNotificationsCount = (int) ($floatingNotificationsCount ?? 0);
     @endphp
 
     <style>
@@ -228,27 +246,39 @@
             color: inherit !important;
         }
 
-        #lsgFloatingTools .lsg-floating-tools__badge {
+        #lsgFloatingTools .lsg-floating-tools__notification-dot {
             position: absolute;
-            top: -5px;
-            right: -4px;
+            top: -4px;
+            left: -4px;
 
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
+            width: 11px;
+            height: 11px;
+            min-width: 11px;
+            min-height: 11px;
 
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-
+            display: inline-block;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.72);
+            border: 2px solid rgba(255, 255, 255, 0.88);
             background: var(--lsg-ft-badge-bg);
-            color: var(--lsg-ft-badge-text);
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+            box-shadow:
+                0 4px 10px rgba(0, 0, 0, 0.24),
+                0 0 0 4px rgba(239, 68, 68, 0.16);
+            animation: lsgNotificationPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes lsgNotificationPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow:
+                    0 4px 10px rgba(0, 0, 0, 0.24),
+                    0 0 0 4px rgba(239, 68, 68, 0.16);
+            }
+            50% {
+                transform: scale(1.14);
+                box-shadow:
+                    0 5px 12px rgba(0, 0, 0, 0.28),
+                    0 0 0 7px rgba(239, 68, 68, 0.08);
+            }
         }
 
         .tooltip .tooltip-inner {
@@ -338,9 +368,9 @@
                 font-size: 1rem;
             }
 
-            #lsgFloatingTools .lsg-floating-tools__badge {
-                top: 3px;
-                right: 8px;
+            #lsgFloatingTools .lsg-floating-tools__notification-dot {
+                top: 4px;
+                left: 9px;
             }
 
             body {
@@ -409,9 +439,9 @@
         <i class="fa-regular fa-bell"></i>
 
         @if($floatingNotificationsCount > 0)
-            <span class="lsg-floating-tools__badge">
-                {{ $floatingNotificationsCount > 99 ? '99+' : $floatingNotificationsCount }}
-            </span>
+            <span class="lsg-floating-tools__notification-dot"
+                  title="{{ $floatingNotificationsCount }} notificações por ler"
+                  aria-hidden="true"></span>
         @endif
     </button>
     <button type="button"
@@ -584,22 +614,24 @@
                 return;
             }
 
-            let badge = button.querySelector('.lsg-floating-tools__badge');
+            count = parseInt(count || 0, 10);
+            let dot = button.querySelector('.lsg-floating-tools__notification-dot');
 
             if (count <= 0) {
-                if (badge) {
-                    badge.remove();
+                if (dot) {
+                    dot.remove();
                 }
                 return;
             }
 
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'lsg-floating-tools__badge';
-                button.appendChild(badge);
+            if (!dot) {
+                dot = document.createElement('span');
+                dot.className = 'lsg-floating-tools__notification-dot';
+                dot.setAttribute('aria-hidden', 'true');
+                button.appendChild(dot);
             }
 
-            badge.textContent = count > 99 ? '99+' : count;
+            dot.setAttribute('title', count + ' notificações por ler');
         }
     </script>
 </div>

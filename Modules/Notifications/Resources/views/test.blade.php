@@ -1,18 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid notifications-page">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <div>
-            <h1 class="h4 mb-1">Consola de teste</h1>
-            <div class="text-muted small">Página para validar canais, providers e logs do módulo.</div>
-        </div>
-        <a href="{{ route('notifications.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i> Voltar</a>
-    </div>
+<div class="container-fluid notifications-page lsg-notifications-page">
 
     <div class="row g-3">
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
+            <div class="card lsg-card">
                 <div class="card-body">
                     <form method="POST" action="{{ route('notifications.test.send') }}" class="row g-3">
                         @csrf
@@ -135,7 +128,7 @@ Mensagem enviada a partir do módulo Notifications.") }}</textarea>
         </div>
 
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 mb-3">
+            <div class="card lsg-card mb-3">
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Checks rápidos</h2>
                     <ul class="small mb-0 ps-3">
@@ -147,7 +140,7 @@ Mensagem enviada a partir do módulo Notifications.") }}</textarea>
                     </ul>
                 </div>
             </div>
-            <div class="card shadow-sm border-0">
+            <div class="card lsg-card">
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Providers atuais</h2>
                     @forelse($configs as $channel => $items)

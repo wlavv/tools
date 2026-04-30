@@ -2,6 +2,7 @@
 
 namespace Modules\Notifications\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -9,37 +10,97 @@ use Illuminate\Support\Facades\View;
 use Modules\Notifications\Models\Notification;
 use Modules\Notifications\Models\NotificationProviderConfig;
 use Modules\Notifications\Models\NotificationRecipient;
+use Modules\Notifications\Services\NotificationManager;
 
 class NotificationController extends BaseNotificationController
 {
-    public function index(Request $request)
+    public function create()
     {
-        $this->addAction(route('notifications.settings'), 'Config', '<i class="fa-solid fa-cog"></i>');
-        if (config('notifications.test_route_enabled', true)) {
-            $this->addAction(route('notifications.test'), 'Testar', '<i class="fa-solid fa-flask"></i>');
+        $users = User::query()
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
+        return View::make('notifications::create')->with($this->viewData([
+            'users' => $users,
+            'supportedChannels' => config('notifications.supported_channels', ['internal']),
+        ]));
+    }
+
+    public function store(Request $request, NotificationManager $manager): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string'],
+            'recipient_mode' => ['required', 'string', 'in:me,users,all'],
+            'users' => ['nullable', 'array'],
+            'users.*' => ['integer', 'exists:users,id'],
+            'channels' => ['required', 'array', 'min:1'],
+            'channels.*' => ['string'],
+            'type' => ['required', 'string', 'max:30'],
+            'category' => ['nullable', 'string', 'max:80'],
+            'priority' => ['required', 'string', 'max:30'],
+            'icon' => ['nullable', 'string', 'max:100'],
+            'action_label' => ['nullable', 'string', 'max:100'],
+            'action_url' => ['nullable', 'string', 'max:500'],
+            'queue' => ['nullable', 'boolean'],
+        ]);
+
+        $payload = [
+            'title' => $validated['title'],
+            'message' => $validated['message'],
+            'type' => $validated['type'],
+            'category' => $validated['category'] ?: 'manual',
+            'priority' => $validated['priority'],
+            'icon' => $validated['icon'] ?: null,
+            'channels' => $validated['channels'],
+            'queue' => (bool) ($validated['queue'] ?? false),
+            'source_module' => 'notifications',
+            'reference_type' => 'manual',
+            'created_by' => auth()->id(),
+            'action_label' => $validated['action_label'] ?: null,
+            'action_url' => $validated['action_url'] ?: null,
+        ];
+
+        if ($validated['recipient_mode'] === 'all') {
+            $payload['users'] = User::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        } elseif ($validated['recipient_mode'] === 'users') {
+            $payload['users'] = array_values(array_unique(array_map('intval', $validated['users'] ?? [])));
+
+            if (empty($payload['users'])) {
+                return back()
+                    ->withErrors(['users' => 'Seleciona pelo menos um utilizador.'])
+                    ->withInput();
+            }
+        } else {
+            $payload['users'] = [auth()->id()];
         }
 
+        $manager->send($payload);
+
+        return redirect()
+            ->route('notifications.index')
+            ->with('success', 'Notificação enviada com sucesso.');
+    }
+
+    public function index(Request $request)
+    {
         $userId = auth()->id();
 
         $notifications = Notification::query()
-            ->with(['recipients' => function ($query) use ($userId) {
-                $query->where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                });
-            }, 'logs'])
-            ->whereHas('recipients', function ($query) use ($userId) {
-                $query->where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                });
-            })
+            ->with([
+                'recipients' => fn ($query) => $query->where('user_id', $userId),
+                'logs',
+            ])
+            ->whereHas('recipients', fn ($query) => $query->where('user_id', $userId)->whereNull('dismissed_at'))
             ->when($request->filled('category'), fn ($q) => $q->where('category', $request->string('category')))
             ->when($request->filled('type'), fn ($q) => $q->where('type', $request->string('type')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->string('scope')->toString() === 'unread', function ($q) use ($userId) {
                 $q->whereHas('recipients', function ($rq) use ($userId) {
-                    $rq->where(function ($w) use ($userId) {
-                        $w->whereNull('user_id')->orWhere('user_id', $userId);
-                    })->whereNull('read_at')->whereNull('dismissed_at');
+                    $rq->where('user_id', $userId)
+                        ->whereNull('read_at')
+                        ->whereNull('dismissed_at');
                 });
             })
             ->latest('id')
@@ -48,24 +109,45 @@ class NotificationController extends BaseNotificationController
 
         return View::make('notifications::index')->with($this->viewData([
             'notifications' => $notifications,
-            'categories' => Notification::query()->select('category')->distinct()->orderBy('category')->pluck('category'),
+            'categories' => Notification::query()
+                ->whereHas('recipients', fn ($query) => $query->where('user_id', $userId)->whereNull('dismissed_at'))
+                ->select('category')
+                ->distinct()
+                ->orderBy('category')
+                ->pluck('category'),
         ]));
     }
 
     public function show(Notification $notification)
     {
-        $this->addBreadcrumb($notification->title);
-        $notification->load(['recipients', 'logs']);
+        $this->authorizeNotificationAccess($notification);
+
+        $userId = auth()->id();
+
+        $recipient = $notification->recipients()
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        if (!$recipient->read_at) {
+            $recipient->update([
+                'seen_at' => $recipient->seen_at ?: now(),
+                'read_at' => now(),
+            ]);
+        }
+
+        $notification->load([
+            'recipients' => fn ($query) => $query->where('user_id', $userId),
+            'logs' => fn ($query) => $query->where('recipient_id', $recipient->id),
+        ]);
 
         return View::make('notifications::show')->with($this->viewData([
             'notification' => $notification,
+            'recipient' => $recipient->fresh(),
         ]));
     }
 
     public function settings()
     {
-        $this->addBreadcrumb('Settings');
-
         return View::make('notifications::settings.index')->with($this->viewData([
             'configs' => NotificationProviderConfig::query()->orderBy('channel')->orderBy('provider')->get(),
         ]));
@@ -100,8 +182,6 @@ class NotificationController extends BaseNotificationController
     public function test()
     {
         abort_unless(config('notifications.test_route_enabled', true), 404);
-
-        $this->addBreadcrumb('Testar');
 
         return View::make('notifications::test')->with($this->viewData([
             'supportedChannels' => config('notifications.supported_channels', ['internal']),
@@ -196,10 +276,10 @@ class NotificationController extends BaseNotificationController
 
     public function markRead(Notification $notification): RedirectResponse
     {
+        $this->authorizeNotificationAccess($notification);
+
         $notification->recipients()
-            ->where(function ($q) {
-                $q->whereNull('user_id')->orWhere('user_id', auth()->id());
-            })
+            ->where('user_id', auth()->id())
             ->update(['seen_at' => now(), 'read_at' => now()]);
 
         return back()->with('success', 'Notificação marcada como lida.');
@@ -208,9 +288,7 @@ class NotificationController extends BaseNotificationController
     public function markAllRead(): RedirectResponse
     {
         NotificationRecipient::query()
-            ->where(function ($q) {
-                $q->whereNull('user_id')->orWhere('user_id', auth()->id());
-            })
+            ->where('user_id', auth()->id())
             ->whereNull('read_at')
             ->whereNull('dismissed_at')
             ->update(['seen_at' => now(), 'read_at' => now()]);
@@ -220,13 +298,26 @@ class NotificationController extends BaseNotificationController
 
     public function dismiss(Notification $notification): RedirectResponse
     {
+        $this->authorizeNotificationAccess($notification);
+
         $notification->recipients()
-            ->where(function ($q) {
-                $q->whereNull('user_id')->orWhere('user_id', auth()->id());
-            })
+            ->where('user_id', auth()->id())
             ->update(['dismissed_at' => now()]);
 
         return back()->with('success', 'Notificação ocultada.');
+    }
+
+    public function destroy(Notification $notification): RedirectResponse
+    {
+        $this->authorizeNotificationAccess($notification);
+
+        $notification->recipients()
+            ->where('user_id', auth()->id())
+            ->update(['dismissed_at' => now()]);
+
+        return redirect()
+            ->route('notifications.index')
+            ->with('success', 'Notificação removida da tua lista.');
     }
 
     public function dropdownData(): JsonResponse
@@ -235,14 +326,10 @@ class NotificationController extends BaseNotificationController
 
         $rows = Notification::query()
             ->whereHas('recipients', function ($query) use ($userId) {
-                $query->where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                })->whereNull('dismissed_at');
+                $query->where('user_id', $userId)->whereNull('dismissed_at');
             })
             ->with(['recipients' => function ($query) use ($userId) {
-                $query->where(function ($q) use ($userId) {
-                    $q->whereNull('user_id')->orWhere('user_id', $userId);
-                });
+                $query->where('user_id', $userId);
             }])
             ->latest('id')
             ->limit(8)
@@ -263,9 +350,7 @@ class NotificationController extends BaseNotificationController
             });
 
         $unread = NotificationRecipient::query()
-            ->where(function ($q) use ($userId) {
-                $q->whereNull('user_id')->orWhere('user_id', $userId);
-            })
+            ->where('user_id', $userId)
             ->whereNull('read_at')
             ->whereNull('dismissed_at')
             ->count();
@@ -275,5 +360,17 @@ class NotificationController extends BaseNotificationController
             'items' => $rows,
             'index_url' => route('notifications.index'),
         ]);
+    }
+
+    protected function authorizeNotificationAccess(Notification $notification): void
+    {
+        $userId = auth()->id();
+
+        abort_unless(
+            $notification->recipients()
+                ->where('user_id', $userId)
+                ->exists(),
+            403
+        );
     }
 }

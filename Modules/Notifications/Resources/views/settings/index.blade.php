@@ -1,23 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid notifications-page">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h1 class="h4 mb-1">Configuração de providers</h1>
-            <div class="text-muted small">Cada canal pode ter um provider ativo com JSON de configuração próprio.</div>
-        </div>
-        <div class="d-flex gap-2">
-            @if(config('notifications.test_route_enabled', true))
-                <a href="{{ route('notifications.test') }}" class="btn btn-outline-success"><i class="fa-solid fa-flask"></i> Testar</a>
-            @endif
-            <a href="{{ route('notifications.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i> Voltar</a>
-        </div>
-    </div>
-
+<div class="container-fluid notifications-page lsg-notifications-page">
     <div class="row g-3">
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0">
+            <div class="card lsg-card">
                 <div class="card-body">
                     <form method="POST" action="{{ route('notifications.settings.save') }}" class="row g-3">
                         @csrf
@@ -51,7 +38,7 @@
             </div>
         </div>
         <div class="col-lg-7">
-            <div class="card shadow-sm border-0 mb-3">
+            <div class="card lsg-card mb-3">
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Exemplos rápidos de configuração</h2>
 <pre class="small mb-2">email / smtp_laravel
@@ -78,7 +65,7 @@
 </pre>
                 </div>
             </div>
-            <div class="card shadow-sm border-0">
+            <div class="card lsg-card">
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Providers configurados</h2>
                     <div class="table-responsive">

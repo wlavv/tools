@@ -2,6 +2,8 @@
 
 namespace Modules\Notifications\Services;
 
+use App\Models\User;
+
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -256,16 +258,19 @@ class NotificationManager
     protected function normalizeRecipients(array $payload): array
     {
         if (!empty($payload['recipients']) && is_array($payload['recipients'])) {
-            return $payload['recipients'];
+            return $this->enrichRecipients($payload['recipients']);
         }
 
         $recipients = [];
+
         foreach (($payload['users'] ?? []) as $userId) {
-            $recipients[] = ['user_id' => $userId];
+            $recipients[] = ['user_id' => (int) $userId];
         }
+
         foreach (($payload['emails'] ?? []) as $email) {
             $recipients[] = ['email' => $email];
         }
+
         foreach (($payload['phones'] ?? []) as $phone) {
             $recipients[] = ['phone' => $phone];
         }
@@ -278,6 +283,43 @@ class NotificationManager
             ];
         }
 
-        return $recipients;
+        return $this->enrichRecipients($recipients);
     }
+
+    protected function enrichRecipients(array $recipients): array
+    {
+        $userIds = collect($recipients)
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $users = $userIds->isNotEmpty()
+            ? User::query()->whereIn('id', $userIds)->get()->keyBy('id')
+            : collect();
+
+        return collect($recipients)
+            ->map(function (array $recipient) use ($users) {
+                $userId = isset($recipient['user_id']) ? (int) $recipient['user_id'] : null;
+                $user = $userId ? $users->get($userId) : null;
+
+                if ($user) {
+                    $recipient['name'] = $recipient['name'] ?? $user->name ?? null;
+                    $recipient['email'] = $recipient['email'] ?? $user->email ?? null;
+                }
+
+                return $recipient;
+            })
+            ->unique(function (array $recipient) {
+                return implode('|', [
+                    $recipient['user_id'] ?? '',
+                    strtolower((string) ($recipient['email'] ?? '')),
+                    (string) ($recipient['phone'] ?? ''),
+                ]);
+            })
+            ->values()
+            ->all();
+    }
+
 }
