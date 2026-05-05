@@ -2,8 +2,8 @@
 
 namespace Modules\SystemTools\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Modules\SystemTools\Services\MaintenanceActionService;
 
 class MaintenanceController extends Controller
@@ -14,7 +14,7 @@ class MaintenanceController extends Controller
         $sections = config('system-tools.sections', []);
         $riskLabels = config('system-tools.risk_labels', []);
 
-        return view('system-tools::maintenance.index', compact('tools', 'sections', 'riskLabels'));
+        return $this->view('system-tools::maintenance.index', compact('tools', 'sections', 'riskLabels'));
     }
 
     public function run(Request $request, string $action, MaintenanceActionService $service)

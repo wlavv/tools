@@ -6,24 +6,13 @@
         </button>
 
         <div class="breadcrumbs-copy">
-            <h3> {{ $pageTitle ?? __('breadcrumbs.home') }} </h3>
+            <h3>{{ $pageTitle ?? __('breadcrumbs.home') }}</h3>
 
             @php
                 $hasBreadcrumbs = isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs) > 0;
-
-                $showTrail = true;
-
-                if ($hasBreadcrumbs && count($breadcrumbs) === 1) {
-                    $single = $breadcrumbs[0]['label'] ?? null;
-                    $title  = $pageTitle ?? 'home';
-
-                    if ($single === $title) {
-                        $showTrail = false;
-                    }
-                }
             @endphp
 
-            @if($hasBreadcrumbs && $showTrail)
+            @if($hasBreadcrumbs)
                 <ul>
                     @foreach ($breadcrumbs as $breadcrumb)
                         @if(!$loop->first)
@@ -32,15 +21,20 @@
                             </li>
                         @endif
 
+                        @php
+                            $label = $breadcrumb['label'] ?? '';
+                            $isHome = in_array($label, ['Dashboard', 'Home'], true);
+                        @endphp
+
                         <li>
                             @if(!empty($breadcrumb['url']) && !$loop->last)
                                 <a href="{{ $breadcrumb['url'] }}">
                             @endif
 
-                            @if(isset($breadcrumb['translate']) && $breadcrumb['translate'])
-                                {{ __('breadcrumbs.' . $breadcrumb['label'], $breadcrumb['params'] ?? []) }}
+                            @if($isHome)
+                                <i class="fa-solid fa-house"></i>
                             @else
-                                {{ $breadcrumb['label'] ?? '' }}
+                                {{ $label }}
                             @endif
 
                             @if(!empty($breadcrumb['url']) && !$loop->last)

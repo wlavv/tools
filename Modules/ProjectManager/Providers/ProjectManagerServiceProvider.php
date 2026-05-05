@@ -12,6 +12,7 @@ class ProjectManagerServiceProvider extends ServiceProvider
 
         if (file_exists($modulePath . '/Config/config.php')) {
             $this->mergeConfigFrom($modulePath . '/Config/config.php', 'project-manager');
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'project_manager');
         }
     }
 

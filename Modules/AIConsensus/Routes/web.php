@@ -3,7 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Modules\AIConsensus\Http\Controllers\AIConsensusController;
 
-Route::middleware(['web', 'auth'])->prefix('ai-consensus')->name('ai_consensus.')->group(function () {
+Route::middleware(config('ai_consensus.middleware', ['web', 'auth']))
+    ->prefix(config('ai_consensus.route_prefix', 'ai-consensus'))
+    ->name('ai_consensus.')
+    ->group(function () {
     Route::get('/', [AIConsensusController::class, 'index'])->name('index');
     Route::get('/create', [AIConsensusController::class, 'create'])->name('create');
     Route::post('/', [AIConsensusController::class, 'store'])->name('store');

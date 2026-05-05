@@ -2,8 +2,8 @@
 
 return [
     'system-tools.index' => [
-        'label' => 'Manutenção',
-        'parent' => 'dashboard',
+        'label' => 'System Tools',
+        'parent' => 'administration.index',
         'translate' => false,
     ],
 ];

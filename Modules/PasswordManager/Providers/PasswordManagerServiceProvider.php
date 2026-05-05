@@ -13,6 +13,7 @@ class PasswordManagerServiceProvider extends ServiceProvider
 
         if (file_exists($modulePath . '/Config/config.php')) {
             $this->mergeConfigFrom($modulePath . '/Config/config.php', 'password-manager');
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'password_manager');
         }
 
         $this->app->singleton(PasswordManagerService::class, fn () => new PasswordManagerService());
@@ -25,6 +26,6 @@ class PasswordManagerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'password-manager');
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
-        $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'password-manager');
+        $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'password-manager');
     }
 }

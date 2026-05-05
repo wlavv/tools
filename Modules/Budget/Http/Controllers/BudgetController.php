@@ -4,8 +4,6 @@ namespace Modules\Budget\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 use Modules\Budget\Models\BudgetCategory;
 use Modules\Budget\Models\BudgetExpense;
 use Modules\Budget\Models\BudgetExpenseDetail;
@@ -16,21 +14,17 @@ class BudgetController extends Controller
 {
     private static float $forecast = 2216.16;
 
-    public array $actions = [];
-    public array $breadcrumbs = [];
-
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = ['name' => 'Budget', 'url' => route('budget.index')];
+        parent::__construct();
     }
 
     public function index(Request $request)
     {
-        $month = (int) $request->query('month', date('m'));
+$month = (int) $request->query('month', date('m'));
         $year = (int) $request->query('year', date('Y'));
 
-        $this->actions = $this->buildActions($year, $month, 'overview');
+        $this->setActions($this->buildActions($year, $month, 'overview'));
 
         $totalIncome = BudgetIncome::where('year', $year)
             ->where('month', $month)
@@ -58,8 +52,6 @@ class BudgetController extends Controller
         $topSubcategories = $this->getSubcategoryReportData($year, $month)->take(8)->values();
 
         $data = [
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
             'year' => $year,
             'month' => $month,
             'total_income' => $totalIncome,
@@ -98,14 +90,14 @@ class BudgetController extends Controller
             'chart_top_subcategory_amounts' => $topSubcategories->pluck('amount')->map(fn ($v) => round((float) $v, 2))->values(),
         ];
 
-        return View::make('budget::pages.index')->with($data);
+        return $this->view('budget::pages.index', $data);
     }
 
     public function categoryReport(Request $request)
     {
         $month = (int) $request->query('month', date('m'));
         $year = (int) $request->query('year', date('Y'));
-        $this->actions = $this->buildActions($year, $month, 'category');
+        $this->setActions($this->buildActions($year, $month, 'category'));
 
         $rows = $this->getCategoryReportData($year, $month);
         $summary = [
@@ -115,9 +107,7 @@ class BudgetController extends Controller
         ];
         $summary['usage_percent'] = $summary['forecast'] > 0 ? round(($summary['expense'] / $summary['forecast']) * 100, 2) : 0;
 
-        return View::make('budget::pages.category-report')->with([
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
+        return $this->view('budget::pages.category-report', [
             'year' => $year,
             'month' => $month,
             'rows' => $rows,
@@ -133,7 +123,7 @@ class BudgetController extends Controller
         $month = (int) $request->query('month', date('m'));
         $year = (int) $request->query('year', date('Y'));
         $selectedCategory = $request->query('category');
-        $this->actions = $this->buildActions($year, $month, 'subcategory');
+        $this->setActions($this->buildActions($year, $month, 'subcategory'));
 
         $rows = $this->getSubcategoryReportData($year, $month, $selectedCategory);
         $categories = BudgetCategory::where('forecast_year', $year)
@@ -142,9 +132,7 @@ class BudgetController extends Controller
             ->orderBy('name')
             ->get(['slug', 'name']);
 
-        return View::make('budget::pages.subcategory-report')->with([
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
+        return $this->view('budget::pages.subcategory-report', [
             'year' => $year,
             'month' => $month,
             'selectedCategory' => $selectedCategory,
@@ -160,14 +148,12 @@ class BudgetController extends Controller
     {
         $year = (int) $request->query('year', date('Y'));
         $month = (int) $request->query('month', date('m'));
-        $this->actions = $this->buildActions($year, $month, 'annual');
+        $this->setActions($this->buildActions($year, $month, 'annual'));
 
         $monthlyEvolution = $this->getMonthlyEvolutionData($year);
         $annualCategories = $this->getAnnualCategoryData($year);
 
-        return View::make('budget::pages.annual-analysis')->with([
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
+        return $this->view('budget::pages.annual-analysis', [
             'year' => $year,
             'month' => $month,
             'monthlyRows' => $monthlyEvolution,

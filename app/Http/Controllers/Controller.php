@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\View;
 
 class Controller extends BaseController
 {
@@ -36,36 +37,54 @@ class Controller extends BaseController
         $this->defaultLang = 1;
         Config::set('defaultLang', $this->defaultLang);
 
-        $this->pageTitle = $this->resolvePageTitle();
-        $this->breadcrumbs = $this->resolveBreadcrumbs();
+        $this->pageTitle       = $this->resolvePageTitle();
+        $this->breadcrumbs     = $this->resolveBreadcrumbs();
         $this->showBreadcrumbs = !$this->isDashboardLikeRoute();
-        $this->actions = $this->resolveActions();
+        $this->actions         = $this->resolveActions();
 
+        $this->shareLayoutData();
+    }
+
+    protected function shareLayoutData(): void
+    {
+        View::share([
+            'pageTitle'       => $this->pageTitle,
+            'pageTitleSuffix' => $this->pageTitleSuffix,
+            'breadcrumbs'     => $this->breadcrumbs,
+            'showBreadcrumbs' => $this->showBreadcrumbs,
+            'actions'         => $this->actions,
+            'accessList'      => $this->accessList,
+        ]);
     }
 
     protected function setPageTitle(?string $title): void
     {
         $this->pageTitle = $title;
+        $this->shareLayoutData();
     }
 
     protected function setPageTitleSuffix(?string $suffix): void
     {
         $this->pageTitleSuffix = $suffix;
+        $this->shareLayoutData();
     }
 
     protected function hideBreadcrumbs(): void
     {
         $this->showBreadcrumbs = false;
+        $this->shareLayoutData();
     }
 
     protected function showBreadcrumbs(): void
     {
         $this->showBreadcrumbs = true;
+        $this->shareLayoutData();
     }
 
     protected function setBreadcrumbs(array $items = []): void
     {
         $this->breadcrumbs = $items;
+        $this->shareLayoutData();
     }
 
     protected function addBreadcrumb(string $label, ?string $url = null, array $params = [], bool $translate = true): void
@@ -76,25 +95,32 @@ class Controller extends BaseController
             'params'    => $params,
             'translate' => $translate,
         ];
+
+        $this->shareLayoutData();
     }
 
     protected function setActions(?array $actions = null): void
     {
         $this->actions = $actions ?? [];
+        $this->shareLayoutData();
     }
 
     protected function addAction(array $action): void
     {
         $this->customActions[] = $action;
         $this->actions = $this->resolveActions();
+        $this->shareLayoutData();
     }
 
     protected function replaceAction(string $key, array $action): void
     {
         $this->disableDefaultAction($key);
+
         $action['key'] = $action['key'] ?? $key;
         $this->customActions[] = $action;
         $this->actions = $this->resolveActions();
+
+        $this->shareLayoutData();
     }
 
     protected function disableDefaultAction(string $key): void
@@ -104,12 +130,14 @@ class Controller extends BaseController
         }
 
         $this->actions = $this->resolveActions();
+        $this->shareLayoutData();
     }
 
     protected function enableOnlyActions(array $keys): void
     {
         $this->onlyActionKeys = array_values($keys);
         $this->actions = $this->resolveActions();
+        $this->shareLayoutData();
     }
 
     protected function clearActions(): void
@@ -118,17 +146,22 @@ class Controller extends BaseController
         $this->disabledDefaultActions = [];
         $this->onlyActionKeys = [];
         $this->actions = [];
+
+        $this->shareLayoutData();
     }
 
     protected function setModuleHomeRoute(?string $routeName): void
     {
         $this->moduleHomeRoute = $routeName;
         $this->actions = $this->resolveActions();
+
+        $this->shareLayoutData();
     }
 
     protected function setAccessList(?array $accessList = null): void
     {
         $this->accessList = $accessList ?? [];
+        $this->shareLayoutData();
     }
 
     protected function addAccess(string $url, string $name, ?string $icon = null, ?string $image = null): void
@@ -139,11 +172,14 @@ class Controller extends BaseController
             'icon'  => $icon,
             'image' => $image,
         ];
+
+        $this->shareLayoutData();
     }
 
     protected function resetAccessList(): void
     {
         $this->accessList = [];
+        $this->shareLayoutData();
     }
 
     protected function setIndexPage(string $sectionKey, string $routeName): void
@@ -156,15 +192,13 @@ class Controller extends BaseController
                 'url'       => $this->safeRoute($routeName),
                 'params'    => [],
                 'translate' => true,
-            ]
+            ],
         ]);
     }
 
     protected function resolveBreadcrumbs(): array
     {
         $route = request()->route();
-        
-        //system_log('info', 'Visited ' . $route->getName());
 
         if (!$route) {
             return [];
@@ -191,11 +225,14 @@ class Controller extends BaseController
 
             $item = $config[$current];
 
+            $rawLabel = $item['label'] ?? $current;
+            $translate = $item['translate'] ?? true;
+
             $breadcrumbs[] = [
-                'label'     => $item['label'] ?? $current,
-                'url'       => $this->safeRoute($current),
+                'label'     => $this->resolveBreadcrumbLabel($rawLabel, $translate),
+                'url'       => $this->safeRoute($current, $item['params'] ?? []),
                 'params'    => $item['params'] ?? [],
-                'translate' => $item['translate'] ?? true,
+                'translate' => false,
             ];
 
             $current = $item['parent'] ?? null;
@@ -243,7 +280,9 @@ class Controller extends BaseController
 
     protected function resolveActions(): array
     {
-        if (!$this->hasPageActions) return [];
+        if (!$this->hasPageActions) {
+            return [];
+        }
 
         return app(ActionResolver::class)->resolve(
             disabledKeys: $this->disabledDefaultActions,
@@ -269,7 +308,9 @@ class Controller extends BaseController
 
     protected function view(string $view, array $data = [])
     {
-        return \View::make($view)->with(array_merge([
+        $this->shareLayoutData();
+
+        return View::make($view)->with(array_merge([
             'pageTitle'       => $this->pageTitle,
             'pageTitleSuffix' => $this->pageTitleSuffix,
             'breadcrumbs'     => $this->breadcrumbs,
@@ -277,5 +318,33 @@ class Controller extends BaseController
             'actions'         => $this->actions,
             'accessList'      => $this->accessList,
         ], $data));
+    }
+
+    protected function resolveBreadcrumbLabel(string $label, bool $translate = true): string
+    {
+        if (!$translate) {
+            return $label;
+        }
+
+        if (str_contains($label, '::')) {
+            $translated = __($label);
+            return $translated !== $label ? $translated : $label;
+        }
+
+        if (str_starts_with($label, 'breadcrumbs.')) {
+            $translated = __($label);
+            return $translated !== $label ? $translated : $label;
+        }
+
+        $globalKey = 'breadcrumbs.' . $label;
+        $translated = __($globalKey);
+
+        if ($translated !== $globalKey) {
+            return $translated;
+        }
+
+        $translated = __($label);
+
+        return $translated !== $label ? $translated : $label;
     }
 }

@@ -9,7 +9,11 @@ class CalendarServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $modulePath = dirname(__DIR__);
+
+        if (file_exists($modulePath . '/Config/config.php')) {
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'calendar');
+        }
     }
 
     public function boot(): void
@@ -18,6 +22,7 @@ class CalendarServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom($modulePath . '/Resources/views', 'calendar');
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
+        $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'calendar');
 
         Route::middleware(['web', 'auth'])
             ->group($modulePath . '/Routes/web.php');

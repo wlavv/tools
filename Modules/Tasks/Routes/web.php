@@ -35,8 +35,6 @@ Route::prefix('hr/tasks')->name('tasks.')->middleware(['auth'])->group(function 
 
 Route::prefix('hub')->group(function () {
     Route::get('/tablet',                       [TasksController::class, 'tabletPublic'])->name('tasks.tablet.public');
-    Route::post('/tablet/task-toggle',          [TasksController::class, 'tabletPublicToggleTask'])->name('tasks.tablet.public.task.toggle');
-    Route::post('/tablet/events',               [TasksController::class, 'tabletPublicStoreEvent'])->name('tasks.tablet.public.event.store');
     Route::get('/assets/member/{slug}',         [TasksController::class, 'tabletMemberAsset'])->where('slug', '.*')->name('tasks.tablet.asset.member');
     Route::get('/assets/weather/{file}',        [TasksController::class, 'tabletWeatherAsset'])->where('file', '.*')->name('tasks.tablet.asset.weather');
 });

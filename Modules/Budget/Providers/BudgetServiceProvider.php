@@ -8,7 +8,11 @@ class BudgetServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $modulePath = dirname(__DIR__);
+
+        if (file_exists($modulePath . '/Config/config.php')) {
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'budget');
+        }
     }
 
     public function boot(): void
@@ -17,6 +21,7 @@ class BudgetServiceProvider extends ServiceProvider
 
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'budget');
-        $this->loadMigrationsFrom($modulePath . '/Database/migrations');
+        $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
+        $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'budget');
     }
 }

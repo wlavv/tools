@@ -12,6 +12,7 @@ class AIConsensusServiceProvider extends ServiceProvider
         $modulePath = dirname(__DIR__);
 
         if (file_exists($modulePath . '/Config/config.php')) {
+            $this->mergeConfigFrom($modulePath . '/Config/config.php', 'ai-consensus');
             $this->mergeConfigFrom($modulePath . '/Config/config.php', 'ai_consensus');
         }
 

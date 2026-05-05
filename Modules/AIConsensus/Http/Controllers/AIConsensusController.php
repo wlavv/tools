@@ -16,7 +16,7 @@ class AIConsensusController extends Controller
     public function __construct(protected AIConsensusService $service)
     {
         parent::__construct();
-        $this->middleware('auth');
+        $this->pageTitle = $this->resolvePageTitle();
     }
 
     public function index(Request $request): View

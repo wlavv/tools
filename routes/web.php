@@ -14,8 +14,3 @@ Route::prefix('tablet/tasks')->name('tasks.tablet.public.')->group(function () {
 });
 
 Auth::routes();
-
-Route::get('/clear-cache', function () {
-    Artisan::call('optimize:clear');
-    return 'Cache cleared';
-});

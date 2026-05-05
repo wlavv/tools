@@ -4,42 +4,49 @@ namespace App\Support\Breadcrumbs;
 
 class BreadcrumbRegistry
 {
-    public function getAll(): array
+    protected array $items = [];
+
+    public function __construct()
     {
-        $breadcrumbs = config('breadcrumbs', []);
-
-        foreach ($this->getModuleBreadcrumbFiles() as $file) {
-            $moduleBreadcrumbs = require $file;
-
-            if (is_array($moduleBreadcrumbs)) {
-                $breadcrumbs = array_merge($breadcrumbs, $moduleBreadcrumbs);
-            }
-        }
-
-        return $breadcrumbs;
+        $this->load();
     }
 
-    protected function getModuleBreadcrumbFiles(): array
+    protected function load(): void
     {
-        $files = [];
+        $this->loadGlobalBreadcrumbs();
+        $this->loadModuleBreadcrumbs();
+    }
+
+    protected function loadGlobalBreadcrumbs(): void
+    {
+        $file = config_path('breadcrumbs.php');
+
+        if (!file_exists($file)) {
+            return;
+        }
+
+        $config = include $file;
+
+        if (is_array($config)) {
+            $this->items = array_merge($this->items, $config);
+        }
+    }
+
+    protected function loadModuleBreadcrumbs(): void
+    {
         $modulesPath = base_path('Modules');
 
-        if (!is_dir($modulesPath)) {
-            return $files;
-        }
+        foreach (glob($modulesPath . '/*/Config/breadcrumbs.php') as $file) {
+            $config = include $file;
 
-        $paths = glob($modulesPath . '/*/Config/breadcrumbs.php');
-
-        if (!$paths) {
-            return $files;
-        }
-
-        foreach ($paths as $file) {
-            if (is_file($file)) {
-                $files[] = $file;
+            if (is_array($config)) {
+                $this->items = array_merge($this->items, $config);
             }
         }
+    }
 
-        return $files;
+    public function getAll(): array
+    {
+        return $this->items;
     }
 }

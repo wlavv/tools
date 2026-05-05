@@ -6,39 +6,51 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use Modules\Calendar\Models\CalendarCategory;
 use Modules\Calendar\Models\CalendarContext;
 use Modules\Calendar\Models\CalendarEvent;
 
 class CalendarController extends Controller
 {
-    public array $actions = [];
-    public array $breadcrumbs = [];
-
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->breadcrumbs[] = ['name' => 'Calendar', 'url' => route('calendar.index')];
-    }
-
-    protected function viewData(array $extra = []): array
-    {
-        return array_merge([
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
-        ], $extra);
+        parent::__construct();
     }
 
     protected function buildActions(): void
     {
-        $this->actions = [
-            ['name' => 'Dashboard', 'icon' => '<i class="fa-solid fa-calendar-days"></i>', 'url' => route('calendar.index'), 'class' => 'btn btn-outline-primary'],
-            ['name' => 'Contexts', 'icon' => '<i class="fa-solid fa-layer-group"></i>', 'url' => route('calendar.contexts.index'), 'class' => 'btn btn-outline-primary'],
-            ['name' => 'Categories', 'icon' => '<i class="fa-solid fa-tags"></i>', 'url' => route('calendar.categories.index'), 'class' => 'btn btn-outline-primary'],
-            ['name' => 'Events', 'icon' => '<i class="fa-solid fa-calendar-plus"></i>', 'url' => route('calendar.events.index'), 'class' => 'btn btn-outline-primary'],
-            ['name' => 'Tablet', 'icon' => '<i class="fa-solid fa-tablet-screen-button"></i>', 'url' => route('calendar.tablet', ['context' => 'family']), 'class' => 'btn btn-outline-primary'],
-        ];
+        $this->setActions([
+            [
+                'name' => 'Dashboard',
+                'icon' => '<i class="fa-solid fa-calendar-days"></i>',
+                'url' => route('calendar.index'),
+                'class' => 'btn btn-outline-primary',
+            ],
+            [
+                'name' => 'Contexts',
+                'icon' => '<i class="fa-solid fa-layer-group"></i>',
+                'url' => route('calendar.contexts.index'),
+                'class' => 'btn btn-outline-primary',
+            ],
+            [
+                'name' => 'Categories',
+                'icon' => '<i class="fa-solid fa-tags"></i>',
+                'url' => route('calendar.categories.index'),
+                'class' => 'btn btn-outline-primary',
+            ],
+            [
+                'name' => 'Events',
+                'icon' => '<i class="fa-solid fa-calendar-plus"></i>',
+                'url' => route('calendar.events.index'),
+                'class' => 'btn btn-outline-primary',
+            ],
+            [
+                'name' => 'Tablet',
+                'icon' => '<i class="fa-solid fa-tablet-screen-button"></i>',
+                'url' => route('calendar.tablet', ['context' => 'family']),
+                'class' => 'btn btn-outline-primary',
+            ],
+        ]);
     }
 
     public function index(Request $request)
@@ -63,18 +75,20 @@ class CalendarController extends Controller
             ->orderBy('start_at')
             ->paginate(30);
 
-        return View::make('calendar::pages.index')->with($this->viewData([
+        return $this->view('calendar::pages.index', [
             'contexts' => $contexts,
             'events' => $events,
             'selectedContext' => $selectedContext,
-        ]));
+        ]);
     }
 
     public function tablet(?string $context = 'family')
     {
         $this->buildActions();
 
-        $contextModel = CalendarContext::query()->where('slug', $context)->first();
+        $contextModel = CalendarContext::query()
+            ->where('slug', $context)
+            ->first();
 
         $events = CalendarEvent::query()
             ->with(['context', 'category'])
@@ -84,11 +98,11 @@ class CalendarController extends Controller
             ->orderBy('start_at')
             ->get();
 
-        return View::make('calendar::pages.tablet')->with($this->viewData([
+        return $this->view('calendar::pages.tablet', [
             'context' => $contextModel,
             'events' => $events,
             'contextSlug' => $context,
-        ]));
+        ]);
     }
 
     public function feed(?string $context = null): JsonResponse
@@ -131,9 +145,9 @@ class CalendarController extends Controller
             ->orderBy('name')
             ->paginate(30);
 
-        return View::make('calendar::pages.contexts.index')->with($this->viewData([
+        return $this->view('calendar::pages.contexts.index', [
             'contexts' => $contexts,
-        ]));
+        ]);
     }
 
     public function storeContext(Request $request): RedirectResponse
@@ -152,7 +166,9 @@ class CalendarController extends Controller
 
         CalendarContext::query()->create($data);
 
-        return redirect()->route('calendar.contexts.index')->with('success', 'Contexto criado com sucesso.');
+        return redirect()
+            ->route('calendar.contexts.index')
+            ->with('success', 'Contexto criado com sucesso.');
     }
 
     public function updateContext(Request $request, CalendarContext $context): RedirectResponse
@@ -171,14 +187,18 @@ class CalendarController extends Controller
 
         $context->update($data);
 
-        return redirect()->route('calendar.contexts.index')->with('success', 'Contexto atualizado com sucesso.');
+        return redirect()
+            ->route('calendar.contexts.index')
+            ->with('success', 'Contexto atualizado com sucesso.');
     }
 
     public function deleteContext(CalendarContext $context): RedirectResponse
     {
         $context->delete();
 
-        return redirect()->route('calendar.contexts.index')->with('success', 'Contexto removido com sucesso.');
+        return redirect()
+            ->route('calendar.contexts.index')
+            ->with('success', 'Contexto removido com sucesso.');
     }
 
     public function categories()
@@ -197,10 +217,10 @@ class CalendarController extends Controller
             ->orderBy('name')
             ->get();
 
-        return View::make('calendar::pages.categories.index')->with($this->viewData([
+        return $this->view('calendar::pages.categories.index', [
             'categories' => $categories,
             'contexts' => $contexts,
-        ]));
+        ]);
     }
 
     public function storeCategory(Request $request): RedirectResponse
@@ -220,7 +240,9 @@ class CalendarController extends Controller
 
         CalendarCategory::query()->create($data);
 
-        return redirect()->route('calendar.categories.index')->with('success', 'Categoria criada com sucesso.');
+        return redirect()
+            ->route('calendar.categories.index')
+            ->with('success', 'Categoria criada com sucesso.');
     }
 
     public function updateCategory(Request $request, CalendarCategory $category): RedirectResponse
@@ -240,14 +262,18 @@ class CalendarController extends Controller
 
         $category->update($data);
 
-        return redirect()->route('calendar.categories.index')->with('success', 'Categoria atualizada com sucesso.');
+        return redirect()
+            ->route('calendar.categories.index')
+            ->with('success', 'Categoria atualizada com sucesso.');
     }
 
     public function deleteCategory(CalendarCategory $category): RedirectResponse
     {
         $category->delete();
 
-        return redirect()->route('calendar.categories.index')->with('success', 'Categoria removida com sucesso.');
+        return redirect()
+            ->route('calendar.categories.index')
+            ->with('success', 'Categoria removida com sucesso.');
     }
 
     public function events()
@@ -259,9 +285,9 @@ class CalendarController extends Controller
             ->orderByDesc('start_at')
             ->paginate(30);
 
-        return View::make('calendar::pages.events.index')->with($this->viewData([
+        return $this->view('calendar::pages.events.index', [
             'events' => $events,
-        ]));
+        ]);
     }
 
     public function createEvent()
@@ -280,10 +306,10 @@ class CalendarController extends Controller
             ->orderBy('name')
             ->get();
 
-        return View::make('calendar::pages.events.create')->with($this->viewData([
+        return $this->view('calendar::pages.events.create', [
             'contexts' => $contexts,
             'categories' => $categories,
-        ]));
+        ]);
     }
 
     public function storeEvent(Request $request): RedirectResponse
@@ -308,7 +334,9 @@ class CalendarController extends Controller
 
         CalendarEvent::query()->create($data);
 
-        return redirect()->route('calendar.events.index')->with('success', 'Evento criado com sucesso.');
+        return redirect()
+            ->route('calendar.events.index')
+            ->with('success', 'Evento criado com sucesso.');
     }
 
     public function showEvent(CalendarEvent $event)
@@ -329,11 +357,11 @@ class CalendarController extends Controller
             ->orderBy('name')
             ->get();
 
-        return View::make('calendar::pages.events.show')->with($this->viewData([
+        return $this->view('calendar::pages.events.show', [
             'event' => $event,
             'contexts' => $contexts,
             'categories' => $categories,
-        ]));
+        ]);
     }
 
     public function updateEvent(Request $request, CalendarEvent $event): RedirectResponse
@@ -357,13 +385,17 @@ class CalendarController extends Controller
 
         $event->update($data);
 
-        return redirect()->route('calendar.events.show', $event)->with('success', 'Evento atualizado com sucesso.');
+        return redirect()
+            ->route('calendar.events.show', $event)
+            ->with('success', 'Evento atualizado com sucesso.');
     }
 
     public function deleteEvent(CalendarEvent $event): RedirectResponse
     {
         $event->delete();
 
-        return redirect()->route('calendar.events.index')->with('success', 'Evento removido com sucesso.');
+        return redirect()
+            ->route('calendar.events.index')
+            ->with('success', 'Evento removido com sucesso.');
     }
 }

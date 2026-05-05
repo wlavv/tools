@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Modules\Tasks\Models\TaskEvent;
@@ -23,23 +23,34 @@ use Modules\Tasks\Models\TaskRewardOverride;
 
 class TasksController extends Controller
 {
-    public array $actions = [];
-    public array $breadcrumbs = [];
-
     public function __construct()
     {
-        $this->middleware('auth')->except(['tabletPublic', 'tabletPublicToggleTask', 'tabletPublicStoreEvent']);
-        $this->breadcrumbs[] = ['name' => 'Tasks', 'url' => route('tasks.index')];
+        // Mantém as rotas públicas do tablet sem autenticação, mas inicializa
+        // o mesmo contrato do Controller base: page title, breadcrumbs, actions
+        // e View::share(). Não chamamos parent::__construct() porque o parent
+        // aplica auth a todas as actions e isso quebraria as rotas públicas.
+        $this->middleware('auth')->except([
+            'tabletPublic',
+            'tabletPublicToggleTask',
+            'tabletPublicStoreEvent',
+        ]);
+
+        $this->defaultLang = 1;
+        Config::set('defaultLang', $this->defaultLang);
+
+        $this->pageTitle       = $this->resolvePageTitle();
+        $this->breadcrumbs     = $this->resolveBreadcrumbs();
+        $this->showBreadcrumbs = !$this->isDashboardLikeRoute();
+        $this->actions         = $this->resolveActions();
+
+        $this->shareLayoutData();
     }
 
     protected function baseData(array $extra = []): array
     {
         return array_merge([
-            'actions' => $this->actions,
-            'breadcrumbs' => $this->breadcrumbs,
             'counters' => [],
             'panels' => null,
-            'accessList' => [],
         ], $extra);
     }
 
@@ -48,13 +59,13 @@ class TasksController extends Controller
         $year = $year ?: now()->year;
         $month = $month ?: now()->month;
 
-        $this->actions = [
+        $this->setActions([
             ['name' => 'Dashboard', 'icon' => '<i class="fa-solid fa-chart-column"></i>', 'url' => route('tasks.dashboard', [$year, $month]), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Calendar', 'icon' => '<i class="fa-solid fa-calendar-days"></i>', 'url' => route('tasks.calendar', [$year, $month]), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Members', 'icon' => '<i class="fa-solid fa-users"></i>', 'url' => route('tasks.members.index'), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Manage Tasks', 'icon' => '<i class="fa-solid fa-list-check"></i>', 'url' => route('tasks.manage.index'), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Rewards', 'icon' => '<i class="fa-solid fa-gift"></i>', 'url' => route('tasks.rewards.index'), 'class' => 'btn btn-outline-primary'],
-        ];
+        ]);
     }
 
     public function index()
@@ -104,7 +115,7 @@ class TasksController extends Controller
             ];
         }
 
-        return View::make('tasks::pages.index')->with($this->baseData([
+        return $this->view('tasks::pages.index', $this->baseData([
             'tasks' => $tasks,
             'todayDoneMap' => $todayDoneMap,
             'members' => $members,
@@ -121,7 +132,7 @@ class TasksController extends Controller
         TaskRewardLevel::bootstrapDefaults();
         $this->buildActions($year, $month);
 
-        return view('tasks::pages.dashboard.index', $this->baseData([
+        return $this->view('tasks::pages.dashboard.index', $this->baseData([
             'year' => $year,
             'month' => $month,
             'stats' => TaskDone::getDashboardStats($year, $month),
@@ -132,11 +143,8 @@ class TasksController extends Controller
     {
         $this->buildActions($year, $month);
 
-        $breadcrumbs = $this->breadcrumbs;
-        $breadcrumbs[] = ['name' => sprintf('%02d/%04d', $month, $year), 'url' => route('tasks.calendar', compact('year', 'month'))];
 
-        return view('tasks::pages.calendar', $this->baseData([
-            'breadcrumbs' => $breadcrumbs,
+        return $this->view('tasks::pages.calendar', $this->baseData([
             'calendar' => TaskDone::getTasksOf($year, $month),
             'year' => $year,
             'month' => $month,
@@ -153,7 +161,7 @@ class TasksController extends Controller
         $month = $month ?: now()->month;
         $this->buildActions($year, $month);
 
-        return view('tasks::pages.rewards.index', $this->baseData([
+        return $this->view('tasks::pages.rewards.index', $this->baseData([
             'year' => $year,
             'month' => $month,
             'members' => TaskMember::query()->orderByRaw('COALESCE(sort_order, 9999) asc')->orderBy('id')->get(),
@@ -286,7 +294,7 @@ class TasksController extends Controller
         TaskMember::bootstrapDefaults();
         $this->buildActions();
 
-        return view('tasks::pages.members.index', $this->baseData([
+        return $this->view('tasks::pages.members.index', $this->baseData([
             'members' => TaskMember::query()->orderByRaw('COALESCE(sort_order, 9999) asc')->orderBy('id')->get(),
         ]));
     }
@@ -348,7 +356,7 @@ class TasksController extends Controller
         TaskMember::bootstrapDefaults();
         $this->buildActions();
 
-        return view('tasks::pages.tasks.index', $this->baseData([
+        return $this->view('tasks::pages.tasks.index', $this->baseData([
             'members' => TaskMember::query()->active()->orderBy('sort_order')->orderBy('id')->get(),
             'tasksList' => Task::query()->with('member')->orderByRaw('COALESCE(sort_order, 9999) asc')->orderBy('id')->get(),
         ]));

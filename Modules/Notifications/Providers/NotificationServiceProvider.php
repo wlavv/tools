@@ -16,18 +16,6 @@ class NotificationServiceProvider extends ServiceProvider
             $this->mergeConfigFrom($modulePath . '/Config/config.php', 'notifications');
         }
 
-        if (file_exists($modulePath . '/Config/actions.php')) {
-            $this->mergeConfigFrom($modulePath . '/Config/actions.php', 'notifications.actions');
-        }
-
-        if (file_exists($modulePath . '/Config/breadcrumbs.php')) {
-            $this->mergeConfigFrom($modulePath . '/Config/breadcrumbs.php', 'notifications.breadcrumbs');
-        }
-
-        if (file_exists($modulePath . '/Config/page_titles.php')) {
-            $this->mergeConfigFrom($modulePath . '/Config/page_titles.php', 'notifications.page_titles');
-        }
-
         $this->app->singleton(NotificationManager::class, function ($app) {
             return new NotificationManager($app);
         });

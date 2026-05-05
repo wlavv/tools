@@ -284,19 +284,6 @@
 </style>
 
 <div class="system-tools-page">
-    <div class="system-tools-hero">
-        <div>
-            <h4 class="system-tools-hero-title">Manutenção do Sistema</h4>
-            <div class="system-tools-hero-subtitle">
-                Ferramentas controladas para manutenção, cache, migrations, queues e diagnóstico.
-            </div>
-        </div>
-        <div class="text-muted small">
-            <i class="fa-solid fa-shield-halved me-1"></i>
-            Apenas ações em whitelist podem ser executadas.
-        </div>
-    </div>
-
     @if(empty($tools))
         <div class="alert alert-warning">
             Nenhuma tool encontrada. Verifica se <code>Config/tools.php</code> está carregado em <code>system-tools.tools</code>.
