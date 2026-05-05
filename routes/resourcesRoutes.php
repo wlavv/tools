@@ -18,6 +18,7 @@ use App\Http\Controllers\Areas\{
     settingsController
 };
 
+
 Route::resource('home',             dashboardController::class)->only(['index']);
 Route::resource('dashboard',        dashboardController::class)->only(['index']);
 Route::resource('administration',   adminController::class)->only(['index']);
