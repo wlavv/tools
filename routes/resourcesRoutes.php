@@ -29,7 +29,7 @@ Route::resource('sales',            salesController::class)->only(['index']);
 Route::resource('hr',               hrController::class)->only(['index']);
 
 Route::resource('family',           familyController::class)->only(['index']);
-Route::resource('webCatalogue',     webCatalogueController::class)->only(['index']);
+Route::resource('webcatalogue',     webCatalogueController::class)->only(['index']);
 Route::resource('multiStore',       multiStoreController::class)->only(['index']);
 
 Route::resource('shortcuts',        shortcutsController::class)->only(['index']);

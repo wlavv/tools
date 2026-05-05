@@ -1,0 +1,1 @@
+// WebCatalogue public front behaviours.

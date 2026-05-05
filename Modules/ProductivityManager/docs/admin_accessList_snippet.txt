@@ -1,6 +1,0 @@
-[
-    'url' => route('productivity_manager.index'),
-    'name' => 'Productivity',
-    'image' => null,
-    'icon' => 'fa-solid fa-gauge-high'
-],

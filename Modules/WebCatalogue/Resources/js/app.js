@@ -1,0 +1,1 @@
+// WebCatalogue admin shell.

@@ -1,0 +1,1 @@
+<!doctype html><html><head><meta charset="utf-8"><title>WebCatalogue</title></head><body><h1>Public catalogue placeholder</h1></body></html>

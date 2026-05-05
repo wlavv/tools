@@ -1,0 +1,66 @@
+@extends('layouts.app')
+
+@section('content')
+@include('webcatalogue::Includes.css')
+<div class="webcatalogue-shell">
+@if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
+
+<div class="wc-hero-card">
+    <div>
+        <div class="wc-eyebrow"><i class="fa-solid fa-cubes-stacked"></i> WebCatalogue Foundation</div>
+        <h2>Visual B2B / ecommerce catalogue platform</h2>
+        <p>Stores, catalogues, products, resources, 3D/AR/VR environments, prices and import flows prepared for sustainable growth.</p>
+    </div>
+    <div class="wc-hero-actions">
+        <a class="wc-primary-btn" href="{{ route('webcatalogue.imports.index') }}"><i class="fa-solid fa-file-import"></i> Import Center</a>
+        <a class="wc-secondary-btn" href="{{ route('webcatalogue.products.create') }}"><i class="fa-solid fa-plus"></i> New Product</a>
+    </div>
+</div>
+
+<div class="wc-grid wc-kpi-grid">
+    <div class="wc-kpi-card wc-kpi-card-store">
+        <div class="wc-kpi-content"><h3>Stores</h3><div class="wc-kpi">{{ $storesCount }}</div><div class="wc-muted">Commercial spaces / clients</div></div>
+        <i class="fa-solid fa-store wc-kpi-bg-icon"></i>
+    </div>
+    <div class="wc-kpi-card wc-kpi-card-catalogue">
+        <div class="wc-kpi-content"><h3>Catalogues</h3><div class="wc-kpi">{{ $cataloguesCount }}</div><div class="wc-muted">Visual catalogues</div></div>
+        <i class="fa-solid fa-book-open wc-kpi-bg-icon"></i>
+    </div>
+    <div class="wc-kpi-card wc-kpi-card-product">
+        <div class="wc-kpi-content"><h3>Products</h3><div class="wc-kpi">{{ $productsCount }}</div><div class="wc-muted">Imported or manual products</div></div>
+        <i class="fa-solid fa-boxes-stacked wc-kpi-bg-icon"></i>
+    </div>
+    <div class="wc-kpi-card wc-kpi-card-resource">
+        <div class="wc-kpi-content"><h3>Resources</h3><div class="wc-kpi">{{ $resourcesCount }}</div><div class="wc-muted">Images, 3D, AR, VR, audio, PDFs</div></div>
+        <i class="fa-solid fa-photo-film wc-kpi-bg-icon"></i>
+    </div>
+    <div class="wc-kpi-card wc-kpi-card-product">
+        <div class="wc-kpi-content"><h3>Recognition</h3><div class="wc-kpi">{{ $recognitionSessionsCount ?? 0 }}</div><div class="wc-muted">{{ $recognitionLeadsCount ?? 0 }} new product leads</div></div>
+        <i class="fa-solid fa-camera-viewfinder wc-kpi-bg-icon"></i>
+    </div>
+</div>
+
+<div class="wc-card" style="margin-top:16px">
+    <div class="wc-section-head">
+        <div>
+            <h3>Foundation areas</h3>
+            <p class="wc-muted">Cada área é independente dentro do módulo, para trabalhar por componente sem mexer no resto.</p>
+        </div>
+    </div>
+    <div class="wc-area-grid wc-area-grid-wide">
+        <a class="wc-area-card wc-area-store" href="{{ route('webcatalogue.stores.index') }}"><i class="fa-solid fa-store"></i><strong>Stores</strong><span>Multi-store base</span><small>Lojas, clientes, domínio, branding e identidade comercial.</small></a>
+        <a class="wc-area-card wc-area-catalogue" href="{{ route('webcatalogue.catalogues.index') }}"><i class="fa-solid fa-book-open"></i><strong>Catalogues</strong><span>Visual catalogues</span><small>Catálogos visuais, páginas públicas, publicação e organização comercial.</small></a>
+        <a class="wc-area-card wc-area-product" href="{{ route('webcatalogue.products.index') }}"><i class="fa-solid fa-boxes-stacked"></i><strong>Products</strong><span>Manual or imported</span><small>Produtos criados manualmente ou importados por CSV/API futura.</small></a>
+        <a class="wc-area-card wc-area-resource" href="{{ route('webcatalogue.resources.index') }}"><i class="fa-solid fa-photo-film"></i><strong>Resources</strong><span>Media & assets</span><small>Imagens, vídeos, áudio, documentos, modelos 3D e ficheiros AR/VR.</small></a>
+        <a class="wc-area-card wc-area-import" href="{{ route('webcatalogue.imports.index') }}"><i class="fa-solid fa-file-csv"></i><strong>CSV Import Center</strong><span>Guided imports</span><small>Escolher tipo, descarregar template, preencher, upload e registar batch.</small></a>
+        <a class="wc-area-card wc-area-theme" href="{{ route('webcatalogue.themes.index') }}"><i class="fa-solid fa-palette"></i><strong>Themes</strong><span>Visual identity</span><small>Cores, fontes, lettering, logótipos, botões e estilo visual por loja.</small></a>
+        <a class="wc-area-card wc-area-environment" href="{{ route('webcatalogue.environments.index') }}"><i class="fa-solid fa-vr-cardboard"></i><strong>Environments</strong><span>3D / AR / VR</span><small>Ambientes, fundos, skyboxes, presets de luz, VR e experiência imersiva.</small></a>
+        <a class="wc-area-card wc-area-resource" href="{{ route('webcatalogue.studio.3d_jobs.index') }}"><i class="fa-solid fa-wand-magic-sparkles"></i><strong>3D Studio</strong><span>Image to 3D pipeline</span><small>Jobs para gerar/associar modelos 3D, exports AR e ficheiros VR aos produtos.</small></a>
+        <a class="wc-area-card wc-area-import" href="{{ route('webcatalogue.recognition.index') }}"><i class="fa-solid fa-camera-viewfinder"></i><strong>Visual Recognition</strong><span>Camera discovery</span><small>Captura via câmara, produtos não encontrados, leads de prospeção e procura futura por IA.</small></a>
+        <a class="wc-area-card wc-area-pricing" href="{{ route('webcatalogue.pricing.index') }}"><i class="fa-solid fa-tags"></i><strong>Pricing</strong><span>Price modes</span><small>Preços, moedas, B2B, preço visível, preço escondido ou sob consulta.</small></a>
+        <a class="wc-area-card wc-area-promotion" href="{{ route('webcatalogue.promotions.index') }}"><i class="fa-solid fa-bullhorn"></i><strong>Promotions</strong><span>Campaigns</span><small>Campanhas, badges, destaques comerciais e produtos promocionais.</small></a>
+    </div>
+</div>
+
+</div>
+@endsection

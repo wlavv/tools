@@ -1,0 +1,13 @@
+{
+    "name": "WebCatalogue",
+    "slug": "webcatalogue",
+    "enabled": true,
+    "version": "2.27.2-focus-system",
+    "description": "WebCatalogue MVP polish: BO live preview, theme presets, frontend image fallbacks and UX/design finishing touches.",
+    "provider": "Modules\\WebCatalogue\\Providers\\WebCatalogueServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    }
+}

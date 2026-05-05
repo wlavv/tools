@@ -12,7 +12,7 @@
 @php
     $menuItemsExtra = [
         ['route' => 'family.index', 'label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child'],
-        ['route' => 'webCatalogue.index', 'label' => 'Web Catalogue', 'icon' => 'fa-solid fa-book-open'],
+        ['route' => 'webcatalogue.index', 'label' => 'Web Catalogue', 'icon' => 'fa-solid fa-book-open'],
         ['route' => 'multiStore.index', 'label' => "Store's", 'icon' => 'fa-solid fa-store'],
     ];
 @endphp

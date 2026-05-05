@@ -1,12 +1,13 @@
 <?php
+
 return [
+    'name' => 'Project Manager',
+    'slug' => 'project-manager',
+    'route_prefix' => 'project-manager',
+    'route_name' => 'project_manager.',
+    'middleware' => ['web', 'auth'],
     'layout' => 'layouts.app',
-    'project_statuses' => [
-        'new' => 'New',
-        'in_progress' => 'In Progress',
-        'waiting_info' => 'Waiting Info',
-        'hold' => 'Hold',
-        'done' => 'Done',
-        'cancelled' => 'Cancelled',
+    'tables' => [
+        'projects' => 'wt_projects',
     ],
 ];
