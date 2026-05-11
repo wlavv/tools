@@ -2,14 +2,13 @@
 
 namespace Modules\CatalogManager\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Modules\CatalogManager\Services\ActionPanels\ActionPanelManager;
 use Modules\CatalogManager\Services\IssuePanels\IssuePanelManager;
 use Modules\CatalogManager\Support\CatalogLogger;
 use Modules\CatalogManager\Support\CatalogTable;
 
-class DashboardController extends Controller
+class DashboardController extends BaseCatalogController
 {
     public function index(IssuePanelManager $issuePanelManager, ActionPanelManager $actionPanelManager)
     {

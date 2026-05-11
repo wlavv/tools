@@ -8,7 +8,6 @@
             <p>Gestão operacional de produtos, lojas, categorias, fornecedores, sync e AI pipeline.</p>
         </div>
 
-        @include('catalogmanager::partials.actions')
     </div>
 
     <div class="catalog-lsg-grid">
@@ -18,27 +17,6 @@
         <div class="catalog-lsg-card catalog-lsg-kpi"><span>Lojas</span><strong>{{ $stats['stores'] ?? 0 }}</strong></div>
         <div class="catalog-lsg-card catalog-lsg-kpi"><span>Categorias</span><strong>{{ $stats['categories'] ?? 0 }}</strong></div>
         <div class="catalog-lsg-card catalog-lsg-kpi"><span>Sync Pendente</span><strong>{{ $stats['sync_pending'] ?? 0 }}</strong></div>
-    </div>
-
-    <div class="catalog-lsg-card">
-        <h3>Criar registos</h3>
-        <div class="catalog-lsg-actions">
-            <a href="{{ route('catalog-manager.products.create') }}" class="btn btn-outline-success">
-                <i class="fa-solid fa-plus"></i> Novo Produto
-            </a>
-            <a href="{{ route('catalog-manager.manufacturers.create') }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-copyright"></i> Nova Marca
-            </a>
-            <a href="{{ route('catalog-manager.suppliers.create') }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-truck-field"></i> Novo Fornecedor
-            </a>
-            <a href="{{ route('catalog-manager.stores.create') }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-store"></i> Nova Loja
-            </a>
-            <a href="{{ route('catalog-manager.categories.create') }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-folder-plus"></i> Nova Categoria
-            </a>
-        </div>
     </div>
 
     @include('catalogmanager::components.action-panels.grid', ['panels' => $actionPanels])

@@ -49,6 +49,9 @@
     <script src="{{ asset('admin/js/dropzone.min.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @auth
+        @include('documentmanager::Includes.css')
+    @endauth
 
 </head>
 <body data-theme="dark" data-bs-theme="dark" class="theme-dark">
@@ -121,6 +124,15 @@
         </main>
     </div>
     @include('includes.floating-tools')
+    @auth
+        @include('documentmanager::partials.quick-upload', [
+            'modal' => true,
+            'showButton' => false,
+            'uploadId' => 'globalDocumentUpload',
+            'buttonLabel' => 'Documento',
+        ])
+        @include('documentmanager::Includes.js')
+    @endauth
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('assets/js/lsg-select2.js') }}"></script>
     <script>

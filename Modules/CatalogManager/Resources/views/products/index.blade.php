@@ -7,7 +7,6 @@
             <h1>Produtos</h1>
             <p>Produto master operacional independente das lojas.</p>
         </div>
-        @include('catalogmanager::partials.actions')
     </div>
 
     <div class="catalog-lsg-card">

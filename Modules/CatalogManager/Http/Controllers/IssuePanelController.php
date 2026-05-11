@@ -3,10 +3,9 @@
 namespace Modules\CatalogManager\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Controller;
 use Modules\CatalogManager\Services\IssuePanels\IssuePanelManager;
 
-class IssuePanelController extends Controller
+class IssuePanelController extends BaseCatalogController
 {
     public function index(IssuePanelManager $manager)
     {

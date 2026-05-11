@@ -27,6 +27,7 @@ class StoreDocumentRequest extends FormRequest
             'source_id' => ['nullable', 'integer'],
             'tag_ids' => ['nullable', 'array'],
             'tag_ids.*' => ['integer'],
+            'tag_names' => ['nullable', 'string', 'max:1000'],
             'metadata' => ['nullable', 'array'],
             'metadata.document_value' => ['nullable', 'numeric', 'min:0'],
             'metadata.currency' => ['nullable', 'string', 'max:12'],

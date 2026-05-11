@@ -4,7 +4,6 @@
     @include('catalogmanager::Includes.css')
 
     <div class="catalog-lsg-shell">
-        @include('catalogmanager::partials.breadcrumbs')
         @include('catalogmanager::partials.nav')
 
         @yield('catalogmanager-content')

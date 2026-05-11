@@ -14,6 +14,7 @@ class CreateDocumentData
     public ?string $sourceType;
     public ?int $sourceId;
     public array $tagIds;
+    public array $tagNames;
     public array $metadata;
 
     public function __construct(array $data)
@@ -28,6 +29,7 @@ class CreateDocumentData
         $this->sourceType = $data['source_type'] ?? null;
         $this->sourceId = isset($data['source_id']) ? (int) $data['source_id'] : null;
         $this->tagIds = array_values(array_filter(array_map('intval', (array) ($data['tag_ids'] ?? []))));
+        $this->tagNames = $this->parseTagNames($data['tag_names'] ?? '');
         $this->metadata = is_array($data['metadata'] ?? null) ? $data['metadata'] : [];
     }
 
@@ -47,5 +49,15 @@ class CreateDocumentData
             'created_by' => $userId,
             'updated_by' => $userId,
         ];
+    }
+
+    private function parseTagNames(string $value): array
+    {
+        $tags = preg_split('/[,;\r\n]+/', $value, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return array_values(array_unique(array_filter(array_map(
+            fn ($tag) => trim($tag),
+            $tags
+        ))));
     }
 }

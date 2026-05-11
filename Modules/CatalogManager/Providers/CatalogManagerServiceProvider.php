@@ -3,6 +3,7 @@
 namespace Modules\CatalogManager\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\CatalogManager\Console\RunStorePageSpeedInsightsCommand;
 
 class CatalogManagerServiceProvider extends ServiceProvider
 {
@@ -28,5 +29,11 @@ class CatalogManagerServiceProvider extends ServiceProvider
             __DIR__ . '/../Resources/assets/css' => public_path('modules/catalogmanager/css'),
             __DIR__ . '/../Resources/assets/js' => public_path('modules/catalogmanager/js'),
         ], 'catalogmanager-assets');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                RunStorePageSpeedInsightsCommand::class,
+            ]);
+        }
     }
 }

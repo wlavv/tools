@@ -7,7 +7,6 @@
             <h1>Categorias por Loja</h1>
             <p>Cada loja tem a sua própria árvore de categorias.</p>
         </div>
-        @include('catalogmanager::partials.actions')
     </div>
 
     <div class="catalog-lsg-card">

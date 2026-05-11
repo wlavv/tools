@@ -349,7 +349,7 @@
             #lsgFloatingTools .lsg-floating-tools__item {
                 flex: 1 1 0;
                 width: auto;
-                min-width: 44px;
+                min-width: 0;
                 max-width: none;
                 height: 44px;
                 min-height: 44px;
@@ -383,9 +383,10 @@
                 left: 8px;
                 right: 8px;
                 bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-                padding: 8px 10px;
+                padding: 8px;
                 min-height: 5px;
                 border-radius: 5px;
+                gap: 6px;
             }
 
             #lsgFloatingTools .lsg-floating-tools__item {
@@ -444,6 +445,26 @@
                   aria-hidden="true"></span>
         @endif
     </button>
+    <button type="button"
+            class="lsg-floating-tools__item"
+            data-lsg-open-modal="globalDocumentUploadModal"
+            data-toggle="modal"
+            data-target="#globalDocumentUploadModal"
+            data-bs-toggle="modal"
+            data-bs-target="#globalDocumentUploadModal"
+            title="Adicionar documento"
+            aria-label="Adicionar documento">
+        <i class="fa-solid fa-file-circle-plus"></i>
+    </button>
+    <button type="button"
+            class="lsg-floating-tools__item"
+            data-url="{{ route('shortcuts.index') }}"
+            data-bs-toggle="tooltip"
+            data-bs-placement="left"
+            title="Shortcuts"
+            aria-label="Shortcuts">
+        <i class="fa-solid fa-grip"></i>
+    </button>
     @if(auth()->id() == 1)
         <button type="button"
                 class="lsg-floating-tools__item"
@@ -455,6 +476,17 @@
             <i class="fa-solid fa-gear"></i>
         </button>
     @endif
+
+    <button type="button"
+            class="lsg-floating-tools__item"
+            data-sidebar-toggle
+            data-bs-toggle="tooltip"
+            data-bs-placement="left"
+            title="Expandir / recolher menu"
+            aria-label="Expandir / recolher menu">
+        <i class="fa-solid fa-bars-staggered"></i>
+    </button>
+
     <button type="button"
             class="lsg-floating-tools__item"
             data-theme-toggle
@@ -464,25 +496,6 @@
             aria-label="Alternar tema">
         <i class="fa-solid fa-circle-half-stroke"></i>
     </button>
-
-    <button type="button"
-            class="lsg-floating-tools__item"
-            data-url="{{ route('shortcuts.index') }}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="left"
-            title="Shortcuts"
-            aria-label="Shortcuts">
-        <i class="fa-solid fa-grip"></i>
-    </button>
-
-<button
-    type="button"
-    class="lsg-sidebar-toggle"
-    data-sidebar-toggle
-    title="Expandir / recolher menu"
->
-    <i class="fa-solid fa-bars-staggered"></i>
-</button>    
 
     <button type="button"
             class="lsg-floating-tools__item"
@@ -601,11 +614,46 @@
                     return;
                 }
 
+                const modalId = item.getAttribute('data-lsg-open-modal');
+                if (modalId) {
+                    openFloatingModal(modalId);
+                    return;
+                }
+
                 const url = item.getAttribute('data-url');
                 if (url) {
                     window.location.href = url;
                 }
             });
+        }
+
+        function openFloatingModal(modalId) {
+            const modal = document.getElementById(modalId);
+
+            if (!modal) {
+                return;
+            }
+
+            if (window.bootstrap && bootstrap.Modal && typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+                bootstrap.Modal.getOrCreateInstance(modal, { backdrop: false }).show();
+                return;
+            }
+
+            if (window.bootstrap && typeof bootstrap.Modal === 'function') {
+                new bootstrap.Modal(modal, { backdrop: false }).show();
+                return;
+            }
+
+            if (window.jQuery && typeof jQuery.fn.modal === 'function') {
+                jQuery(modal).modal({ backdrop: false, show: true });
+                return;
+            }
+
+            modal.style.display = 'block';
+            modal.removeAttribute('aria-hidden');
+            modal.setAttribute('aria-modal', 'true');
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
         }
 
         window.addEventListener('lsg:update-floating', function (e) {
@@ -645,45 +693,4 @@
         }
 
     </script>
-
-    <style>
-
-        .lsg-sidebar-toggle{
-            width:42px;
-            height:42px;
-            border:none;
-            border-radius:5px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
-
-            background:linear-gradient(
-                180deg,
-                rgba(255,255,255,.95) 0%,
-                rgba(240,244,249,.98) 100%
-            );
-
-            color:#1e293b;
-
-            box-shadow:
-                0 2px 6px rgba(15,23,42,.08),
-                inset 0 1px 0 rgba(255,255,255,.9);
-
-            transition:all .2s ease;
-        }
-
-        .lsg-sidebar-toggle:hover{
-            transform:translateY(-1px);
-
-            box-shadow:
-                0 4px 12px rgba(15,23,42,.12),
-                inset 0 1px 0 rgba(255,255,255,1);
-        }
-
-        .lsg-sidebar-toggle i{
-            font-size:14px;
-        }
-
-    </style>
 </div>

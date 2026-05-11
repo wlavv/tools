@@ -16,9 +16,19 @@
                     <tr>
                         <td>{{ $document->title }}</td>
                         <td>{{ $document->document_type ?: '-' }}</td>
-                        <td><span class="dms-badge">{{ $document->workflow_state }}</span></td>
+                        <td>
+                            <span class="dms-badge">{{ $document->status ?: '-' }}</span>
+                            <span class="dms-badge dms-badge--soft">{{ $document->workflow_state ?: '-' }}</span>
+                        </td>
                         <td>{{ $document->created_at }}</td>
-                        <td><a href="{{ route('document-manager.documents.show', $document->id) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-eye"></i></a></td>
+                        <td class="text-right">
+                            <a href="{{ route('document-manager.documents.show', $document->id) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-eye"></i></a>
+                            <form method="POST" action="{{ route('document-manager.documents.destroy', $document->id) }}" class="d-inline dms-delete-form" data-confirm-title="Remover documento?" data-confirm-text="Esta acao remove o documento dos resultados.">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                            </form>
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="5">Sem resultados.</td></tr>

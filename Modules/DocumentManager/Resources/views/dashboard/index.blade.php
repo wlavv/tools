@@ -39,42 +39,44 @@
         @endforeach
     </div>
 
-    @include('documentmanager::partials.quick-upload')
-
-    <div class="dms-card">
-        <div class="dms-card__head">
-            <div>
-                <span class="dms-eyebrow">Recent activity</span>
-                <h3>Ultimos 10 documentos</h3>
+    <div class="dms-dashboard-main">
+        <div class="dms-card">
+            <div class="dms-card__head">
+                <div>
+                    <span class="dms-eyebrow">Recent activity</span>
+                    <h3>Ultimos 10 documentos uploaded</h3>
+                </div>
+                <a href="{{ route('document-manager.documents.index') }}" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-folder-open"></i> Explorer
+                </a>
             </div>
-            <a href="{{ route('document-manager.documents.index') }}" class="btn btn-outline-primary">
-                <i class="fa-solid fa-folder-open"></i> Explorer
-            </a>
+
+            <table class="dms-table document-lsg-datatable">
+                <thead>
+                    <tr>
+                        <th>Documento</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Workflow</th>
+                        <th>Criado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($latestDocuments as $document)
+                        <tr>
+                            <td><a href="{{ route('document-manager.documents.show', $document->id) }}">{{ $document->title }}</a></td>
+                            <td>{{ $document->document_type ?: '-' }}</td>
+                            <td><span class="dms-badge">{{ $document->status ?: '-' }}</span></td>
+                            <td><span class="dms-badge dms-badge--soft">{{ $document->workflow_state ?: '-' }}</span></td>
+                            <td>{{ $document->created_at }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5">Sem documentos ainda.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        <table class="dms-table document-lsg-datatable">
-            <thead>
-                <tr>
-                    <th>Documento</th>
-                    <th>Tipo</th>
-                    <th>Estado</th>
-                    <th>Workflow</th>
-                    <th>Criado</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($latestDocuments as $document)
-                    <tr>
-                        <td><a href="{{ route('document-manager.documents.show', $document->id) }}">{{ $document->title }}</a></td>
-                        <td>{{ $document->document_type ?: '-' }}</td>
-                        <td><span class="dms-badge">{{ $document->status }}</span></td>
-                        <td><span class="dms-badge dms-badge--soft">{{ $document->workflow_state }}</span></td>
-                        <td>{{ $document->created_at }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5">Sem documentos ainda.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        @include('documentmanager::partials.quick-upload', ['open' => true])
     </div>
 @endsection

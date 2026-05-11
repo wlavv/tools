@@ -5,6 +5,10 @@ return [
     'slug' => 'catalog-manager',
     'version' => '5.6.2',
     'route_prefix' => 'catalog-manager',
+    'pagespeed' => [
+        'api_key' => env('GOOGLE_PAGESPEED_INSIGHTS_KEY'),
+        'timeout' => (int) env('CATALOG_MANAGER_PAGESPEED_TIMEOUT', 25),
+    ],
     'prestashop_connection' => 'mysql2',
     'default_locale' => 'pt',
     'default_currency' => 'EUR',

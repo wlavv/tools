@@ -2,12 +2,11 @@
 
 namespace Modules\CatalogManager\Http\Controllers;
 
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Route;
 use Modules\CatalogManager\Support\CatalogLogger;
 use Modules\CatalogManager\Support\CatalogTable;
 
-class DiagnosticsController extends Controller
+class DiagnosticsController extends BaseCatalogController
 {
     public function index()
     {

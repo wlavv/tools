@@ -5,4 +5,6 @@
 
 @section('content')
 
+<div class="page-content-stack">
+</div>
 @endsection

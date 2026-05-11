@@ -106,6 +106,7 @@
                 <option value="{{ $tag->id }}" @selected(in_array((string) $tag->id, $selectedTags, true))>{{ $tag->name }}</option>
             @endforeach
         </select>
+        <input type="text" name="tag_names" value="{{ old('tag_names') }}" placeholder="Escrever novas tags separadas por virgula">
     </div>
 
     <div class="dms-form-row">

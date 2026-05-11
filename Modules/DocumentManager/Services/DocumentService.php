@@ -61,8 +61,12 @@ class DocumentService
                 ]);
             }
 
-            if (!empty($data->tagIds) && DocumentTable::exists('document_core_tags') && DocumentTable::exists('document_core_document_tags')) {
-                $document->tags()->sync($data->tagIds);
+            if (DocumentTable::exists('document_core_tags') && DocumentTable::exists('document_core_document_tags')) {
+                $tagIds = $this->resolveTagIds($data->tagIds, $data->tagNames, $userId);
+
+                if (!empty($tagIds)) {
+                    $document->tags()->sync($tagIds);
+                }
             }
 
             $this->syncMetadataRows($document, $document->metadata ?? []);
@@ -110,7 +114,11 @@ class DocumentService
         $document->save();
 
         if (DocumentTable::exists('document_core_tags') && DocumentTable::exists('document_core_document_tags')) {
-            $document->tags()->sync(array_values(array_filter(array_map('intval', (array) ($data['tag_ids'] ?? [])))));
+            $document->tags()->sync($this->resolveTagIds(
+                array_values(array_filter(array_map('intval', (array) ($data['tag_ids'] ?? [])))),
+                $this->parseTagNames((string) ($data['tag_names'] ?? '')),
+                $userId
+            ));
         }
 
         $this->syncMetadataRows($document, $document->metadata ?? []);
@@ -118,6 +126,49 @@ class DocumentService
         $this->audit->activity($document->id, 'document.updated', [], $userId);
 
         return $document;
+    }
+
+    private function resolveTagIds(array $tagIds, array $tagNames, ?int $userId = null): array
+    {
+        if (!DocumentTable::exists('document_core_tags')) {
+            return $tagIds;
+        }
+
+        foreach ($tagNames as $name) {
+            $slug = Str::slug($name) ?: Str::random(10);
+            $existing = DB::table('document_core_tags')
+                ->where(function ($query) use ($name, $slug) {
+                    $query->where('name', $name)->orWhere('slug', $slug);
+                })
+                ->first();
+
+            if ($existing) {
+                $tagIds[] = (int) $existing->id;
+                continue;
+            }
+
+            $tagIds[] = (int) DB::table('document_core_tags')->insertGetId([
+                'uuid' => (string) Str::uuid(),
+                'name' => $name,
+                'slug' => $slug,
+                'type' => 'manual',
+                'color' => '#60a5fa',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $tagIds))));
+    }
+
+    private function parseTagNames(string $value): array
+    {
+        $tags = preg_split('/[,;\r\n]+/', $value, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return array_values(array_unique(array_filter(array_map(
+            fn ($tag) => trim($tag),
+            $tags
+        ))));
     }
 
     private function normalizeMetadata(array $metadata): array

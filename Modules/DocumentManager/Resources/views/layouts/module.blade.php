@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    @include('documentmanager::Includes.css')
-
     <div class="dms-shell">
         @include('documentmanager::partials.nav')
 
@@ -16,6 +14,4 @@
 
         @yield('documentmanager-content')
     </div>
-
-    @include('documentmanager::Includes.js')
 @endsection

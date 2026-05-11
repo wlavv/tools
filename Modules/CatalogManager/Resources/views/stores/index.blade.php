@@ -6,7 +6,6 @@
             <span class="catalog-lsg-eyebrow">Catalog Manager</span>
             <h1>Lojas</h1>
         </div>
-        @include('catalogmanager::partials.actions')
     </div>
 
     <div class="catalog-lsg-card">

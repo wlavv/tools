@@ -47,7 +47,8 @@
                         <td>{{ $document->workspace_name ?: '-' }}</td>
                         <td>{{ $document->category_name ?: '-' }}</td>
                         <td>
-                            <span class="dms-badge">{{ $document->workflow_state }}</span>
+                            <span class="dms-badge">{{ $document->status ?: '-' }}</span>
+                            <span class="dms-badge dms-badge--soft">{{ $document->workflow_state ?: '-' }}</span>
                         </td>
                         <td>
                             <div class="dms-intel">
@@ -60,6 +61,11 @@
                         <td class="text-right">
                             <a href="{{ route('document-manager.documents.show', $document->id) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-eye"></i></a>
                             <a href="{{ route('document-manager.documents.edit', $document->id) }}" class="btn btn-outline-warning btn-sm"><i class="fa-solid fa-pencil"></i></a>
+                            <form method="POST" action="{{ route('document-manager.documents.destroy', $document->id) }}" class="d-inline dms-delete-form" data-confirm-title="Remover documento?" data-confirm-text="Esta acao remove o documento do explorer.">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                 @empty

@@ -1,58 +1,45 @@
-<details class="dms-card dms-collapsible-upload">
-    <summary>
-        <span>
-            <span class="dms-eyebrow">Entrada rapida</span>
-            <strong>Upload documental</strong>
-        </span>
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-    </summary>
+@php
+    $uploadId = $uploadId ?? 'dmsQuickUpload';
+    $asModal = !empty($modal);
+    $showButton = !array_key_exists('showButton', get_defined_vars()) || $showButton;
+    $buttonLabel = $buttonLabel ?? 'Documento';
+    $contextWorkspace = $workspace ?? $defaultWorkspace ?? null;
+    $contextFolder = $folder ?? $defaultFolder ?? null;
 
-    <form method="POST" action="{{ route('document-manager.documents.store') }}" enctype="multipart/form-data" class="dms-quick-upload">
-        @csrf
+    if (!isset($workspaces) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
+        $workspaces = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_workspaces', fn ($query) => $query->where('is_active', true)->orderBy('name'));
+    }
 
-        <div class="dms-quick-upload__grid">
-            <div class="dms-field">
-                <label>Titulo</label>
-                <input type="text" name="title" placeholder="Ex: Contrato fornecedor 2026" required>
-            </div>
+    if (!isset($categories) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
+        $categories = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_categories', fn ($query) => $query->orderBy('name'));
+    }
 
-            <div class="dms-field">
-                <label>Workspace</label>
-                <select name="workspace_id">
-                    <option value="">Sem workspace</option>
-                    @foreach(($workspaces ?? collect()) as $workspace)
-                        <option value="{{ $workspace->id }}">{{ $workspace->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+    if (!isset($folders) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
+        $folders = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_folders', fn ($query) => $query->orderBy('path')->orderBy('name'));
+    }
 
-            <div class="dms-field">
-                <label>Categoria</label>
-                <select name="category_id">
-                    <option value="">Sem categoria</option>
-                    @foreach(($categories ?? collect()) as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+    $selectedWorkspace = old('workspace_id', $workspaceId ?? null);
+    if (!$selectedWorkspace && $contextWorkspace) {
+        $selectedWorkspace = collect($workspaces ?? [])->firstWhere('slug', $contextWorkspace)?->id
+            ?? collect($workspaces ?? [])->firstWhere('name', $contextWorkspace)?->id;
+    }
 
-            <div class="dms-field">
-                <label>Tipo</label>
-                <input type="text" name="document_type" placeholder="invoice, contract, manual">
-            </div>
-        </div>
+    $selectedFolder = old('folder_id', $folderId ?? null);
+    if (!$selectedFolder && $contextFolder) {
+        $selectedFolder = collect($folders ?? [])->firstWhere('slug', $contextFolder)?->id
+            ?? collect($folders ?? [])->firstWhere('path', $contextFolder)?->id
+            ?? collect($folders ?? [])->firstWhere('name', $contextFolder)?->id;
+    }
+@endphp
 
-        <label class="dms-upload-zone dms-upload-zone--compact" for="dmsQuickFileInput">
-            <i class="fa-solid fa-file-arrow-up"></i>
-            <strong>Selecionar ficheiro</strong>
-            <span>Tambem podes arrastar o ficheiro para aqui.</span>
-            <input id="dmsQuickFileInput" type="file" name="file">
-        </label>
+@if($asModal && $showButton)
+    <button type="button" class="btn btn-outline-primary dms-entry-button" data-bs-toggle="modal" data-bs-target="#{{ $uploadId }}Modal">
+        <i class="fa-solid fa-file-circle-plus"></i> {{ $buttonLabel }}
+    </button>
+@endif
 
-        <div class="dms-actions dms-actions--right">
-            <button type="submit" class="btn btn-outline-success">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Enviar
-            </button>
-        </div>
-    </form>
-</details>
+@if($asModal)
+    @include('documentmanager::partials.quick-upload-modal', get_defined_vars())
+@else
+    @include('documentmanager::partials.quick-upload-dashboard', get_defined_vars())
+@endif
