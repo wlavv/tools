@@ -24,7 +24,7 @@
                 </div>
             </div>
 
-            <table class="pm-table">
+            <table class="pm-table lsg-datatable">
                 <thead>
                     <tr>
                         @foreach($visibleFields as $field)
@@ -61,9 +61,9 @@
                     @endforelse
                 </tbody>
             </table>
-
-            <div class="mt-3">{{ $records->links() }}</div>
         </div>
     </div>
 </div>
 @endsection
+
+

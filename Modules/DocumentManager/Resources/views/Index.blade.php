@@ -1,0 +1,1 @@
+@extends('documentmanager::dashboard.index')

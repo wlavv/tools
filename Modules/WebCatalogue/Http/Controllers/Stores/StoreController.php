@@ -19,7 +19,7 @@ class StoreController extends Controller
 
     public function index(Request $request): View
     {
-        $items = Store::query()->with('logoResource')->withCount(['catalogues','products','resources','themes','environments'])->latest('id')->paginate(20);
+        $items = Store::query()->with('logoResource')->withCount(['catalogues','products','resources','themes','environments'])->latest('id')->get();
         return $this->view('webcatalogue::stores.index', compact('items'));
     }
 

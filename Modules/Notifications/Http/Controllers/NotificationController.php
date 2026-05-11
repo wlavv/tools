@@ -104,8 +104,7 @@ class NotificationController extends BaseNotificationController
                 });
             })
             ->latest('id')
-            ->paginate(20)
-            ->withQueryString();
+            ->get();
 
         return View::make('notifications::index')->with($this->viewData([
             'notifications' => $notifications,

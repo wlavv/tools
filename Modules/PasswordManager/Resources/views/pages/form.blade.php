@@ -3,10 +3,10 @@
 @section('content')
     @include('password-manager::Includes.css')
 
-    <div class="password-manager-shell">
+    <div class="password-manager-shell password-manager-shell--form">
 
         @if($errors->any())
-            <div class="password-manager-alert password-manager-alert--warning">
+            <div class="password-manager-alert password-manager-alert--warning password-manager-alert--narrow">
                 <strong>There are validation errors in the form.</strong>
             </div>
         @endif

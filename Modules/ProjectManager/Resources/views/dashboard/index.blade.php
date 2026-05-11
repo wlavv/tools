@@ -91,7 +91,7 @@
     .pm-project-filter small{display:block;color:var(--pm-muted);font-size:11px;margin-top:2px;}
     .pm-status-dot{width:9px;height:9px;border-radius:99px;background:#d1d5db;flex:0 0 9px;}
     .pm-status-dot--execution{background:#22c55e}.pm-status-dot--hold{background:#f59e0b}.pm-status-dot--pending{background:#94a3b8}.pm-status-dot--done{background:#64748b}
-    .pm-entry-top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+    .pm-entry-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;}
     .pm-mini-stat{border:1px solid var(--pm-border);border-radius:10px;padding:12px;background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,247,242,.9));}
     .pm-mini-stat span{display:block;color:var(--pm-muted);font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.08em}.pm-mini-stat strong{font-size:22px;line-height:1.1;}
     .pm-selected-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
@@ -109,34 +109,12 @@
             <div class="pm-alert">{{ session('success') }}</div>
         @endif
 
-        <div class="pm-wc-hero">
-            <div class="pm-wc-hero-main">
-                <div class="pm-wc-kicker">Project Control Center</div>
-                <h2 class="pm-wc-title">Execução, prioridades e roadmap num só cockpit.</h2>
-                <p class="pm-wc-lead">Seleciona um projeto à esquerda para focar o Eisenhower e o Gantt, ou mantém a visão global dos projetos em aberto no milestone atual.</p>
-                <div class="pm-wc-hero-actions">
-                    <a class="pm-btn" href="{{ route('project_manager.projects.create') }}"><i class="fa-solid fa-plus"></i> Novo projeto</a>
-                    <a class="pm-btn" href="{{ route('project_manager.productivity') }}"><i class="fa-solid fa-bolt"></i> Productivity global</a>
-                </div>
-            </div>
-            <div class="pm-wc-side-card">
-                <div class="pm-card-title"><i class="fa-solid fa-chart-simple"></i> Indicadores rápidos</div>
-                <div class="pm-card-subtitle">Resumo visual do pipeline atual.</div>
-                <div class="pm-wc-metric-grid">
-                    <div class="pm-wc-metric"><span>Projetos</span><strong>{{ $projects->count() ?? 0 }}</strong></div>
-                    <div class="pm-wc-metric"><span>Tasks visíveis</span><strong>{{ $matrixTasks->count() ?? 0 }}</strong></div>
-                    <div class="pm-wc-metric"><span>Milestones</span><strong>{{ $milestoneCards->count() ?? 0 }}</strong></div>
-                    <div class="pm-wc-metric"><span>Foco</span><strong>{{ $selectedProjectId ? '1' : 'Global' }}</strong></div>
-                </div>
-            </div>
-        </div>
-
         <div class="pm-entry-layout">
             <aside class="pm-card pm-project-sidebar">
                 <div class="pm-section-bar pm-project-sidebar-head">
                     <div>
                         <div class="pm-card-title"><i class="fa-solid fa-folder-tree"></i> Projetos</div>
-                        <div class="pm-card-subtitle mb-0">Seleciona um projeto para filtrar execução.</div>
+                        <div class="pm-card-subtitle mb-0">Seleciona para filtrar execução.</div>
                     </div>
                     <a class="pm-icon-action" href="{{ route('project_manager.projects.create') }}" title="Novo projeto"><i class="fa-solid fa-plus"></i></a>
                 </div>
@@ -188,24 +166,15 @@
                     </details>
                 @endforeach
 
-            </aside>
-
-            <main class="pm-main-zone">
                 <div class="pm-entry-top">
                     <div class="pm-mini-stat"><span>Projetos em execução</span><strong data-stat-execution-projects>{{ $stats['projects_execution'] ?? 0 }}</strong></div>
                     <div class="pm-mini-stat"><span>Milestones ativos</span><strong data-stat-active-milestones>{{ $stats['active_milestones'] ?? 0 }}</strong></div>
                     <div class="pm-mini-stat"><span>Tasks priorizáveis</span><strong data-total-matrix>{{ $stats['matrix_tasks'] ?? 0 }}</strong></div>
                     <div class="pm-mini-stat"><span>Bloqueadas</span><strong>{{ $stats['blocked'] ?? 0 }}</strong></div>
                 </div>
+            </aside>
 
-                <div class="pm-selected-bar">
-                    <div>
-                        <div class="pm-card-title mb-0"><i class="fa-solid fa-gauge-high"></i> Centro operacional</div>
-                        <div class="pm-card-subtitle mb-0" data-selected-label>Todos os projetos em aberto · milestone atual</div>
-                    </div>
-                    <a class="pm-btn pm-btn--ghost" data-selected-open href="#" style="display:none"><i class="fa-solid fa-arrow-right"></i> Entrar no projeto</a>
-                </div>
-
+            <main class="pm-main-zone">
                 <div class="pm-card mb-3">
                     <div class="pm-section-bar">
                         <div>

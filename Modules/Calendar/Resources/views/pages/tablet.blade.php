@@ -19,7 +19,7 @@
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 lsg-datatable">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -48,3 +48,4 @@
     </div>
 </div>
 @endsection
+

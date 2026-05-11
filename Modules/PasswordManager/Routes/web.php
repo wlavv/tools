@@ -9,6 +9,7 @@ Route::middleware(config('password-manager.middleware', ['web', 'auth']))->prefi
         Route::post('/', [PasswordManagerController::class, 'store'])->name('store');
         Route::get('/{passwordEntry}', [PasswordManagerController::class, 'show'])->name('show');
         Route::get('/{passwordEntry}/edit', [PasswordManagerController::class, 'edit'])->name('edit');
+        Route::post('/{passwordEntry}/copy', [PasswordManagerController::class, 'copy'])->name('copy');
         Route::put('/{passwordEntry}', [PasswordManagerController::class, 'update'])->name('update');
         Route::delete('/{passwordEntry}', [PasswordManagerController::class, 'destroy'])->name('destroy');
     });

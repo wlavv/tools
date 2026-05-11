@@ -1,6 +1,6 @@
 <div class="ai-card" style="margin-top: 15px;">
     <div class="table-responsive">
-        <table class="table align-middle text-center" style="text-align: center !important">
+        <table class="table align-middle text-center lsg-datatable" style="text-align: center !important">
             <thead>
                 <tr>
                     <th>Título</th>
@@ -14,7 +14,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($runs as $run)
+                @foreach($runs as $run)
                     <tr>
                         <td>{{ $run->title ?: 'Sem título' }}</td>
                         <td>{{ $run->template_key }}</td>
@@ -43,14 +43,8 @@
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr><td colspan="9" class="text-center py-4">Sem pedidos registados.</td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
-    </div>
-
-    <div class="mt-3">
-        {{ $runs->links() }}
     </div>
 </div>

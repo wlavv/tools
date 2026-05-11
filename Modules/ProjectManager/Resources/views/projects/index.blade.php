@@ -27,7 +27,7 @@
         </div>
 
         <div class="pm-card">
-            <table class="pm-table">
+            <table class="pm-table lsg-datatable">
                 <thead><tr><th>Projeto</th><th>Status</th><th>Prioridade</th><th class="text-end">Operação</th></tr></thead>
                 <tbody>
                 @forelse($projects as $project)
@@ -50,8 +50,9 @@
                 @endforelse
                 </tbody>
             </table>
-            <div class="mt-3">{{ $projects->links() }}</div>
         </div>
     </div>
 </div>
 @endsection
+
+

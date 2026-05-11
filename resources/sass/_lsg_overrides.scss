@@ -1,0 +1,206 @@
+/* =========================================================
+   LSG FINAL OVERRIDES
+   ========================================================= */
+
+:root {
+    --lsg-input-bg-dark: rgba(15, 23, 42, .78);
+    --lsg-input-bg-light: rgba(255,255,255,.96);
+
+    --lsg-input-text-dark: #f8fafc;
+    --lsg-input-text-light: #18212b;
+
+    --lsg-input-placeholder-dark: #94a3b8;
+    --lsg-input-placeholder-light: #64748b;
+
+    --lsg-alert-success-bg-dark: rgba(34,197,94,.15);
+    --lsg-alert-success-text-dark: #bbf7d0;
+
+    --lsg-alert-danger-bg-dark: rgba(239,68,68,.15);
+    --lsg-alert-danger-text-dark: #fecaca;
+
+    --lsg-alert-warning-bg-dark: rgba(245,158,11,.15);
+    --lsg-alert-warning-text-dark: #fde68a;
+
+    --lsg-alert-info-bg-dark: rgba(59,130,246,.15);
+    --lsg-alert-info-text-dark: #bfdbfe;
+
+    --lsg-alert-success-bg-light: #dcfce7;
+    --lsg-alert-success-text-light: #14532d;
+
+    --lsg-alert-danger-bg-light: #fee2e2;
+    --lsg-alert-danger-text-light: #7f1d1d;
+
+    --lsg-alert-warning-bg-light: #fef3c7;
+    --lsg-alert-warning-text-light: #78350f;
+
+    --lsg-alert-info-bg-light: #dbeafe;
+    --lsg-alert-info-text-light: #1e3a8a;
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+.form-control,
+.form-select,
+textarea,
+input,
+select {
+    color: var(--text-primary) !important;
+}
+
+body:not(.theme-light):not([data-theme="light"])
+.form-control,
+body:not(.theme-light):not([data-theme="light"])
+.form-select,
+body:not(.theme-light):not([data-theme="light"])
+textarea,
+body:not(.theme-light):not([data-theme="light"])
+input,
+body:not(.theme-light):not([data-theme="light"])
+select {
+    background: var(--lsg-input-bg-dark) !important;
+    color: var(--lsg-input-text-dark) !important;
+    border-color: rgba(255,255,255,.08) !important;
+}
+
+body.theme-light .form-control,
+body.theme-light .form-select,
+body.theme-light textarea,
+body.theme-light input,
+body.theme-light select,
+body[data-theme="light"] .form-control,
+body[data-theme="light"] .form-select,
+body[data-theme="light"] textarea,
+body[data-theme="light"] input,
+body[data-theme="light"] select {
+    background: var(--lsg-input-bg-light) !important;
+    color: var(--lsg-input-text-light) !important;
+    border-color: rgba(21,32,51,.12) !important;
+}
+
+/* =========================================================
+   PLACEHOLDERS
+   ========================================================= */
+
+.form-control::placeholder,
+textarea::placeholder,
+input::placeholder {
+    opacity: 1 !important;
+}
+
+body:not(.theme-light):not([data-theme="light"])
+.form-control::placeholder,
+body:not(.theme-light):not([data-theme="light"])
+textarea::placeholder,
+body:not(.theme-light):not([data-theme="light"])
+input::placeholder {
+    color: var(--lsg-input-placeholder-dark) !important;
+}
+
+body.theme-light .form-control::placeholder,
+body.theme-light textarea::placeholder,
+body.theme-light input::placeholder,
+body[data-theme="light"] .form-control::placeholder,
+body[data-theme="light"] textarea::placeholder,
+body[data-theme="light"] input::placeholder {
+    color: var(--lsg-input-placeholder-light) !important;
+}
+
+/* =========================================================
+   LABELS
+   ========================================================= */
+
+label,
+.form-label {
+    color: var(--text-primary) !important;
+}
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.alert {
+    border-radius: 5px;
+    border-width: 1px;
+    font-weight: 500;
+}
+
+body:not(.theme-light):not([data-theme="light"]) .alert-success {
+    background: var(--lsg-alert-success-bg-dark) !important;
+    color: var(--lsg-alert-success-text-dark) !important;
+    border-color: rgba(34,197,94,.35) !important;
+}
+
+body:not(.theme-light):not([data-theme="light"]) .alert-danger {
+    background: var(--lsg-alert-danger-bg-dark) !important;
+    color: var(--lsg-alert-danger-text-dark) !important;
+    border-color: rgba(239,68,68,.35) !important;
+}
+
+body:not(.theme-light):not([data-theme="light"]) .alert-warning {
+    background: var(--lsg-alert-warning-bg-dark) !important;
+    color: var(--lsg-alert-warning-text-dark) !important;
+    border-color: rgba(245,158,11,.35) !important;
+}
+
+body:not(.theme-light):not([data-theme="light"]) .alert-info {
+    background: var(--lsg-alert-info-bg-dark) !important;
+    color: var(--lsg-alert-info-text-dark) !important;
+    border-color: rgba(59,130,246,.35) !important;
+}
+
+body.theme-light .alert-success,
+body[data-theme="light"] .alert-success {
+    background: var(--lsg-alert-success-bg-light) !important;
+    color: var(--lsg-alert-success-text-light) !important;
+}
+
+body.theme-light .alert-danger,
+body[data-theme="light"] .alert-danger {
+    background: var(--lsg-alert-danger-bg-light) !important;
+    color: var(--lsg-alert-danger-text-light) !important;
+}
+
+body.theme-light .alert-warning,
+body[data-theme="light"] .alert-warning {
+    background: var(--lsg-alert-warning-bg-light) !important;
+    color: var(--lsg-alert-warning-text-light) !important;
+}
+
+body.theme-light .alert-info,
+body[data-theme="light"] .alert-info {
+    background: var(--lsg-alert-info-bg-light) !important;
+    color: var(--lsg-alert-info-text-light) !important;
+}
+
+/* =========================================================
+   SELECT2 LSG GOLD THEME
+========================================================= */
+
+:root {
+    --lsg-select-border-focus: #d4a017;
+    --lsg-select-focus-shadow: rgba(212,160,23,.18);
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--multiple {
+
+    border-color: var(--lsg-select-border-focus) !important;
+
+    box-shadow: 0 0 0 .18rem var(--lsg-select-focus-shadow) !important;
+}
+
+/* highlighted option */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: #d4a017 !important;
+    color: #111827 !important;
+}
+
+/* selected item */
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background: rgba(212,160,23,.16) !important;
+    color: #f8fafc !important;
+}

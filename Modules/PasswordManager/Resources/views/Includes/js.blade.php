@@ -51,6 +51,45 @@ document.addEventListener('click', async function (event) {
         return;
     }
 
+    const inlineCopyBtn = event.target.closest('[data-copy-value], [data-copy-remote]');
+    if (inlineCopyBtn) {
+        event.preventDefault();
+
+        let value = inlineCopyBtn.getAttribute('data-copy-value') || '';
+        const remoteUrl = inlineCopyBtn.getAttribute('data-copy-remote');
+        const field = inlineCopyBtn.getAttribute('data-copy-field') || '';
+
+        try {
+            if (remoteUrl) {
+                const token = inlineCopyBtn.getAttribute('data-csrf') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const response = await fetch(remoteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                    },
+                    body: JSON.stringify({ field }),
+                });
+
+                const payload = await response.json();
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'Remote copy failed');
+                }
+
+                value = payload.value || '';
+            }
+
+            await copyTextToClipboard(value);
+            setCopiedState(inlineCopyBtn);
+        } catch (error) {
+            console.error('Copy failed', error);
+        }
+
+        return;
+    }
+
     const copyBtn = event.target.closest('[data-copy-target]');
     if (!copyBtn) {
         return;
@@ -65,60 +104,66 @@ document.addEventListener('click', async function (event) {
         return;
     }
 
-    const value = field.value || '';
-    const icon = copyBtn.querySelector('i');
-    const originalTitle = copyBtn.getAttribute('data-copy-title') || 'Copy';
-    const copiedTitle = copyBtn.getAttribute('data-copied-title') || 'Copied';
-
     try {
-        if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(value);
-        } else {
-            const temp = document.createElement(field.tagName === 'TEXTAREA' ? 'textarea' : 'input');
-
-            if (temp.tagName === 'INPUT') {
-                temp.type = 'text';
-            }
-
-            temp.value = value;
-            temp.setAttribute('readonly', '');
-            temp.style.position = 'fixed';
-            temp.style.left = '-9999px';
-            temp.style.top = '0';
-            temp.style.opacity = '0';
-
-            document.body.appendChild(temp);
-            temp.focus();
-            temp.select();
-            temp.setSelectionRange(0, value.length);
-
-            const copied = document.execCommand('copy');
-            document.body.removeChild(temp);
-
-            if (!copied) {
-                throw new Error('Fallback copy failed');
-            }
-        }
-
-        if (icon) {
-            icon.classList.remove('fa-copy');
-            icon.classList.add('fa-check');
-
-            setTimeout(() => {
-                icon.classList.remove('fa-check');
-                icon.classList.add('fa-copy');
-            }, 1200);
-        }
-
-        copyBtn.setAttribute('title', copiedTitle);
-        copyBtn.setAttribute('aria-label', copiedTitle);
-
-        setTimeout(() => {
-            copyBtn.setAttribute('title', originalTitle);
-            copyBtn.setAttribute('aria-label', originalTitle);
-        }, 1200);
+        await copyTextToClipboard(field.value || '');
+        setCopiedState(copyBtn);
     } catch (error) {
         console.error('Copy failed', error);
     }
 });
+
+async function copyTextToClipboard(value) {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+
+    const temp = document.createElement('textarea');
+    temp.value = value;
+    temp.setAttribute('readonly', '');
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.style.top = '0';
+    temp.style.opacity = '0';
+
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    temp.setSelectionRange(0, value.length);
+
+    const copied = document.execCommand('copy');
+    document.body.removeChild(temp);
+
+    if (!copied) {
+        throw new Error('Fallback copy failed');
+    }
+}
+
+function setCopiedState(button) {
+    const icon = button.querySelector('i');
+    const originalTitle = button.getAttribute('data-copy-title') || 'Copy';
+    const copiedTitle = button.getAttribute('data-copied-title') || 'Copied';
+
+    if (icon) {
+        const previousClasses = Array.from(icon.classList).filter((className) => className.startsWith('fa-'));
+        previousClasses.forEach((className) => icon.classList.remove(className));
+        icon.classList.add('fa-check');
+
+        setTimeout(() => {
+            icon.classList.remove('fa-check');
+            previousClasses.forEach((className) => icon.classList.add(className));
+        }, 1200);
+    }
+
+    button.setAttribute('title', copiedTitle);
+    button.setAttribute('aria-label', copiedTitle);
+    button.classList.add('pm-copy-success');
+
+    setTimeout(() => {
+        button.setAttribute('title', originalTitle);
+        button.setAttribute('aria-label', originalTitle);
+        button.classList.remove('pm-copy-success');
+    }, 1200);
+}
+
 </script>

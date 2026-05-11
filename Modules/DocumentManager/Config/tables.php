@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'document_core_workspaces',
+    'document_core_folders',
+    'document_core_documents',
+    'document_core_versions',
+    'document_core_categories',
+    'document_core_tags',
+    'document_core_document_tags',
+    'document_core_metadata',
+    'document_core_relations',
+    'document_core_permissions',
+    'document_core_shares',
+    'document_logs_activity',
+    'document_logs_access',
+    'document_logs_downloads',
+    'document_logs_ai',
+    'document_ai_ocr',
+    'document_ai_embeddings',
+    'document_ai_summaries',
+    'document_ai_analysis',
+    'document_workflow_states',
+    'document_workflow_approvals',
+    'document_workflow_tasks',
+];

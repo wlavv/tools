@@ -18,7 +18,7 @@
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 lsg-datatable">
                     <thead><tr><th>Start</th><th>Title</th><th>Context</th><th>Category</th><th>Actions</th></tr></thead>
                     <tbody>
                         @forelse($events as $event)
@@ -41,9 +41,9 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="mt-3">{{ $events->links() }}</div>
         </div>
     </div>
 </div>
 @endsection
+
+

@@ -3,35 +3,40 @@
 @section('content')
     @include('password-manager::Includes.css')
 
-    <div class="password-manager-page passwordManager-card">
+    @php
+        $categories = config('password-manager.categories', []);
+        $categoryLabel = $categories[$entry->category] ?? ($entry->category ?: 'Sem categoria');
+    @endphp
+
+    <div class="password-manager-page passwordManager-card password-manager-shell password-manager-shell--form">
         <div class="password-manager-shell">
 
             @if(session('success'))
                 <div class="password-manager-alert">{{ session('success') }}</div>
             @endif
 
-            <div class="">
-                <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <div>
+                <div class="pm-show-header">
                     <div>
-                        <h2 style="margin:0 0 0.35rem 0;">{{ $entry->title }}</h2>
-                        <div style="color:#64748b;">{{ $entry->category ?: 'Sem categoria' }}</div>
+                        <h2 class="pm-show-title">{{ $entry->title }}</h2>
+                        <div class="pm-show-category">{{ $categoryLabel }}</div>
                     </div>
                 </div>
 
                 <div class="password-manager-grid pm-show-grid">
                     <div class="password-manager-meta">
-                        <strong>Email</strong>
-                        <div>{{ $entry->account_email ?: '—' }}</div>
-                    </div>
-
-                    <div class="password-manager-meta">
-                        <strong>Username</strong>
+                        <strong>Username / login</strong>
                         <div>{{ $entry->login_username ?: '—' }}</div>
                     </div>
 
                     <div class="password-manager-meta">
-                        <strong>URL</strong>
+                        <strong>URL / Host</strong>
                         <div>{{ $entry->url ?: '—' }}</div>
+                    </div>
+
+                    <div class="password-manager-meta">
+                        <strong>Category</strong>
+                        <div>{{ $categoryLabel }}</div>
                     </div>
 
                     <div class="password-manager-meta">
@@ -39,7 +44,7 @@
                         <div>{{ $entry->last_used_at ? $entry->last_used_at->format('d/m/Y H:i') : '—' }}</div>
                     </div>
 
-                    <div class="password-manager-meta">
+                    <div class="password-manager-meta password-manager-grid-1">
                         <strong>Password</strong>
                         <div class="pm-password-field pm-password-field--meta">
                             <input
@@ -48,7 +53,6 @@
                                 class="password-manager-input"
                                 value="{{ $revealed['password'] ?? '' }}"
                                 readonly
-                                style="border: 0px solid #111 !important"
                             >
                             <button
                                 type="button"
@@ -59,9 +63,7 @@
                                 title="Show password"
                                 aria-label="Show password"
                             >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                </span>
+                                <span class="lsg-action-btn__icon"><i class="fa-solid fa-eye" aria-hidden="true"></i></span>
                             </button>
                             <button
                                 type="button"
@@ -72,49 +74,7 @@
                                 title="Copy password"
                                 aria-label="Copy password"
                             >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-copy" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="password-manager-meta">
-                        <strong>Secret / token</strong>
-                        <div class="pm-password-field pm-password-field--meta">
-                            <input
-                                id="secret-field"
-                                type="password"
-                                class="password-manager-input"
-                                value="{{ $revealed['secret'] ?? '' }}"
-                                readonly
-                                style="border: 0px solid #111 !important"
-                            >
-                            <button
-                                type="button"
-                                class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact"
-                                data-secret-toggle="secret-field"
-                                data-show-title="Show secret"
-                                data-hide-title="Hide secret"
-                                title="Show secret"
-                                aria-label="Show secret"
-                            >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                class="lsg-action-btn lsg-action-btn--success lsg-action-btn--compact"
-                                data-copy-target="secret-field"
-                                data-copy-title="Copy secret"
-                                data-copied-title="Copied"
-                                title="Copy secret"
-                                aria-label="Copy secret"
-                            >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-copy" aria-hidden="true"></i>
-                                </span>
+                                <span class="lsg-action-btn__icon"><i class="fa-solid fa-copy" aria-hidden="true"></i></span>
                             </button>
                         </div>
                     </div>
@@ -126,7 +86,6 @@
                                 id="notes-field"
                                 class="password-manager-textarea pm-secret-textarea"
                                 readonly
-                                style="border: 0px solid #111 !important"
                             >{{ $revealed['notes'] ?: '' }}</textarea>
                             <button
                                 type="button"
@@ -137,9 +96,7 @@
                                 title="Show private notes"
                                 aria-label="Show private notes"
                             >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
-                                </span>
+                                <span class="lsg-action-btn__icon"><i class="fa-solid fa-eye" aria-hidden="true"></i></span>
                             </button>
                             <button
                                 type="button"
@@ -150,9 +107,7 @@
                                 title="Copy private notes"
                                 aria-label="Copy private notes"
                             >
-                                <span class="lsg-action-btn__icon">
-                                    <i class="fa-solid fa-copy" aria-hidden="true"></i>
-                                </span>
+                                <span class="lsg-action-btn__icon"><i class="fa-solid fa-copy" aria-hidden="true"></i></span>
                             </button>
                         </div>
                     </div>

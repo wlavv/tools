@@ -444,16 +444,17 @@
                   aria-hidden="true"></span>
         @endif
     </button>
-    <button type="button"
-            class="lsg-floating-tools__item"
-            data-url="{{ route('settings.index') }}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="left"
-            title="Settings"
-            aria-label="Settings">
-        <i class="fa-solid fa-gear"></i>
-    </button>
-
+    @if(auth()->id() == 1)
+        <button type="button"
+                class="lsg-floating-tools__item"
+                data-url="{{ route('settings.index') }}"
+                data-bs-toggle="tooltip"
+                data-bs-placement="left"
+                title="Settings"
+                aria-label="Settings">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    @endif
     <button type="button"
             class="lsg-floating-tools__item"
             data-theme-toggle
@@ -473,6 +474,15 @@
             aria-label="Shortcuts">
         <i class="fa-solid fa-grip"></i>
     </button>
+
+<button
+    type="button"
+    class="lsg-sidebar-toggle"
+    data-sidebar-toggle
+    title="Expandir / recolher menu"
+>
+    <i class="fa-solid fa-bars-staggered"></i>
+</button>    
 
     <button type="button"
             class="lsg-floating-tools__item"
@@ -633,5 +643,47 @@
 
             dot.setAttribute('title', count + ' notificações por ler');
         }
+
     </script>
+
+    <style>
+
+        .lsg-sidebar-toggle{
+            width:42px;
+            height:42px;
+            border:none;
+            border-radius:5px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+
+            background:linear-gradient(
+                180deg,
+                rgba(255,255,255,.95) 0%,
+                rgba(240,244,249,.98) 100%
+            );
+
+            color:#1e293b;
+
+            box-shadow:
+                0 2px 6px rgba(15,23,42,.08),
+                inset 0 1px 0 rgba(255,255,255,.9);
+
+            transition:all .2s ease;
+        }
+
+        .lsg-sidebar-toggle:hover{
+            transform:translateY(-1px);
+
+            box-shadow:
+                0 4px 12px rgba(15,23,42,.12),
+                inset 0 1px 0 rgba(255,255,255,1);
+        }
+
+        .lsg-sidebar-toggle i{
+            font-size:14px;
+        }
+
+    </style>
 </div>

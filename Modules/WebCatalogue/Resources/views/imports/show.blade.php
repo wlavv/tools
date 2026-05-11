@@ -29,7 +29,7 @@
 </div>
 <div class="wc-card" style="margin-top:16px">
     <h3>Recent {{ $template['label'] ?? ucfirst($type) }} batches</h3>
-    <table class="wc-table"><tbody>@forelse($batches as $batch)<tr><td>{{ $batch->id }}</td><td>{{ $batch->filename }}</td><td>{{ $batch->status }}</td><td>{{ $batch->created_at }}</td></tr>@empty<tr><td>No batches for this import type.</td></tr>@endforelse</tbody></table>
+    <table class="wc-table lsg-datatable"><thead><tr><th>ID</th><th>File</th><th>Status</th><th>Date</th></tr></thead><tbody>@foreach($batches as $batch)<tr><td>{{ $batch->id }}</td><td>{{ $batch->filename }}</td><td>{{ $batch->status }}</td><td>{{ $batch->created_at }}</td></tr>@endforeach</tbody></table>
 </div>
 
 </div>

@@ -69,7 +69,7 @@
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted">Providers configurados</h2>
                     <div class="table-responsive">
-                        <table class="table align-middle">
+                        <table class="table align-middle lsg-datatable">
                             <thead><tr><th>Canal</th><th>Provider</th><th>Ativo</th><th>Settings</th></tr></thead>
                             <tbody>
                                 @forelse($configs as $config)
@@ -91,3 +91,4 @@
     </div>
 </div>
 @endsection
+

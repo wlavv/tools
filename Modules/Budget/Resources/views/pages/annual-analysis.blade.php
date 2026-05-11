@@ -60,7 +60,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body table-responsive">
                     <h5 class="mb-3">Monthly table</h5>
-                    <table class="table table-hover budget-table mb-0">
+                    <table class="table table-hover budget-table mb-0 lsg-datatable">
                         <thead>
                             <tr>
                                 <th>Month</th>
@@ -88,7 +88,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body table-responsive">
                     <h5 class="mb-3">Annual categories</h5>
-                    <table class="table table-hover budget-table mb-0">
+                    <table class="table table-hover budget-table mb-0 lsg-datatable">
                         <thead>
                             <tr>
                                 <th>Category</th>

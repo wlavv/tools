@@ -118,7 +118,7 @@ class ImportCenterController extends Controller
             'batch' => $batch,
             'type' => $type,
             'template' => $template,
-            'rows' => $batch->rows()->orderBy('row_number')->paginate(25),
+            'rows' => $batch->rows()->orderBy('row_number')->get(),
         ]);
     }
 

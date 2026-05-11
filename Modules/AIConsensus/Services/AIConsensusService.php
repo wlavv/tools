@@ -33,7 +33,7 @@ class AIConsensusService
             });
         }
 
-        $runs = $query->latest('id')->paginate(15)->withQueryString();
+        $runs = $query->latest('id')->get();
 
         return [
             'runs' => $runs,

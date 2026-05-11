@@ -55,7 +55,7 @@
 
     <div class="card lsg-card">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 lsg-table lsg-clickable-table">
+            <table class="table table-hover align-middle mb-0 lsg-table lsg-clickable-table lsg-datatable">
                 <thead>
                     <tr>
                         <th>Notificação</th>
@@ -129,9 +129,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-body border-top">
-            {{ $notifications->links() }}
-        </div>
     </div>
 </div>
 
@@ -161,3 +158,5 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 @endsection
+
+

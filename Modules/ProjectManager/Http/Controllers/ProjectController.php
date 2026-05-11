@@ -39,7 +39,7 @@ class ProjectController extends Controller
             $query->where('status', $request->get('status'));
         }
 
-        $projects = $query->orderByDesc('is_pinned')->orderBy('name')->paginate(24)->withQueryString();
+        $projects = $query->orderByDesc('is_pinned')->orderBy('name')->get();
 
         return $this->view('project-manager::projects.index', compact('projects'));
     }

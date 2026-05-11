@@ -31,7 +31,7 @@ class SectionController extends Controller
             ->where($projectColumn, $project->id)
             ->when(Schema::hasColumn($table, 'execution_order'), fn ($q) => $q->orderBy('execution_order'))
             ->when(Schema::hasColumn($table, 'created_at'), fn ($q) => $q->orderByDesc('created_at'))
-            ->paginate(30);
+            ->get();
 
         return $this->view('project-manager::sections.index', compact('project', 'section', 'meta', 'records'));
     }

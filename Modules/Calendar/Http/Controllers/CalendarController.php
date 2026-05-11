@@ -73,7 +73,7 @@ class CalendarController extends Controller
                 });
             })
             ->orderBy('start_at')
-            ->paginate(30);
+            ->get();
 
         return $this->view('calendar::pages.index', [
             'contexts' => $contexts,
@@ -143,7 +143,7 @@ class CalendarController extends Controller
         $contexts = CalendarContext::query()
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(30);
+            ->get();
 
         return $this->view('calendar::pages.contexts.index', [
             'contexts' => $contexts,
@@ -209,7 +209,7 @@ class CalendarController extends Controller
             ->with('context')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(30);
+            ->get();
 
         $contexts = CalendarContext::query()
             ->where('is_active', 1)
@@ -283,7 +283,7 @@ class CalendarController extends Controller
         $events = CalendarEvent::query()
             ->with(['context', 'category'])
             ->orderByDesc('start_at')
-            ->paginate(30);
+            ->get();
 
         return $this->view('calendar::pages.events.index', [
             'events' => $events,

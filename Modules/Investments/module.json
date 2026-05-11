@@ -1,0 +1,13 @@
+{
+  "name": "Investments",
+  "slug": "investments",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Module for broker accounts, assets, positions, stop levels, and broker sync workflows.",
+  "provider": "Modules\\Investments\\Providers\\InvestmentsServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

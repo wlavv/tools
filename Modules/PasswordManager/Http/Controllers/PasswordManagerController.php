@@ -4,6 +4,7 @@ namespace Modules\PasswordManager\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\PasswordManager\Http\Requests\StorePasswordEntryRequest;
@@ -23,12 +24,20 @@ class PasswordManagerController extends Controller
     {
         $search = $request->string('q')->toString();
 
+        $entries = $this->service->listForUser(
+            userId: (int) $request->user()->id,
+            search: $search,
+        );
+
+        $entries->transform(function (PasswordEntry $entry) {
+            $revealed = $this->service->reveal($entry);
+            $entry->setAttribute('copy_password', (string) ($revealed['password'] ?? ''));
+
+            return $entry;
+        });
+
         return $this->view('password-manager::Index', [
-            'entries' => $this->service->listForUser(
-                userId: (int) $request->user()->id,
-                search: $search,
-                perPage: (int) config('password-manager.pagination', 15),
-            ),
+            'entries' => $entries,
             'search' => $search,
         ]);
     }
@@ -94,8 +103,35 @@ class PasswordManagerController extends Controller
         );
 
         return redirect()
-            ->route('password_manager.show', $passwordEntry)
+            ->route('password_manager.index')
             ->with('success', 'Registo atualizado com sucesso.');
+    }
+
+    public function copy(Request $request, PasswordEntry $passwordEntry): JsonResponse
+    {
+        $this->authorizeEntry($passwordEntry);
+
+        $field = (string) $request->input('field');
+
+        if (! in_array($field, ['username', 'password'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid copy field.',
+            ], 422);
+        }
+
+        $value = $field === 'username'
+            ? (string) ($passwordEntry->login_username ?? '')
+            : (string) ($this->service->reveal($passwordEntry)['password'] ?? '');
+
+        if ($field === 'password') {
+            $this->service->markAsUsed($passwordEntry);
+        }
+
+        return response()->json([
+            'success' => true,
+            'value' => $value,
+        ]);
     }
 
     public function destroy(PasswordEntry $passwordEntry): RedirectResponse

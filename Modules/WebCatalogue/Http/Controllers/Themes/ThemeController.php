@@ -20,7 +20,7 @@ class ThemeController extends Controller
 
     public function index(Request $request): View
     {
-        $items = StoreTheme::query()->with('store')->latest('id')->paginate(20);
+        $items = StoreTheme::query()->with('store')->latest('id')->get();
         return $this->view('webcatalogue::themes.index', compact('items'));
     }
     public function create(): View { return $this->view('webcatalogue::themes.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.themes.store'), 'method' => 'POST'])); }

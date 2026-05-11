@@ -1,0 +1,23 @@
+{
+    "name": "CatalogManager",
+    "alias": "catalogmanager",
+    "slug": "catalog-manager",
+    "description": "LSG Catalog Manager - full operational catalog module.",
+    "keywords": [
+        "catalog",
+        "products",
+        "stores",
+        "prestashop",
+        "lsg"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\CatalogManager\\Providers\\CatalogManagerServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "enabled": true,
+    "version": "5.6.2",
+    "provider": "Modules\\CatalogManager\\Providers\\CatalogManagerServiceProvider"
+}

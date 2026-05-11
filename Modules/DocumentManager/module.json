@@ -1,0 +1,25 @@
+{
+    "name": "DocumentManager",
+    "alias": "documentmanager",
+    "slug": "document-manager",
+    "description": "LSG Document Manager - enterprise operating knowledge system.",
+    "keywords": [
+        "documents",
+        "dms",
+        "knowledge",
+        "ocr",
+        "ai",
+        "workflow",
+        "lsg"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\DocumentManager\\Providers\\DocumentManagerServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "enabled": true,
+    "version": "1.0.0",
+    "provider": "Modules\\DocumentManager\\Providers\\DocumentManagerServiceProvider"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Mtg",
+  "description": "Magic the Gathering catalogue and card lookup module.",
+  "slug": "mtg",
+  "enabled": true,
+  "version": "1.0",
+  "provider": "Modules\\Mtg\\Providers\\MtgServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

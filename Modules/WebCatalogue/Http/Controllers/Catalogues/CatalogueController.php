@@ -24,7 +24,7 @@ class CatalogueController extends Controller
 
     public function index(Request $request): View
     {
-        $items = Catalogue::query()->with(['store','coverResource'])->withCount(['products'])->latest('id')->paginate(20);
+        $items = Catalogue::query()->with(['store','coverResource'])->withCount(['products'])->latest('id')->get();
         return $this->view('webcatalogue::catalogues.index', compact('items'));
     }
 

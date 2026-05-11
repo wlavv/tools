@@ -32,7 +32,7 @@
 <div class="wc-card" style="margin-top:16px">
     <div class="wc-section-head"><div><h3>Pre-save validation</h3><p class="wc-muted">A pré-visualização usa as colunas reais do template. Os dados só são gravados nas tabelas finais após confirmação.</p></div><span class="wc-badge">{{ $batch->status }}</span></div>
     <div class="wc-sample-scroll">
-        <table class="wc-table">
+        <table class="wc-table lsg-datatable">
             <thead>
                 <tr>
                     <th>Row</th>
@@ -44,7 +44,7 @@
                 </tr>
             </thead>
             <tbody>
-            @forelse($rows as $row)
+            @foreach($rows as $row)
                 @php $payload = is_array($row->raw_payload) ? $row->raw_payload : (json_decode($row->raw_payload ?? '[]', true) ?: []); @endphp
                 <tr>
                     <td>{{ $row->row_number }}</td>
@@ -54,13 +54,10 @@
                         <td>{{ \Illuminate\Support\Str::limit((string)($payload[$column] ?? ''), 80) }}</td>
                     @endforeach
                 </tr>
-            @empty
-                <tr><td colspan="{{ 3 + count($columns) }}">No rows found.</td></tr>
-            @endforelse
+            @endforeach
             </tbody>
         </table>
     </div>
-    <div class="wc-pagination">{{ $rows->links() }}</div>
 </div>
 </div>
 @endsection

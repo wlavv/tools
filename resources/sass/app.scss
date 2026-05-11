@@ -2,7 +2,7 @@
 
 @import 'variables';
 @import 'bootstrap/scss/bootstrap';
-@import '_variables_lsg.scss';
+@import 'variables_lsg.scss';
 @import "forms";
 
 :root {
@@ -28,6 +28,8 @@
     --radius-md: 5px;
     --radius-lg: 15px;
     --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.22);
+    --lsg-select-border-focus: #d4a017;
+    --lsg-select-focus-shadow: rgba(212, 160, 23, .18);
 }
 
 html, body {
@@ -1816,3 +1818,55 @@ body[data-theme="light"] #savings.card {
 }
 
 .lsg-action-btn__glow { display: none !important; }
+
+/* =========================================
+   LSG SELECT2 GOLD ACTIVE STATE
+========================================= */
+
+.select2-container--bootstrap-5 .select2-selection:focus,
+.select2-container--bootstrap-5.select2-container--focus .select2-selection {
+    border-color: #d4a017 !important;
+    box-shadow: 0 0 0 0.18rem rgba(212,160,23,.18) !important;
+}
+
+/* Dropdown selected item */
+.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected] {
+    background-color: #d4a017 !important;
+    color: #111827 !important;
+}
+
+/* Selected multi items */
+.select2-container--bootstrap-5 .select2-selection__choice {
+    background: rgba(212,160,23,.18) !important;
+    border: 1px solid rgba(212,160,23,.45) !important;
+    color: #f3f4f6 !important;
+}
+
+/* Open state */
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: #d4a017 !important;
+    box-shadow: 0 0 0 0.18rem rgba(212,160,23,.18) !important;
+}
+
+/* Search input */
+.select2-container--bootstrap-5 .select2-search__field:focus {
+    border-color: #d4a017 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Active option */
+.select2-container--bootstrap-5 .select2-results__option--selected {
+    background: rgba(212,160,23,.22) !important;
+    color: #ffffff !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--multiple {
+
+    border-color: var(--lsg-select-border-focus) !important;
+
+    box-shadow: 0 0 0 .18rem var(--lsg-select-focus-shadow) !important;
+}

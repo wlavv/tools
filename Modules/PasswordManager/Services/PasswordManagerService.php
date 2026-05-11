@@ -2,14 +2,14 @@
 
 namespace Modules\PasswordManager\Services;
 
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Modules\PasswordManager\Models\PasswordEntry;
 
 class PasswordManagerService
 {
-    public function listForUser(int $userId, ?string $search = null, int $perPage = 15): LengthAwarePaginator
+    public function listForUser(int $userId, ?string $search = null): Collection
     {
         return PasswordEntry::query()
             ->where('user_id', $userId)
@@ -17,15 +17,14 @@ class PasswordManagerService
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery
                         ->where('title', 'like', '%' . $search . '%')
-                        ->orWhere('account_email', 'like', '%' . $search . '%')
+                        ->orWhere('category', 'like', '%' . $search . '%')
+                        ->orWhere('account_email', 'like', '%' . $search . '%') // legacy search support
                         ->orWhere('login_username', 'like', '%' . $search . '%')
                         ->orWhere('url', 'like', '%' . $search . '%');
                 });
             })
-            ->orderByDesc('is_favorite')
             ->orderBy('title')
-            ->paginate($perPage)
-            ->withQueryString();
+            ->get();
     }
 
     public function createForUser(int $userId, array $data): PasswordEntry
@@ -68,7 +67,7 @@ class PasswordManagerService
             'title' => $data['title'],
             'category' => $data['category'] ?? null,
             'url' => $data['url'] ?? null,
-            'account_email' => $data['account_email'] ?? null,
+            'account_email' => $entry?->account_email,
             'login_username' => $data['login_username'] ?? null,
             'encrypted_password' => filled($data['password'] ?? null)
                 ? Crypt::encryptString($data['password'])
@@ -79,7 +78,9 @@ class PasswordManagerService
             'encrypted_notes' => filled($data['notes'] ?? null)
                 ? Crypt::encryptString($data['notes'])
                 : ($entry?->encrypted_notes),
-            'is_favorite' => (bool) ($data['is_favorite'] ?? false),
+            'is_favorite' => array_key_exists('is_favorite', $data)
+                ? (bool) $data['is_favorite']
+                : (bool) ($entry?->is_favorite ?? false),
         ];
     }
 }

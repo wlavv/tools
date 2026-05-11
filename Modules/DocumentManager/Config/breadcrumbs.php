@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'document-manager.dashboard' => ['label' => 'Document Manager', 'parent' => null],
+    'document-manager.documents.index' => ['label' => 'Explorer', 'parent' => 'document-manager.dashboard'],
+    'document-manager.documents.create' => ['label' => 'Novo Documento', 'parent' => 'document-manager.documents.index'],
+    'document-manager.documents.show' => ['label' => 'Documento', 'parent' => 'document-manager.documents.index'],
+    'document-manager.documents.edit' => ['label' => 'Editar Documento', 'parent' => 'document-manager.documents.index'],
+    'document-manager.documents.preview' => ['label' => 'Preview', 'parent' => 'document-manager.documents.show'],
+    'document-manager.workspaces.index' => ['label' => 'Workspaces', 'parent' => 'document-manager.dashboard'],
+    'document-manager.workspaces.create' => ['label' => 'Novo Workspace', 'parent' => 'document-manager.workspaces.index'],
+    'document-manager.workspaces.edit' => ['label' => 'Editar Workspace', 'parent' => 'document-manager.workspaces.index'],
+    'document-manager.folders.index' => ['label' => 'Folders', 'parent' => 'document-manager.dashboard'],
+    'document-manager.folders.create' => ['label' => 'Nova Pasta', 'parent' => 'document-manager.folders.index'],
+    'document-manager.folders.edit' => ['label' => 'Editar Pasta', 'parent' => 'document-manager.folders.index'],
+    'document-manager.categories.index' => ['label' => 'Categorias', 'parent' => 'document-manager.dashboard'],
+    'document-manager.categories.create' => ['label' => 'Nova Categoria', 'parent' => 'document-manager.categories.index'],
+    'document-manager.categories.edit' => ['label' => 'Editar Categoria', 'parent' => 'document-manager.categories.index'],
+    'document-manager.tags.index' => ['label' => 'Tags Documentais', 'parent' => 'document-manager.dashboard'],
+    'document-manager.tags.create' => ['label' => 'Nova Tag', 'parent' => 'document-manager.tags.index'],
+    'document-manager.tags.edit' => ['label' => 'Editar Tag', 'parent' => 'document-manager.tags.index'],
+    'document-manager.workflow.index' => ['label' => 'Workflow', 'parent' => 'document-manager.dashboard'],
+    'document-manager.ai.index' => ['label' => 'AI Intelligence', 'parent' => 'document-manager.dashboard'],
+    'document-manager.search.index' => ['label' => 'Search', 'parent' => 'document-manager.dashboard'],
+    'document-manager.diagnostics.index' => ['label' => 'Diagnostics', 'parent' => 'document-manager.dashboard'],
+];

@@ -43,7 +43,7 @@
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <div class="table-responsive">
-                <table class="table table-hover calendar-table align-middle mb-0">
+                <table class="table table-hover calendar-table align-middle mb-0 lsg-datatable">
                     <thead>
                         <tr>
                             <th>Start</th>
@@ -75,11 +75,9 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="mt-3">
-                {{ $events->withQueryString()->links() }}
-            </div>
         </div>
     </div>
 </div>
 @endsection
+
+

@@ -1,57 +1,91 @@
+@php
+    $categories = config('password-manager.categories', []);
+@endphp
+
 <div class="password-manager-card passwordManager-card">
     <div class="password-manager-table-wrap">
-        <table class="password-manager-table">
+        <table class="password-manager-table password-manager-table--lean lsg-datatable">
             <thead>
                 <tr>
                     <th>Title</th>
                     <th>Category</th>
-                    <th>Login</th>
                     <th>URL</th>
-                    <th>Status</th>
-                    <th class="text-center" style="width: 170px;">Actions</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Last used</th>
+                    <th class="text-center" style="width: 110px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($entries as $entry)
+                @foreach($entries as $entry)
                     <tr>
                         <td>
                             <div class="pm-table-title">
                                 <strong>{{ $entry->title }}</strong>
-                                <span>{{ $entry->account_email ?: 'No email' }}</span>
                             </div>
                         </td>
-                        <td>{{ $entry->category ?: '—' }}</td>
-                        <td>{{ $entry->login_username ?: '—' }}</td>
-                        <td class="pm-table-url">{{ $entry->url ?: '—' }}</td>
                         <td>
-                            @if($entry->is_favorite)
-                                <span class="password-manager-badge password-manager-badge--favorite">Favorite</span>
+                            <span class="password-manager-badge">
+                                {{ $categories[$entry->category] ?? ($entry->category ?: 'General') }}
+                            </span>
+                        </td>
+                        <td class="pm-table-url">
+                            @if($entry->url)
+                                <a href="{{ $entry->url }}" target="_blank" rel="noopener noreferrer" class="pm-table-link" title="Open URL in new tab">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    <span>{{ $entry->url }}</span>
+                                </a>
                             @else
-                                <span class="password-manager-badge password-manager-badge--neutral">Normal</span>
+                                <span class="pm-muted">—</span>
                             @endif
                         </td>
                         <td>
+                            @if($entry->login_username)
+                                <button
+                                    type="button"
+                                    class="pm-copy-inline"
+                                    data-copy-value="{{ e($entry->login_username) }}"
+                                    data-copy-title="Copy username"
+                                    data-copied-title="Username copied"
+                                    title="Copy username"
+                                >
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>{{ $entry->login_username }}</span>
+                                </button>
+                            @else
+                                <span class="pm-muted">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            <button
+                                type="button"
+                                class="pm-copy-inline pm-copy-inline--secret"
+                                data-copy-value="{{ e($entry->copy_password ?? '') }}"
+                                data-copy-title="Copy password"
+                                data-copied-title="Password copied"
+                                title="Copy password"
+                            >
+                                <i class="fa-solid fa-copy"></i>
+                                <span>••••••••</span>
+                            </button>
+                        </td>
+                        <td>{{ $entry->last_used_at ? $entry->last_used_at->format('d/m/Y H:i') : '—' }}</td>
+                        <td>
                             <div class="password-manager-actions password-manager-actions--center">
-                                <a href="{{ route('password_manager.show', $entry) }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact" title="Show">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
                                 <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact" title="Edit">
                                     <i class="fa-solid fa-pencil"></i>
                                 </a>
-                                <a href="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-btn lsg-action-btn--danger"><i class="fa-solid fa-trash"></i></a>
+                                <form method="POST" action="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-form" onsubmit="return confirm('Delete this password entry?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="lsg-action-btn lsg-action-btn--danger lsg-action-btn--compact" title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6">
-                            <div class="pm-empty-state">
-                                <strong>{{ config('password-manager.ui.empty_state.title', 'No entries found') }}</strong>
-                                <span>{{ config('password-manager.ui.empty_state.text', 'Create a secure entry or adjust the current filters.') }}</span>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
@@ -62,17 +96,37 @@
                 <div class="pm-mobile-item__header">
                     <div>
                         <strong>{{ $entry->title }}</strong>
-                        <div class="pm-mobile-item__sub">{{ $entry->account_email ?: ($entry->login_username ?: 'No login') }}</div>
+                        <div class="pm-mobile-item__sub">{{ $categories[$entry->category] ?? ($entry->category ?: 'General') }}</div>
                     </div>
-                    @if($entry->is_favorite)
-                        <span class="password-manager-badge password-manager-badge--favorite">Favorite</span>
-                    @endif
+                    <div class="password-manager-actions">
+                        <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact" title="Edit"><i class="fa-solid fa-pencil"></i></a>
+                        <form method="POST" action="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-form" onsubmit="return confirm('Delete this password entry?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="lsg-action-btn lsg-action-btn--danger lsg-action-btn--compact" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </div>
                 </div>
-                <div class="pm-mobile-item__category">{{ $entry->category ?: 'No category' }}</div>
-                <div class="password-manager-actions" style="margin-top:0.85rem;">
-                    <a href="{{ route('password_manager.show', $entry) }}" class="lsg-action-btn lsg-action-btn--primary"><i class="fa-solid fa-eye"></i><span>Show</span></a>
-                    <a href="{{ route('password_manager.edit', $entry) }}" class="lsg-action-btn lsg-action-btn--warning"><i class="fa-solid fa-pencil"></i><span>Edit</span></a>
-                    <a href="{{ route('password_manager.destroy', $entry) }}" class="lsg-action-btn lsg-action-btn--danger"><i class="fa-solid fa-trash"></i><span>Delete</span></a>
+
+                <div class="pm-mobile-quick-actions">
+                    @if($entry->url)
+                        <a href="{{ $entry->url }}" target="_blank" rel="noopener noreferrer" class="pm-mobile-action">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>Open URL</span>
+                        </a>
+                    @endif
+
+                    @if($entry->login_username)
+                        <button type="button" class="pm-mobile-action" data-copy-value="{{ e($entry->login_username) }}" data-copy-title="Copy username" data-copied-title="Username copied">
+                            <i class="fa-solid fa-user"></i>
+                            <span>Copy username</span>
+                        </button>
+                    @endif
+
+                    <button type="button" class="pm-mobile-action" data-copy-value="{{ e($entry->copy_password ?? '') }}" data-copy-title="Copy password" data-copied-title="Password copied">
+                        <i class="fa-solid fa-key"></i>
+                        <span>Copy password</span>
+                    </button>
                 </div>
             </div>
         @empty
@@ -80,7 +134,4 @@
         @endforelse
     </div>
 
-    <div class="pm-pagination-wrap">
-        {{ $entries->links() }}
-    </div>
 </div>

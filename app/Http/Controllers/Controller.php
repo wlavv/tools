@@ -328,23 +328,23 @@ class Controller extends BaseController
 
         if (str_contains($label, '::')) {
             $translated = __($label);
-            return $translated !== $label ? $translated : $label;
+            return is_string($translated) && $translated !== $label ? $translated : $label;
         }
 
         if (str_starts_with($label, 'breadcrumbs.')) {
             $translated = __($label);
-            return $translated !== $label ? $translated : $label;
+            return is_string($translated) && $translated !== $label ? $translated : $label;
         }
 
         $globalKey = 'breadcrumbs.' . $label;
         $translated = __($globalKey);
 
-        if ($translated !== $globalKey) {
+        if (is_string($translated) && $translated !== $globalKey) {
             return $translated;
         }
 
         $translated = __($label);
 
-        return $translated !== $label ? $translated : $label;
+        return is_string($translated) && $translated !== $label ? $translated : $label;
     }
 }

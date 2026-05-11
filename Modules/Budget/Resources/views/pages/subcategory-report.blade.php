@@ -110,7 +110,7 @@
         <div class="col-12">
             <div class="card budget-card">
                 <div class="card-body table-responsive">
-                    <table class="table table-hover budget-table align-middle mb-0">
+                    <table class="table table-hover budget-table align-middle mb-0 lsg-datatable">
                         <thead>
                             <tr>
                                 <th>Category</th>

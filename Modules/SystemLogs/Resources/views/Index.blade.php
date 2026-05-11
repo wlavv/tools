@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-3 system-logs-lsg">
+<div class="system-logs-lsg">
     @php
         $stats = $stats ?? [];
 
@@ -112,13 +112,6 @@
             </ul>
         </div>
     @endif
-
-    <div class="row g-3 mb-3">
-        <div class="col-6 col-xl-3"><div class="sl-card sl-stat"><div class="sl-stat-label">{{ __('system-logs::messages.entries_loaded') }}</div><div class="sl-stat-value">{{ $stats['total'] ?? 0 }}</div></div></div>
-        <div class="col-6 col-xl-3"><div class="sl-card sl-stat"><div class="sl-stat-label">{{ __('system-logs::messages.errors') }}</div><div class="sl-stat-value">{{ $stats['error'] ?? 0 }}</div></div></div>
-        <div class="col-6 col-xl-3"><div class="sl-card sl-stat"><div class="sl-stat-label">{{ __('system-logs::messages.warnings') }}</div><div class="sl-stat-value">{{ $stats['warning'] ?? 0 }}</div></div></div>
-        <div class="col-6 col-xl-3"><div class="sl-card sl-stat"><div class="sl-stat-label">{{ __('system-logs::messages.info') }}</div><div class="sl-stat-value">{{ $stats['info'] ?? 0 }}</div></div></div>
-    </div>
 
     <div class="collapse mb-3 {{ $errors->any() ? 'show' : '' }}" id="createSystemLogCard">
         <div class="sl-card sl-form-card">

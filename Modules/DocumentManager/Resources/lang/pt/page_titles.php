@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'document-manager.dashboard' => 'Document Manager',
+    'document-manager.documents.index' => 'Explorer Documental',
+    'document-manager.documents.create' => 'Novo Documento',
+    'document-manager.documents.show' => 'Workspace Documental',
+    'document-manager.documents.edit' => 'Editar Documento',
+    'document-manager.documents.preview' => 'Preview Documental',
+    'document-manager.workspaces.index' => 'Workspaces Documentais',
+    'document-manager.workspaces.create' => 'Novo Workspace',
+    'document-manager.workspaces.edit' => 'Editar Workspace',
+    'document-manager.folders.index' => 'Pastas',
+    'document-manager.folders.create' => 'Nova Pasta',
+    'document-manager.folders.edit' => 'Editar Pasta',
+    'document-manager.categories.index' => 'Categorias Documentais',
+    'document-manager.categories.create' => 'Nova Categoria',
+    'document-manager.categories.edit' => 'Editar Categoria',
+    'document-manager.tags.index' => 'Tags Documentais',
+    'document-manager.tags.create' => 'Nova Tag',
+    'document-manager.tags.edit' => 'Editar Tag',
+    'document-manager.workflow.index' => 'Workflow Engine',
+    'document-manager.ai.index' => 'AI Document Intelligence',
+    'document-manager.search.index' => 'Pesquisa Enterprise',
+    'document-manager.diagnostics.index' => 'Diagnostico Documental',
+];

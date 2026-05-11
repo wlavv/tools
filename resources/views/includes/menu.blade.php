@@ -39,7 +39,7 @@
     </div>
     @endif
 
-    <div style="margin-top: 10px;">OTHER AREAS</div>
+    <div style="margin-top: 10px;">OTHERS</div>
     <div class="sidebar-nav-list sidebar-nav-main-list">
         @foreach($menuItemsExtra as $item)
             @if(Route::has($item['route']))

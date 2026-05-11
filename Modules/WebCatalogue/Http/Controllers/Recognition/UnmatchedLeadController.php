@@ -19,7 +19,7 @@ class UnmatchedLeadController extends Controller
     public function index(): View
     {
         return $this->view('webcatalogue::recognition.leads.index', [
-            'items' => UnmatchedProductLead::with(['store', 'session'])->latest()->paginate(20),
+            'items' => UnmatchedProductLead::with(['store', 'session'])->latest()->get(),
         ]);
     }
 

@@ -131,7 +131,11 @@ abstract class BaseNotificationController extends Controller
         $params = $item['params'] ?? [];
 
         if (!$url && !empty($item['route']) && Route::has($item['route'])) {
-            $url = route($item['route'], $params);
+            try {
+                $url = route($item['route'], $params);
+            } catch (\Throwable $e) {
+                $url = null;
+            }
         }
 
         $label = $item['label'] ?? $item['name'] ?? '';

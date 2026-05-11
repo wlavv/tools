@@ -6,3 +6,4 @@
         return new Chart(el.getContext('2d'), config);
     }
 </script>
+

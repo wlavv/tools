@@ -100,17 +100,15 @@
 
 <div class="wc-card" style="margin-top:16px">
     <h3>Recent import batches</h3>
-    <table class="wc-table">
+    <table class="wc-table lsg-datatable">
         <thead><tr><th>ID</th><th>Type</th><th>File</th><th>Status</th><th>Date</th></tr></thead>
         <tbody>
-        @forelse($batches as $batch)
+        @foreach($batches as $batch)
             <tr>
                 <td><a href="{{ route('webcatalogue.imports.preview', $batch) }}">#{{ $batch->id }}</a></td>
                 <td>{{ $batch->source_type }}</td><td>{{ $batch->filename }}</td><td><span class="wc-badge">{{ $batch->status }}</span></td><td>{{ $batch->created_at }}</td>
             </tr>
-        @empty
-            <tr><td colspan="5">No imports yet.</td></tr>
-        @endforelse
+        @endforeach
         </tbody>
     </table>
 </div>

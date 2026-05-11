@@ -492,6 +492,8 @@ body[data-pm-theme="dark"] .pm-kanban-card{
 
 <script>
 (function(){
+    var themeStorageKey = 'webtools-theme';
+
     function parseRgb(value){
         if(!value || value === 'transparent') return null;
         var m = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -501,19 +503,76 @@ body[data-pm-theme="dark"] .pm-kanban-card{
     function luminance(rgb){
         return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]);
     }
-    function detectPmTheme(){
+
+    function explicitThemeFrom(target){
+        if(!target) return null;
+
+        var dataTheme = target.getAttribute('data-theme') || target.getAttribute('data-bs-theme');
+        if(dataTheme === 'light' || dataTheme === 'dark') return dataTheme;
+
+        if(target.classList.contains('theme-light') || target.classList.contains('light')) return 'light';
+        if(target.classList.contains('theme-dark') || target.classList.contains('dark') || target.classList.contains('dark-mode')) return 'dark';
+
+        return null;
+    }
+
+    function storedTheme(){
+        try {
+            var value = localStorage.getItem(themeStorageKey);
+            return value === 'light' || value === 'dark' ? value : null;
+        } catch(e) {
+            return null;
+        }
+    }
+
+    function resolveBoTheme(){
         var root = document.documentElement;
         var body = document.body;
-        if(!body) return;
-        var forcedDark = root.matches('[data-bs-theme="dark"],[data-theme="dark"],.dark,.dark-mode') || body.matches('[data-bs-theme="dark"],[data-theme="dark"],.dark,.dark-mode');
-        var forcedLight = root.matches('[data-bs-theme="light"],[data-theme="light"],.light') || body.matches('[data-bs-theme="light"],[data-theme="light"],.light');
+
+        if(window.LSGTheme && typeof window.LSGTheme.current === 'function') {
+            var current = window.LSGTheme.current();
+            if(current === 'light' || current === 'dark') return current;
+        }
+
+        var explicit = explicitThemeFrom(body) || explicitThemeFrom(root) || storedTheme();
+        if(explicit) return explicit;
+
         var probe = document.querySelector('#yieldContent') || document.querySelector('main') || body;
         var rgb = parseRgb(window.getComputedStyle(probe).backgroundColor) || parseRgb(window.getComputedStyle(body).backgroundColor);
-        var isDark = forcedDark || (!forcedLight && rgb && luminance(rgb) < 128);
-        root.setAttribute('data-pm-theme', isDark ? 'dark' : 'light');
-        body.setAttribute('data-pm-theme', isDark ? 'dark' : 'light');
+
+        return rgb && luminance(rgb) < 128 ? 'dark' : 'light';
     }
+
+    function applyPmTheme(theme){
+        var root = document.documentElement;
+        var body = document.body;
+        var safeTheme = theme === 'light' ? 'light' : 'dark';
+
+        root.setAttribute('data-pm-theme', safeTheme);
+
+        if(body) {
+            body.setAttribute('data-pm-theme', safeTheme);
+        }
+    }
+
+    function detectPmTheme(){
+        var body = document.body;
+        if(!body) return;
+        applyPmTheme(resolveBoTheme());
+    }
+
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', detectPmTheme); else detectPmTheme();
+
+    window.addEventListener('lsg:theme-changed', function(e){
+        applyPmTheme(e.detail && e.detail.theme ? e.detail.theme : resolveBoTheme());
+    });
+
+    window.addEventListener('storage', function(e){
+        if(e.key === themeStorageKey) {
+            setTimeout(detectPmTheme, 0);
+        }
+    });
+
     document.addEventListener('click', function(e){
         if(e.target && (e.target.closest('[data-theme-toggle]') || e.target.closest('.theme-toggle'))) {
             setTimeout(detectPmTheme, 120);

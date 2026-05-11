@@ -130,7 +130,7 @@
             <div class="card budget-card">
                 <div class="card-body table-responsive">
                     <h5 class="mb-3">Category table</h5>
-                    <table class="table table-hover budget-table align-middle mb-0">
+                    <table class="table table-hover budget-table align-middle mb-0 lsg-datatable">
                         <thead>
                             <tr>
                                 <th>Category</th>

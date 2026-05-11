@@ -17,7 +17,7 @@
         <button class="wc-btn" type="submit"><i class="fa-solid fa-upload"></i> Upload product CSV</button>
     </form>
 </div>
-<div class="wc-card" style="margin-top:16px"><h3>Recent batches</h3><table class="wc-table"><tbody>@foreach($batches as $batch)<tr><td>{{ $batch->id }}</td><td>{{ $batch->filename }}</td><td>{{ $batch->status }}</td></tr>@endforeach</tbody></table></div>
+<div class="wc-card" style="margin-top:16px"><h3>Recent batches</h3><table class="wc-table lsg-datatable"><thead><tr><th>ID</th><th>File</th><th>Status</th></tr></thead><tbody>@foreach($batches as $batch)<tr><td>{{ $batch->id }}</td><td>{{ $batch->filename }}</td><td>{{ $batch->status }}</td></tr>@endforeach</tbody></table></div>
 
 </div>
 @endsection

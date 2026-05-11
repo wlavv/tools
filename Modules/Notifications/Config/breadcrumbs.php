@@ -14,6 +14,9 @@ return [
     'notifications.show' => [
         'label' => 'notifications::page_titles.notifications.show',
         'parent' => 'notifications.index',
+        'params' => [
+            'notification' => request()->route('notification'),
+        ],
     ],
 
     'notifications.settings' => [
