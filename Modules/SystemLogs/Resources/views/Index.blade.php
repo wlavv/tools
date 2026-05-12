@@ -1,25 +1,10 @@
 @extends('layouts.app')
 
-@section('content')
-<div class="system-logs-lsg">
-    @php
-        $stats = $stats ?? [];
-
-        $levelBadgeClass = function ($level) {
-            return match (strtolower((string) $level)) {
-                'error', 'critical' => 'danger',
-                'warning' => 'warning',
-                'success' => 'success',
-                'debug' => 'secondary',
-                default => 'primary',
-            };
-        };
-    @endphp
-
+@push('styles')
     <style>
         .system-logs-lsg .sl-card {
             border: 1px solid var(--border-soft, rgba(148, 163, 184, 0.20));
-            border-radius: 8px;
+            border-radius: 5px;
             background: var(--card-bg, rgba(255, 255, 255, 0.96));
             box-shadow: var(--shadow-soft, 0 8px 24px rgba(15, 23, 42, 0.06));
             overflow: hidden;
@@ -44,7 +29,7 @@
         .system-logs-lsg .sl-filter-box {
             padding: 1rem;
             border: 1px solid var(--border-soft, rgba(148, 163, 184, 0.18));
-            border-radius: 8px;
+            border-radius: 5px;
             background: rgba(148, 163, 184, 0.05);
         }
         .system-logs-lsg .table > :not(caption) > * > * {
@@ -70,7 +55,7 @@
             font-size: .80rem;
             line-height: 1.45;
             padding: .65rem .75rem;
-            border-radius: 6px;
+            border-radius: 5px;
             background: rgba(148, 163, 184, 0.10);
             border: 1px solid rgba(148, 163, 184, 0.14);
             color: inherit;
@@ -97,6 +82,23 @@
             .system-logs-lsg .sl-filter-grid { grid-template-columns: 1fr; }
         }
     </style>
+@endpush
+
+@section('content')
+<div class="system-logs-lsg">
+    @php
+        $stats = $stats ?? [];
+
+        $levelBadgeClass = function ($level) {
+            return match (strtolower((string) $level)) {
+                'error', 'critical' => 'danger',
+                'warning' => 'warning',
+                'success' => 'success',
+                'debug' => 'secondary',
+                default => 'primary',
+            };
+        };
+    @endphp
 
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm">{{ session('success') }}</div>

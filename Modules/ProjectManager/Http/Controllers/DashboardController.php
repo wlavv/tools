@@ -326,7 +326,7 @@ class DashboardController extends Controller
                 ->where('public_url', '<>', '');
 
             if (Schema::hasColumn('wt_project_assets', 'type')) {
-                $query->whereIn('type', ['logo', 'icon', 'image']);
+                $query->where('type', 'logo');
             }
 
             $logoRows = $query
@@ -345,16 +345,8 @@ class DashboardController extends Controller
 
         return $projects->map(function ($project) use ($assetLogos) {
             $projectId = (int) ($project->id ?? 0);
-            $projectLogo = null;
 
-            foreach (['logo', 'logo_url', 'image', 'icon'] as $column) {
-                if (property_exists($project, $column) && !empty($project->{$column})) {
-                    $projectLogo = $project->{$column};
-                    break;
-                }
-            }
-
-            $project->project_logo_url = $projectLogo ?: ($assetLogos[$projectId] ?? null);
+            $project->project_logo_url = $assetLogos[$projectId] ?? null;
             $project->project_initials = $this->projectInitials($project->name ?? ('P' . $projectId));
 
             return $project;

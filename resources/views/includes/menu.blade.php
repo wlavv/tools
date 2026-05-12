@@ -13,6 +13,7 @@
     $menuItemsExtra = [
         ['route' => 'family.index', 'label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child'],
         ['route' => 'webcatalogue.index', 'label' => 'Web Catalogue', 'icon' => 'fa-solid fa-book-open'],
+        ['route' => 'erp.dashboard', 'label' => 'ERP', 'icon' => 'fa-solid fa-diagram-project'],
         ['route' => 'multiStore.index', 'label' => "Store's", 'icon' => 'fa-solid fa-store'],
     ];
 @endphp
@@ -39,7 +40,7 @@
     </div>
     @endif
 
-    <div style="margin-top: 10px;">OTHERS</div>
+    <div class="sidebar-section-label">OTHERS</div>
     <div class="sidebar-nav-list sidebar-nav-main-list">
         @foreach($menuItemsExtra as $item)
             @if(Route::has($item['route']))

@@ -1,0 +1,17 @@
+{
+    "name": "ERP",
+    "alias": "erp",
+    "slug": "erp",
+    "description": "ERP module for WebTools Manager, evolved from OMS with LSG timeline workflow style.",
+    "keywords": ["erp", "oms", "orders", "suppliers", "procurement", "receptions", "timeline"],
+    "priority": 10,
+    "providers": [
+        "Modules\\ERP\\Providers\\ERPServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "enabled": true,
+    "version": "1.0.1",
+    "provider": "Modules\\ERP\\Providers\\ERPServiceProvider"
+}

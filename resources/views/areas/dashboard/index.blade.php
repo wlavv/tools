@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
-@include('areas.dashboard.includes.js')
-@include('areas.dashboard.includes.css')
+@push('styles')
+    @include('areas.dashboard.includes.css')
+@endpush
+
+@push('scripts')
+    @include('areas.dashboard.includes.js')
+@endpush
 
 @section('content')
     @php

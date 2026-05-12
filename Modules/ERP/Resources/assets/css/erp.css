@@ -1,0 +1,548 @@
+.erp-shell {
+    --erp-radius: 5px;
+    --erp-surface: var(--bo-card-bg, var(--bg-card, #202833));
+    --erp-surface-soft: var(--bg-card-2, #252f3b);
+    --erp-input: rgba(255, 255, 255, .04);
+    --erp-border: var(--border-soft, rgba(255, 255, 255, .08));
+    --erp-text: var(--text-primary, #e8edf4);
+    --erp-muted: var(--text-muted, #7e8998);
+    --erp-accent: var(--accent, #c9a86a);
+    --erp-blue: var(--accent-2, #8ea4ff);
+    --erp-green: var(--success, #4bb782);
+    --erp-orange: var(--warning, #d9aa59);
+    --erp-red: var(--danger, #c86e72);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: var(--erp-text);
+}
+
+body.theme-light .erp-shell,
+body[data-theme="light"] .erp-shell {
+    --erp-surface: var(--bg-card, #ffffff);
+    --erp-surface-soft: var(--bg-card-2, #f7f9fc);
+    --erp-input: rgba(21, 32, 51, .035);
+    --erp-border: var(--border-soft, rgba(21, 32, 51, .2));
+    --erp-text: var(--text-primary, #1a2433);
+    --erp-muted: var(--text-muted, #7d8a9a);
+}
+
+.erp-shell .lsg-card {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--erp-surface) 96%, transparent) 0%, color-mix(in srgb, var(--erp-surface-soft) 74%, var(--erp-surface)) 100%);
+    box-shadow: var(--shadow-soft, 0 10px 30px rgba(0, 0, 0, .22));
+    color: var(--erp-text);
+}
+
+.erp-shell > .erp-hero,
+.erp-panel > .erp-panel-header:has(.lsg-action-btn) {
+    display: none !important;
+}
+
+.erp-hero {
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.erp-kicker,
+.erp-panel-title,
+.erp-task-group-header span,
+.erp-task-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.erp-kicker {
+    color: var(--erp-accent);
+    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: .12em;
+}
+
+.erp-hero h1 {
+    margin: 6px 0;
+    font-size: 26px;
+    line-height: 1.1;
+    font-weight: 900;
+}
+
+.erp-hero p,
+.erp-panel-header small,
+.erp-flow-tab-text small,
+.erp-current-step p,
+.erp-next-action-box p,
+.erp-task-item,
+.erp-stage-summary span,
+.erp-suggestion span {
+    color: var(--erp-muted);
+}
+
+.erp-hero p,
+.erp-next-action-box p,
+.erp-current-step p {
+    margin: 0;
+}
+
+.erp-hero-actions,
+.erp-panel-header,
+.erp-next-action-box,
+.erp-config-row,
+.erp-stage-summary div {
+    display: flex;
+    gap: 12px;
+}
+
+.erp-hero-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.erp-panel,
+.erp-timeline-card {
+    padding: 16px;
+}
+
+.erp-panel-header {
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+.erp-panel-title {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.erp-panel-title.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.erp-panel-title i,
+.erp-kicker i,
+.erp-task-title i,
+.erp-config-row i {
+    color: var(--erp-accent);
+}
+
+.erp-flow-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 2px 6px;
+}
+
+.erp-flow-tabs::before {
+    content: "";
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    top: 34px;
+    height: 2px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--erp-accent) 52%, transparent), color-mix(in srgb, var(--erp-border) 78%, transparent));
+    z-index: 0;
+}
+
+.erp-flow-tab {
+    position: relative;
+    z-index: 1;
+    min-height: 86px;
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius);
+    background: color-mix(in srgb, var(--erp-surface) 84%, transparent);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+        "index text"
+        "icon text";
+    column-gap: 10px;
+    text-align: left;
+    text-decoration: none;
+    color: var(--erp-text);
+    transition: box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.erp-flow-tab:hover,
+.erp-flow-tab.is-active {
+    border-color: color-mix(in srgb, var(--erp-accent) 52%, var(--erp-border));
+    background: color-mix(in srgb, var(--erp-accent) 10%, var(--erp-surface));
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--erp-accent) 14%, transparent);
+    color: var(--erp-text);
+    text-decoration: none;
+}
+
+.erp-flow-tab[aria-disabled="true"] {
+    opacity: .58;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.erp-flow-tab-index,
+.erp-flow-tab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--erp-radius);
+}
+
+.erp-flow-tab-index {
+    grid-area: index;
+    width: 24px;
+    height: 24px;
+    background: color-mix(in srgb, var(--erp-accent) 12%, transparent);
+    color: var(--erp-accent);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.erp-flow-tab-icon {
+    grid-area: icon;
+    width: 32px;
+    height: 32px;
+    background: var(--erp-input);
+    color: var(--erp-accent);
+}
+
+.erp-flow-tab-text {
+    grid-area: text;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.erp-flow-tab-text strong {
+    font-size: 14px;
+}
+
+.erp-flow-tab--active .erp-flow-tab-index,
+.erp-flow-tab.is-active .erp-flow-tab-index {
+    background: var(--erp-accent);
+    color: #111827;
+}
+
+.erp-flow-tab--pending .erp-flow-tab-index {
+    background: color-mix(in srgb, var(--erp-orange) 14%, transparent);
+    color: var(--erp-orange);
+}
+
+.erp-flow-tab--locked .erp-flow-tab-index {
+    background: color-mix(in srgb, var(--erp-muted) 14%, transparent);
+    color: var(--erp-muted);
+}
+
+.erp-current-step,
+.erp-next-action-box,
+.erp-task-group,
+.erp-suggestion,
+.erp-table-shell {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius);
+    background: color-mix(in srgb, var(--erp-surface-soft) 74%, transparent);
+}
+
+.erp-current-step,
+.erp-next-action-box,
+.erp-task-group,
+.erp-suggestion {
+    padding: 14px;
+}
+
+.erp-current-step-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.erp-current-step-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: var(--erp-radius);
+    background: color-mix(in srgb, var(--erp-accent) 14%, transparent);
+    color: var(--erp-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex: 0 0 58px;
+}
+
+.erp-current-step h2 {
+    margin: 0 0 4px;
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.erp-current-step-progress {
+    margin-top: 14px;
+}
+
+.erp-progress-label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--erp-muted);
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.erp-progress-track {
+    height: 8px;
+    border-radius: var(--erp-radius);
+    background: color-mix(in srgb, var(--erp-muted) 18%, transparent);
+    overflow: hidden;
+}
+
+.erp-progress-track span {
+    display: block;
+    width: var(--erp-progress, 0%);
+    height: 100%;
+    border-radius: var(--erp-radius);
+    background: linear-gradient(90deg, var(--erp-accent), color-mix(in srgb, var(--erp-accent) 54%, #ffffff));
+}
+
+.erp-next-action-box {
+    margin-top: 14px;
+    justify-content: space-between;
+    align-items: center;
+    border-color: color-mix(in srgb, var(--erp-accent) 28%, var(--erp-border));
+}
+
+.erp-task-stack,
+.erp-task-list,
+.erp-stage-summary,
+.erp-suggestion {
+    display: grid;
+}
+
+.erp-task-stack {
+    gap: 10px;
+}
+
+.erp-task-group.is-active {
+    border-color: color-mix(in srgb, var(--erp-accent) 38%, var(--erp-border));
+    box-shadow: inset 3px 0 0 var(--erp-accent);
+}
+
+.erp-task-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.erp-task-list {
+    gap: 6px;
+}
+
+.erp-task-item {
+    align-items: flex-start;
+    font-size: 13px;
+    margin: 0;
+}
+
+.erp-task-item input {
+    margin-top: 3px;
+    accent-color: var(--erp-accent);
+}
+
+.erp-table-shell {
+    overflow: auto;
+}
+
+.erp-table {
+    color: var(--erp-text);
+}
+
+.erp-table thead th {
+    background: color-mix(in srgb, var(--erp-surface-soft) 88%, transparent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--erp-muted);
+    border-bottom: 1px solid var(--erp-border);
+    white-space: nowrap;
+}
+
+.erp-table td,
+.erp-table th {
+    border-color: var(--erp-border);
+    vertical-align: middle;
+}
+
+.erp-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.erp-badge,
+.erp-stage-status,
+.erp-config-row code,
+.erp-table code {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius);
+    background: var(--erp-input);
+}
+
+.erp-badge,
+.erp-stage-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.erp-badge-info,
+.erp-stage-status--active {
+    color: var(--erp-blue);
+    background: color-mix(in srgb, var(--erp-blue) 10%, transparent);
+}
+
+.erp-badge-warning {
+    color: var(--erp-orange);
+    background: color-mix(in srgb, var(--erp-orange) 12%, transparent);
+    border-color: color-mix(in srgb, var(--erp-orange) 28%, var(--erp-border));
+}
+
+.erp-badge-success {
+    color: var(--erp-green);
+    background: color-mix(in srgb, var(--erp-green) 12%, transparent);
+    border-color: color-mix(in srgb, var(--erp-green) 28%, var(--erp-border));
+}
+
+.erp-stage-summary {
+    gap: 9px;
+}
+
+.erp-stage-summary div {
+    justify-content: space-between;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--erp-border);
+}
+
+.erp-stage-summary div:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.erp-suggestion {
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.erp-config-row {
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--erp-border);
+}
+
+.erp-config-row:last-child {
+    border-bottom: 0;
+}
+
+.erp-config-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.erp-config-row code,
+.erp-table code {
+    color: var(--erp-text);
+    padding: 3px 6px;
+}
+
+.erp-status-icon {
+    color: var(--erp-status-color, var(--erp-accent));
+}
+
+.erp-shell .lsg-action-btn {
+    border-radius: var(--erp-radius);
+}
+
+.erp-shell .lsg-action-btn--primary {
+    --lsg-action-bg: rgba(78, 141, 255, .14);
+    --lsg-action-border: rgba(78, 141, 255, .34);
+    --lsg-action-text: #dbeafe;
+    --lsg-action-icon: #93c5fd;
+    --lsg-action-glow: rgba(78, 141, 255, .22);
+    --lsg-action-text-hover: #fff;
+}
+
+body.theme-light .erp-shell .lsg-action-btn--primary,
+body[data-theme="light"] .erp-shell .lsg-action-btn--primary {
+    --lsg-action-bg: rgba(78, 141, 255, .10);
+    --lsg-action-border: rgba(78, 141, 255, .24);
+    --lsg-action-text: #2f5fae;
+    --lsg-action-icon: #3b82f6;
+    --lsg-action-glow: rgba(78, 141, 255, .16);
+    --lsg-action-text-hover: #18212b;
+}
+
+.erp-shell .lsg-action-btn--compact {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+}
+
+@media (max-width: 1199px) {
+    .erp-flow-tabs {
+        grid-template-columns: repeat(6, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .erp-hero,
+    .erp-next-action-box,
+    .erp-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .erp-hero-actions {
+        justify-content: flex-start;
+    }
+
+    .erp-flow-tabs {
+        grid-template-columns: repeat(6, minmax(172px, 1fr));
+    }
+
+    .erp-current-step-main {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .erp-hero,
+    .erp-panel,
+    .erp-timeline-card {
+        padding: 14px;
+    }
+
+    .erp-current-step-main {
+        flex-direction: column;
+    }
+
+    .erp-current-step-icon {
+        width: 48px;
+        height: 48px;
+        flex-basis: 48px;
+        font-size: 20px;
+    }
+}

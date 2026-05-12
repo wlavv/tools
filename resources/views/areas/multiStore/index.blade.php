@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
-    @include("areas.multiStore.includes.js")
-    @include("areas.multiStore.includes.css")
+@push('styles')
+    @include('areas.multiStore.includes.css')
+@endpush
+
+@push('scripts')
+    @include('areas.multiStore.includes.js')
+@endpush
 
 @section('content')
 

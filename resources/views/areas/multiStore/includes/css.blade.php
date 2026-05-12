@@ -6,6 +6,14 @@
         padding: 14px;
     }
 
+    .page-content-stack:has(> .multistore-dashboard-panel) {
+        gap: 8px;
+    }
+
+    .quick-access-panel + .multistore-dashboard-panel {
+        margin-top: 0;
+    }
+
     .multistore-dashboard-panel__head {
         display: flex;
         align-items: flex-start;
@@ -54,5 +62,13 @@
 
     .quick-access-panel .quick-access-title {
         overflow-wrap: anywhere;
+    }
+
+    .quick-access-panel .quick-access-icon img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 6px;
     }
 </style>

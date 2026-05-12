@@ -12,16 +12,74 @@
         return !empty($settings['icon']) ? $settings['icon'] : 'fa-solid fa-store';
     };
 
-    $storeLogo = function ($store) use ($storeSettings) {
+    $normaliseLogoUrl = function ($value) {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (preg_match('#^(https?:)?//#', $value) || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+
+        $path = ltrim($value, '/');
+
+        foreach (['storage/', 'admin/', 'modules/', 'assets/', 'uploads/', 'images/'] as $publicPrefix) {
+            if (str_starts_with($path, $publicPrefix)) {
+                return asset($path);
+            }
+        }
+
+        return asset('storage/' . $path);
+    };
+
+    $storeLogo = function ($store) use ($storeSettings, $normaliseLogoUrl) {
+        foreach (['logo_path', 'logo', 'logo_url', 'image', 'image_url', 'brand_logo', 'store_logo'] as $key) {
+            $logo = $normaliseLogoUrl($store->{$key} ?? null);
+
+            if ($logo) {
+                return $logo;
+            }
+        }
+
         $settings = $storeSettings($store);
 
-        foreach (['logo', 'logo_url', 'image', 'image_url'] as $key) {
-            if (!empty($settings[$key])) {
-                return $settings[$key];
+        foreach (['logo_path', 'logo', 'logo_url', 'image', 'image_url', 'brand_logo', 'store_logo'] as $key) {
+            $logo = $normaliseLogoUrl($settings[$key] ?? null);
+
+            if ($logo) {
+                return $logo;
+            }
+        }
+
+        foreach (['branding', 'brand', 'front', 'theme'] as $group) {
+            if (!is_array($settings[$group] ?? null)) {
+                continue;
+            }
+
+            foreach (['logo_path', 'logo', 'logo_url', 'image', 'image_url'] as $key) {
+                $logo = $normaliseLogoUrl($settings[$group][$key] ?? null);
+
+                if ($logo) {
+                    return $logo;
+                }
             }
         }
 
         return null;
+    };
+
+    $storeUrl = function ($store) {
+        $domain = trim((string) ($store->domain ?? ''));
+
+        if ($domain === '') {
+            return null;
+        }
+
+        return str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://')
+            ? $domain
+            : 'https://' . $domain;
     };
 
     $scoreColor = function ($score) {
@@ -99,7 +157,19 @@
                 font-size: 20px;
             }
 
+            a.catalog-store-insight__logo {
+                text-decoration: none;
+                transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+            }
+
+            a.catalog-store-insight__logo:hover {
+                border-color: rgba(212, 160, 23, .7);
+                box-shadow: 0 8px 18px rgba(15, 23, 42, .10);
+                transform: translateY(-1px);
+            }
+
             .catalog-store-insight__logo img {
+                display: block;
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
@@ -275,6 +345,7 @@
             @php
                 $metric = $pageSpeedMetrics->get($store->id);
                 $logo = $storeLogo($store);
+                $url = $storeUrl($store);
                 $scores = [
                     ['label' => 'Desempenho', 'value' => $metric?->performance_score],
                     ['label' => 'Acessibilidade', 'value' => $metric?->accessibility_score],
@@ -285,13 +356,23 @@
 
             <article class="catalog-store-insight">
                 <div class="catalog-store-insight__head">
-                    <span class="catalog-store-insight__logo">
-                        @if($logo)
-                            <img src="{{ $logo }}" alt="{{ $store->name }}">
-                        @else
-                            <i class="{{ $storeIcon($store) }}"></i>
-                        @endif
-                    </span>
+                    @if($url)
+                        <a class="catalog-store-insight__logo" href="{{ $url }}" target="_blank" rel="noopener noreferrer" title="Abrir {{ $store->name }}">
+                            @if($logo)
+                                <img src="{{ $logo }}" alt="{{ $store->name }}">
+                            @else
+                                <i class="{{ $storeIcon($store) }}"></i>
+                            @endif
+                        </a>
+                    @else
+                        <span class="catalog-store-insight__logo">
+                            @if($logo)
+                                <img src="{{ $logo }}" alt="{{ $store->name }}">
+                            @else
+                                <i class="{{ $storeIcon($store) }}"></i>
+                            @endif
+                        </span>
+                    @endif
                     <span class="catalog-store-insight__title">
                         <strong>{{ $store->name }}</strong>
                         <small>

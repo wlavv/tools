@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
-    @include("areas.finance.includes.js")
-    @include("areas.finance.includes.css")
+@push('styles')
+    @include('areas.finance.includes.css')
+@endpush
+
+@push('scripts')
+    @include('areas.finance.includes.js')
+@endpush
 
 @section('content')
-
-<div class="page-content-stack">
-</div>
 @endsection

@@ -52,6 +52,7 @@
     @auth
         @include('documentmanager::Includes.css')
     @endauth
+    @stack('styles')
 
 </head>
 <body data-theme="dark" data-bs-theme="dark" class="theme-dark">
@@ -92,18 +93,18 @@
                             <header class="app-topbar top_container">
                                 <div class="app-topbar-inner {{ $hasTopbarActions ? 'has-topbar-actions' : 'no-topbar-actions' }}">
                                     <div class="topbar-left">
-                                        <div id="breadcrumbs" class="breadcrumbs-card">
-                                            @include('includes.breadcrumbs')
+                                        <div id="breadcrumbs" class="breadcrumbs-card {{ $hasTopbarActions ? 'has-breadcrumb-actions' : '' }}">
+                                            <div class="breadcrumbs-card-main">
+                                                @include('includes.breadcrumbs')
+                                            </div>
+
+                                            @if($hasTopbarActions)
+                                                <div id="extraMenu" class="breadcrumbs-actions">
+                                                    @include('includes.action')
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
-
-                                    @if($hasTopbarActions)
-                                        <div class="topbar-right">
-                                            <div id="extraMenu" class="quick-toolbar quick-toolbar-actions">
-                                                @include('includes.action')
-                                            </div>
-                                        </div>
-                                    @endif
                                 </div>
                             </header>
 
@@ -135,6 +136,7 @@
     @endauth
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('assets/js/lsg-select2.js') }}"></script>
+    @stack('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             if (typeof jQuery === 'undefined' || typeof jQuery.fn.DataTable === 'undefined') {

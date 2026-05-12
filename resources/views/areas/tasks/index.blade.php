@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
-    @include("areas.tasks.includes.js")
-    @include("areas.tasks.includes.css")
+@push('styles')
+    @include('areas.tasks.includes.css')
+@endpush
+
+@push('scripts')
+    @include('areas.tasks.includes.js')
+@endpush
 
 @section('content')
 

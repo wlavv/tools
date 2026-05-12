@@ -26,7 +26,7 @@
     --danger: #c86e72;
     --radius-sm: 5px;
     --radius-md: 5px;
-    --radius-lg: 15px;
+    --radius-lg: 5px;
     --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.22);
     --lsg-select-border-focus: #d4a017;
     --lsg-select-focus-shadow: rgba(212, 160, 23, .18);
@@ -107,14 +107,9 @@ main {
 }
 
 .topbar-left {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
     min-width: 0;
-}
-
-.topbar-right {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: stretch;
+    width: 100%;
 }
 
 .breadcrumbs-card,
@@ -128,6 +123,25 @@ main {
 
 .breadcrumbs-card {
     padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+}
+
+.breadcrumbs-card-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.breadcrumbs-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+    max-width: 52%;
 }
 
 .quick-toolbar {
@@ -475,7 +489,7 @@ textarea::placeholder {
 .quick-access-panel {
     padding: 18px;
     margin-top: 0;
-    margin-bottom: 22px;
+    margin-bottom: 10px;
 }
 
 .quick-access-grid {
@@ -726,13 +740,23 @@ textarea::placeholder {
         flex-direction: column;
     }
 
-    .topbar-right {
-        width: 100%;
-    }
-
     .quick-toolbar {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .breadcrumbs-card.has-breadcrumb-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .breadcrumbs-actions {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .breadcrumbs-actions .lsg-page-actions {
+        justify-content: flex-start;
     }
 }
 
@@ -805,6 +829,10 @@ textarea::placeholder {
 
     .breadcrumbs-card {
         padding: 14px;
+    }
+
+    .breadcrumbs-card.has-breadcrumb-actions {
+        gap: 12px;
     }
 
     .sideMenuLogo {
@@ -1619,6 +1647,12 @@ body.sidebar-collapsed .sidebar-footer-tool {
         width: calc(33.333% - 7px);
     }
 }
+
+@media (max-width: 767.98px) {
+    .sidebar-menu > .sidebar-nav-list:last-child {
+        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    }
+}
 .breadcrumbs-shell ul {
     display: flex;
     flex-wrap: wrap;
@@ -1685,7 +1719,7 @@ body.theme-light .lsg-action-btn--success,body[data-theme="light"] .lsg-action-b
 body.theme-light .lsg-action-btn--warning,body[data-theme="light"] .lsg-action-btn--warning{--lsg-action-bg:rgba(245,158,11,.10);--lsg-action-border:rgba(245,158,11,.20);--lsg-action-text:#92400e;--lsg-action-icon:#d97706;--lsg-action-glow:rgba(245,158,11,.16);--lsg-action-text-hover:#18212b}
 body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-btn--danger{--lsg-action-bg:rgba(239,68,68,.10);--lsg-action-border:rgba(239,68,68,.18);--lsg-action-text:#991b1b;--lsg-action-icon:#dc2626;--lsg-action-glow:rgba(239,68,68,.16);--lsg-action-text-hover:#18212b}
 
-@media (max-width:991.98px){.lsg-page-actions{justify-content:flex-start}}
+@media (max-width:991.98px){.lsg-page-actions{justify-content:flex-start}.breadcrumbs-actions .lsg-page-actions{justify-content:flex-end}}
 @media (max-width:575.98px){.lsg-page-actions{width:100%}.lsg-action-form{flex:1 1 calc(50% - .35rem)}.lsg-action-btn{width:100%;padding:0 .8rem}.lsg-action-btn__label{font-size:.75rem}}
 
 #rendimentos.card,
@@ -1754,80 +1788,6 @@ body[data-theme="light"] #savings.card {
 
 
 
-
-/* =========================================
-   LSG ACTION SYSTEM V2
-========================================= */
-
-.lsg-page-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    padding: 6px;
-    border-radius: 8px;
-
-    background: rgba(255,255,255,0.04);
-    backdrop-filter: blur(6px);
-
-}
-
-/* Base */
-.lsg-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 6px 12px;
-
-    font-size: 13px;
-    font-weight: 500;
-
-    border-radius: 6px;
-    border: 1px solid var(--border-soft);
-
-    background: rgba(255,255,255,0.05);
-
-    transition: all 0.15s ease;
-}
-
-/* Hover */
-.lsg-action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-soft);
-    background: rgba(255,255,255,0.08);
-}
-
-/* Icon */
-.lsg-action-btn__icon {
-    font-size: 13px;
-    opacity: 0.85;
-}
-
-/* PRIMARY */
-.lsg-action-btn--primary {
-    background: linear-gradient(180deg, #4f8cff, #3b6fd8);
-    border: none;
-    color: #fff;
-}
-
-/* NEUTRAL */
-.lsg-action-btn--neutral {
-    background: rgba(255,255,255,0.03);
-}
-
-/* WARNING */
-.lsg-action-btn--warning {
-    color: #d9aa59;
-}
-
-/* DANGER */
-.lsg-action-btn--danger {
-    color: #c86e72;
-    background: rgba(200,110,114,0.08);
-}
-
-.lsg-action-btn__glow { display: none !important; }
 
 /* =========================================
    LSG SELECT2 GOLD ACTIVE STATE
