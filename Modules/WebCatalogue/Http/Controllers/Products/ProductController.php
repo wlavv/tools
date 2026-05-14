@@ -30,7 +30,7 @@ class ProductController extends Controller
 
     public function index(Request $request): View
     {
-        $items = Product::query()->with(['store','mainImageResource','prices'])->withCount(['resources','catalogues'])->latest('id')->get();
+        $items = Product::query()->with(['store','mainImageResource','prices'])->withCount(['resources','catalogues'])->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::products.index', compact('items'));
     }
 

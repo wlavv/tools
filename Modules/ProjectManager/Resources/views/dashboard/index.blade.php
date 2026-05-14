@@ -17,6 +17,15 @@
     $quickMilestones = $quickMilestones ?? collect();
     $quickParentTasks = $quickParentTasks ?? collect();
     $selectedProjectId = $selectedProjectId ?? null;
+    $moduleGovernance = $moduleGovernance ?? [
+        'available' => false,
+        'has_scan' => false,
+        'counters' => ['modules' => 0, 'broken' => 0, 'incomplete' => 0, 'functional' => 0, 'enhanced' => 0, 'saas_candidates' => 0, 'dependency_impacts' => 0],
+        'critical_modules' => collect(),
+        'saas_candidates' => collect(),
+        'component_groups' => ['required' => collect(), 'recommended' => collect(), 'optional' => collect()],
+        'phase_flow' => collect(),
+    ];
 
     $matrixGroups = [
         'do_now' => ['label' => 'Fazer agora', 'hint' => 'Importante + urgente', 'importance' => 5, 'urgency' => 5, 'items' => collect(), 'icon' => 'fa-fire'],
@@ -175,6 +184,101 @@
             </aside>
 
             <main class="pm-main-zone">
+                <div class="pm-card mb-3 pm-governance-card">
+                    <div class="pm-section-bar">
+                        <div>
+                            <div class="pm-card-title"><i class="fa-solid fa-shield-halved"></i> Operations/Core Governance</div>
+                            <div class="pm-card-subtitle mb-0">ModuleHealth feed para closure estrutural, readiness e impacto nas dependências.</div>
+                        </div>
+                        <div class="pm-quick-actions">
+                            @if(Route::has('module_health.index'))
+                                <a class="pm-btn" href="{{ route('module_health.index') }}"><i class="fa-solid fa-heart-pulse"></i> ModuleHealth</a>
+                            @endif
+                            @if(Route::has('module_health.scan.run'))
+                                <form method="POST" action="{{ route('module_health.scan.run') }}">
+                                    @csrf
+                                    <button class="pm-btn pm-btn--primary" type="submit"><i class="fa-solid fa-rotate"></i> Scan</button>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if(!($moduleGovernance['available'] ?? false))
+                        <div class="pm-empty">ModuleHealth ainda não está disponível para leitura. O ProjectManager fica pronto para consumir o feed assim que as tabelas existirem.</div>
+                    @elseif(!($moduleGovernance['has_scan'] ?? false))
+                        <div class="pm-empty">Sem scan estrutural ainda. Corre um scan no ModuleHealth para ativar a matriz de closure.</div>
+                    @else
+                        <div class="pm-governance-top">
+                            <div class="pm-mini-stat"><span>Modules</span><strong>{{ $moduleGovernance['counters']['modules'] ?? 0 }}</strong></div>
+                            <div class="pm-mini-stat"><span>Closure blockers</span><strong>{{ ($moduleGovernance['counters']['broken'] ?? 0) + ($moduleGovernance['counters']['incomplete'] ?? 0) }}</strong></div>
+                            <div class="pm-mini-stat"><span>SaaS candidates</span><strong>{{ $moduleGovernance['counters']['saas_candidates'] ?? 0 }}</strong></div>
+                            <div class="pm-mini-stat"><span>Dependency impacts</span><strong>{{ $moduleGovernance['counters']['dependency_impacts'] ?? 0 }}</strong></div>
+                        </div>
+
+                        <div class="pm-execution-flow">
+                            @foreach(($moduleGovernance['phase_flow'] ?? collect()) as $phase)
+                                <div class="pm-flow-node {{ ($phase['blocked'] ?? 0) > 0 ? 'has-blockers' : '' }}">
+                                    <span>{{ $phase['label'] }}</span>
+                                    <strong>{{ $phase['count'] }}</strong>
+                                    <small>{{ $phase['blocked'] }} blocked / {{ $phase['ready'] }} ready</small>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="pm-governance-grid">
+                            <div class="pm-governance-panel">
+                                <div class="pm-card-title"><i class="fa-solid fa-table-list"></i> Module Closure Matrix</div>
+                                @foreach(['required' => 'Required Components', 'recommended' => 'Recommended Components', 'optional' => 'Optional Components'] as $groupKey => $groupLabel)
+                                    <div class="pm-component-group">
+                                        <div class="pm-component-group-title">{{ $groupLabel }}</div>
+                                        <div class="pm-component-list">
+                                            @foreach(($moduleGovernance['component_groups'][$groupKey] ?? collect())->take(8) as $component)
+                                                <div class="pm-component-row">
+                                                    <span>{{ $component['label'] }}</span>
+                                                    <strong>{{ $component['coverage'] }}%</strong>
+                                                    <div class="pm-progress-track"><span style="width: {{ $component['coverage'] }}%"></span></div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="pm-governance-panel">
+                                <div class="pm-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Closure Blockers</div>
+                                <div class="pm-governance-list">
+                                    @forelse(($moduleGovernance['critical_modules'] ?? collect()) as $module)
+                                        <div class="pm-governance-module">
+                                            <div>
+                                                <strong>{{ $module->module_name }}</strong>
+                                                <small>{{ $module->dependency_impact }} · {{ $module->completion }}%</small>
+                                            </div>
+                                            <span class="pm-pill pm-pill--danger">{{ $module->status }}</span>
+                                        </div>
+                                    @empty
+                                        <div class="pm-empty pm-empty--small">Sem blockers estruturais no último scan.</div>
+                                    @endforelse
+                                </div>
+
+                                <div class="pm-card-title mt-3"><i class="fa-solid fa-rocket"></i> SaaS Readiness</div>
+                                <div class="pm-governance-list">
+                                    @forelse(($moduleGovernance['saas_candidates'] ?? collect()) as $module)
+                                        <div class="pm-governance-module">
+                                            <div>
+                                                <strong>{{ $module->module_name }}</strong>
+                                                <small>{{ $module->execution_phase }} · {{ count($module->present_optional_list ?? []) }} optional capabilities</small>
+                                            </div>
+                                            <span class="pm-pill pm-pill--success">{{ $module->saas_score }}%</span>
+                                        </div>
+                                    @empty
+                                        <div class="pm-empty pm-empty--small">Ainda sem candidatos SaaS fortes. Fecha primeiro os blocos Operations.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 <div class="pm-card mb-3">
                     <div class="pm-section-bar">
                         <div>

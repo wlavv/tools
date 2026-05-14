@@ -16,7 +16,7 @@
                         <select class="form-select" name="context_id">
                             <option value="">-- none --</option>
                             @foreach($contexts as $context)
-                                <option value="{{ $context->id }}">{{ $context->name }}</option>
+                                <option value="{{ $context->id }}" @selected((string) old('context_id') === (string) $context->id)>{{ $context->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -55,11 +55,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Reference Type</label>
-                        <input class="form-control" name="reference_type">
+                        <input class="form-control" name="reference_type" value="{{ old('reference_type') }}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Reference ID</label>
-                        <input class="form-control" name="reference_id" type="number">
+                        <input class="form-control" name="reference_id" type="number" value="{{ old('reference_id') }}">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Description</label>

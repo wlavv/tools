@@ -6,7 +6,7 @@
         </button>
 
         <div class="breadcrumbs-copy">
-            <h3>{{ $pageTitle ?? __('breadcrumbs.home') }}</h3>
+            <h3>{{ is_string($pageTitle ?? null) ? $pageTitle : __('breadcrumbs.home.index') }}</h3>
 
             @php
                 $hasBreadcrumbs = isset($breadcrumbs) && is_array($breadcrumbs) && count($breadcrumbs) > 0;

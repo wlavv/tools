@@ -8,7 +8,9 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
+use Modules\PermissionRoleManager\Services\RoutePermissionAccessService;
 
 class Controller extends BaseController
 {
@@ -176,6 +178,22 @@ class Controller extends BaseController
         $this->shareLayoutData();
     }
 
+    protected function addRouteAccess(string $routeName, string $name, ?string $icon = null, ?string $image = null, array $params = []): void
+    {
+        if (!Route::has($routeName)) {
+            return;
+        }
+
+        $allowed = app(RoutePermissionAccessService::class)
+            ->canAccessRouteName(auth()->id(), $routeName);
+
+        if (!$allowed) {
+            return;
+        }
+
+        $this->addAccess(route($routeName, $params), $name, $icon, $image);
+    }
+
     protected function resetAccessList(): void
     {
         $this->accessList = [];
@@ -230,7 +248,7 @@ class Controller extends BaseController
 
             $breadcrumbs[] = [
                 'label'     => $this->resolveBreadcrumbLabel($rawLabel, $translate),
-                'url'       => $this->safeRoute($current, $item['params'] ?? []),
+                'url'       => $this->safeRouteWhenAllowed($current, $item['params'] ?? []),
                 'params'    => $item['params'] ?? [],
                 'translate' => false,
             ];
@@ -304,6 +322,18 @@ class Controller extends BaseController
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    protected function safeRouteWhenAllowed(string $routeName, array $params = []): ?string
+    {
+        $allowed = app(RoutePermissionAccessService::class)
+            ->canAccessRouteName(auth()->id(), $routeName);
+
+        if (!$allowed) {
+            return null;
+        }
+
+        return $this->safeRoute($routeName, $params);
     }
 
     protected function view(string $view, array $data = [])

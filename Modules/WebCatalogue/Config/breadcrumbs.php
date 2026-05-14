@@ -3,7 +3,7 @@
 return [
     'webcatalogue.index' => [
         'label' => 'WebCatalogue',
-        'parent' => null,
+        'parent' => 'webCatalogue.index',
         'translate' => false,
     ],
     'webcatalogue.stores.index' => [

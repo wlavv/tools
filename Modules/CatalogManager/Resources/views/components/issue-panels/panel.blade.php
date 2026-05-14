@@ -2,8 +2,8 @@
     $count = (int)($panel['count'] ?? 0);
 @endphp
 
-<div class="catalog-lsg-panel-card">
-    <div class="catalog-lsg-panel-top">
+<div class="catalog-lsg-panel-card is-collapsed">
+    <button type="button" class="catalog-lsg-panel-top" aria-expanded="false">
         <div class="catalog-lsg-panel-icon">
             <i class="{{ $panel['icon'] ?? 'fa-solid fa-circle-info' }}"></i>
         </div>
@@ -13,8 +13,8 @@
             <span>{{ $panel['description'] ?? '' }}</span>
         </div>
 
-        <div class="catalog-lsg-panel-count">{{ $count }}</div>
-    </div>
+        <div class="catalog-lsg-panel-count {{ $count === 0 ? 'is-ok' : 'is-alert' }}">{{ $count }}</div>
+    </button>
 
     <div class="catalog-lsg-panel-items">
         @forelse(($panel['items'] ?? []) as $item)
@@ -26,9 +26,9 @@
                 <em>{{ $item['badge'] ?? '' }}</em>
             </a>
         @empty
-            <div style="padding:.75rem;color:#15803d;font-size:.82rem;">
+            <div class="catalog-lsg-panel-empty">
                 <i class="fa-solid fa-check"></i>
-                Sem ocorrências.
+                Sem ocorrencias.
             </div>
         @endforelse
     </div>

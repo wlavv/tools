@@ -9,7 +9,7 @@ use Modules\CatalogManager\Support\CatalogTable;
 
 class RunStorePageSpeedInsightsCommand extends Command
 {
-    protected $signature = 'catalog-manager:pagespeed {--strategy=mobile}';
+    protected $signature = 'catalog-manager:pagespeed {--strategy=mobile} {--force}';
 
     protected $description = 'Run one daily Google PageSpeed Insights check per catalog store.';
 
@@ -22,12 +22,22 @@ class RunStorePageSpeedInsightsCommand extends Command
 
         $stores = DB::table('catalog_stores')
             ->where('active', true)
+            ->whereNotNull('domain')
+            ->where('domain', '!=', '')
             ->orderBy('name')
             ->get();
 
-        $results = $service->runDailyForStores($stores, (string) $this->option('strategy'));
+        $results = $service->runDailyForStores(
+            $stores,
+            (string) $this->option('strategy'),
+            (bool) $this->option('force')
+        );
 
         $this->info('PageSpeed checks available today: ' . $results->count());
+
+        $results
+            ->groupBy('status')
+            ->each(fn ($items, $status) => $this->line($status . ': ' . $items->count()));
 
         return self::SUCCESS;
     }

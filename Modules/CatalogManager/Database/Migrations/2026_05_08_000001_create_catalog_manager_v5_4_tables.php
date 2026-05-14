@@ -74,6 +74,8 @@ return new class extends Migration
                 $table->string('code')->unique();
                 $table->string('name');
                 $table->string('domain')->nullable();
+                $table->string('record_type', 24)->default('store')->index();
+                $table->string('site_kind', 24)->default('store')->index();
                 $table->string('locale', 8)->default('pt');
                 $table->string('currency', 3)->default('EUR');
                 $table->boolean('active')->default(true);

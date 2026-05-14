@@ -1,0 +1,21 @@
+{
+    "name": "ErrorCenter",
+    "alias": "error-center",
+    "slug": "error-center",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Administrative Error Center / Exception Viewer for Laravel.",
+    "provider": "Modules\\ErrorCenter\\Providers\\ErrorCenterServiceProvider",
+    "keywords": [
+        "laravel",
+        "errors",
+        "exceptions",
+        "logs",
+        "notifications"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ErrorCenter\\Providers\\ErrorCenterServiceProvider"
+    ],
+    "files": []
+}

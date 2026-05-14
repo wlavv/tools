@@ -22,7 +22,7 @@ class PromotionController extends Controller
     }
     public function index(Request $request): View
     {
-        $items = Promotion::query()->withCount('products')->latest('id')->get();
+        $items = Promotion::query()->withCount('products')->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::promotions.index', compact('items'));
     }
     public function create(): View { return $this->view('webcatalogue::promotions.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.promotions.store'), 'method' => 'POST'])); }

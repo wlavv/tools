@@ -72,6 +72,20 @@
         }
         .system-logs-lsg .sl-pagination { display: flex; gap: .35rem; flex-wrap: wrap; justify-content: flex-end; }
         .system-logs-lsg .sl-pagination .btn.active { pointer-events: none; }
+        .system-logs-lsg .sl-alert-panel { border-left: 0; border-color: rgba(220, 38, 38, 0.24); }
+        .system-logs-lsg .sl-alert-list { display: grid; gap: .65rem; }
+        .system-logs-lsg .sl-alert-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .75rem;
+            align-items: center;
+            padding: .75rem .85rem;
+            border: 1px solid rgba(220, 38, 38, 0.18);
+            background: rgba(220, 38, 38, 0.06);
+        }
+        .system-logs-lsg .sl-alert-message { font-weight: 700; word-break: break-word; }
+        .system-logs-lsg .sl-row-acknowledged { opacity: .62; }
+        .system-logs-lsg .sl-row-actions { width: 1%; white-space: nowrap; }
         @media (max-width: 1400px) {
             .system-logs-lsg .sl-filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
@@ -88,10 +102,12 @@
 <div class="system-logs-lsg">
     @php
         $stats = $stats ?? [];
+        $acknowledgedLogIds = $acknowledgedLogIds ?? [];
+        $unacknowledgedErrorLogs = $unacknowledgedErrorLogs ?? collect();
 
         $levelBadgeClass = function ($level) {
             return match (strtolower((string) $level)) {
-                'error', 'critical' => 'danger',
+                'error', 'critical', 'alert', 'emergency' => 'danger',
                 'warning' => 'warning',
                 'success' => 'success',
                 'debug' => 'secondary',
@@ -114,6 +130,53 @@
             </ul>
         </div>
     @endif
+
+    <div class="sl-card sl-alert-panel mb-3">
+        <div class="sl-table-wrap">
+            <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+                <div>
+                    <h2 class="sl-section-title">{{ __('system-logs::messages.unacknowledged_errors') }}</h2>
+                    <div class="sl-muted small">{{ __('system-logs::messages.unacknowledged_errors_note') }}</div>
+                </div>
+                @if($unacknowledgedErrorLogs->isNotEmpty())
+                    <form method="POST" action="{{ route('system_logs.acknowledge_errors') }}">
+                        @csrf
+                        @foreach($unacknowledgedErrorLogs as $errorLog)
+                            <input type="hidden" name="ids[]" value="{{ $errorLog->id }}">
+                        @endforeach
+                        <button class="btn btn-sm btn-outline-success" type="submit" title="{{ __('system-logs::messages.acknowledge_all') }}">
+                            <i class="fa-solid fa-check-double"></i>
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            @if($unacknowledgedErrorLogs->isEmpty())
+                <div class="sl-muted small">{{ __('system-logs::messages.no_unacknowledged_errors') }}</div>
+            @else
+                <div class="sl-alert-list">
+                    @foreach($unacknowledgedErrorLogs as $errorLog)
+                        <div class="sl-alert-item">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <span class="badge text-bg-{{ $levelBadgeClass($errorLog->level) }}">{{ strtoupper($errorLog->level) }}</span>
+                                    <span class="sl-id">#{{ $errorLog->id }}</span>
+                                    <span class="sl-muted small">{{ optional($errorLog->created_at)->format('Y-m-d H:i:s') }}</span>
+                                </div>
+                                <div class="sl-alert-message">{{ $errorLog->message }}</div>
+                            </div>
+                            <form method="POST" action="{{ route('system_logs.acknowledge', $errorLog) }}">
+                                @csrf
+                                <button class="btn btn-sm btn-outline-success" type="submit" title="{{ __('system-logs::messages.acknowledge') }}">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
 
     <div class="collapse mb-3 {{ $errors->any() ? 'show' : '' }}" id="createSystemLogCard">
         <div class="sl-card sl-form-card">
@@ -219,21 +282,38 @@
                             <th>{{ __('system-logs::messages.context_json') }}</th>
                             <th>{{ __('system-logs::messages.user') }}</th>
                             <th>Date</th>
+                            <th class="sl-row-actions"></th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($logs as $log)
-                            <tr data-level="{{ strtolower((string) $log->level) }}" data-user="{{ (string) ($log->user_id ?? '') }}" data-date="{{ optional($log->created_at)->format('Y-m-d') }}" data-search="{{ strtolower(trim(implode(' ', [$log->id, $log->level, $log->message, $log->context, $log->user_id, optional($log->created_at)->format('Y-m-d H:i:s')]))) }}">
+                            @php
+                                $isActionableLog = in_array(strtolower((string) $log->level), ['error', 'critical', 'alert', 'emergency'], true);
+                                $isAcknowledged = in_array((string) $log->id, $acknowledgedLogIds, true);
+                            @endphp
+                            <tr class="{{ $isAcknowledged ? 'sl-row-acknowledged' : '' }}" data-level="{{ strtolower((string) $log->level) }}" data-user="{{ (string) ($log->user_id ?? '') }}" data-date="{{ optional($log->created_at)->format('Y-m-d') }}" data-search="{{ strtolower(trim(implode(' ', [$log->id, $log->level, $log->message, $log->context, $log->user_id, optional($log->created_at)->format('Y-m-d H:i:s')]))) }}">
                                 <td class="sl-id">#{{ $log->id }}</td>
                                 <td><span class="badge text-bg-{{ $levelBadgeClass($log->level) }}">{{ strtoupper($log->level) }}</span></td>
                                 <td class="sl-message">{{ $log->message }}</td>
                                 <td class="sl-context">@if(!empty($log->context))<pre>{{ $log->context }}</pre>@else<span class="sl-muted">—</span>@endif</td>
                                 <td>{{ $log->user_id ?: '—' }}</td>
                                 <td>{{ optional($log->created_at)->format('Y-m-d H:i:s') }}</td>
+                                <td class="sl-row-actions">
+                                    @if($isActionableLog && !$isAcknowledged)
+                                        <form method="POST" action="{{ route('system_logs.acknowledge', $log) }}">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-success" type="submit" title="{{ __('system-logs::messages.acknowledge') }}">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($isAcknowledged)
+                                        <span class="badge text-bg-success" title="{{ __('system-logs::messages.acknowledged') }}"><i class="fa-solid fa-check"></i></span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6"><div class="sl-empty"><i class="fa-solid fa-rectangle-list fa-2x mb-3"></i><div class="fw-semibold mb-1">{{ __('system-logs::messages.no_logs_available') }}</div><div>{{ __('system-logs::messages.no_logs_help') }}</div></div></td>
+                                <td colspan="7"><div class="sl-empty"><i class="fa-solid fa-rectangle-list fa-2x mb-3"></i><div class="fw-semibold mb-1">{{ __('system-logs::messages.no_logs_available') }}</div><div>{{ __('system-logs::messages.no_logs_help') }}</div></div></td>
                             </tr>
                         @endforelse
                     </tbody>

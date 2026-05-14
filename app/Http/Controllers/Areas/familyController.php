@@ -20,9 +20,9 @@ class familyController extends Controller{
             'users'    => [1]
         ]);
 
-        $this->addAccess( route('tasks.index'),         'Tarefas',      'fa-solid fa-list-check' );
-        $this->addAccess( route('budget.index'),        'Budget',       'fa-solid fa-euro-sign' );
-        $this->addAccess( route('investments.index'),   'Investments',  'fa-solid fa-money-bill-trend-up' );
+        $this->addRouteAccess('tasks.index', 'Tarefas', 'fa-solid fa-list-check');
+        $this->addRouteAccess('budget.index', 'Budget', 'fa-solid fa-euro-sign');
+        $this->addRouteAccess('investments.index', 'Investments', 'fa-solid fa-money-bill-trend-up');
         return $this->view('areas/family/index');
 
     }

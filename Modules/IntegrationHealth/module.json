@@ -1,0 +1,17 @@
+{
+    "name": "IntegrationHealth",
+    "alias": "integration-health",
+    "slug": "integration-health",
+    "description": "Operational health dashboard for integrations, queues, cron jobs, APIs, webhooks and sync processes.",
+    "keywords": ["integration", "health", "dashboard", "monitoring", "observability"],
+    "priority": 0,
+    "providers": [
+        "Modules\\IntegrationHealth\\Providers\\IntegrationHealthServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "enabled": true,
+    "version": "1.0.0",
+    "provider": "Modules\\IntegrationHealth\\Providers\\IntegrationHealthServiceProvider"
+}

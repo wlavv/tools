@@ -3,7 +3,7 @@
 return [
     'system-tools.index' => [
         'label' => 'System Tools',
-        'parent' => 'administration.index',
+        'parent' => 'settings.index',
         'translate' => false,
     ],
 ];

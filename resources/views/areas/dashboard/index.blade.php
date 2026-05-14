@@ -34,6 +34,7 @@
             ['label' => 'Administration', 'icon' => 'fa-solid fa-screwdriver-wrench', 'url' => route('administration.index')],
             ['label' => 'Web', 'icon' => 'fa-solid fa-globe', 'url' => route('web.index')],
             ['label' => 'Finance', 'icon' => 'fa-solid fa-chart-line', 'url' => route('finance.index')],
+            ['label' => 'Purchasing', 'icon' => 'fa-solid fa-cart-flatbed', 'url' => route('purchasing.index')],
             ['label' => 'Marketing', 'icon' => 'fa-solid fa-bullhorn', 'url' => route('marketing.index')],
             ['label' => 'Sales', 'icon' => 'fa-solid fa-basket-shopping', 'url' => route('sales.index')],
         ];

@@ -20,7 +20,7 @@ class EnvironmentController extends Controller
 
     public function index(Request $request): View
     {
-        $items = StoreEnvironment::query()->with('store')->latest('id')->get();
+        $items = StoreEnvironment::query()->with('store')->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::environments.index', compact('items'));
     }
     public function create(): View { return $this->view('webcatalogue::environments.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.environments.store'), 'method' => 'POST'])); }

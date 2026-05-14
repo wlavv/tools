@@ -8,6 +8,10 @@ use Modules\WebCatalogue\Models\Product;
 
 class ArViewerController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function show(Product $product): View
     {
         return view('webcatalogue::viewer.ar.show', compact('product'));

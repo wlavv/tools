@@ -1,0 +1,13 @@
+{
+  "name": "DatabaseExplorer",
+  "slug": "database-explorer",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Módulo metadata-only para análise da estrutura, estatísticas técnicas e health da base de dados.",
+  "provider": "Modules\\DatabaseExplorer\\Providers\\DatabaseExplorerServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

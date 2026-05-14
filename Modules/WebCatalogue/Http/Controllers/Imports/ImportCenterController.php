@@ -5,12 +5,14 @@ namespace Modules\WebCatalogue\Http\Controllers\Imports;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Modules\WebCatalogue\Http\Requests\ConfirmImportBatchRequest;
+use Modules\WebCatalogue\Http\Requests\ImportUploadRequest;
+use Modules\WebCatalogue\Jobs\ProcessImportBatchJob;
 use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Models\CatalogueProduct;
 use Modules\WebCatalogue\Models\ImportBatch;
@@ -76,14 +78,9 @@ class ImportCenterController extends Controller
         ]);
     }
 
-    public function upload(Request $request, string $type): RedirectResponse
+    public function upload(ImportUploadRequest $request, string $type): RedirectResponse
     {
         $template = $this->templateOrFail($type);
-
-        $request->validate([
-            'csv_file' => ['required', 'file', 'mimes:csv,txt'],
-            'id_store' => ['nullable', 'integer'],
-        ]);
 
         $path = $request->file('csv_file')->store(
             'webcatalogue/temp/imports/' . $type,
@@ -118,11 +115,34 @@ class ImportCenterController extends Controller
             'batch' => $batch,
             'type' => $type,
             'template' => $template,
-            'rows' => $batch->rows()->orderBy('row_number')->get(),
+            'rows' => $batch->rows()->orderBy('row_number')->paginate(100)->withQueryString(),
         ]);
     }
 
-    public function confirm(ImportBatch $batch): RedirectResponse
+    public function confirm(ConfirmImportBatchRequest $request, ImportBatch $batch): RedirectResponse
+    {
+        if (in_array($batch->status, ['queued', 'processing'], true)) {
+            return redirect()
+                ->route('webcatalogue.imports.preview', $batch)
+                ->with('success', 'Import is already queued or processing.');
+        }
+
+        $batch->update([
+            'status' => 'queued',
+            'metadata' => array_merge((array) $batch->metadata, [
+                'queued_at' => now()->toDateTimeString(),
+                'queued_by' => auth()->id(),
+            ]),
+        ]);
+
+        ProcessImportBatchJob::dispatch($batch->id);
+
+        return redirect()
+            ->route('webcatalogue.imports.preview', $batch)
+            ->with('success', 'Import queued. You can keep working while it is processed.');
+    }
+
+    public function processBatch(ImportBatch $batch): array
     {
         $type = $this->batchType($batch);
         $template = $this->templateOrFail($type);
@@ -131,7 +151,14 @@ class ImportCenterController extends Controller
         $updated = 0;
         $failed = 0;
 
-        foreach ($batch->rows()->orderBy('row_number')->get() as $row) {
+        $batch->update([
+            'status' => 'processing',
+            'metadata' => array_merge((array) $batch->metadata, [
+                'started_at' => now()->toDateTimeString(),
+            ]),
+        ]);
+
+        foreach ($batch->rows()->orderBy('row_number')->cursor() as $row) {
             if ($row->status === 'invalid') {
                 $failed++;
                 continue;
@@ -162,11 +189,12 @@ class ImportCenterController extends Controller
             'created_rows' => $created,
             'updated_rows' => $updated,
             'failed_rows' => $failed,
+            'metadata' => array_merge((array) $batch->metadata, [
+                'finished_at' => now()->toDateTimeString(),
+            ]),
         ]);
 
-        return redirect()
-            ->route($this->redirectRouteForType($type))
-            ->with('success', 'Import finished. Created: ' . $created . ' · Updated: ' . $updated . ' · Failed: ' . $failed);
+        return compact('created', 'updated', 'failed');
     }
 
     protected function parseBatchRows(ImportBatch $batch, array $template): void

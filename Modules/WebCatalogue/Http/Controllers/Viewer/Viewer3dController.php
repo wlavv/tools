@@ -11,8 +11,6 @@ class Viewer3dController extends Controller
 {
     public function __construct()
     {
-        parent::__construct();
-        $this->pageTitle = $this->resolvePageTitle();
     }
 
     /**

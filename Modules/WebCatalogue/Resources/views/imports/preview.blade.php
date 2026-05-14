@@ -12,10 +12,14 @@
         <p>Valida as linhas antes de gravar. A gravação final cria/atualiza as tabelas reais; o payload é apenas auditoria da importação.</p>
     </div>
     <div class="wc-hero-actions">
+        @if(in_array($batch->status, ['preview_ready', 'preview_with_errors'], true))
         <form id="lsg-form" method="POST" action="{{ route('webcatalogue.imports.confirm', $batch) }}">
             @csrf
             <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-check"></i> Confirmar importação</button>
         </form>
+        @else
+            <span class="wc-badge">{{ $batch->status }}</span>
+        @endif
     </div>
 </div>
 
@@ -58,6 +62,7 @@
             </tbody>
         </table>
     </div>
+    <div class="wc-pagination">{{ $rows->links() }}</div>
 </div>
 </div>
 @endsection

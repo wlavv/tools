@@ -1,0 +1,38 @@
+{
+  "name": "ModuleHealth",
+  "slug": "module-health",
+  "alias": "module-health",
+  "description": "LSG structural module health scanner and capability matrix for WebTools Manager modules.",
+  "keywords": [
+    "lsg",
+    "module",
+    "health",
+    "scanner",
+    "matrix",
+    "diagnostics"
+  ],
+  "priority": 0,
+  "enabled": true,
+  "version": "1.0.0",
+  "provider": "Modules\\ModuleHealth\\Providers\\ModuleHealthServiceProvider",
+  "providers": [
+    "Modules\\ModuleHealth\\Providers\\ModuleHealthServiceProvider"
+  ],
+  "files": [],
+  "requires": [],
+  "type": "operations",
+  "category": "structural-intelligence",
+  "lsg": {
+    "group": "operations",
+    "area": "webtools-manager",
+    "scope": "internal",
+    "style": "lsg",
+    "module_type": "structural",
+    "depends_on": [
+      "webtools-manager-core"
+    ],
+    "feeds": [
+      "project-manager"
+    ]
+  }
+}

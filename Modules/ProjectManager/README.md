@@ -1,22 +1,53 @@
 # ProjectManager
 
-Módulo unificado para gestão de projetos de desenvolvimento.
+ProjectManager is the LSG Operations/Core Governance execution layer.
 
-## Rota base
+It coordinates projects, roadmaps, tasks, milestones, blockers, dependencies,
+module closure, timeline execution, and ecosystem governance.
 
-A rota raiz do módulo é:
+## Ecosystem Strategy
+
+Execution follows:
+
+```text
+Operations -> Labs -> Revenue
+```
+
+Operational tools are validated internally first. Validated workflows can then
+move into Labs for abstraction, and only after that into Revenue as SaaS,
+commercial platforms, or public products.
+
+No future SaaS/public product should depend structurally on
+`webtools-manager.com`.
+
+## ModuleHealth Integration
+
+ProjectManager consumes ModuleHealth scan data, but ModuleHealth remains
+independent.
+
+Current dashboard integration:
+
+- module health matrix
+- required/recommended/optional component coverage
+- closure blockers
+- upgrade opportunities
+- SaaS readiness candidates
+- dependency impact indicators
+- execution flow: Discovery, Foundation, Operational, Automation,
+  Productization, SaaS
+
+The integration reads the latest `module_health_scans` and
+`module_health_scan_items` records through
+`Modules\ProjectManager\Services\ModuleHealthGovernanceService`.
+
+## Base Route
 
 ```php
 route('project_manager.index')
-```
-
-Também existe alias:
-
-```php
 route('project_manager.dashboard')
 ```
 
-## Rotas principais
+## Main Routes
 
 ```php
 project_manager.projects.index
@@ -29,9 +60,9 @@ project_manager.projects.destroy
 project_manager.projects.overview
 ```
 
-## Rotas das áreas do projeto
+## Project Areas
 
-Todas as áreas têm rotas explícitas por projeto:
+Each area has explicit per-project routes:
 
 ```php
 project_manager.projects.modules.index
@@ -55,7 +86,7 @@ project_manager.projects.external_dependencies.index
 project_manager.projects.activity.index
 ```
 
-Cada área também tem:
+Each area also supports:
 
 ```php
 .create
@@ -65,7 +96,7 @@ Cada área também tem:
 .destroy
 ```
 
-Exemplo:
+Example:
 
 ```php
 route('project_manager.projects.tasks.index', $project->id)
@@ -73,8 +104,9 @@ route('project_manager.projects.tasks.create', $project->id)
 route('project_manager.projects.tasks.edit', [$project->id, $task->id])
 ```
 
-## Notas
+## Notes
 
-- As rotas antigas `project_manager.sections.*` foram removidas da navegação interna.
-- A gestão de cada área continua centralizada no `SectionController`, mas as rotas públicas são explícitas e estáveis.
-- O módulo espera que as tabelas do SQL incluído já existam na base de dados.
+- Old `project_manager.sections.*` routes were removed from internal navigation.
+- Each area is still centrally handled by `SectionController`, while public
+  routes remain explicit and stable.
+- The module expects the included SQL tables to exist in the database.

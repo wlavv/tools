@@ -25,6 +25,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,    
             \App\Http\Middleware\Localization::class,
+            \App\Http\Middleware\EnsureRoutePermission::class,
         ],
 
         'api' => [
@@ -45,6 +46,7 @@ class Kernel extends HttpKernel
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'permission.route' => \App\Http\Middleware\EnsureRoutePermission::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
     ];
 }

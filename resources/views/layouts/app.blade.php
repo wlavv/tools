@@ -42,7 +42,6 @@
     <link rel="stylesheet" href="{{ asset('admin/css/app.css') }}?t={{ rand() }}">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
     <script src="{{ asset('admin/js/sweetalert2.min.js') }}"></script>
@@ -53,6 +52,198 @@
         @include('documentmanager::Includes.css')
     @endauth
     @stack('styles')
+    <style>
+        .app-shell {
+            --lsg-bo-radius: var(--radius-md, 0);
+            --dms-radius: var(--lsg-bo-radius);
+            --pm-radius: var(--lsg-bo-radius);
+            --catalog-radius: var(--lsg-bo-radius);
+            --wc-radius: var(--lsg-bo-radius);
+            --erp-radius: var(--lsg-bo-radius);
+            --mh-radius: var(--lsg-bo-radius);
+            --pm-border-radius: var(--lsg-bo-radius);
+        }
+
+        .app-shell :is(
+            .card,
+            .btn,
+            .badge,
+            .alert,
+            .modal-content,
+            .dropdown-menu,
+            .form-control,
+            .form-select,
+            .input-group-text,
+            .page-link,
+            .table-responsive,
+            .breadcrumbs-card,
+            .quick-toolbar,
+            .customPanel,
+            .lsg-action-btn,
+            .lsg-action-btn__glow,
+            .sidebar-brand-link,
+            .sidebar-brand-logo,
+            .sidebar-nav-item,
+            .sidebar-nav-icon,
+            .quick-access-link,
+            .quick-access-icon,
+            .counter-box,
+            .language-switcher-current,
+            .language-switcher-menu,
+            .select2-container .select2-selection,
+            .dataTables_wrapper input,
+            .dataTables_wrapper select,
+            [class*="-card"],
+            [class*="__card"],
+            [class*="-panel"],
+            [class*="__panel"],
+            [class*="-pill"],
+            [class*="__pill"],
+            [class*="-badge"],
+            [class*="__badge"],
+            [class*="-chip"],
+            [class*="__chip"],
+            [class*="-icon"],
+            [class*="__icon"],
+            [class*="-btn"],
+            [class*="__btn"],
+            input,
+            select,
+            textarea,
+            summary,
+            details,
+            table,
+            th,
+            td
+        ) {
+            border-radius: var(--lsg-bo-radius) !important;
+        }
+
+        .app-shell {
+            --lsg-final-btn-bg: var(--lsg-bo-btn-bg, rgba(255, 255, 255, .045));
+            --lsg-final-btn-bg-hover: var(--lsg-bo-btn-bg-hover, rgba(255, 255, 255, .075));
+            --lsg-final-btn-border: var(--lsg-bo-btn-border, var(--border-soft, rgba(255, 255, 255, .12)));
+            --lsg-final-btn-border-hover: var(--lsg-bo-btn-border-hover, rgba(142, 164, 255, .38));
+            --lsg-final-btn-text: var(--lsg-bo-btn-text, var(--text-primary, #f0f4f9));
+            --lsg-final-btn-shadow: var(--lsg-bo-btn-shadow, 0 8px 18px rgba(0, 0, 0, .12));
+        }
+
+        .app-shell :is(
+            .btn,
+            .lsg-action-btn,
+            .pm-btn,
+            .password-manager-btn,
+            .wc-btn,
+            .task-toggle-btn,
+            .calendar-member-tab,
+            button[class*="-btn"],
+            a[class*="-btn"],
+            button[class*="__btn"],
+            a[class*="__btn"],
+            input[type="submit"]
+        ):not(.btn-close) {
+            background: var(--lsg-final-btn-bg) !important;
+            background-image: none !important;
+            border: 1px solid var(--lsg-final-btn-border) !important;
+            color: var(--lsg-final-btn-text) !important;
+            box-shadow: var(--lsg-final-btn-shadow) !important;
+            filter: none !important;
+            text-shadow: none !important;
+        }
+
+        .app-shell :is(
+            .btn,
+            .lsg-action-btn,
+            .pm-btn,
+            .password-manager-btn,
+            .wc-btn,
+            .task-toggle-btn,
+            .calendar-member-tab,
+            button[class*="-btn"],
+            a[class*="-btn"],
+            button[class*="__btn"],
+            a[class*="__btn"],
+            input[type="submit"]
+        ):not(.btn-close):hover,
+        .app-shell :is(
+            .btn,
+            .lsg-action-btn,
+            .pm-btn,
+            .password-manager-btn,
+            .wc-btn,
+            .task-toggle-btn,
+            .calendar-member-tab,
+            button[class*="-btn"],
+            a[class*="-btn"],
+            button[class*="__btn"],
+            a[class*="__btn"],
+            input[type="submit"]
+        ):not(.btn-close):focus {
+            background: var(--lsg-final-btn-bg-hover) !important;
+            border-color: var(--lsg-final-btn-border-hover) !important;
+            color: var(--lsg-final-btn-text) !important;
+        }
+
+        .app-shell :is(
+            .btn-primary,
+            .btn-outline-primary,
+            .btn-info,
+            .btn-outline-info,
+            .lsg-action-btn--primary,
+            .lsg-action-btn--back,
+            .lsg-action-btn--gold,
+            .btn-action,
+            .pm-btn--primary,
+            .wc-btn--primary
+        ):not(.btn-close) {
+            background: var(--lsg-bo-btn-primary-bg, rgba(37, 99, 235, .24)) !important;
+            border-color: var(--lsg-bo-btn-primary-border, rgba(96, 165, 250, .76)) !important;
+            color: var(--lsg-bo-btn-primary-text, #eff6ff) !important;
+        }
+
+        .app-shell :is(
+            .btn-success,
+            .btn-outline-success,
+            .lsg-action-btn--success,
+            .pm-btn--success,
+            .wc-btn--success,
+            .password-manager-btn-primary,
+            .task-toggle-btn.is-success.active
+        ):not(.btn-close) {
+            background: var(--lsg-bo-btn-success-bg, rgba(22, 163, 74, .24)) !important;
+            border-color: var(--lsg-bo-btn-success-border, rgba(74, 222, 128, .72)) !important;
+            color: var(--lsg-bo-btn-success-text, #dcfce7) !important;
+        }
+
+        .app-shell :is(
+            .btn-warning,
+            .btn-outline-warning,
+            .lsg-action-btn--warning,
+            .pm-btn--warning,
+            .wc-btn--warning
+        ):not(.btn-close) {
+            background: var(--lsg-bo-btn-warning-bg, rgba(245, 158, 11, .24)) !important;
+            border-color: var(--lsg-bo-btn-warning-border, rgba(251, 191, 36, .72)) !important;
+            color: var(--lsg-bo-btn-warning-text, #fef3c7) !important;
+        }
+
+        .app-shell :is(
+            .btn-danger,
+            .btn-outline-danger,
+            .lsg-action-btn--danger,
+            .pm-btn--danger,
+            .wc-btn--danger,
+            .task-toggle-btn.is-danger.active
+        ):not(.btn-close) {
+            background: var(--lsg-bo-btn-danger-bg, rgba(220, 38, 38, .24)) !important;
+            border-color: var(--lsg-bo-btn-danger-border, rgba(248, 113, 113, .72)) !important;
+            color: var(--lsg-bo-btn-danger-text, #fee2e2) !important;
+        }
+
+        .app-shell :is(.btn i, .lsg-action-btn i, .pm-btn i, .password-manager-btn i, .wc-btn i, .task-toggle-btn i) {
+            color: inherit !important;
+        }
+    </style>
 
 </head>
 <body data-theme="dark" data-bs-theme="dark" class="theme-dark">

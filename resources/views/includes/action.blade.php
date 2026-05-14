@@ -190,7 +190,10 @@
                     @endif
                     <span class="lsg-action-btn__label">{{ $actionLabel }}</span>
                 </button>
-            @elseif($actionType === 'delete')
+            @elseif(in_array($actionType, ['delete', 'form'], true))
+                @php
+                    $actionMethod = strtoupper((string) ($action['method'] ?? ($actionType === 'delete' ? 'DELETE' : 'POST')));
+                @endphp
                 <form
                     method="POST"
                     action="{{ $action['url'] ?? '#' }}"
@@ -198,7 +201,9 @@
                     onsubmit="return {{ !empty($action['confirm']) ? "confirm('" . addslashes($action['confirm']) . "')" : 'true' }};"
                 >
                     @csrf
-                    @method($action['method'] ?? 'DELETE')
+                    @if($actionMethod !== 'POST')
+                        @method($actionMethod)
+                    @endif
 
                     <button
                         type="submit"

@@ -9,6 +9,10 @@ use Modules\WebCatalogue\Models\Product;
 
 class PublicCatalogueController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function show(string $slug): View
     {
         $catalogue = Catalogue::query()->where('slug', $slug)->firstOrFail();

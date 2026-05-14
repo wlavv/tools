@@ -6,19 +6,19 @@
 @import "forms";
 
 :root {
-    --bg-app: #161c23;
-    --bg-sidebar: #1b222b;
-    --bg-sidebar-soft: #212a35;
-    --bg-topbar: rgba(27, 34, 43, 0.88);
-    --bg-card: #202833;
-    --bo-card-bg: #1f232a;
-    --bg-card-2: #252f3b;
-    --bg-hover: #2a3644;
-    --border-color: rgba(21, 32, 51, 0.2);
-    --border-soft: rgba(21, 32, 51, 0.2);
-    --text-primary: #e8edf4;
-    --text-secondary: #a8b3c2;
-    --text-muted: #7e8998;
+    --bg-app: #202833;
+    --bg-sidebar: #26313e;
+    --bg-sidebar-soft: #2d3947;
+    --bg-topbar: rgba(38, 49, 62, 0.88);
+    --bg-card: #2a3542;
+    --bo-card-bg: #2a323d;
+    --bg-card-2: #334150;
+    --bg-hover: #3a4a5c;
+    --border-color: rgba(180, 194, 214, 0.16);
+    --border-soft: rgba(180, 194, 214, 0.16);
+    --text-primary: #f0f4f9;
+    --text-secondary: #c4cedb;
+    --text-muted: #9aa7b8;
     --accent: #c9a86a;
     --accent-2: #8ea4ff;
     --success: #4bb782;
@@ -27,7 +27,7 @@
     --radius-sm: 5px;
     --radius-md: 5px;
     --radius-lg: 5px;
-    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.22);
+    --shadow-soft: 0 10px 28px rgba(11, 18, 28, 0.20);
     --lsg-select-border-focus: #d4a017;
     --lsg-select-focus-shadow: rgba(212, 160, 23, .18);
 }
@@ -70,7 +70,7 @@ main {
 .app-sidebar {
     width: 268px;
     min-width: 268px;
-    background: linear-gradient(180deg, rgba(27,34,43,0.98) 0%, rgba(22,28,35,0.98) 100%);
+    background: linear-gradient(180deg, rgba(43,55,69,0.98) 0%, rgba(35,45,58,0.98) 100%);
     border-right: 1px solid var(--border-soft);
     position: fixed;
     inset: 0 auto 0 0;
@@ -95,7 +95,7 @@ main {
     top: 0;
     z-index: 30;
     padding: 18px 24px 0;
-    background: linear-gradient(180deg, rgba(22,28,35,0.95) 0%, rgba(22,28,35,0.72) 74%, rgba(22,28,35,0) 100%);
+    background: linear-gradient(180deg, rgba(32,40,51,0.94) 0%, rgba(32,40,51,0.70) 74%, rgba(32,40,51,0) 100%);
     backdrop-filter: blur(10px);
 }
 
@@ -115,7 +115,7 @@ main {
 .breadcrumbs-card,
 .quick-toolbar,
 .customPanel {
-    background: linear-gradient(180deg, rgba(37,47,59,0.94) 0%, rgba(32,40,51,0.96) 100%);
+    background: linear-gradient(180deg, rgba(51,65,80,0.94) 0%, rgba(42,53,66,0.96) 100%);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-soft);
@@ -496,9 +496,11 @@ textarea::placeholder {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px;
+    align-items: stretch;
 }
 
 .quick-access-item {
+    display: flex;
     min-width: 0;
 }
 
@@ -508,6 +510,8 @@ textarea::placeholder {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    width: 100%;
+    height: 100%;
     min-height: 136px;
     padding: 18px 14px;
     text-align: center;
@@ -541,6 +545,7 @@ textarea::placeholder {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-primary);
+    overflow-wrap: anywhere;
 }
 
 .counter-panel {
@@ -958,7 +963,7 @@ body[data-theme="light"] .card:not([class*="bg-"]) {
 **/
 
 .card:not([class*="bg-"]):not(#rendimentos):not(#expenses):not(#savings) {
-  background: linear-gradient(180deg, rgba(37, 47, 59, 0.94) 0%, rgba(32, 40, 51, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(51, 65, 80, 0.94) 0%, rgba(42, 53, 66, 0.96) 100%);
   color: var(--text-primary);
   border: 1px solid var(--border-soft) !important;
   border-radius: var(--radius-md);
@@ -1321,8 +1326,8 @@ select[disabled] {
 
 /* ===== Modals ===== */
 .modal-content {
-    background: linear-gradient(180deg, rgba(37,47,59,0.98) 0%, rgba(28,36,46,0.98) 100%);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(51,65,80,0.98) 0%, rgba(42,53,66,0.98) 100%);
+    border: 1px solid var(--border-soft);
     border-radius: 5px;
     box-shadow: 0 24px 60px rgba(0,0,0,0.35);
     color: var(--text-primary);
@@ -1839,4 +1844,542 @@ body[data-theme="light"] #savings.card {
     border-color: var(--lsg-select-border-focus) !important;
 
     box-shadow: 0 0 0 .18rem var(--lsg-select-focus-shadow) !important;
+}
+
+/* =========================================
+   LSG squared radius experiment
+========================================= */
+
+:root,
+body.theme-light,
+body[data-theme="light"] {
+    --lsg-bo-radius: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --bs-border-radius: 0;
+    --bs-border-radius-sm: 0;
+    --bs-border-radius-lg: 0;
+    --bs-border-radius-xl: 0;
+    --bs-border-radius-xxl: 0;
+    --bs-border-radius-pill: 0;
+}
+
+.card,
+.btn,
+.badge,
+.alert,
+.modal-content,
+.dropdown-menu,
+.form-control,
+.form-select,
+.input-group-text,
+.page-link,
+.table-responsive,
+.breadcrumbs-card,
+.quick-toolbar,
+.customPanel,
+.lsg-action-btn,
+.lsg-action-btn__glow,
+.sidebar-brand-link,
+.sidebar-brand-logo,
+.sidebar-nav-item,
+.sidebar-nav-icon,
+.quick-access-link,
+.quick-access-icon,
+.counter-box,
+.language-switcher-current,
+.language-switcher-menu,
+.mh-card,
+.mh-pill,
+.mh-badge,
+.mh-table-wrap,
+.mh-progress,
+.pm-card,
+.pm-btn,
+.pm-pill,
+.pm-project-filter,
+.pm-open-project,
+.pm-icon-action,
+.pm-mini-stat {
+    border-radius: var(--lsg-bo-radius, 0) !important;
+}
+
+/* =========================================
+   LSG BO unified buttons
+========================================= */
+
+.app-shell {
+    --lsg-bo-btn-bg: rgba(255, 255, 255, .045);
+    --lsg-bo-btn-bg-hover: rgba(255, 255, 255, .075);
+    --lsg-bo-btn-border: var(--border-soft, rgba(255, 255, 255, .12));
+    --lsg-bo-btn-border-hover: rgba(201, 168, 106, .38);
+    --lsg-bo-btn-text: var(--text-primary, #e8edf4);
+    --lsg-bo-btn-icon: var(--text-secondary, #a8b3c2);
+    --lsg-bo-btn-shadow: 0 8px 18px rgba(0, 0, 0, .12);
+    --lsg-bo-btn-primary-bg: rgba(37, 99, 235, .24);
+    --lsg-bo-btn-primary-bg-hover: rgba(37, 99, 235, .34);
+    --lsg-bo-btn-primary-border: rgba(96, 165, 250, .76);
+    --lsg-bo-btn-primary-text: #eff6ff;
+    --lsg-bo-btn-success-bg: rgba(22, 163, 74, .24);
+    --lsg-bo-btn-success-bg-hover: rgba(22, 163, 74, .34);
+    --lsg-bo-btn-success-border: rgba(74, 222, 128, .72);
+    --lsg-bo-btn-success-text: #f0fdf4;
+    --lsg-bo-btn-warning-bg: rgba(217, 119, 6, .25);
+    --lsg-bo-btn-warning-bg-hover: rgba(217, 119, 6, .36);
+    --lsg-bo-btn-warning-border: rgba(251, 191, 36, .76);
+    --lsg-bo-btn-warning-text: #fffbeb;
+    --lsg-bo-btn-danger-bg: rgba(220, 38, 38, .25);
+    --lsg-bo-btn-danger-bg-hover: rgba(220, 38, 38, .36);
+    --lsg-bo-btn-danger-border: rgba(248, 113, 113, .78);
+    --lsg-bo-btn-danger-text: #fff1f2;
+}
+
+body.theme-light .app-shell,
+body[data-theme="light"] .app-shell {
+    --lsg-bo-btn-bg: rgba(255, 255, 255, .86);
+    --lsg-bo-btn-bg-hover: rgba(15, 23, 42, .045);
+    --lsg-bo-btn-border: var(--border-soft, rgba(21, 32, 51, .14));
+    --lsg-bo-btn-border-hover: rgba(201, 168, 106, .48);
+    --lsg-bo-btn-text: var(--text-primary, #1a2433);
+    --lsg-bo-btn-icon: var(--text-secondary, #536275);
+    --lsg-bo-btn-shadow: 0 8px 18px rgba(23, 33, 52, .08);
+    --lsg-bo-btn-primary-bg: rgba(37, 99, 235, .13);
+    --lsg-bo-btn-primary-bg-hover: rgba(37, 99, 235, .20);
+    --lsg-bo-btn-primary-border: rgba(37, 99, 235, .70);
+    --lsg-bo-btn-primary-text: #1d4ed8;
+    --lsg-bo-btn-success-bg: rgba(22, 163, 74, .13);
+    --lsg-bo-btn-success-bg-hover: rgba(22, 163, 74, .20);
+    --lsg-bo-btn-success-border: rgba(22, 163, 74, .64);
+    --lsg-bo-btn-success-text: #166534;
+    --lsg-bo-btn-warning-bg: rgba(217, 119, 6, .14);
+    --lsg-bo-btn-warning-bg-hover: rgba(217, 119, 6, .22);
+    --lsg-bo-btn-warning-border: rgba(217, 119, 6, .68);
+    --lsg-bo-btn-warning-text: #92400e;
+    --lsg-bo-btn-danger-bg: rgba(220, 38, 38, .13);
+    --lsg-bo-btn-danger-bg-hover: rgba(220, 38, 38, .20);
+    --lsg-bo-btn-danger-border: rgba(220, 38, 38, .68);
+    --lsg-bo-btn-danger-text: #991b1b;
+}
+
+.app-shell .btn,
+.app-shell .lsg-action-btn,
+.app-shell .pm-btn,
+.app-shell .password-manager-btn,
+.app-shell .wc-btn,
+.app-shell input[type="submit"] {
+    background: var(--lsg-bo-btn-bg) !important;
+    background-image: none !important;
+    border: 1px solid var(--lsg-bo-btn-border) !important;
+    color: var(--lsg-bo-btn-text) !important;
+    box-shadow: var(--lsg-bo-btn-shadow) !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+.app-shell .btn:hover,
+.app-shell .btn:focus,
+.app-shell .lsg-action-btn:hover,
+.app-shell .lsg-action-btn:focus,
+.app-shell .pm-btn:hover,
+.app-shell .pm-btn:focus,
+.app-shell .password-manager-btn:hover,
+.app-shell .password-manager-btn:focus,
+.app-shell .wc-btn:hover,
+.app-shell .wc-btn:focus,
+.app-shell input[type="submit"]:hover,
+.app-shell input[type="submit"]:focus {
+    background: var(--lsg-bo-btn-bg-hover) !important;
+    background-image: none !important;
+    border-color: var(--lsg-bo-btn-border-hover) !important;
+    color: var(--lsg-bo-btn-text) !important;
+    box-shadow: var(--lsg-bo-btn-shadow) !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+.app-shell .btn i,
+.app-shell .lsg-action-btn i,
+.app-shell .lsg-action-btn__icon,
+.app-shell .pm-btn i,
+.app-shell .password-manager-btn i,
+.app-shell .wc-btn i {
+    color: var(--lsg-bo-btn-icon) !important;
+}
+
+.app-shell .lsg-action-btn__glow {
+    display: none !important;
+}
+
+.app-shell .btn:disabled,
+.app-shell .btn.disabled,
+.app-shell .lsg-action-btn:disabled,
+.app-shell .pm-btn:disabled,
+.app-shell input[type="submit"]:disabled {
+    opacity: .55 !important;
+    cursor: not-allowed !important;
+}
+
+.app-shell .btn.btn-primary,
+.app-shell .btn.btn-outline-primary,
+.app-shell .btn.btn-info,
+.app-shell .btn.btn-outline-info,
+.app-shell button.btn-primary,
+.app-shell button.btn-outline-primary,
+.app-shell button[class*="btn"].btn-primary:not(.btn-close),
+.app-shell button[class*="btn"].btn-outline-primary:not(.btn-close),
+.app-shell button[class*="btn"].btn-info:not(.btn-close),
+.app-shell button[class*="btn"].btn-outline-info:not(.btn-close),
+.app-shell a.btn-primary,
+.app-shell a.btn-outline-primary,
+.app-shell a[class*="btn"].btn-primary:not(.btn-close),
+.app-shell a[class*="btn"].btn-outline-primary:not(.btn-close),
+.app-shell a[class*="btn"].btn-info:not(.btn-close),
+.app-shell a[class*="btn"].btn-outline-info:not(.btn-close),
+.app-shell .lsg-action-btn.lsg-action-btn--primary,
+.app-shell .lsg-action-btn.lsg-action-btn--back,
+.app-shell .pm-btn.pm-btn--primary,
+.app-shell button.pm-btn--primary,
+.app-shell a.pm-btn--primary {
+    background: var(--lsg-bo-btn-primary-bg) !important;
+    border-color: var(--lsg-bo-btn-primary-border) !important;
+    color: var(--lsg-bo-btn-primary-text) !important;
+}
+
+.app-shell .btn.btn-primary:hover,
+.app-shell .btn.btn-outline-primary:hover,
+.app-shell .btn.btn-info:hover,
+.app-shell .btn.btn-outline-info:hover,
+.app-shell button.btn-primary:hover,
+.app-shell button.btn-outline-primary:hover,
+.app-shell button[class*="btn"].btn-primary:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-outline-primary:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-info:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-outline-info:not(.btn-close):hover,
+.app-shell a.btn-primary:hover,
+.app-shell a.btn-outline-primary:hover,
+.app-shell a[class*="btn"].btn-primary:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-outline-primary:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-info:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-outline-info:not(.btn-close):hover,
+.app-shell .lsg-action-btn.lsg-action-btn--primary:hover,
+.app-shell .lsg-action-btn.lsg-action-btn--back:hover,
+.app-shell .pm-btn.pm-btn--primary:hover,
+.app-shell button.pm-btn--primary:hover,
+.app-shell a.pm-btn--primary:hover {
+    background: var(--lsg-bo-btn-primary-bg-hover) !important;
+    border-color: var(--lsg-bo-btn-primary-border) !important;
+    color: var(--lsg-bo-btn-primary-text) !important;
+}
+
+.app-shell .btn.btn-success,
+.app-shell .btn.btn-outline-success,
+.app-shell button.btn-success,
+.app-shell button.btn-outline-success,
+.app-shell button[class*="btn"].btn-success:not(.btn-close),
+.app-shell button[class*="btn"].btn-outline-success:not(.btn-close),
+.app-shell a.btn-success,
+.app-shell a.btn-outline-success,
+.app-shell a[class*="btn"].btn-success:not(.btn-close),
+.app-shell a[class*="btn"].btn-outline-success:not(.btn-close),
+.app-shell .lsg-action-btn.lsg-action-btn--success,
+.app-shell .pm-btn.pm-btn--success,
+.app-shell button.pm-btn--success,
+.app-shell a.pm-btn--success,
+.app-shell .password-manager-btn.password-manager-btn-primary {
+    background: var(--lsg-bo-btn-success-bg) !important;
+    border-color: var(--lsg-bo-btn-success-border) !important;
+    color: var(--lsg-bo-btn-success-text) !important;
+}
+
+.app-shell .btn.btn-success:hover,
+.app-shell .btn.btn-outline-success:hover,
+.app-shell button.btn-success:hover,
+.app-shell button.btn-outline-success:hover,
+.app-shell button[class*="btn"].btn-success:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-outline-success:not(.btn-close):hover,
+.app-shell a.btn-success:hover,
+.app-shell a.btn-outline-success:hover,
+.app-shell a[class*="btn"].btn-success:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-outline-success:not(.btn-close):hover,
+.app-shell .lsg-action-btn.lsg-action-btn--success:hover,
+.app-shell .pm-btn.pm-btn--success:hover,
+.app-shell button.pm-btn--success:hover,
+.app-shell a.pm-btn--success:hover,
+.app-shell .password-manager-btn.password-manager-btn-primary:hover {
+    background: var(--lsg-bo-btn-success-bg-hover) !important;
+    border-color: var(--lsg-bo-btn-success-border) !important;
+    color: var(--lsg-bo-btn-success-text) !important;
+}
+
+.app-shell .btn.btn-warning,
+.app-shell .btn.btn-outline-warning,
+.app-shell button.btn-warning,
+.app-shell button.btn-outline-warning,
+.app-shell button[class*="btn"].btn-warning:not(.btn-close),
+.app-shell button[class*="btn"].btn-outline-warning:not(.btn-close),
+.app-shell a.btn-warning,
+.app-shell a.btn-outline-warning,
+.app-shell a[class*="btn"].btn-warning:not(.btn-close),
+.app-shell a[class*="btn"].btn-outline-warning:not(.btn-close),
+.app-shell .lsg-action-btn.lsg-action-btn--warning,
+.app-shell .pm-btn.pm-btn--warning,
+.app-shell button.pm-btn--warning,
+.app-shell a.pm-btn--warning {
+    background: var(--lsg-bo-btn-warning-bg) !important;
+    border-color: var(--lsg-bo-btn-warning-border) !important;
+    color: var(--lsg-bo-btn-warning-text) !important;
+}
+
+.app-shell .btn.btn-warning:hover,
+.app-shell .btn.btn-outline-warning:hover,
+.app-shell button.btn-warning:hover,
+.app-shell button.btn-outline-warning:hover,
+.app-shell button[class*="btn"].btn-warning:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-outline-warning:not(.btn-close):hover,
+.app-shell a.btn-warning:hover,
+.app-shell a.btn-outline-warning:hover,
+.app-shell a[class*="btn"].btn-warning:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-outline-warning:not(.btn-close):hover,
+.app-shell .lsg-action-btn.lsg-action-btn--warning:hover,
+.app-shell .pm-btn.pm-btn--warning:hover,
+.app-shell button.pm-btn--warning:hover,
+.app-shell a.pm-btn--warning:hover {
+    background: var(--lsg-bo-btn-warning-bg-hover) !important;
+    border-color: var(--lsg-bo-btn-warning-border) !important;
+    color: var(--lsg-bo-btn-warning-text) !important;
+}
+
+.app-shell .btn.btn-danger,
+.app-shell .btn.btn-outline-danger,
+.app-shell button.btn-danger,
+.app-shell button.btn-outline-danger,
+.app-shell button[class*="btn"].btn-danger:not(.btn-close),
+.app-shell button[class*="btn"].btn-outline-danger:not(.btn-close),
+.app-shell a.btn-danger,
+.app-shell a.btn-outline-danger,
+.app-shell a[class*="btn"].btn-danger:not(.btn-close),
+.app-shell a[class*="btn"].btn-outline-danger:not(.btn-close),
+.app-shell .lsg-action-btn.lsg-action-btn--danger,
+.app-shell .pm-btn.pm-btn--danger,
+.app-shell button.pm-btn--danger,
+.app-shell a.pm-btn--danger {
+    background: var(--lsg-bo-btn-danger-bg) !important;
+    border-color: var(--lsg-bo-btn-danger-border) !important;
+    color: var(--lsg-bo-btn-danger-text) !important;
+}
+
+.app-shell .btn.btn-danger:hover,
+.app-shell .btn.btn-outline-danger:hover,
+.app-shell button.btn-danger:hover,
+.app-shell button.btn-outline-danger:hover,
+.app-shell button[class*="btn"].btn-danger:not(.btn-close):hover,
+.app-shell button[class*="btn"].btn-outline-danger:not(.btn-close):hover,
+.app-shell a.btn-danger:hover,
+.app-shell a.btn-outline-danger:hover,
+.app-shell a[class*="btn"].btn-danger:not(.btn-close):hover,
+.app-shell a[class*="btn"].btn-outline-danger:not(.btn-close):hover,
+.app-shell .lsg-action-btn.lsg-action-btn--danger:hover,
+.app-shell .pm-btn.pm-btn--danger:hover,
+.app-shell button.pm-btn--danger:hover,
+.app-shell a.pm-btn--danger:hover {
+    background: var(--lsg-bo-btn-danger-bg-hover) !important;
+    border-color: var(--lsg-bo-btn-danger-border) !important;
+    color: var(--lsg-bo-btn-danger-text) !important;
+}
+
+.app-shell .lsg-action-btn.lsg-action-btn--gold,
+.app-shell .btn.btn-action,
+.app-shell button.btn-action,
+.app-shell a.btn-action {
+    background: rgba(201, 168, 106, .25) !important;
+    border-color: rgba(201, 168, 106, .76) !important;
+    color: #f8edd3 !important;
+}
+
+body.theme-light .app-shell .lsg-action-btn.lsg-action-btn--gold,
+body[data-theme="light"] .app-shell .lsg-action-btn.lsg-action-btn--gold,
+body.theme-light .app-shell .btn.btn-action,
+body[data-theme="light"] .app-shell .btn.btn-action {
+    color: #7b5a20 !important;
+}
+
+.app-shell .btn.btn-primary i,
+.app-shell .btn.btn-outline-primary i,
+.app-shell .lsg-action-btn.lsg-action-btn--primary i,
+.app-shell .lsg-action-btn.lsg-action-btn--back i,
+.app-shell .lsg-action-btn.lsg-action-btn--primary .lsg-action-btn__icon,
+.app-shell .lsg-action-btn.lsg-action-btn--back .lsg-action-btn__icon,
+.app-shell .pm-btn.pm-btn--primary i {
+    color: var(--lsg-bo-btn-primary-text) !important;
+}
+
+.app-shell .btn.btn-success i,
+.app-shell .btn.btn-outline-success i,
+.app-shell .lsg-action-btn.lsg-action-btn--success i,
+.app-shell .lsg-action-btn.lsg-action-btn--success .lsg-action-btn__icon,
+.app-shell .pm-btn.pm-btn--success i {
+    color: var(--lsg-bo-btn-success-text) !important;
+}
+
+.app-shell .btn.btn-warning i,
+.app-shell .btn.btn-outline-warning i,
+.app-shell .lsg-action-btn.lsg-action-btn--warning i,
+.app-shell .lsg-action-btn.lsg-action-btn--warning .lsg-action-btn__icon,
+.app-shell .pm-btn.pm-btn--warning i {
+    color: var(--lsg-bo-btn-warning-text) !important;
+}
+
+.app-shell .btn.btn-danger i,
+.app-shell .btn.btn-outline-danger i,
+.app-shell .lsg-action-btn.lsg-action-btn--danger i,
+.app-shell .lsg-action-btn.lsg-action-btn--danger .lsg-action-btn__icon,
+.app-shell .pm-btn.pm-btn--danger i {
+    color: var(--lsg-bo-btn-danger-text) !important;
+}
+
+/* =========================================
+   LSG BO unified metric panels
+========================================= */
+
+.app-shell {
+    --lsg-metric-blue: #2563eb;
+    --lsg-metric-green: #16a34a;
+    --lsg-metric-red: #dc2626;
+    --lsg-metric-cyan: #0891b2;
+    --lsg-metric-amber: #d97706;
+    --lsg-metric-purple: #7c3aed;
+    --lsg-metric-gold: #c9a86a;
+}
+
+.app-shell .prm-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.app-shell .tm-stats.prm-dashboard-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.app-shell .prm-dashboard-metric {
+    position: relative;
+    overflow: hidden;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: center;
+}
+
+.app-shell .prm-dashboard-metric__label {
+    font-size: 12px;
+}
+
+.app-shell .prm-dashboard-metric__value {
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 900;
+    margin-top: 6px;
+}
+
+.app-shell .prm-dashboard-metric__icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex: 0 0 46px;
+}
+
+.app-shell :is(
+    .jqm-kpi-metric,
+    .prm-dashboard-metric,
+    .catalog-dashboard-panel,
+    .catalog-lsg-kpi,
+    .mh-kpi,
+    .tm-stat,
+    .counter-box
+) {
+    --lsg-metric-color: var(--lsg-metric-blue);
+    --lsg-metric-bg: color-mix(in srgb, var(--lsg-metric-color) 10%, transparent);
+    --lsg-metric-border: color-mix(in srgb, var(--lsg-metric-color) 24%, transparent);
+    --lsg-metric-icon-bg: color-mix(in srgb, var(--lsg-metric-color) 14%, transparent);
+    border-radius: 0 !important;
+    border: 1px solid var(--lsg-metric-border) !important;
+    background: linear-gradient(135deg, var(--lsg-metric-bg), rgba(255, 255, 255, .70)) !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .08) !important;
+}
+
+.app-shell :is(
+    .jqm-kpi-icon,
+    .prm-dashboard-metric__icon,
+    .catalog-dashboard-panel__icon,
+    .mh-kpi-icon
+) {
+    border-radius: 0 !important;
+    color: var(--lsg-metric-color) !important;
+    background: var(--lsg-metric-icon-bg) !important;
+    border-color: var(--lsg-metric-border) !important;
+}
+
+.app-shell :is(.jqm-kpi-value, .prm-dashboard-metric__value, .catalog-dashboard-panel strong, .catalog-lsg-kpi strong, .mh-kpi .value, .tm-stat strong, .counter-box .counter-value) {
+    color: var(--text-primary, #0f172a) !important;
+}
+
+.app-shell :is(.jqm-kpi-label, .prm-dashboard-metric__label, .catalog-dashboard-panel span, .catalog-lsg-kpi span, .mh-kpi .label, .tm-stat span, .counter-box .counter-label) {
+    color: var(--text-secondary, #64748b) !important;
+    font-weight: 800 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+}
+
+.app-shell :is(.jqm-kpi-metric--blue, .prm-dashboard-metric.roles, .catalog-dashboard-panel--primary, .mh-kpi:nth-child(1), .tm-stat:nth-child(1), .catalog-lsg-kpi:nth-child(1)) { --lsg-metric-color: var(--lsg-metric-blue); }
+.app-shell :is(.jqm-kpi-metric--green, .prm-dashboard-metric.users, .catalog-dashboard-panel--success, .mh-kpi:nth-child(4), .tm-stat:nth-child(2), .catalog-lsg-kpi:nth-child(4)) { --lsg-metric-color: var(--lsg-metric-green); }
+.app-shell :is(.jqm-kpi-metric--red, .prm-dashboard-metric.critical, .catalog-dashboard-panel--danger, .mh-kpi:nth-child(2), .tm-stat:nth-child(4), .catalog-lsg-kpi:nth-child(3)) { --lsg-metric-color: var(--lsg-metric-red); }
+.app-shell :is(.jqm-kpi-metric--cyan, .catalog-dashboard-panel--info, .tm-stat:nth-child(5)) { --lsg-metric-color: var(--lsg-metric-cyan); }
+.app-shell :is(.jqm-kpi-metric--amber, .catalog-dashboard-panel--warning, .mh-kpi:nth-child(3), .tm-stat:nth-child(3), .catalog-lsg-kpi:nth-child(2)) { --lsg-metric-color: var(--lsg-metric-amber); }
+.app-shell :is(.jqm-kpi-metric--purple, .prm-dashboard-metric.permissions, .catalog-lsg-kpi:nth-child(5)) { --lsg-metric-color: var(--lsg-metric-purple); }
+
+body.theme-dark .app-shell :is(
+    .jqm-kpi-metric,
+    .prm-dashboard-metric,
+    .catalog-dashboard-panel,
+    .catalog-lsg-kpi,
+    .mh-kpi,
+    .tm-stat,
+    .counter-box
+),
+body[data-theme="dark"] .app-shell :is(
+    .jqm-kpi-metric,
+    .prm-dashboard-metric,
+    .catalog-dashboard-panel,
+    .catalog-lsg-kpi,
+    .mh-kpi,
+    .tm-stat,
+    .counter-box
+) {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--lsg-metric-color) 18%, rgba(15, 23, 42, .82)), rgba(15, 23, 42, .62)) !important;
+}
+
+@media (max-width: 1199.98px) {
+    .app-shell .tm-stats.prm-dashboard-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .app-shell .prm-dashboard-grid,
+    .app-shell .tm-stats.prm-dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-shell .prm-dashboard-grid,
+    .app-shell .tm-stats.prm-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
 }

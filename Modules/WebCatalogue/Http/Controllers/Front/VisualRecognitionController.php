@@ -14,6 +14,10 @@ use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
 
 class VisualRecognitionController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function index(string $store_slug): View
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();

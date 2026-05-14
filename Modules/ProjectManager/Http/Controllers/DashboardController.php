@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\ProjectManager\Services\ModuleHealthGovernanceService;
 use Modules\ProjectManager\Services\ProjectManagerSectionRegistry;
 
 class DashboardController extends Controller
@@ -21,7 +22,7 @@ class DashboardController extends Controller
     private array $openTaskStatuses = ['new', 'todo', 'open', 'pending', 'ready', 'in_progress', 'in progress', 'waiting', 'blocked', 'review'];
     private array $closedStatuses = ['done', 'completed', 'cancelled', 'archived', 'closed'];
 
-    public function index(Request $request)
+    public function index(Request $request, ModuleHealthGovernanceService $moduleHealthGovernance)
     {
         $selectedProjectId = $request->integer('project') ?: null;
 
@@ -83,8 +84,9 @@ class DashboardController extends Controller
         $quickProjects = $allProjects->whereNotIn('status', ['done', 'completed', 'closed', 'archived'])->values();
         $quickMilestones = $this->milestonesForProjects($quickProjects->pluck('id')->map(fn ($id) => (int) $id)->all());
         $quickParentTasks = $this->parentTasksForProjects($quickProjects->pluck('id')->map(fn ($id) => (int) $id)->all());
+        $moduleGovernance = $moduleHealthGovernance->snapshot();
 
-        return $this->view('project-manager::dashboard.index', compact('projects', 'projectGroups', 'activeMilestones', 'milestoneCards', 'matrixTasks', 'ganttTasks', 'executionCounters', 'stats', 'selectedProjectId', 'quickProjects', 'quickMilestones', 'quickParentTasks'));
+        return $this->view('project-manager::dashboard.index', compact('projects', 'projectGroups', 'activeMilestones', 'milestoneCards', 'matrixTasks', 'ganttTasks', 'executionCounters', 'stats', 'selectedProjectId', 'quickProjects', 'quickMilestones', 'quickParentTasks', 'moduleGovernance'));
     }
 
     public function productivity()

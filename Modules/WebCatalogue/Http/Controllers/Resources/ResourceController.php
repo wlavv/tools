@@ -31,7 +31,7 @@ class ResourceController extends Controller
 
     public function index(Request $request): View
     {
-        $items = Resource::query()->with(['store','product','catalogue'])->latest('id')->get();
+        $items = Resource::query()->with(['store','product','catalogue'])->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::resources.index', compact('items'));
     }
 

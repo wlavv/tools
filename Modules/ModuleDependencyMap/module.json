@@ -1,0 +1,20 @@
+{
+    "name": "ModuleDependencyMap",
+    "alias": "moduledependencymap",
+    "slug": "module-dependency-map",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Backoffice module to scan, persist and visualize dependencies between application modules.",
+    "provider": "Modules\\ModuleDependencyMap\\Providers\\ModuleDependencyMapServiceProvider",
+    "keywords": [
+        "modules",
+        "dependencies",
+        "risk",
+        "backoffice"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ModuleDependencyMap\\Providers\\ModuleDependencyMapServiceProvider"
+    ],
+    "files": []
+}

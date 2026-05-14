@@ -28,6 +28,23 @@
                     <input type="text" name="domain" value="{{ old('domain', $store->domain ?? '') }}">
                 </div>
 <div class="catalog-lsg-form-group">
+                    <label>Tipo</label>
+                    <select name="record_type">
+                        <option value="store" @selected(old('record_type', $store->record_type ?? 'store') === 'store')>Loja</option>
+                        <option value="domain" @selected(old('record_type', $store->record_type ?? 'store') === 'domain')>Dominio monitorizado</option>
+                    </select>
+                </div>
+<div class="catalog-lsg-form-group">
+                    <label>Area LSG</label>
+                    <select name="site_kind">
+                        <option value="store" @selected(old('site_kind', $store->site_kind ?? 'store') === 'store')>Sites lojas</option>
+                        <option value="service" @selected(old('site_kind', $store->site_kind ?? 'store') === 'service')>Sites servicos</option>
+                        <option value="showcase" @selected(old('site_kind', $store->site_kind ?? 'store') === 'showcase')>Sites mostra</option>
+                        <option value="group" @selected(old('site_kind', $store->site_kind ?? 'store') === 'group')>Site grupo</option>
+                        <option value="labs" @selected(old('site_kind', $store->site_kind ?? 'store') === 'labs')>Site labs</option>
+                    </select>
+                </div>
+<div class="catalog-lsg-form-group">
                     <label>Locale</label>
                     <input type="text" name="locale" value="{{ old('locale', $store->locale ?? '') }}">
                 </div>

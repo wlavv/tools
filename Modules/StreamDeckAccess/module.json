@@ -1,0 +1,13 @@
+{
+  "name": "StreamDeckAccess",
+  "slug": "streamdeck-access",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Módulo para criação de access points externos seguros para Stream Deck, atalhos de B.O. e tarefas em background.",
+  "provider": "Modules\\StreamDeckAccess\\Providers\\StreamDeckAccessServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

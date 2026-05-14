@@ -1,0 +1,17 @@
+{
+    "name": "internal/module-dependency-map",
+    "description": "Module Dependency Map for Laravel backoffices.",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Modules\\ModuleDependencyMap\\": ""
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\ModuleDependencyMap\\Providers\\ModuleDependencyMapServiceProvider"
+            ]
+        }
+    }
+}

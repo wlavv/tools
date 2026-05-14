@@ -12,21 +12,25 @@ use Modules\WebCatalogue\Models\Store;
 
 class FrontCatalogueController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function store(Request $request, string $store_slug): View
     {
         $store = $this->findStore($store_slug);
 
         $catalogues = Catalogue::query()
             ->where('id_store', $store->id)
-            ->whereIn('status', ['published', 'active', 'draft'])
-            ->orderByRaw("FIELD(status, 'published', 'active', 'draft')")
+            ->whereIn('status', $this->frontVisibleStatuses())
+            ->orderByRaw("FIELD(status, 'published', 'active')")
             ->orderBy('name')
             ->get();
 
         $productsQuery = Product::query()
             ->with(['resources', 'prices', 'promotions'])
             ->where('id_store', $store->id)
-            ->whereIn('status', ['published', 'active', 'draft']);
+            ->whereIn('status', $this->frontVisibleStatuses());
 
         $this->applyFrontFilters($productsQuery, $request);
 
@@ -46,6 +50,7 @@ class FrontCatalogueController extends Controller
         $catalogue = Catalogue::query()
             ->where('id_store', $store->id)
             ->where('slug', $catalogue_slug)
+            ->whereIn('status', $this->frontVisibleStatuses())
             ->firstOrFail();
 
         $productsQuery = Product::query()
@@ -82,6 +87,7 @@ class FrontCatalogueController extends Controller
         $catalogue = Catalogue::query()
             ->where('id_store', $store->id)
             ->where('slug', $catalogue_slug)
+            ->whereIn('status', $this->frontVisibleStatuses())
             ->firstOrFail();
 
         $product = $this->findProduct($store, $product_slug);
@@ -111,6 +117,7 @@ class FrontCatalogueController extends Controller
         $catalogue = Catalogue::query()
             ->where('id_store', $store->id)
             ->where('slug', $catalogue_slug)
+            ->whereIn('status', $this->frontVisibleStatuses())
             ->firstOrFail();
         $product = $this->findProduct($store, $product_slug);
 
@@ -128,8 +135,10 @@ class FrontCatalogueController extends Controller
     {
         return Store::query()
             ->with(['themes', 'environments', 'resources'])
-            ->where('slug', $slug)
-            ->orWhere('code', $slug)
+            ->where('status', 'active')
+            ->where(function ($query) use ($slug) {
+                $query->where('slug', $slug)->orWhere('code', $slug);
+            })
             ->firstOrFail();
     }
 
@@ -138,6 +147,7 @@ class FrontCatalogueController extends Controller
         return Product::query()
             ->with(['resources', 'prices', 'promotions', 'catalogues'])
             ->where('id_store', $store->id)
+            ->whereIn('status', $this->frontVisibleStatuses())
             ->where(function ($query) use ($slug) {
                 $query->where('slug', $slug)
                     ->orWhere('reference', $slug)
@@ -184,7 +194,9 @@ class FrontCatalogueController extends Controller
 
     private function buildFilters(Store $store, ?Catalogue $catalogue = null): array
     {
-        $base = Product::query()->where('wc_products.id_store', $store->id);
+        $base = Product::query()
+            ->where('wc_products.id_store', $store->id)
+            ->whereIn('status', $this->frontVisibleStatuses());
 
         if ($catalogue) {
             $base->whereHas('catalogues', function (Builder $query) use ($catalogue) {
@@ -229,5 +241,12 @@ class FrontCatalogueController extends Controller
             ->first();
 
         return compact('resources', 'images', 'documents', 'videos', 'audio', 'model3d', 'arFile', 'vrFile', 'thumbnail', 'activePrice');
+    }
+
+    private function frontVisibleStatuses(): array
+    {
+        $statuses = config('webcatalogue.front_visible_statuses', ['published', 'active']);
+
+        return array_values(array_filter((array) $statuses, fn ($status) => is_string($status) && trim($status) !== ''));
     }
 }

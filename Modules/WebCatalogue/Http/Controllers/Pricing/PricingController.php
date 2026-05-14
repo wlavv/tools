@@ -19,7 +19,7 @@ class PricingController extends Controller
     protected function viewData(array $extra = []): array { return array_merge(['stores' => Store::query()->orderBy('name')->get(), 'products' => Product::query()->orderBy('reference')->get()], $extra); }
     public function index(): View
     {
-        $items = ProductPrice::query()->with(['product.store'])->latest('id')->get();
+        $items = ProductPrice::query()->with(['product.store'])->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::pricing.index', compact('items'));
     }
     public function create(): View { return $this->view('webcatalogue::pricing.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.pricing.store'), 'method' => 'POST'])); }

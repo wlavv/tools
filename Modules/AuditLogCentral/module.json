@@ -1,0 +1,8 @@
+{
+    "name": "AuditLogCentral",
+    "slug": "audit-log-central",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Centralized audit log module for tracking application changes and events.",
+    "provider": "Modules\\AuditLogCentral\\Providers\\AuditLogCentralServiceProvider"
+}

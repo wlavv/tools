@@ -31,7 +31,7 @@ class NotificationServiceProvider extends ServiceProvider
     {
         $modulePath = dirname(__DIR__);
 
-        $this->loadRoutesFrom($modulePath . '/Http/Routes/web.php');
+        $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'notifications');
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'notifications');

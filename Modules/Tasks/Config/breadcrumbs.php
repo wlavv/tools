@@ -25,6 +25,12 @@ return [
         'translate' => false,
     ],
 
+    'tasks.events.index' => [
+        'label' => 'Events',
+        'parent' => 'tasks.index',
+        'translate' => false,
+    ],
+
     'tasks.manage.index' => [
         'label' => 'Manage Tasks',
         'parent' => 'tasks.index',

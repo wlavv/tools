@@ -8,6 +8,10 @@ use Modules\WebCatalogue\Models\Product;
 
 class VrViewerController extends Controller
 {
+    public function __construct()
+    {
+    }
+
     public function show(Product $product): View
     {
         return view('webcatalogue::viewer.vr.show', compact('product'));

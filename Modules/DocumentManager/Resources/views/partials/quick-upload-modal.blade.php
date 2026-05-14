@@ -1,4 +1,4 @@
-<div class="modal fade dms-modal" id="{{ $uploadId }}Modal" tabindex="-1" aria-hidden="true" data-backdrop="false" data-bs-backdrop="false">
+<div class="modal fade dms-modal" id="{{ $uploadId }}Modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">

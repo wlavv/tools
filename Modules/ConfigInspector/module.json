@@ -1,0 +1,17 @@
+{
+    "name": "ConfigInspector",
+    "alias": "config-inspector",
+    "slug": "config-inspector",
+    "description": "LSG Config Inspector module for auditing Laravel, modules, routes, translations, storage, database and security configuration.",
+    "keywords": ["config", "inspector", "diagnostics", "lsg", "system"],
+    "priority": 0,
+    "providers": [
+        "Modules\\ConfigInspector\\Providers\\ConfigInspectorServiceProvider"
+    ],
+    "provider": "Modules\\ConfigInspector\\Providers\\ConfigInspectorServiceProvider",
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "enabled": true,
+    "version": "1.0.0"
+}

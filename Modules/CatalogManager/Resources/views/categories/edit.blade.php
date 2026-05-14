@@ -34,7 +34,7 @@
             <option value="">Sem parent</option>
             @foreach($parents as $parent)
                 <option value="{{ $parent->id }}" @selected(old('parent_id', $category->parent_id ?? null) == $parent->id)>
-                    {{ $parent->store_name }} / {{ $parent->category_name ?: 'Categoria #' . $parent->id }}
+                    {{ $parent->store_name }} / {{ $parent->name ?: 'Categoria #' . $parent->id }}
                 </option>
             @endforeach
         </select>

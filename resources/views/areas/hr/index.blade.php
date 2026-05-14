@@ -9,6 +9,5 @@
 @endpush
 
 @section('content')
-
-
+    @include('areas.partials.idea-panel', ['areaKey' => 'hr'])
 @endsection

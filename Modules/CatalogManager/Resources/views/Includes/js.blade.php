@@ -133,10 +133,29 @@
             });
         }
 
+        function initPanelCollapses() {
+            document.querySelectorAll('.catalog-lsg-panel-card .catalog-lsg-panel-top').forEach(function (trigger) {
+                if (trigger.dataset.catalogCollapseReady === '1') {
+                    return;
+                }
+
+                trigger.dataset.catalogCollapseReady = '1';
+
+                trigger.addEventListener('click', function () {
+                    var card = trigger.closest('.catalog-lsg-panel-card');
+                    var isExpanded = card.classList.toggle('is-expanded');
+
+                    card.classList.toggle('is-collapsed', !isExpanded);
+                    trigger.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initDataTables();
             initDropzones();
             initConfirmButtons();
+            initPanelCollapses();
         });
     })();
 </script>

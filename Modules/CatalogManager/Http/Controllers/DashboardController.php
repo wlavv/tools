@@ -17,7 +17,14 @@ class DashboardController extends BaseCatalogController
                 'products' => CatalogTable::count('catalog_core_products'),
                 'manufacturers' => CatalogTable::count('catalog_core_manufacturers'),
                 'suppliers' => CatalogTable::count('catalog_core_suppliers'),
-                'stores' => CatalogTable::count('catalog_stores'),
+                'stores' => CatalogTable::count('catalog_stores', function ($query) {
+                    $query->where(function ($nested) {
+                        $nested->where('record_type', 'store')->orWhereNull('record_type');
+                    });
+                }),
+                'monitored_domains' => CatalogTable::count('catalog_stores', function ($query) {
+                    $query->where('record_type', 'domain');
+                }),
                 'categories' => CatalogTable::count('catalog_store_categories'),
                 'sync_pending' => CatalogTable::count('catalog_prestashop_sync_queue', function ($query) {
                     $query->where('status', 'pending');

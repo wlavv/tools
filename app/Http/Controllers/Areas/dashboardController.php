@@ -16,7 +16,7 @@ class dashboardController extends Controller{
         $this->setBreadcrumbs([]);
 
         $heroStats = [
-            ['label' => 'Areas', 'value' => 9, 'icon' => 'fa-solid fa-grip'],
+            ['label' => 'Areas', 'value' => 10, 'icon' => 'fa-solid fa-grip'],
             ['label' => 'Modules', 'value' => 12, 'icon' => 'fa-solid fa-cubes'],
             ['label' => 'Shortcuts', 'value' => count($this->accessList), 'icon' => 'fa-solid fa-bolt'],
         ];
@@ -26,8 +26,10 @@ class dashboardController extends Controller{
             ['label' => 'Web', 'icon' => 'fa-solid fa-globe', 'url' => route('web.index')],
             ['label' => 'Sales', 'icon' => 'fa-solid fa-basket-shopping', 'url' => route('sales.index')],
             ['label' => 'Finance', 'icon' => 'fa-solid fa-chart-line', 'url' => route('finance.index')],
+            ['label' => 'Purchasing', 'icon' => 'fa-solid fa-cart-flatbed', 'url' => route('purchasing.index')],
             ['label' => 'Marketing', 'icon' => 'fa-solid fa-bullhorn', 'url' => route('marketing.index')],
             ['label' => 'Customer Support', 'icon' => 'fa-solid fa-headset', 'url' => route('customerSupport.index')],
+            ['label' => 'LSG', 'icon' => 'fa-solid fa-building', 'url' => route('lsg.index')],
         ];
 
         $weather = app(FamilyPlannerWeatherService::class)->today();

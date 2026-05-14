@@ -429,6 +429,13 @@
         }
 </style>
 
+    @php
+        $routeAccess = app(\Modules\PermissionRoleManager\Services\RoutePermissionAccessService::class);
+        $floatingCan = fn(string $routeName): bool => \Illuminate\Support\Facades\Route::has($routeName)
+            && $routeAccess->canAccessRouteName(auth()->id(), $routeName);
+    @endphp
+
+    @if($floatingCan('notifications.index'))
     <button type="button"
             class="lsg-floating-tools__item"
             data-key="notifications"
@@ -445,17 +452,21 @@
                   aria-hidden="true"></span>
         @endif
     </button>
+    @endif
+
+    @if($floatingCan('document-manager.documents.store'))
     <button type="button"
             class="lsg-floating-tools__item"
             data-lsg-open-modal="globalDocumentUploadModal"
-            data-toggle="modal"
-            data-target="#globalDocumentUploadModal"
             data-bs-toggle="modal"
             data-bs-target="#globalDocumentUploadModal"
             title="Adicionar documento"
             aria-label="Adicionar documento">
         <i class="fa-solid fa-file-circle-plus"></i>
     </button>
+    @endif
+
+    @if($floatingCan('shortcuts.index'))
     <button type="button"
             class="lsg-floating-tools__item"
             data-url="{{ route('shortcuts.index') }}"
@@ -465,7 +476,9 @@
             aria-label="Shortcuts">
         <i class="fa-solid fa-grip"></i>
     </button>
-    @if(auth()->id() == 1)
+    @endif
+
+    @if($floatingCan('settings.index'))
         <button type="button"
                 class="lsg-floating-tools__item"
                 data-url="{{ route('settings.index') }}"

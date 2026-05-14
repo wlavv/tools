@@ -1,0 +1,8 @@
+{
+    "name": "JobQueueMonitor",
+    "slug": "job-queue-monitor",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Job queue monitoring module for reviewing queued, running and failed work.",
+    "provider": "Modules\\JobQueueMonitor\\Providers\\JobQueueMonitorServiceProvider"
+}

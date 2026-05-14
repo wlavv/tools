@@ -3,6 +3,7 @@
 namespace Modules\CatalogManager\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\CatalogManager\Console\RunStorePageSpeedInsightsCatalogueAliasCommand;
 use Modules\CatalogManager\Console\RunStorePageSpeedInsightsCommand;
 
 class CatalogManagerServiceProvider extends ServiceProvider
@@ -33,6 +34,7 @@ class CatalogManagerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 RunStorePageSpeedInsightsCommand::class,
+                RunStorePageSpeedInsightsCatalogueAliasCommand::class,
             ]);
         }
     }

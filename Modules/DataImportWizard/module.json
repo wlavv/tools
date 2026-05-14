@@ -1,0 +1,17 @@
+{
+  "name": "DataImportWizard",
+  "alias": "data-import-wizard",
+  "slug": "data-import-wizard",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Dependency-aware modular CSV import framework for Laravel modules.",
+  "provider": "Modules\\DataImportWizard\\Providers\\DataImportWizardServiceProvider",
+  "keywords": ["import", "csv", "wizard", "dependencies", "modules"],
+  "priority": 0,
+  "providers": [
+    "Modules\\DataImportWizard\\Providers\\DataImportWizardServiceProvider"
+  ],
+  "aliases": {},
+  "files": [],
+  "requires": []
+}

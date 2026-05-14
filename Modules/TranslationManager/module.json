@@ -1,0 +1,8 @@
+{
+  "name": "TranslationManager",
+  "slug": "translation-manager",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "LSG module translation manager with custom override files and coverage audit.",
+  "provider": "Modules\\TranslationManager\\Providers\\TranslationManagerServiceProvider"
+}

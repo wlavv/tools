@@ -63,6 +63,7 @@ class TasksController extends Controller
             ['name' => 'Dashboard', 'icon' => '<i class="fa-solid fa-chart-column"></i>', 'url' => route('tasks.dashboard', [$year, $month]), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Calendar', 'icon' => '<i class="fa-solid fa-calendar-days"></i>', 'url' => route('tasks.calendar', [$year, $month]), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Members', 'icon' => '<i class="fa-solid fa-users"></i>', 'url' => route('tasks.members.index'), 'class' => 'btn btn-outline-primary'],
+            ['name' => 'Events', 'icon' => '<i class="fa-solid fa-calendar-plus"></i>', 'url' => route('tasks.events.index'), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Manage Tasks', 'icon' => '<i class="fa-solid fa-list-check"></i>', 'url' => route('tasks.manage.index'), 'class' => 'btn btn-outline-primary'],
             ['name' => 'Rewards', 'icon' => '<i class="fa-solid fa-gift"></i>', 'url' => route('tasks.rewards.index'), 'class' => 'btn btn-outline-primary'],
         ]);
@@ -149,6 +150,71 @@ class TasksController extends Controller
             'year' => $year,
             'month' => $month,
         ]));
+    }
+
+    public function events(Request $request)
+    {
+        TaskMember::bootstrapDefaults();
+        $this->buildActions();
+
+        $selectedMonth = Carbon::parse($request->query('month', now()->format('Y-m') . '-01'))->startOfMonth();
+
+        return $this->view('tasks::pages.events.index', $this->baseData([
+            'selectedMonth' => $selectedMonth,
+            'members' => TaskMember::query()->active()->orderByRaw('COALESCE(sort_order, 9999) asc')->orderBy('id')->get(),
+            'events' => TaskEvent::query()
+                ->with('member')
+                ->inMonth($selectedMonth)
+                ->orderBy('event_date')
+                ->orderBy('event_time')
+                ->get(),
+        ]));
+    }
+
+    public function storeEvent(Request $request): RedirectResponse
+    {
+        $data = $this->validateFamilyEvent($request);
+
+        TaskEvent::query()->create($data);
+
+        return redirect()
+            ->route('tasks.events.index', ['month' => Carbon::parse($data['event_date'])->format('Y-m')])
+            ->with('success', 'Evento criado com sucesso.');
+    }
+
+    public function updateEvent(Request $request, TaskEvent $event): RedirectResponse
+    {
+        $data = $this->validateFamilyEvent($request);
+
+        $event->update($data);
+
+        return redirect()
+            ->route('tasks.events.index', ['month' => Carbon::parse($data['event_date'])->format('Y-m')])
+            ->with('success', 'Evento atualizado com sucesso.');
+    }
+
+    public function deleteEvent(TaskEvent $event): RedirectResponse
+    {
+        $month = Carbon::parse($event->event_date)->format('Y-m');
+
+        $event->delete();
+
+        return redirect()
+            ->route('tasks.events.index', ['month' => $month])
+            ->with('success', 'Evento removido com sucesso.');
+    }
+
+    private function validateFamilyEvent(Request $request): array
+    {
+        return $request->validate([
+            'member_id' => ['nullable', 'integer', 'exists:wt_task_members,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'event_date' => ['required', 'date'],
+            'event_time' => ['nullable', 'date_format:H:i'],
+            'color' => ['nullable', 'string', 'max:20'],
+            'icon' => ['nullable', 'string', 'max:255'],
+        ]);
     }
 
 

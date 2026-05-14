@@ -20,12 +20,15 @@ class CategoryController extends BaseCatalogController
 
         $query = DB::table('catalog_store_categories as c')
             ->join('catalog_stores as s', 's.id', '=', 'c.store_id')
-            ->select('c.*', 's.name as store_name', 'cl.name as category_name', 'cl.link_rewrite');
+            ->where(function ($query) {
+                $query->where('s.record_type', 'store')->orWhereNull('s.record_type');
+            })
+            ->select('c.*', 's.name as store_name', 'cl.name as name', 'cl.name as category_name', 'cl.link_rewrite');
 
         if (CatalogTable::exists('catalog_store_category_lang')) {
             $query->leftJoin('catalog_store_category_lang as cl', 'cl.store_category_id', '=', 'c.id');
         } else {
-            $query->select('c.*', 's.name as store_name', DB::raw('NULL as category_name'), DB::raw('NULL as link_rewrite'));
+            $query->select('c.*', 's.name as store_name', DB::raw('NULL as name'), DB::raw('NULL as category_name'), DB::raw('NULL as link_rewrite'));
         }
 
         $categories = $query->orderBy('s.name')->orderBy('c.parent_id')->orderBy('c.position')->get();
@@ -36,6 +39,9 @@ class CategoryController extends BaseCatalogController
     public function create()
     {
         $stores = CatalogTable::safeGet('catalog_stores', function ($query) {
+            $query->where(function ($nested) {
+                $nested->where('record_type', 'store')->orWhereNull('record_type');
+            });
             $query->orderBy('name');
         });
         $parents = $this->parentOptions();
@@ -107,6 +113,9 @@ class CategoryController extends BaseCatalogController
         abort_if(!$category, 404);
 
         $stores = CatalogTable::safeGet('catalog_stores', function ($query) {
+            $query->where(function ($nested) {
+                $nested->where('record_type', 'store')->orWhereNull('record_type');
+            });
             $query->orderBy('name');
         });
         $parents = $this->parentOptions($id);
@@ -178,11 +187,14 @@ class CategoryController extends BaseCatalogController
 
         $query = DB::table('catalog_store_categories as c')
             ->join('catalog_stores as s', 's.id', '=', 'c.store_id')
-            ->select('c.id', 's.name as store_name', DB::raw('NULL as category_name'));
+            ->where(function ($query) {
+                $query->where('s.record_type', 'store')->orWhereNull('s.record_type');
+            })
+            ->select('c.id', 's.name as store_name', DB::raw('NULL as name'), DB::raw('NULL as category_name'));
 
         if (CatalogTable::exists('catalog_store_category_lang')) {
             $query->leftJoin('catalog_store_category_lang as cl', 'cl.store_category_id', '=', 'c.id')
-                ->select('c.id', 's.name as store_name', 'cl.name as category_name');
+                ->select('c.id', 's.name as store_name', 'cl.name as name', 'cl.name as category_name');
         }
 
         if ($exceptId) {

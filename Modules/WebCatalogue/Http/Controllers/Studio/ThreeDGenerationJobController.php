@@ -30,7 +30,7 @@ class ThreeDGenerationJobController extends Controller
 
     public function index(): View
     {
-        $items = ThreeDGenerationJob::query()->with(['store','product','resultResource'])->latest('id')->get();
+        $items = ThreeDGenerationJob::query()->with(['store','product','resultResource'])->latest('id')->paginate(25)->withQueryString();
         return $this->view('webcatalogue::studio.3d_jobs.index', compact('items'));
     }
 

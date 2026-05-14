@@ -24,20 +24,25 @@ class StorePageSpeedInsightsService
             ->keyBy('store_id');
     }
 
-    public function runDailyForStore(object $store, string $strategy = 'mobile'): ?object
+    public function runDailyForStore(object $store, string $strategy = 'mobile', bool $force = false): ?object
     {
         if (!CatalogTable::exists('catalog_store_pagespeed_insights')) {
             return null;
         }
 
-        $existing = DB::table('catalog_store_pagespeed_insights')
+        $existingQuery = DB::table('catalog_store_pagespeed_insights')
             ->where('store_id', $store->id)
             ->whereDate('checked_on', today())
-            ->where('strategy', $strategy)
-            ->first();
+            ->where('strategy', $strategy);
 
-        if ($existing) {
+        $existing = $existingQuery->first();
+
+        if ($existing && !$force) {
             return $existing;
+        }
+
+        if ($existing && $force) {
+            $existingQuery->delete();
         }
 
         $url = $this->storeUrl($store);
@@ -52,11 +57,11 @@ class StorePageSpeedInsightsService
         try {
             $response = Http::timeout((int) config('catalogmanager.pagespeed.timeout', 25))
                 ->retry(1, 500)
-                ->get('https://www.googleapis.com/pagespeedonline/v5/runPagespeed', array_filter([
+                ->get($this->pageSpeedUrl(array_filter([
                     'url' => $url,
                     'strategy' => $strategy,
                     'key' => config('catalogmanager.pagespeed.api_key'),
-                ]));
+                ])));
 
             if (!$response->successful()) {
                 return $this->insertResult($store->id, $strategy, $url, [
@@ -72,15 +77,15 @@ class StorePageSpeedInsightsService
 
             return $this->insertResult($store->id, $strategy, $url, [
                 'status' => 'failed',
-                'error_message' => $e->getMessage(),
+                'error_message' => $this->sanitizeErrorMessage($e->getMessage()),
             ]);
         }
     }
 
-    public function runDailyForStores(Collection $stores, string $strategy = 'mobile'): Collection
+    public function runDailyForStores(Collection $stores, string $strategy = 'mobile', bool $force = false): Collection
     {
-        return $stores->mapWithKeys(function ($store) use ($strategy) {
-            return [$store->id => $this->runDailyForStore($store, $strategy)];
+        return $stores->mapWithKeys(function ($store) use ($strategy, $force) {
+            return [$store->id => $this->runDailyForStore($store, $strategy, $force)];
         })->filter();
     }
 
@@ -151,6 +156,24 @@ class StorePageSpeedInsightsService
         return isset($audits[$key]['numericValue'])
             ? (int) round((float) $audits[$key]['numericValue'])
             : null;
+    }
+
+    private function sanitizeErrorMessage(string $message): string
+    {
+        return (string) preg_replace('/([?&]key=)[^&\s]+/', '$1[redacted]', $message);
+    }
+
+    private function pageSpeedUrl(array $query): string
+    {
+        $categories = ['PERFORMANCE', 'ACCESSIBILITY', 'BEST_PRACTICES', 'SEO'];
+        $categoryQuery = collect($categories)
+            ->map(fn ($category) => 'category=' . rawurlencode($category))
+            ->implode('&');
+
+        return 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?'
+            . http_build_query($query)
+            . '&'
+            . $categoryQuery;
     }
 
     private function storeUrl(object $store): ?string

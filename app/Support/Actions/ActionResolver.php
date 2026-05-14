@@ -2,6 +2,9 @@
 
 namespace App\Support\Actions;
 
+use Illuminate\Support\Facades\Route;
+use Modules\PermissionRoleManager\Services\RoutePermissionAccessService;
+
 class ActionResolver
 {
     public function __construct(protected ActionRegistry $registry)
@@ -49,6 +52,7 @@ class ActionResolver
         $definitions = $this->removeDisabled($definitions, $disabledKeys);
         $definitions = $this->mergeCustomActions($definitions, $customActions);
         $definitions = $this->filterOnly($definitions, $onlyKeys);
+        $definitions = $this->filterUnauthorizedRoutes($definitions);
 
         return array_values($definitions);
     }
@@ -62,9 +66,9 @@ class ActionResolver
         array $routeParameters,
     ): array {
         $defaults = [];
-        $createRoute = $routeConfig['create_route'] ?? ($modulePrefix ? $modulePrefix . '.create' : null);
-        $editRoute = $routeConfig['edit_route'] ?? ($modulePrefix ? $modulePrefix . '.edit' : null);
-        $showRoute = $routeConfig['show_route'] ?? ($modulePrefix ? $modulePrefix . '.show' : null);
+        $createRoute = $routeConfig['create_route'] ?? $this->routeNameForAction($routeName, 'create') ?? ($modulePrefix ? $modulePrefix . '.create' : null);
+        $editRoute = $routeConfig['edit_route'] ?? $this->routeNameForAction($routeName, 'edit') ?? ($modulePrefix ? $modulePrefix . '.edit' : null);
+        $showRoute = $routeConfig['show_route'] ?? $this->routeNameForAction($routeName, 'show') ?? ($modulePrefix ? $modulePrefix . '.show' : null);
         $deleteRoute = $routeConfig['delete_route'] ?? $routeName;
 
         switch ($routeAction) {
@@ -142,7 +146,7 @@ class ActionResolver
     protected function applyRouteToAction(array $action, string $routeName, array $routeParameters): array
     {
         $action['route'] = $routeName;
-        $action['url'] = $this->safeRoute($routeName, $routeParameters);
+        $action['url'] = $this->safeRoute($routeName, $this->filterRouteParameters($routeName, $routeParameters));
 
         return $action;
     }
@@ -309,6 +313,22 @@ class ActionResolver
         return $filtered;
     }
 
+    protected function filterUnauthorizedRoutes(array $definitions): array
+    {
+        $routeAccess = app(RoutePermissionAccessService::class);
+        $userId = auth()->id();
+
+        return array_filter($definitions, function (array $action) use ($routeAccess, $userId) {
+            $routeName = $action['route'] ?? null;
+
+            if (!$routeName) {
+                return true;
+            }
+
+            return $routeAccess->canAccessRouteName($userId, $routeName);
+        });
+    }
+
     protected function normalizeCustomActions(array $actions): array
     {
         $normalized = [];
@@ -345,6 +365,20 @@ class ActionResolver
         return end($parts) ?: 'index';
     }
 
+    protected function routeNameForAction(string $routeName, string $action): ?string
+    {
+        $parts = explode('.', $routeName);
+
+        if (count($parts) < 2) {
+            return null;
+        }
+
+        array_pop($parts);
+        $candidate = implode('.', $parts) . '.' . $action;
+
+        return Route::has($candidate) ? $candidate : null;
+    }
+
     protected function safeRoute(?string $routeName, array $params = []): ?string
     {
         if (!$routeName) {
@@ -352,9 +386,20 @@ class ActionResolver
         }
 
         try {
-            return route($routeName, $params);
+            return route($routeName, $params, false);
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    protected function filterRouteParameters(string $routeName, array $params): array
+    {
+        $route = Route::getRoutes()->getByName($routeName);
+
+        if (!$route) {
+            return [];
+        }
+
+        return array_intersect_key($params, array_flip($route->parameterNames()));
     }
 }

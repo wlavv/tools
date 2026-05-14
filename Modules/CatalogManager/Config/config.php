@@ -6,7 +6,7 @@ return [
     'version' => '5.6.2',
     'route_prefix' => 'catalog-manager',
     'pagespeed' => [
-        'api_key' => env('GOOGLE_PAGESPEED_INSIGHTS_KEY'),
+        'api_key' => env('CATALOG_MANAGER_PAGESPEED_API_KEY', env('PAGESPEED_INSIGHTS_API_KEY')),
         'timeout' => (int) env('CATALOG_MANAGER_PAGESPEED_TIMEOUT', 25),
     ],
     'prestashop_connection' => 'mysql2',

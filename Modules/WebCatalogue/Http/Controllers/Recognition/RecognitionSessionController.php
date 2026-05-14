@@ -17,7 +17,7 @@ class RecognitionSessionController extends Controller
     public function index(): View
     {
         return $this->view('webcatalogue::recognition.sessions.index', [
-            'items' => VisualRecognitionSession::with(['store', 'product', 'lead'])->latest()->get(),
+            'items' => VisualRecognitionSession::with(['store', 'product', 'lead'])->latest()->paginate(25)->withQueryString(),
         ]);
     }
 

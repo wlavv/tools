@@ -14,6 +14,11 @@ Route::prefix('hr/tasks')->name('tasks.')->middleware(['auth'])->group(function 
     Route::post('/members/{member}',            [TasksController::class, 'updateMember'])->name('members.update');
     Route::post('/members/{member}/delete',     [TasksController::class, 'deleteMember'])->name('members.delete');
 
+    Route::get('/events',                       [TasksController::class, 'events'])->name('events.index');
+    Route::post('/events',                      [TasksController::class, 'storeEvent'])->name('events.store');
+    Route::post('/events/{event}',              [TasksController::class, 'updateEvent'])->name('events.update');
+    Route::post('/events/{event}/delete',       [TasksController::class, 'deleteEvent'])->name('events.delete');
+
     Route::get('/manage',                       [TasksController::class, 'manageTasks'])->name('manage.index');
     Route::post('/manage',                      [TasksController::class, 'storeTask'])->name('manage.store');
     Route::post('/manage/{task}',               [TasksController::class, 'updateTask'])->name('manage.update');

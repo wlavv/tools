@@ -38,7 +38,7 @@
 <div class="modal fade mtg-card-modal" id="mtgCardModal" tabindex="-1" role="dialog" aria-labelledby="mtgCardModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
-            <button type="button" class="mtg-card-modal__close" data-dismiss="modal" aria-label="Fechar">
+            <button type="button" class="mtg-card-modal__close" data-bs-dismiss="modal" aria-label="Fechar">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
             <div class="mtg-card-modal__body">

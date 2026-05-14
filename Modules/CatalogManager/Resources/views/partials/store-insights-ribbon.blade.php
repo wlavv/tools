@@ -1,6 +1,15 @@
 @php
     $stores = collect($stores ?? []);
     $pageSpeedMetrics = collect($pageSpeedMetrics ?? []);
+    $pageSpeedMetricsByStrategy = collect($pageSpeedMetricsByStrategy ?? []);
+    $pageSpeedStrategies = [
+        'mobile' => ['label' => 'Mobile', 'icon' => 'fa-solid fa-mobile-screen-button'],
+        'desktop' => ['label' => 'Desktop', 'icon' => 'fa-solid fa-desktop'],
+    ];
+
+    if ($pageSpeedMetricsByStrategy->isEmpty()) {
+        $pageSpeedMetricsByStrategy = collect(['mobile' => $pageSpeedMetrics]);
+    }
 
     $storeSettings = function ($store) {
         $settings = json_decode((string) ($store->settings ?? ''), true);
@@ -120,9 +129,48 @@
         <style>
             .catalog-store-insights {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
                 gap: 10px;
                 width: 100%;
+            }
+
+            .catalog-store-insights[hidden] {
+                display: none;
+            }
+
+            .catalog-store-insights-switch {
+                display: inline-flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                justify-content: center;
+                width: 100%;
+                margin: 0 0 12px;
+            }
+
+            .catalog-store-insights-switch__button {
+                min-width: 120px;
+                min-height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                border: 1px solid rgba(15, 23, 42, .14);
+                border-radius: 0;
+                background: #fff;
+                color: #334155;
+                padding: 0 12px;
+                font-size: 12px;
+                font-weight: 900;
+            }
+
+            .catalog-store-insights-switch__button i {
+                font-size: 14px;
+            }
+
+            .catalog-store-insights-switch__button.is-active {
+                border-color: rgba(37, 99, 235, .45);
+                background: rgba(37, 99, 235, .10);
+                color: #1d4ed8;
             }
 
             .catalog-store-insight {
@@ -315,10 +363,43 @@
                     grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
             }
+
+            @media (min-width: 576px) and (max-width: 991.98px) {
+                .catalog-store-insights {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @media (min-width: 992px) and (max-width: 1399.98px) {
+                .catalog-store-insights {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+            }
         </style>
 
         <script>
             document.addEventListener('click', function (event) {
+                const strategyButton = event.target.closest('[data-store-insight-strategy]');
+
+                if (strategyButton) {
+                    const strategy = strategyButton.dataset.storeInsightStrategy;
+                    const wrapper = strategyButton.closest('[data-store-insight-wrapper]');
+
+                    if (!wrapper) {
+                        return;
+                    }
+
+                    wrapper.querySelectorAll('[data-store-insight-strategy]').forEach((button) => {
+                        button.classList.toggle('is-active', button.dataset.storeInsightStrategy === strategy);
+                    });
+
+                    wrapper.querySelectorAll('[data-store-insight-strategy-panel]').forEach((panel) => {
+                        panel.hidden = panel.dataset.storeInsightStrategyPanel !== strategy;
+                    });
+
+                    return;
+                }
+
                 const toggle = event.target.closest('[data-store-insight-toggle]');
 
                 if (!toggle) {
@@ -340,98 +421,118 @@
         </script>
     @endonce
 
-    <div class="catalog-store-insights">
-        @foreach($stores as $store)
-            @php
-                $metric = $pageSpeedMetrics->get($store->id);
-                $logo = $storeLogo($store);
-                $url = $storeUrl($store);
-                $scores = [
-                    ['label' => 'Desempenho', 'value' => $metric?->performance_score],
-                    ['label' => 'Acessibilidade', 'value' => $metric?->accessibility_score],
-                    ['label' => 'Praticas recomendadas', 'value' => $metric?->best_practices_score],
-                    ['label' => 'SEO', 'value' => $metric?->seo_score],
-                ];
-            @endphp
-
-            <article class="catalog-store-insight">
-                <div class="catalog-store-insight__head">
-                    @if($url)
-                        <a class="catalog-store-insight__logo" href="{{ $url }}" target="_blank" rel="noopener noreferrer" title="Abrir {{ $store->name }}">
-                            @if($logo)
-                                <img src="{{ $logo }}" alt="{{ $store->name }}">
-                            @else
-                                <i class="{{ $storeIcon($store) }}"></i>
-                            @endif
-                        </a>
-                    @else
-                        <span class="catalog-store-insight__logo">
-                            @if($logo)
-                                <img src="{{ $logo }}" alt="{{ $store->name }}">
-                            @else
-                                <i class="{{ $storeIcon($store) }}"></i>
-                            @endif
-                        </span>
-                    @endif
-                    <span class="catalog-store-insight__title">
-                        <strong>{{ $store->name }}</strong>
-                        <small>
-                            @if(($metric?->status ?? null) === 'completed')
-                                PageSpeed Insights de hoje
-                            @elseif(($metric?->status ?? null) === 'failed')
-                                Teste falhou
-                            @elseif(($metric?->status ?? null) === 'skipped')
-                                Sem dominio configurado
-                            @else
-                                Pendente hoje
-                            @endif
-                        </small>
-                    </span>
-                </div>
-
-                <div class="catalog-store-insight__scores">
-                    @foreach($scores as $score)
-                        @php
-                            $value = $score['value'];
-                            $percent = $value !== null ? max(0, min(100, (int) $value)) : 0;
-                        @endphp
-                        <div class="catalog-psi-score">
-                            <span class="catalog-psi-score__donut" style="--psi-percent: {{ $percent }}%; --psi-color: {{ $scoreColor($value) }};">
-                                <span>{{ $scoreLabel($value) }}</span>
-                            </span>
-                            <span class="catalog-psi-score__label">{{ $score['label'] }}</span>
-                        </div>
-                    @endforeach
-                </div>
-
-                <button type="button" class="catalog-store-insight__toggle" data-store-insight-toggle aria-expanded="false">
-                    <span>Ver metricas</span>
-                    <i class="fa-solid fa-chevron-down"></i>
+    <div data-store-insight-wrapper>
+        <div class="catalog-store-insights-switch">
+            @foreach($pageSpeedStrategies as $strategy => $strategyMeta)
+                <button
+                    type="button"
+                    class="catalog-store-insights-switch__button {{ $strategy === 'mobile' ? 'is-active' : '' }}"
+                    data-store-insight-strategy="{{ $strategy }}"
+                >
+                    <i class="{{ $strategyMeta['icon'] }}"></i>
+                    <span>{{ $strategyMeta['label'] }}</span>
                 </button>
+            @endforeach
+        </div>
 
-                <div class="catalog-store-insight__details" hidden>
-                    <div class="catalog-store-insight__detail">
-                        <span>First Contentful Paint</span>
-                        <strong>{{ $formatSeconds($metric?->first_contentful_paint_ms) }}</strong>
-                    </div>
-                    <div class="catalog-store-insight__detail">
-                        <span>Largest Contentful Paint</span>
-                        <strong>{{ $formatSeconds($metric?->largest_contentful_paint_ms) }}</strong>
-                    </div>
-                    <div class="catalog-store-insight__detail">
-                        <span>Total Blocking Time</span>
-                        <strong>{{ $formatMs($metric?->total_blocking_time_ms) }}</strong>
-                    </div>
-                    <div class="catalog-store-insight__detail">
-                        <span>Cumulative Layout Shift</span>
-                        <strong>{{ $formatCls($metric?->cumulative_layout_shift) }}</strong>
-                    </div>
-                    <div class="catalog-store-insight__detail">
-                        <span>Speed Index</span>
-                        <strong>{{ $formatSeconds($metric?->speed_index_ms) }}</strong>
-                    </div>
-                </div>
-            </article>
+        @foreach($pageSpeedStrategies as $strategy => $strategyMeta)
+            @php
+                $strategyMetrics = collect($pageSpeedMetricsByStrategy->get($strategy, collect()));
+            @endphp
+            <div class="catalog-store-insights" data-store-insight-strategy-panel="{{ $strategy }}" @if($strategy !== 'mobile') hidden @endif>
+                @foreach($stores as $store)
+                    @php
+                        $metric = $strategyMetrics->get($store->id);
+                        $logo = $storeLogo($store);
+                        $url = $storeUrl($store);
+                        $scores = [
+                            ['label' => 'Desempenho', 'value' => $metric?->performance_score],
+                            ['label' => 'Acessibilidade', 'value' => $metric?->accessibility_score],
+                            ['label' => 'Praticas recomendadas', 'value' => $metric?->best_practices_score],
+                            ['label' => 'SEO', 'value' => $metric?->seo_score],
+                        ];
+                    @endphp
+
+                    <article class="catalog-store-insight">
+                        <div class="catalog-store-insight__head">
+                            @if($url)
+                                <a class="catalog-store-insight__logo" href="{{ $url }}" target="_blank" rel="noopener noreferrer" title="Abrir {{ $store->name }}">
+                                    @if($logo)
+                                        <img src="{{ $logo }}" alt="{{ $store->name }}">
+                                    @else
+                                        <i class="{{ $storeIcon($store) }}"></i>
+                                    @endif
+                                </a>
+                            @else
+                                <span class="catalog-store-insight__logo">
+                                    @if($logo)
+                                        <img src="{{ $logo }}" alt="{{ $store->name }}">
+                                    @else
+                                        <i class="{{ $storeIcon($store) }}"></i>
+                                    @endif
+                                </span>
+                            @endif
+                            <span class="catalog-store-insight__title">
+                                <strong>{{ $store->name }}</strong>
+                                <small>
+                                    @if(($metric?->status ?? null) === 'completed')
+                                        PageSpeed Insights de hoje - {{ $strategyMeta['label'] }}
+                                    @elseif(($metric?->status ?? null) === 'failed')
+                                        Teste {{ strtolower($strategyMeta['label']) }} falhou
+                                    @elseif(($metric?->status ?? null) === 'skipped')
+                                        Sem dominio configurado
+                                    @else
+                                        Pendente hoje - {{ $strategyMeta['label'] }}
+                                    @endif
+                                </small>
+                            </span>
+                        </div>
+
+                        <div class="catalog-store-insight__scores">
+                            @foreach($scores as $score)
+                                @php
+                                    $value = $score['value'];
+                                    $percent = $value !== null ? max(0, min(100, (int) $value)) : 0;
+                                @endphp
+                                <div class="catalog-psi-score">
+                                    <span class="catalog-psi-score__donut" style="--psi-percent: {{ $percent }}%; --psi-color: {{ $scoreColor($value) }};">
+                                        <span>{{ $scoreLabel($value) }}</span>
+                                    </span>
+                                    <span class="catalog-psi-score__label">{{ $score['label'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <button type="button" class="catalog-store-insight__toggle" data-store-insight-toggle aria-expanded="false">
+                            <span>Ver metricas</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+
+                        <div class="catalog-store-insight__details" hidden>
+                            <div class="catalog-store-insight__detail">
+                                <span>First Contentful Paint</span>
+                                <strong>{{ $formatSeconds($metric?->first_contentful_paint_ms) }}</strong>
+                            </div>
+                            <div class="catalog-store-insight__detail">
+                                <span>Largest Contentful Paint</span>
+                                <strong>{{ $formatSeconds($metric?->largest_contentful_paint_ms) }}</strong>
+                            </div>
+                            <div class="catalog-store-insight__detail">
+                                <span>Total Blocking Time</span>
+                                <strong>{{ $formatMs($metric?->total_blocking_time_ms) }}</strong>
+                            </div>
+                            <div class="catalog-store-insight__detail">
+                                <span>Cumulative Layout Shift</span>
+                                <strong>{{ $formatCls($metric?->cumulative_layout_shift) }}</strong>
+                            </div>
+                            <div class="catalog-store-insight__detail">
+                                <span>Speed Index</span>
+                                <strong>{{ $formatSeconds($metric?->speed_index_ms) }}</strong>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
         @endforeach
     </div>
 @endif

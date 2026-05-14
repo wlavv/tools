@@ -1,0 +1,13 @@
+{
+  "name": "EnvironmentManager",
+  "slug": "environment-manager",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Módulo read-only para consulta de ambiente, .env, runtime env, configs Laravel e configs individuais dos módulos do B.O.",
+  "provider": "Modules\\EnvironmentManager\\Providers\\EnvironmentManagerServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

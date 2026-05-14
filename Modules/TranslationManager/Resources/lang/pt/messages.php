@@ -1,0 +1,45 @@
+<?php
+
+return [
+    'title' => 'Translation Manager',
+    'subtitle' => 'Gestão de traduções custom por módulo sem alterar ficheiros versionados.',
+    'saved' => 'Traduções guardadas com sucesso.',
+    'override_removed' => 'Ficheiro custom removido com sucesso.',
+    'extra_removed' => 'Chave extra removida com sucesso.',
+    'actions' => [
+        'refresh' => 'Atualizar',
+        'save' => 'Guardar alterações',
+        'remove_override' => 'Remover override',
+        'remove_extra' => 'Remover',
+    ],
+    'labels' => [
+        'module' => 'Módulo',
+        'locale' => 'Idioma',
+        'file' => 'Ficheiro',
+        'tag' => 'Tag',
+        'translation' => 'Tradução atual',
+        'base' => 'Base',
+        'status' => 'Estado',
+        'search' => 'Pesquisar tag ou texto...',
+        'extra_keys' => 'Chaves extra no ficheiro custom',
+    ],
+    'stats' => [
+        'base' => 'Base',
+        'custom' => 'Custom',
+        'missing' => 'Sem override',
+        'empty' => 'Vazias',
+        'extra' => 'Extra',
+        'files' => 'Ficheiros',
+    ],
+    'statuses' => [
+        'base_only' => 'BASE ONLY',
+        'partial' => 'PARTIAL',
+        'custom_full' => 'CUSTOM FULL',
+        'has_empty' => 'EMPTY',
+        'has_extra' => 'EXTRA',
+        'base' => 'BASE',
+        'empty' => 'EMPTY',
+        'custom_changed' => 'CUSTOM',
+        'custom_same' => 'CUSTOM',
+    ],
+];

@@ -24,6 +24,7 @@
         @include('catalogmanager::partials.store-insights-ribbon', [
             'stores' => $stores ?? collect(),
             'pageSpeedMetrics' => $pageSpeedMetrics ?? collect(),
+            'pageSpeedMetricsByStrategy' => $pageSpeedMetricsByStrategy ?? [],
         ])
     </div>
 

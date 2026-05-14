@@ -222,7 +222,12 @@ class ProductController extends BaseCatalogController
         }
 
         try {
-            $stores = DB::table('catalog_stores')->orderBy('name')->get();
+            $stores = DB::table('catalog_stores')
+                ->where(function ($query) {
+                    $query->where('record_type', 'store')->orWhereNull('record_type');
+                })
+                ->orderBy('name')
+                ->get();
             $storeProducts = CatalogTable::exists('catalog_store_products')
                 ? DB::table('catalog_store_products')->where('product_id', $productId)->get()->keyBy('store_id')
                 : collect();
