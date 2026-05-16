@@ -116,7 +116,7 @@
                                     <span><strong>Color</strong> {{ number_format((float) ($scores['color_score'] ?? 0), 2) }}%</span>
                                 </div>
                                 @if(!empty($scores['region_scores']))
-                                    <p class="wc-muted">Region score: <strong>{{ number_format((float) ($scores['region_score'] ?? 0), 2) }}%</strong> - Mode: {{ $scores['scoring_mode'] ?? 'structured_regions' }}</p>
+                                    <p class="wc-muted">Region score: <strong>{{ number_format((float) ($scores['region_score'] ?? 0), 2) }}%</strong> - Mode: {{ $scores['scoring_mode'] ?? 'structured_regions' }} @if(array_key_exists('region_applied', $scores))- {{ $scores['region_applied'] ? 'applied' : 'global kept' }}@endif</p>
                                     <div class="wc-score-breakdown">
                                         @foreach($scores['region_scores'] as $regionName => $regionScores)
                                             <span><strong>{{ ucfirst($regionName) }}</strong> {{ number_format((float) ($regionScores['final_score'] ?? 0), 2) }}%</span>
@@ -206,7 +206,7 @@
                                         <span><strong>Color</strong> {{ number_format((float) ($forcedScores['color_score'] ?? 0), 2) }}%</span>
                                     </div>
                                     @if(!empty($forcedScores['region_scores']))
-                                        <p><strong>Region score:</strong> {{ number_format((float) ($forcedScores['region_score'] ?? 0), 2) }}% - <strong>Mode:</strong> {{ $forcedScores['scoring_mode'] ?? 'structured_regions' }}</p>
+                                        <p><strong>Region score:</strong> {{ number_format((float) ($forcedScores['region_score'] ?? 0), 2) }}% - <strong>Mode:</strong> {{ $forcedScores['scoring_mode'] ?? 'structured_regions' }} @if(array_key_exists('region_applied', $forcedScores))- {{ $forcedScores['region_applied'] ? 'applied' : 'global kept' }}@endif</p>
                                         <div class="wc-score-breakdown">
                                             @foreach($forcedScores['region_scores'] as $regionName => $regionScores)
                                                 <span><strong>{{ ucfirst($regionName) }}</strong> {{ number_format((float) ($regionScores['final_score'] ?? 0), 2) }}%</span>

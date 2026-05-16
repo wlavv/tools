@@ -152,6 +152,7 @@ class InternalImageMatchService
                 'structured_region_embedding_phash_color_edge_v3_1',
                 'structured_region_embedding_phash_color_edge_v3_2',
                 'structured_region_embedding_phash_color_edge_v3_3',
+                'structured_region_embedding_phash_color_edge_v3_4',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -1161,10 +1162,13 @@ class InternalImageMatchService
             $regionWeight = (float) config('webcatalogue.recognition.region_structured_weight', 0.55);
             $globalWeight = (float) config('webcatalogue.recognition.region_global_weight', 0.45);
             $totalWeight = max(0.0001, $regionWeight + $globalWeight);
-            $finalScore = (($regionScore['region_score'] * $regionWeight) + ($globalScore * $globalWeight)) / $totalWeight;
+            $combinedScore = (($regionScore['region_score'] * $regionWeight) + ($globalScore * $globalWeight)) / $totalWeight;
+            $finalScore = max($globalScore, $combinedScore);
             $best['global_score'] = round($globalScore, 4);
             $best['region_score'] = round($regionScore['region_score'], 4);
             $best['region_scores'] = $regionScore['regions'];
+            $best['region_combined_score'] = round($combinedScore, 4);
+            $best['region_applied'] = $combinedScore >= $globalScore;
             $best['final_score'] = round($finalScore, 4);
             $best['scoring_mode'] = 'structured_regions';
         } else {
@@ -1350,7 +1354,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'structured_region_embedding_phash_color_edge_v3_4';
+        return 'structured_region_embedding_phash_color_edge_v3_5';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void
