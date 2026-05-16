@@ -55,6 +55,16 @@ return [
             'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN'),
             'timeout' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TIMEOUT', 20),
             'store_debug_image' => env('WEBCATALOGUE_RECOGNITION_OPENCV_STORE_DEBUG', true),
+            'score_boost' => env('WEBCATALOGUE_RECOGNITION_OPENCV_SCORE_BOOST', 3),
+        ],
+        'auto_match_min_margin' => env('WEBCATALOGUE_RECOGNITION_AUTO_MIN_MARGIN', 5),
+        'region_global_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_GLOBAL_WEIGHT', 0.45),
+        'region_structured_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_STRUCTURED_WEIGHT', 0.55),
+        'region_weights' => [
+            'art' => (float) env('WEBCATALOGUE_RECOGNITION_REGION_WEIGHT_ART', 0.45),
+            'name' => (float) env('WEBCATALOGUE_RECOGNITION_REGION_WEIGHT_NAME', 0.30),
+            'text' => (float) env('WEBCATALOGUE_RECOGNITION_REGION_WEIGHT_TEXT', 0.20),
+            'footer' => (float) env('WEBCATALOGUE_RECOGNITION_REGION_WEIGHT_FOOTER', 0.05),
         ],
         'fingerprint_rebuild' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_REBUILD_ENABLED', true),

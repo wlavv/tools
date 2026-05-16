@@ -121,6 +121,7 @@ class InternalImageMatchService
 
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = count($captureProfiles);
+            $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
 
             if (!isset($scoresByProduct[$productId]) || $scoreSet['final_score'] > $scoresByProduct[$productId]['score']) {
@@ -150,6 +151,7 @@ class InternalImageMatchService
                 'internal_composite_v2_27',
                 'structured_region_embedding_phash_color_edge_v3_1',
                 'structured_region_embedding_phash_color_edge_v3_2',
+                'structured_region_embedding_phash_color_edge_v3_3',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -235,8 +237,12 @@ class InternalImageMatchService
 
         $autoThreshold = (float) config('webcatalogue.recognition.auto_match_threshold', 70);
         $suggestionThreshold = (float) config('webcatalogue.recognition.suggestion_threshold', 50);
+        $autoMargin = (float) config('webcatalogue.recognition.auto_match_min_margin', 5);
+        $bestScore = (float) ($suggestions[0]['score'] ?? 0);
+        $secondScore = (float) ($suggestions[1]['score'] ?? 0);
+        $hasSafeMargin = count($suggestions) < 2 || (($bestScore - $secondScore) >= $autoMargin);
 
-        if (!empty($suggestions) && $suggestions[0]['score'] >= $autoThreshold) {
+        if (!empty($suggestions) && $suggestions[0]['score'] >= $autoThreshold && $hasSafeMargin) {
             $autoMatch = $suggestions[0];
             $session->update([
                 'id_product' => $autoMatch['product_id'],
@@ -246,6 +252,8 @@ class InternalImageMatchService
                 'metadata' => array_merge($session->metadata ?: [], [
                     'recognition_algorithm' => $this->algorithmName(),
                     'auto_threshold' => $autoThreshold,
+                    'auto_min_margin' => $autoMargin,
+                    'auto_margin' => round($bestScore - $secondScore, 2),
                     'suggestion_threshold' => $suggestionThreshold,
                     'best_debug_score' => $debugMatches[0]['score'] ?? null,
                     'best_debug_scores' => $debugMatches[0] ?? null,
@@ -275,6 +283,8 @@ class InternalImageMatchService
             'metadata' => array_merge($session->metadata ?: [], [
                 'recognition_algorithm' => $this->algorithmName(),
                 'auto_threshold' => $autoThreshold,
+                'auto_min_margin' => $autoMargin,
+                'auto_margin' => count($debugMatches) > 1 ? round(((float) $debugMatches[0]['score']) - ((float) $debugMatches[1]['score']), 2) : null,
                 'suggestion_threshold' => $suggestionThreshold,
                 'best_debug_score' => $debugMatches[0]['score'] ?? null,
                 'best_debug_scores' => $debugMatches[0] ?? null,
@@ -1148,7 +1158,10 @@ class InternalImageMatchService
 
         if ($regionScore) {
             $globalScore = (float) ($best['final_score'] ?? 0);
-            $finalScore = ($regionScore['region_score'] * 0.82) + ($globalScore * 0.18);
+            $regionWeight = (float) config('webcatalogue.recognition.region_structured_weight', 0.55);
+            $globalWeight = (float) config('webcatalogue.recognition.region_global_weight', 0.45);
+            $totalWeight = max(0.0001, $regionWeight + $globalWeight);
+            $finalScore = (($regionScore['region_score'] * $regionWeight) + ($globalScore * $globalWeight)) / $totalWeight;
             $best['global_score'] = round($globalScore, 4);
             $best['region_score'] = round($regionScore['region_score'], 4);
             $best['region_scores'] = $regionScore['regions'];
@@ -1163,11 +1176,12 @@ class InternalImageMatchService
 
     private function scoreStructuredRegions(array $aRegions, array $bRegions): ?array
     {
+        $weights = config('webcatalogue.recognition.region_weights', []);
         $weights = [
-            'art' => 0.48,
-            'text' => 0.24,
-            'name' => 0.18,
-            'footer' => 0.10,
+            'art' => max(0, (float) ($weights['art'] ?? 0.45)),
+            'name' => max(0, (float) ($weights['name'] ?? 0.30)),
+            'text' => max(0, (float) ($weights['text'] ?? 0.20)),
+            'footer' => max(0, (float) ($weights['footer'] ?? 0.05)),
         ];
         $weightedScore = 0.0;
         $totalWeight = 0.0;
@@ -1192,6 +1206,25 @@ class InternalImageMatchService
             'region_score' => $weightedScore / $totalWeight,
             'regions' => $scores,
         ];
+    }
+
+    private function applyCaptureScoreBoost(array $scoreSet, ?VisualRecognitionCapture $capture): array
+    {
+        if (!$capture || empty($capture->metadata['opencv_analysis']['ok'])) {
+            return $scoreSet;
+        }
+
+        $boost = max(0, (float) config('webcatalogue.recognition.opencv.score_boost', 3));
+        if ($boost <= 0) {
+            return $scoreSet;
+        }
+
+        $before = (float) ($scoreSet['final_score'] ?? 0);
+        $scoreSet['final_score_before_boost'] = round($before, 4);
+        $scoreSet['opencv_boost'] = round($boost, 4);
+        $scoreSet['final_score'] = round(min(100, $before + $boost), 4);
+
+        return $scoreSet;
     }
 
     private function scoreSingleProfiles(array $a, array $b): array
@@ -1317,7 +1350,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'structured_region_embedding_phash_color_edge_v3_3';
+        return 'structured_region_embedding_phash_color_edge_v3_4';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void

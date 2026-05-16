@@ -31,6 +31,7 @@
             </div>
             <div class="wc-scan-actions">
                 <button type="button" class="wc-front-btn wc-front-btn-primary" id="wcStartCamera"><i class="fa-solid fa-video"></i> Open camera</button>
+                <button type="button" class="wc-front-btn" id="wcToggleTorch" disabled><i class="fa-solid fa-bolt"></i> Flash</button>
                 <button type="button" class="wc-front-btn" id="wcCaptureProduct" disabled><i class="fa-solid fa-camera"></i> Capture product</button>
                 <button type="button" class="wc-front-btn" id="wcSearchProduct" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Find product</button>
             </div>
@@ -104,6 +105,7 @@
     const msg = document.getElementById('wcScanMessage');
     const suggestionsBox = document.getElementById('wcScanSuggestions');
     const startBtn = document.getElementById('wcStartCamera');
+    const torchBtn = document.getElementById('wcToggleTorch');
     const captureBtn = document.getElementById('wcCaptureProduct');
     const searchBtn = document.getElementById('wcSearchProduct');
     const focusEnhance = document.getElementById('wcFocusEnhance');
@@ -113,6 +115,8 @@
     const form = document.getElementById('wcUnmatchedForm');
     let sessionToken = null;
     let stream = null;
+    let torchTrack = null;
+    let torchEnabled = false;
     let detectionTimer = null;
     let detectedRect = null;
     let detectedRectIsEstimated = false;
@@ -126,6 +130,50 @@
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
+
+    function updateTorchButton(){
+        if(!torchBtn) return;
+        torchBtn.classList.toggle('wc-front-btn-primary', torchEnabled);
+        torchBtn.innerHTML = torchEnabled
+            ? '<i class="fa-solid fa-bolt"></i> Flash on'
+            : '<i class="fa-solid fa-bolt"></i> Flash';
+    }
+
+    async function setupTorch(){
+        torchEnabled = false;
+        torchTrack = null;
+        if(!torchBtn || !stream) return;
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track?.getCapabilities ? track.getCapabilities() : {};
+        const hasTorch = !!capabilities?.torch;
+        torchTrack = hasTorch ? track : null;
+        torchBtn.disabled = !hasTorch;
+        torchBtn.hidden = false;
+        updateTorchButton();
+
+        if(!hasTorch){
+            torchBtn.title = 'Flash is not supported by this browser/camera.';
+        }else{
+            torchBtn.title = 'Toggle camera flash.';
+        }
+    }
+
+    async function setTorch(enabled){
+        if(!torchTrack) return false;
+        try{
+            await torchTrack.applyConstraints({advanced:[{torch:enabled}]});
+            torchEnabled = enabled;
+            updateTorchButton();
+            return true;
+        }catch(e){
+            torchEnabled = false;
+            torchBtn.disabled = true;
+            updateTorchButton();
+            setMessage('Flash is not available on this camera/browser.');
+            return false;
+        }
+    }
 
     function getFocusRect(width, height){
         const ratio = 0.68;
@@ -691,6 +739,7 @@
             video.srcObject = stream;
             placeholder.style.display = 'none';
             captureBtn.disabled = false;
+            await setupTorch();
             clearSuggestions();
             startObjectDetection();
             video.addEventListener('loadedmetadata', () => {
@@ -699,6 +748,12 @@
             setMessage('Camera ready. Center the product, keep a neutral background and avoid shadows before capturing.');
         }catch(e){ setMessage('Could not open camera: ' + e.message); }
     });
+
+    if(torchBtn){
+        torchBtn.addEventListener('click', async () => {
+            await setTorch(!torchEnabled);
+        });
+    }
 
     captureBtn.addEventListener('click', async () => {
         await ensureSession();
