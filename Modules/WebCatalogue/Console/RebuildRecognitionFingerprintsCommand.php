@@ -5,12 +5,15 @@ namespace Modules\WebCatalogue\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Bus;
 use Modules\WebCatalogue\Jobs\RebuildStoreRecognitionFingerprintsJob;
+use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Store;
+use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
 
 class RebuildRecognitionFingerprintsCommand extends Command
 {
     protected $signature = 'webcatalogue:recognition-rebuild-fingerprints
         {--store= : Rebuild only one store id}
+        {--product= : Rebuild only one product id}
         {--days= : Number of slices in the full cycle}
         {--bucket= : Force the slice index to run, zero-based}
         {--sync : Run immediately inside this command instead of dispatching a queue chain}
@@ -18,8 +21,27 @@ class RebuildRecognitionFingerprintsCommand extends Command
 
     protected $description = 'Rebuild WebCatalogue visual recognition fingerprints by store slices.';
 
-    public function handle(): int
+    public function handle(InternalImageMatchService $matcher): int
     {
+        $productId = (int) $this->option('product');
+        if ($productId > 0) {
+            $product = Product::find($productId);
+            if (!$product) {
+                $this->error('Product not found: ' . $productId);
+                return self::FAILURE;
+            }
+
+            $result = $matcher->rebuildProductDataset($product);
+            $this->info('Fingerprints rebuilt for product #' . $product->id . ' - ' . $product->reference);
+            $this->line('Processed: ' . $result['processed']);
+            $this->line('Created: ' . $result['created']);
+            $this->line('Updated: ' . $result['updated']);
+            $this->line('Failed: ' . $result['failed']);
+            $this->line('Algorithm: ' . $result['algorithm']);
+
+            return self::SUCCESS;
+        }
+
         $storeIds = $this->selectedStoreIds();
 
         if ($storeIds->isEmpty()) {

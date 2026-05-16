@@ -7,7 +7,9 @@
 @if(session('error'))<div class="wc-alert wc-alert-warning">{{ session('error') }}</div>@endif
 @if($errors->any())<div class="wc-alert wc-alert-warning">{{ $errors->first() }}</div>@endif
 @php
-    $capturePreview = $item->captures->where('capture_type', 'object_photo')->sortByDesc('id')->first()?->resolved_url;
+    $objectCapture = $item->captures->where('capture_type', 'object_photo')->sortByDesc('id')->first();
+    $capturePreview = $objectCapture?->resolved_url;
+    $captureCropPreview = $objectCapture?->metadata['detected_object_crop_url'] ?? null;
     $forcedCompare = session('forced_compare');
     $matchByProduct = $item->matches->mapWithKeys(fn($match) => [$match->id_product => [
         'match_id' => $match->id,
@@ -20,7 +22,7 @@
 @endphp
 
 <style>
-.wc-score-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.wc-match-card .wc-preview-media{height:210px;background:#f8fafc}.wc-match-card .wc-preview-media img{width:100%;height:100%;object-fit:contain}.wc-associate-preview{display:none;margin:12px 0;padding:10px;border:1px solid rgba(148,163,184,.28);border-radius:5px;background:#f8fafc}.wc-associate-preview.is-visible{display:block}.wc-associate-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.wc-associate-shot{min-height:160px;border:1px solid rgba(148,163,184,.22);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-associate-shot img{width:100%;height:100%;max-height:220px;object-fit:contain}.wc-associate-shot span{color:#94a3b8;font-size:12px}.wc-associate-info p{margin:5px 0;color:#475569}.wc-associate-info strong{color:#0f172a}.wc-match-mini-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.wc-match-mini-title h4{margin:0}@media(max-width:768px){.wc-associate-compare{grid-template-columns:1fr}}
+.wc-score-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.wc-match-card .wc-preview-media{height:210px;background:#f8fafc}.wc-match-card .wc-preview-media img{width:100%;height:100%;object-fit:contain}.wc-capture-analysis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.wc-capture-shot{min-height:180px;background:#f8fafc;border:1px solid rgba(148,163,184,.22);display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-capture-shot img{width:100%;height:100%;max-height:260px;object-fit:contain}.wc-capture-shot i{font-size:32px;color:#94a3b8}.wc-capture-label{margin:7px 0 0;color:#64748b;font-size:12px}.wc-capture-meta{margin:8px 0 0;color:#475569;font-size:12px}.wc-associate-preview{display:none;margin:12px 0;padding:10px;border:1px solid rgba(148,163,184,.28);border-radius:5px;background:#f8fafc}.wc-associate-preview.is-visible{display:block}.wc-associate-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.wc-associate-shot{min-height:160px;border:1px solid rgba(148,163,184,.22);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-associate-shot img{width:100%;height:100%;max-height:220px;object-fit:contain}.wc-associate-shot span{color:#94a3b8;font-size:12px}.wc-associate-info p{margin:5px 0;color:#475569}.wc-associate-info strong{color:#0f172a}.wc-match-mini-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.wc-match-mini-title h4{margin:0}@media(max-width:768px){.wc-associate-compare,.wc-capture-analysis{grid-template-columns:1fr}}
 </style>
 
 <div class="wc-editor-layout">
@@ -44,8 +46,31 @@
             <div class="wc-grid">
                 @forelse($item->captures as $capture)
                     <div class="wc-preview-card">
-                        <div class="wc-preview-media">@if($capture->resolved_url)<img src="{{ $capture->resolved_url }}" alt="capture">@else<i class="fa-solid fa-image"></i>@endif</div>
-                        <div class="wc-preview-body"><h4>{{ str_replace('_',' ', $capture->capture_type) }}</h4><p class="wc-muted">{{ $capture->created_at?->format('Y-m-d H:i') }}</p></div>
+                        @php($analysis = $capture->metadata['recognition_analysis'] ?? [])
+                        @php($cropUrl = $capture->metadata['detected_object_crop_url'] ?? null)
+                        <div class="wc-preview-body">
+                            <h4>{{ str_replace('_',' ', $capture->capture_type) }}</h4>
+                            <p class="wc-muted">{{ $capture->created_at?->format('Y-m-d H:i') }}</p>
+                            <div class="wc-capture-analysis">
+                                <div>
+                                    <div class="wc-capture-shot">@if($capture->resolved_url)<img src="{{ $capture->resolved_url }}" alt="Original capture">@else<i class="fa-solid fa-image"></i>@endif</div>
+                                    <p class="wc-capture-label">Original capture</p>
+                                </div>
+                                <div>
+                                    <div class="wc-capture-shot">@if($cropUrl)<img src="{{ $cropUrl }}" alt="Detected object crop">@else<i class="fa-solid fa-crop-simple"></i>@endif</div>
+                                    <p class="wc-capture-label">Detected crop used by recognition</p>
+                                </div>
+                            </div>
+                            @if(!empty($analysis))
+                                <p class="wc-capture-meta">
+                                    Box: {{ implode(', ', $analysis['object_box'] ?? []) ?: '-' }}
+                                    @if(!empty($analysis['object_aspect_ratio'])) · Aspect: {{ $analysis['object_aspect_ratio'] }}@endif
+                                    @if(!empty($analysis['algorithm'])) · {{ $analysis['algorithm'] }}@endif
+                                </p>
+                            @elseif($capture->capture_type === 'object_photo')
+                                <p class="wc-capture-meta">Run or force a comparison to generate the detected crop.</p>
+                            @endif
+                        </div>
                     </div>
                 @empty
                     <div class="wc-list-empty"><i class="fa-solid fa-image"></i><div><strong>No captures.</strong></div></div>
@@ -142,8 +167,8 @@
                     <div class="wc-associate-preview" data-associate-preview>
                         <div class="wc-associate-compare">
                             <div>
-                                <div class="wc-associate-shot">@if($capturePreview)<img src="{{ $capturePreview }}" alt="Capture">@else<span>No capture image</span>@endif</div>
-                                <p class="wc-muted">Scan capture</p>
+                                <div class="wc-associate-shot">@if($captureCropPreview ?: $capturePreview)<img src="{{ $captureCropPreview ?: $capturePreview }}" alt="Capture">@else<span>No capture image</span>@endif</div>
+                                <p class="wc-muted">{{ $captureCropPreview ? 'Detected scan crop' : 'Scan capture' }}</p>
                             </div>
                             <div>
                                 <div class="wc-associate-shot" data-product-image-wrap><span>Select product</span></div>

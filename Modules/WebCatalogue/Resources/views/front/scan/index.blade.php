@@ -22,6 +22,7 @@
                     <span class="wc-scan-focus-corner wc-scan-focus-corner-br"></span>
                     <strong>Keep the product inside this area</strong>
                 </div>
+                <div id="wcDetectedObjectBox" class="wc-scan-detected-box" aria-hidden="true"><span>Object focus</span></div>
                 <div id="wcScanPlaceholder" class="wc-scan-placeholder">
                     <i class="fa-solid fa-camera"></i>
                     <strong>Camera not started</strong>
@@ -81,7 +82,7 @@
 </div>
 
 <style>
-.wc-scan-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:24px}.wc-scan-camera-card,.wc-scan-side-card,.wc-scan-modal-card{background:var(--wc-card,#fff);border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);box-shadow:0 14px 35px rgba(15,23,42,.08);padding:18px}.wc-scan-video-wrap{height:min(62vh,560px);background:#111;border-radius:var(--wc-radius,5px);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.wc-scan-video-wrap video{width:100%;height:100%;object-fit:contain;background:#111}.wc-scan-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:8px;background:linear-gradient(135deg,#111827,#334155)}.wc-scan-placeholder i{font-size:54px;opacity:.8}.wc-scan-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.wc-scan-actions-end{justify-content:flex-end}.wc-scan-side-card ul{padding:0;margin:18px 0 0;list-style:none}.wc-scan-side-card li{margin:10px 0;color:var(--wc-text,#111827)}.wc-scan-side-card i{color:var(--wc-accent,#c9a96e);margin-right:8px}.wc-scan-message{margin-top:12px;color:var(--wc-muted,#64748b)}.wc-scan-modal{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}.wc-scan-modal[hidden]{display:none}.wc-scan-modal-card{max-width:780px;width:100%;position:relative}.wc-scan-modal-close{position:absolute;right:14px;top:10px;background:transparent;border:0;font-size:28px}.wc-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.wc-scan-modal label{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-weight:600}.wc-scan-modal input,.wc-scan-modal textarea{border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);padding:10px;background:#fff}.wc-front-btn[disabled]{opacity:.5;cursor:not-allowed}.wc-scan-focus-overlay{position:absolute;left:50%;top:50%;width:min(68%,520px);height:min(68%,420px);transform:translate(-50%,-50%);z-index:2;border:1px dashed rgba(255,255,255,.7);border-radius:var(--wc-radius,5px);box-shadow:0 0 0 9999px rgba(0,0,0,.22);display:flex;align-items:flex-end;justify-content:center;padding:14px;pointer-events:none;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.65);font-size:13px;letter-spacing:.02em}.wc-scan-focus-corner{position:absolute;width:34px;height:34px;border-color:var(--wc-accent,#c9a96e);border-style:solid}.wc-scan-focus-corner-tl{left:-2px;top:-2px;border-width:3px 0 0 3px}.wc-scan-focus-corner-tr{right:-2px;top:-2px;border-width:3px 3px 0 0}.wc-scan-focus-corner-bl{left:-2px;bottom:-2px;border-width:0 0 3px 3px}.wc-scan-focus-corner-br{right:-2px;bottom:-2px;border-width:0 3px 3px 0}.wc-scan-focus-tools{margin-top:12px;padding:12px;border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);background:color-mix(in srgb,var(--wc-card,#fff) 88%,var(--wc-accent,#c9a96e) 12%)}.wc-scan-toggle{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--wc-text,#111827);cursor:pointer}.wc-scan-toggle input{width:17px;height:17px;accent-color:var(--wc-accent,#c9a96e)}.wc-scan-focus-tools small{display:block;margin-top:5px;color:var(--wc-muted,#64748b)}@media(max-width:900px){.wc-scan-grid,.wc-form-grid{grid-template-columns:1fr}.wc-scan-focus-overlay{width:76%;height:62%;font-size:12px}}
+.wc-scan-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:24px}.wc-scan-camera-card,.wc-scan-side-card,.wc-scan-modal-card{background:var(--wc-card,#fff);border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);box-shadow:0 14px 35px rgba(15,23,42,.08);padding:18px}.wc-scan-video-wrap{height:min(62vh,560px);background:#111;border-radius:var(--wc-radius,5px);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.wc-scan-video-wrap video{width:100%;height:100%;object-fit:contain;background:#111}.wc-scan-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:8px;background:linear-gradient(135deg,#111827,#334155)}.wc-scan-placeholder i{font-size:54px;opacity:.8}.wc-scan-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.wc-scan-actions-end{justify-content:flex-end}.wc-scan-side-card ul{padding:0;margin:18px 0 0;list-style:none}.wc-scan-side-card li{margin:10px 0;color:var(--wc-text,#111827)}.wc-scan-side-card i{color:var(--wc-accent,#c9a96e);margin-right:8px}.wc-scan-message{margin-top:12px;color:var(--wc-muted,#64748b)}.wc-scan-modal{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}.wc-scan-modal[hidden]{display:none}.wc-scan-modal-card{max-width:780px;width:100%;position:relative}.wc-scan-modal-close{position:absolute;right:14px;top:10px;background:transparent;border:0;font-size:28px}.wc-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.wc-scan-modal label{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-weight:600}.wc-scan-modal input,.wc-scan-modal textarea{border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);padding:10px;background:#fff}.wc-front-btn[disabled]{opacity:.5;cursor:not-allowed}.wc-scan-focus-overlay{position:absolute;left:50%;top:50%;width:min(68%,520px);height:min(68%,420px);transform:translate(-50%,-50%);z-index:2;border:1px dashed rgba(255,255,255,.7);border-radius:var(--wc-radius,5px);box-shadow:0 0 0 9999px rgba(0,0,0,.22);display:flex;align-items:flex-end;justify-content:center;padding:14px;pointer-events:none;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.65);font-size:13px;letter-spacing:.02em}.wc-scan-focus-corner{position:absolute;width:34px;height:34px;border-color:var(--wc-accent,#c9a96e);border-style:solid}.wc-scan-focus-corner-tl{left:-2px;top:-2px;border-width:3px 0 0 3px}.wc-scan-focus-corner-tr{right:-2px;top:-2px;border-width:3px 3px 0 0}.wc-scan-focus-corner-bl{left:-2px;bottom:-2px;border-width:0 0 3px 3px}.wc-scan-focus-corner-br{right:-2px;bottom:-2px;border-width:0 3px 3px 0}.wc-scan-detected-box{position:absolute;z-index:3;display:none;border:2px solid var(--wc-accent,#c9a96e);border-radius:var(--wc-radius,5px);box-shadow:0 0 0 1px rgba(0,0,0,.28),0 0 26px rgba(201,169,110,.42);pointer-events:none;transition:left .12s ease,top .12s ease,width .12s ease,height .12s ease}.wc-scan-detected-box.is-visible{display:block}.wc-scan-detected-box span{position:absolute;left:8px;top:-28px;background:rgba(15,23,42,.86);color:#fff;border-radius:4px;padding:4px 7px;font-size:11px;font-weight:700;white-space:nowrap}.wc-scan-focus-tools{margin-top:12px;padding:12px;border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);background:color-mix(in srgb,var(--wc-card,#fff) 88%,var(--wc-accent,#c9a96e) 12%)}.wc-scan-toggle{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--wc-text,#111827);cursor:pointer}.wc-scan-toggle input{width:17px;height:17px;accent-color:var(--wc-accent,#c9a96e)}.wc-scan-focus-tools small{display:block;margin-top:5px;color:var(--wc-muted,#64748b)}@media(max-width:900px){.wc-scan-grid,.wc-form-grid{grid-template-columns:1fr}.wc-scan-focus-overlay{width:76%;height:62%;font-size:12px}}
 .wc-scan-suggestions{margin-top:16px;border-top:1px solid var(--wc-border,#e5e7eb);padding-top:16px}.wc-scan-suggestions h3{margin:0 0 4px}.wc-scan-suggestion-help{margin:0 0 12px;color:var(--wc-muted,#64748b)}.wc-scan-suggestion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}.wc-scan-suggestion-card{text-decoration:none;color:var(--wc-text,#111827);border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);background:var(--wc-surface,#fff);padding:10px;display:flex;flex-direction:column;gap:5px;transition:.18s ease}.wc-scan-suggestion-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,23,42,.12)}.wc-scan-suggestion-img{height:110px;display:flex;align-items:center;justify-content:center;background:var(--wc-image-bg,#f8fafc);border-radius:var(--wc-radius,5px);overflow:hidden}.wc-scan-suggestion-img img{width:100%;height:100%;object-fit:contain}.wc-scan-suggestion-img i{font-size:34px;color:var(--wc-muted,#64748b)}.wc-scan-suggestion-card small{color:var(--wc-muted,#64748b)}.wc-scan-suggestion-card em{font-style:normal;color:var(--wc-accent,#c9a96e);font-weight:700}
 </style>
 
@@ -97,6 +98,8 @@
     const csrf = @json(csrf_token());
     const video = document.getElementById('wcScanVideo');
     const canvas = document.getElementById('wcScanCanvas');
+    const videoWrap = video.closest('.wc-scan-video-wrap');
+    const detectedBox = document.getElementById('wcDetectedObjectBox');
     const placeholder = document.getElementById('wcScanPlaceholder');
     const msg = document.getElementById('wcScanMessage');
     const suggestionsBox = document.getElementById('wcScanSuggestions');
@@ -110,6 +113,8 @@
     const form = document.getElementById('wcUnmatchedForm');
     let sessionToken = null;
     let stream = null;
+    let detectionTimer = null;
+    let detectedRect = null;
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
@@ -126,12 +131,178 @@
         };
     }
 
+    function videoDisplayMetrics(){
+        const wrapRect = videoWrap.getBoundingClientRect();
+        const videoWidth = video.videoWidth || 0;
+        const videoHeight = video.videoHeight || 0;
+        if(!videoWidth || !videoHeight) return null;
+
+        const videoRatio = videoWidth / videoHeight;
+        const wrapRatio = wrapRect.width / wrapRect.height;
+        let displayWidth = wrapRect.width;
+        let displayHeight = wrapRect.height;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if(wrapRatio > videoRatio){
+            displayHeight = wrapRect.height;
+            displayWidth = displayHeight * videoRatio;
+            offsetX = (wrapRect.width - displayWidth) / 2;
+        }else{
+            displayWidth = wrapRect.width;
+            displayHeight = displayWidth / videoRatio;
+            offsetY = (wrapRect.height - displayHeight) / 2;
+        }
+
+        return {videoWidth, videoHeight, displayWidth, displayHeight, offsetX, offsetY};
+    }
+
+    function updateDetectedBox(rect){
+        detectedRect = rect || null;
+        const metrics = videoDisplayMetrics();
+        if(!rect || !metrics){
+            detectedBox.classList.remove('is-visible');
+            return;
+        }
+
+        detectedBox.style.left = `${metrics.offsetX + (rect.x / metrics.videoWidth) * metrics.displayWidth}px`;
+        detectedBox.style.top = `${metrics.offsetY + (rect.y / metrics.videoHeight) * metrics.displayHeight}px`;
+        detectedBox.style.width = `${(rect.w / metrics.videoWidth) * metrics.displayWidth}px`;
+        detectedBox.style.height = `${(rect.h / metrics.videoHeight) * metrics.displayHeight}px`;
+        detectedBox.classList.add('is-visible');
+    }
+
+    function findProminentObjectRect(){
+        const sourceWidth = video.videoWidth || 0;
+        const sourceHeight = video.videoHeight || 0;
+        if(!sourceWidth || !sourceHeight) return null;
+
+        const sampleWidth = 120;
+        const sampleHeight = Math.max(80, Math.min(180, Math.round(sourceHeight * (sampleWidth / sourceWidth))));
+        const sample = document.createElement('canvas');
+        sample.width = sampleWidth;
+        sample.height = sampleHeight;
+        const ctx = sample.getContext('2d', {willReadFrequently:true});
+        ctx.drawImage(video, 0, 0, sampleWidth, sampleHeight);
+        const {data} = ctx.getImageData(0, 0, sampleWidth, sampleHeight);
+        const border = {r:0,g:0,b:0,count:0};
+
+        function readPixel(x, y){
+            const idx = ((y * sampleWidth) + x) * 4;
+            return {r:data[idx], g:data[idx+1], b:data[idx+2]};
+        }
+
+        for(let x = 0; x < sampleWidth; x += 4){
+            [readPixel(x, 0), readPixel(x, sampleHeight - 1)].forEach(p => { border.r += p.r; border.g += p.g; border.b += p.b; border.count++; });
+        }
+        for(let y = 0; y < sampleHeight; y += 4){
+            [readPixel(0, y), readPixel(sampleWidth - 1, y)].forEach(p => { border.r += p.r; border.g += p.g; border.b += p.b; border.count++; });
+        }
+        border.r /= Math.max(1, border.count);
+        border.g /= Math.max(1, border.count);
+        border.b /= Math.max(1, border.count);
+
+        const mask = new Uint8Array(sampleWidth * sampleHeight);
+        for(let y = 0; y < sampleHeight; y++){
+            for(let x = 0; x < sampleWidth; x++){
+                const p = readPixel(x, y);
+                const max = Math.max(p.r, p.g, p.b);
+                const min = Math.min(p.r, p.g, p.b);
+                const luma = (0.299 * p.r) + (0.587 * p.g) + (0.114 * p.b);
+                const saturation = max > 0 ? (max - min) / max : 0;
+                const distance = Math.hypot(p.r - border.r, p.g - border.g, p.b - border.b);
+                mask[(y * sampleWidth) + x] = (distance > 38 || luma < 70 || (luma < 120 && saturation > .22)) ? 1 : 0;
+            }
+        }
+
+        const visited = new Uint8Array(sampleWidth * sampleHeight);
+        const edgeX = Math.max(1, Math.floor(sampleWidth * .03));
+        const edgeY = Math.max(1, Math.floor(sampleHeight * .03));
+        let best = null;
+
+        for(let y = 0; y < sampleHeight; y++){
+            for(let x = 0; x < sampleWidth; x++){
+                const start = (y * sampleWidth) + x;
+                if(visited[start] || !mask[start]) continue;
+
+                const queue = [[x, y]];
+                visited[start] = 1;
+                let minX = x, maxX = x, minY = y, maxY = y, count = 0, touchesEdge = false;
+
+                while(queue.length){
+                    const [cx, cy] = queue.pop();
+                    count++;
+                    minX = Math.min(minX, cx); maxX = Math.max(maxX, cx);
+                    minY = Math.min(minY, cy); maxY = Math.max(maxY, cy);
+                    touchesEdge = touchesEdge || cx <= edgeX || cy <= edgeY || cx >= sampleWidth - 1 - edgeX || cy >= sampleHeight - 1 - edgeY;
+
+                    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx, dy]) => {
+                        const nx = cx + dx, ny = cy + dy;
+                        if(nx < 0 || ny < 0 || nx >= sampleWidth || ny >= sampleHeight) return;
+                        const idx = (ny * sampleWidth) + nx;
+                        if(visited[idx] || !mask[idx]) return;
+                        visited[idx] = 1;
+                        queue.push([nx, ny]);
+                    });
+                }
+
+                const w = maxX - minX + 1;
+                const h = maxY - minY + 1;
+                const widthRatio = w / sampleWidth;
+                const heightRatio = h / sampleHeight;
+                if(touchesEdge || count < 40 || widthRatio < .18 || heightRatio < .18 || widthRatio > .92 || heightRatio > .96) continue;
+
+                const centerPenalty = (Math.abs(((minX + maxX) / 2) - (sampleWidth / 2)) / sampleWidth)
+                    + (Math.abs(((minY + maxY) / 2) - (sampleHeight / 2)) / sampleHeight);
+                const score = w * h * (1 - Math.min(.7, centerPenalty));
+                if(!best || score > best.score) best = {minX, minY, maxX, maxY, score};
+            }
+        }
+
+        if(!best) return null;
+
+        const padX = Math.round((best.maxX - best.minX + 1) * .04);
+        const padY = Math.round((best.maxY - best.minY + 1) * .04);
+        const x = Math.max(0, best.minX - padX);
+        const y = Math.max(0, best.minY - padY);
+        const right = Math.min(sampleWidth - 1, best.maxX + padX);
+        const bottom = Math.min(sampleHeight - 1, best.maxY + padY);
+
+        return {
+            x: Math.round((x / sampleWidth) * sourceWidth),
+            y: Math.round((y / sampleHeight) * sourceHeight),
+            w: Math.round(((right - x + 1) / sampleWidth) * sourceWidth),
+            h: Math.round(((bottom - y + 1) / sampleHeight) * sourceHeight)
+        };
+    }
+
+    function startObjectDetection(){
+        stopObjectDetection();
+        detectionTimer = window.setInterval(() => {
+            if(!stream || video.readyState < 2) return;
+            updateDetectedBox(findProminentObjectRect());
+        }, 260);
+    }
+
+    function stopObjectDetection(){
+        if(detectionTimer) window.clearInterval(detectionTimer);
+        detectionTimer = null;
+        updateDetectedBox(null);
+    }
+
     function applyFocusBlur(sourceCanvas){
         const width = sourceCanvas.width;
         const height = sourceCanvas.height;
         if(!width || !height) return;
 
-        const rect = getFocusRect(width, height);
+        const rect = detectedRect
+            ? {
+                x: Math.max(0, Math.round((detectedRect.x / (video.videoWidth || width)) * width)),
+                y: Math.max(0, Math.round((detectedRect.y / (video.videoHeight || height)) * height)),
+                w: Math.max(1, Math.round((detectedRect.w / (video.videoWidth || width)) * width)),
+                h: Math.max(1, Math.round((detectedRect.h / (video.videoHeight || height)) * height))
+            }
+            : getFocusRect(width, height);
         const ctx = sourceCanvas.getContext('2d');
         const original = document.createElement('canvas');
         original.width = width;
@@ -184,6 +355,7 @@
             placeholder.style.display = 'none';
             captureBtn.disabled = false;
             clearSuggestions();
+            startObjectDetection();
             setMessage('Camera ready. Center the product, keep a neutral background and avoid shadows before capturing.');
         }catch(e){ setMessage('Could not open camera: ' + e.message); }
     });

@@ -139,6 +139,10 @@ class RecognitionSessionController extends Controller
                 if ($capture->file_path && Storage::disk('public')->exists($capture->file_path)) {
                     Storage::disk('public')->delete($capture->file_path);
                 }
+                $cropPath = $capture->metadata['detected_object_crop_path'] ?? null;
+                if ($cropPath && Storage::disk('public')->exists($cropPath)) {
+                    Storage::disk('public')->delete($cropPath);
+                }
             }
 
             $session->matches()->delete();

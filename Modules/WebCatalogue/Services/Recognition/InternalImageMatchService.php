@@ -55,6 +55,7 @@ class InternalImageMatchService
 
             return $this->emptyResult('Could not process captured image.');
         }
+        $this->persistCaptureAnalysis($capture, $captureProfile);
 
         $preselected = [];
 
@@ -106,6 +107,8 @@ class InternalImageMatchService
                 'internal_composite',
                 'internal_composite_v2_26',
                 'internal_composite_v2_27',
+                'structured_region_embedding_phash_color_edge_v3_1',
+                $this->algorithmName(),
             ])
             ->delete();
 
@@ -127,7 +130,7 @@ class InternalImageMatchService
                 $match = VisualRecognitionMatch::create([
                     'id_session' => $session->id,
                     'id_product' => $candidate['product']->id,
-                    'match_provider' => 'internal_composite_v2_27',
+                    'match_provider' => $this->algorithmName(),
                     'score' => $score,
                     'rank' => $rank,
                     'status' => 'suggested',
@@ -277,6 +280,48 @@ class InternalImageMatchService
         ];
     }
 
+    public function rebuildProductDataset(Product $product): array
+    {
+        $processed = 0;
+        $created = 0;
+        $failed = 0;
+
+        $resources = Resource::query()
+            ->where('id_product', $product->id)
+            ->whereNotNull('file_path')
+            ->whereIn('resource_type', ['image', 'gallery_image', 'thumbnail', 'cover'])
+            ->where(function ($query) {
+                $query->whereNull('status')->orWhereNotIn('status', ['deleted', 'disabled', 'inactive']);
+            })
+            ->get();
+
+        foreach ($resources as $resource) {
+            $processed++;
+            $before = ResourceFingerprint::where('id_resource', $resource->id)
+                ->where('algorithm', $this->algorithmName())
+                ->exists();
+
+            $profile = $this->fingerprintForResource($resource);
+
+            if (!$profile) {
+                $failed++;
+                continue;
+            }
+
+            if (!$before) {
+                $created++;
+            }
+        }
+
+        return [
+            'processed' => $processed,
+            'created' => $created,
+            'updated' => max(0, $processed - $created - $failed),
+            'failed' => $failed,
+            'algorithm' => $this->algorithmName(),
+        ];
+    }
+
     public function compareSessionWithProduct(VisualRecognitionSession $session, Product $product): array
     {
         $capture = $session->captures()
@@ -292,6 +337,7 @@ class InternalImageMatchService
         if (!$captureProfile) {
             return ['ok' => false, 'message' => 'Could not process captured image.'];
         }
+        $this->persistCaptureAnalysis($capture, $captureProfile);
 
         $resources = Resource::query()
             ->where('id_product', $product->id)
@@ -460,6 +506,7 @@ class InternalImageMatchService
             'algorithm' => $this->algorithmName(),
             'source_width' => $sourceWidth,
             'source_height' => $sourceHeight,
+            'object_box' => $objectBox,
             'object_aspect_ratio' => $this->boxAspectRatio($objectBox),
             'structured_regions' => $regions,
             'phash' => $primary['phash'] ?? null,
@@ -473,6 +520,72 @@ class InternalImageMatchService
         }
 
         return $profile;
+    }
+
+    private function persistCaptureAnalysis(VisualRecognitionCapture $capture, array $profile): void
+    {
+        if (!$capture->file_path || !Storage::disk('public')->exists($capture->file_path)) {
+            return;
+        }
+
+        $box = $profile['object_box'] ?? null;
+        if (!is_array($box) || count($box) < 4) {
+            return;
+        }
+
+        $metadata = $capture->metadata ?: [];
+        if (
+            !empty($metadata['detected_object_crop_path'])
+            && Storage::disk('public')->exists($metadata['detected_object_crop_path'])
+            && (($metadata['recognition_analysis']['algorithm'] ?? null) === $this->algorithmName())
+        ) {
+            return;
+        }
+
+        $binary = Storage::disk('public')->get($capture->file_path);
+        $image = @imagecreatefromstring($binary);
+        if (!$image) {
+            return;
+        }
+
+        [$x, $y, $width, $height] = array_map('intval', array_slice($box, 0, 4));
+        $sourceWidth = imagesx($image);
+        $sourceHeight = imagesy($image);
+        $x = max(0, min($sourceWidth - 1, $x));
+        $y = max(0, min($sourceHeight - 1, $y));
+        $width = max(1, min($sourceWidth - $x, $width));
+        $height = max(1, min($sourceHeight - $y, $height));
+
+        $crop = imagecreatetruecolor($width, $height);
+        imagecopyresampled($crop, $image, 0, 0, $x, $y, $width, $height, $width, $height);
+
+        $directory = trim(dirname($capture->file_path), '/') . '/analysis';
+        $filename = pathinfo($capture->file_path, PATHINFO_FILENAME) . '_detected_crop.jpg';
+        $path = $directory . '/' . $filename;
+
+        ob_start();
+        imagejpeg($crop, null, 92);
+        $jpeg = ob_get_clean();
+        Storage::disk('public')->put($path, $jpeg);
+
+        imagedestroy($crop);
+        imagedestroy($image);
+
+        $capture->update([
+            'metadata' => array_replace_recursive($metadata, [
+                'recognition_analysis' => [
+                    'algorithm' => $this->algorithmName(),
+                    'source_width' => $profile['source_width'] ?? $sourceWidth,
+                    'source_height' => $profile['source_height'] ?? $sourceHeight,
+                    'object_box' => [$x, $y, $width, $height],
+                    'object_aspect_ratio' => $profile['object_aspect_ratio'] ?? null,
+                    'structured_regions' => array_keys($profile['structured_regions'] ?? []),
+                    'generated_at' => now()->toIso8601String(),
+                ],
+                'detected_object_crop_path' => $path,
+                'detected_object_crop_url' => Storage::disk('public')->url($path),
+            ]),
+        ]);
     }
 
     private function profileVariantFromBox($image, array $box, int $size): ?array
@@ -588,6 +701,11 @@ class InternalImageMatchService
             return $this->centerCropBox($width, $height);
         }
 
+        $cardBox = $this->darkRectangularObjectBox($image, $width, $height);
+        if ($cardBox !== null) {
+            return $cardBox;
+        }
+
         $threshold = (int) config('webcatalogue.recognition.object_crop_threshold', 28);
         $border = $this->borderAverageColor($image, $width, $height);
 
@@ -628,6 +746,128 @@ class InternalImageMatchService
         $maxY = min($height - 1, $maxY + $paddingY);
 
         return [$minX, $minY, max(1, $maxX - $minX), max(1, $maxY - $minY)];
+    }
+
+    private function darkRectangularObjectBox($image, int $width, int $height): ?array
+    {
+        if ($width < 80 || $height < 80) {
+            return null;
+        }
+
+        $gridWidth = 120;
+        $gridHeight = max(1, (int) round($height * ($gridWidth / $width)));
+        $gridHeight = min(180, max(80, $gridHeight));
+        $mask = [];
+
+        for ($gy = 0; $gy < $gridHeight; $gy++) {
+            $mask[$gy] = [];
+            $yRatio = ($gy + 0.5) / $gridHeight;
+
+            for ($gx = 0; $gx < $gridWidth; $gx++) {
+                $xRatio = ($gx + 0.5) / $gridWidth;
+                $x = min($width - 1, max(0, (int) round($xRatio * $width)));
+                $y = min($height - 1, max(0, (int) round($yRatio * $height)));
+                $rgb = imagecolorat($image, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+                $luma = (0.299 * $r) + (0.587 * $g) + (0.114 * $b);
+                $max = max($r, $g, $b);
+                $min = min($r, $g, $b);
+                $saturation = $max > 0 ? (($max - $min) / $max) : 0;
+
+                $mask[$gy][$gx] = $luma < 62 || ($luma < 105 && $saturation > 0.18);
+            }
+        }
+
+        $visited = array_fill(0, $gridHeight, array_fill(0, $gridWidth, false));
+        $best = null;
+        $edgeMarginX = max(1, (int) floor($gridWidth * 0.03));
+        $edgeMarginY = max(1, (int) floor($gridHeight * 0.03));
+
+        for ($gy = 0; $gy < $gridHeight; $gy++) {
+            for ($gx = 0; $gx < $gridWidth; $gx++) {
+                if ($visited[$gy][$gx] || !$mask[$gy][$gx]) {
+                    continue;
+                }
+
+                $queue = [[$gx, $gy]];
+                $visited[$gy][$gx] = true;
+                $minX = $maxX = $gx;
+                $minY = $maxY = $gy;
+                $count = 0;
+                $touchesEdge = false;
+
+                while ($queue) {
+                    [$x, $y] = array_pop($queue);
+                    $count++;
+                    $minX = min($minX, $x);
+                    $maxX = max($maxX, $x);
+                    $minY = min($minY, $y);
+                    $maxY = max($maxY, $y);
+                    $touchesEdge = $touchesEdge
+                        || $x <= $edgeMarginX
+                        || $y <= $edgeMarginY
+                        || $x >= ($gridWidth - 1 - $edgeMarginX)
+                        || $y >= ($gridHeight - 1 - $edgeMarginY);
+
+                    foreach ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [$dx, $dy]) {
+                        $nx = $x + $dx;
+                        $ny = $y + $dy;
+                        if ($nx < 0 || $ny < 0 || $nx >= $gridWidth || $ny >= $gridHeight) {
+                            continue;
+                        }
+                        if ($visited[$ny][$nx] || !$mask[$ny][$nx]) {
+                            continue;
+                        }
+
+                        $visited[$ny][$nx] = true;
+                        $queue[] = [$nx, $ny];
+                    }
+                }
+
+                if ($touchesEdge || $count < 35) {
+                    continue;
+                }
+
+                $boxWidth = $maxX - $minX + 1;
+                $boxHeight = $maxY - $minY + 1;
+                $widthRatio = $boxWidth / $gridWidth;
+                $heightRatio = $boxHeight / $gridHeight;
+                $aspect = $boxHeight / max(1, $boxWidth);
+
+                if ($aspect < 1.1 || $aspect > 1.9 || $widthRatio < 0.24 || $heightRatio < 0.30 || $widthRatio > 0.92 || $heightRatio > 0.96) {
+                    continue;
+                }
+
+                $centerX = ($minX + $maxX) / 2;
+                $centerY = ($minY + $maxY) / 2;
+                $centerPenalty = (abs($centerX - ($gridWidth / 2)) / $gridWidth) + (abs($centerY - ($gridHeight / 2)) / $gridHeight);
+                $score = ($boxWidth * $boxHeight) * (1 - min(0.65, $centerPenalty));
+
+                if ($best === null || $score > $best['score']) {
+                    $best = compact('minX', 'minY', 'maxX', 'maxY', 'score');
+                }
+            }
+        }
+
+        if ($best === null) {
+            return null;
+        }
+
+        $x = (int) floor(($best['minX'] / $gridWidth) * $width);
+        $y = (int) floor(($best['minY'] / $gridHeight) * $height);
+        $boxWidth = (int) ceil((($best['maxX'] - $best['minX'] + 1) / $gridWidth) * $width);
+        $boxHeight = (int) ceil((($best['maxY'] - $best['minY'] + 1) / $gridHeight) * $height);
+        $paddingX = (int) round($boxWidth * 0.035);
+        $paddingY = (int) round($boxHeight * 0.035);
+
+        $x = max(0, $x - $paddingX);
+        $y = max(0, $y - $paddingY);
+        $right = min($width - 1, $x + $boxWidth + ($paddingX * 2));
+        $bottom = min($height - 1, $y + $boxHeight + ($paddingY * 2));
+
+        return [$x, $y, max(1, $right - $x), max(1, $bottom - $y)];
     }
 
     private function centerCropBox(int $width, int $height): array
@@ -1012,7 +1252,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'structured_region_embedding_phash_color_edge_v3_1';
+        return 'structured_region_embedding_phash_color_edge_v3_2';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void
