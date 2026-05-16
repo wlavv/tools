@@ -552,6 +552,29 @@
         return canvas;
     }
 
+    function wait(ms){
+        return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
+    async function sendCaptureFrame(frameIndex, frameCount){
+        const captureCanvas = createCaptureCanvas();
+        const photoData = captureCanvas.toDataURL('image/jpeg', .92);
+
+        return fetch(routes.capture, {
+            method:'POST',
+            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+            body:JSON.stringify({
+                session_token:sessionToken,
+                capture_type:'object_photo',
+                photo_data:photoData,
+                frame_index:frameIndex,
+                frame_count:frameCount,
+                detection_source:lastDetectionSource,
+                cropped:!!(detectedRect && !detectedRectIsEstimated)
+            })
+        });
+    }
+
     function renderSuggestions(items){
         if(!items || !items.length){ clearSuggestions(); return; }
         suggestionsBox.hidden = false;
@@ -593,12 +616,27 @@
 
     captureBtn.addEventListener('click', async () => {
         await ensureSession();
-        const captureCanvas = createCaptureCanvas();
-        const photoData = captureCanvas.toDataURL('image/jpeg', .92);
-        const res = await fetch(routes.capture, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken,capture_type:'object_photo',photo_data:photoData})});
-        const data = await res.json();
-        if(data.ok){ searchBtn.disabled = false; clearSuggestions(); setMessage(detectedRect && !detectedRectIsEstimated ? 'Detected object crop captured. You can now search the catalogue.' : 'Product image captured. You can now search the catalogue.'); }
-        else{ setMessage(data.message || 'Could not capture image.'); }
+        captureBtn.disabled = true;
+        searchBtn.disabled = true;
+        clearSuggestions();
+        const frameCount = 3;
+        let stored = 0;
+
+        for(let i = 1; i <= frameCount; i++){
+            setMessage('Capturing frame ' + i + ' of ' + frameCount + '...');
+            const res = await sendCaptureFrame(i, frameCount);
+            const data = await res.json();
+            if(data.ok) stored++;
+            if(i < frameCount) await wait(180);
+        }
+
+        captureBtn.disabled = false;
+        if(stored > 0){
+            searchBtn.disabled = false;
+            setMessage(stored + ' frames captured. The matcher will use the best frame.');
+        }else{
+            setMessage('Could not capture image.');
+        }
     });
 
     searchBtn.addEventListener('click', async () => {

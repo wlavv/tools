@@ -28,7 +28,7 @@ class VisualRecognitionService
         ]);
     }
 
-    public function storeCapture(VisualRecognitionSession $session, UploadedFile|string $file, string $captureType = 'object_photo'): VisualRecognitionCapture
+    public function storeCapture(VisualRecognitionSession $session, UploadedFile|string $file, string $captureType = 'object_photo', array $metadata = []): VisualRecognitionCapture
     {
         $directory = $session->id_store
             ? 'webcatalogue/stores/' . (int) $session->id_store . '/recognition/sessions/' . (int) $session->id . '/captures'
@@ -57,6 +57,7 @@ class VisualRecognitionService
             'mime_type' => $mimeType,
             'file_size' => $size,
             'status' => 'stored',
+            'metadata' => $metadata,
         ]);
 
         $metadata = $session->metadata ?: [];

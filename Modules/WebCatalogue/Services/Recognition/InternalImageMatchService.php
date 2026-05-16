@@ -33,29 +33,46 @@ class InternalImageMatchService
 
     private function matchAgainstResources(VisualRecognitionSession $session, $candidateResources, ?Store $store, int $limit = 5): array
     {
-        $capture = $session->captures()
+        $captures = $session->captures()
             ->where('capture_type', 'object_photo')
             ->latest()
-            ->first();
+            ->limit((int) config('webcatalogue.recognition.multi_frame_count', 3))
+            ->get();
 
-        if (!$capture || !$capture->file_path) {
+        if ($captures->isEmpty()) {
             $session->update(['status' => 'capture_missing']);
             return $this->emptyResult('No capture image available for matching.');
         }
 
-        $captureProfile = $this->profileFromPublicPath($capture->file_path);
-        if ($captureProfile === null) {
+        $captureProfiles = [];
+        foreach ($captures as $capture) {
+            if (!$capture->file_path) {
+                continue;
+            }
+
+            $profile = $this->profileFromPublicPath($capture->file_path);
+            if ($profile === null) {
+                continue;
+            }
+
+            $this->persistCaptureAnalysis($capture, $profile);
+            $captureProfiles[] = [
+                'capture' => $capture,
+                'profile' => $profile,
+            ];
+        }
+
+        if (empty($captureProfiles)) {
             $session->update([
                 'status' => 'match_failed',
                 'metadata' => array_merge($session->metadata ?: [], [
-                    'match_error' => 'Could not create image profile for captured image.',
+                    'match_error' => 'Could not create image profile for captured images.',
                     'recognition_algorithm' => $this->algorithmName(),
                 ]),
             ]);
 
-            return $this->emptyResult('Could not process captured image.');
+            return $this->emptyResult('Could not process captured images.');
         }
-        $this->persistCaptureAnalysis($capture, $captureProfile);
 
         $preselected = [];
 
@@ -65,10 +82,15 @@ class InternalImageMatchService
                 continue;
             }
 
+            $bestRetrieval = 0.0;
+            foreach ($captureProfiles as $captureProfile) {
+                $bestRetrieval = max($bestRetrieval, $this->retrievalScore($captureProfile['profile'], $resourceProfile));
+            }
+
             $preselected[] = [
                 'resource' => $resource,
                 'profile' => $resourceProfile,
-                'retrieval_score' => $this->retrievalScore($captureProfile, $resourceProfile),
+                'retrieval_score' => $bestRetrieval,
             ];
         }
 
@@ -79,14 +101,32 @@ class InternalImageMatchService
 
         foreach ($preselected as $candidateResource) {
             $resource = $candidateResource['resource'];
-            $scoreSet = $this->scoreProfiles($captureProfile, $candidateResource['profile']);
-            $scoreSet['retrieval_score'] = round((float) $candidateResource['retrieval_score'], 4);
+            $scoreSet = null;
+            $scoreCapture = null;
+
+            foreach ($captureProfiles as $captureProfile) {
+                $candidateScore = $this->scoreProfiles($captureProfile['profile'], $candidateResource['profile']);
+                $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $candidateResource['profile']), 4);
+
+                if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
+                    $scoreSet = $candidateScore;
+                    $scoreCapture = $captureProfile['capture'];
+                }
+            }
+
+            if ($scoreSet === null) {
+                continue;
+            }
+
+            $scoreSet['capture_id'] = $scoreCapture?->id;
+            $scoreSet['multi_frame_count'] = count($captureProfiles);
             $productId = (int) $resource->id_product;
 
             if (!isset($scoresByProduct[$productId]) || $scoreSet['final_score'] > $scoresByProduct[$productId]['score']) {
                 $scoresByProduct[$productId] = [
                     'product' => $resource->product,
                     'resource' => $resource,
+                    'capture' => $scoreCapture,
                     'score' => $scoreSet['final_score'],
                     'scores' => $scoreSet,
                 ];
@@ -138,6 +178,7 @@ class InternalImageMatchService
                         'resource_id' => $candidate['resource']->id,
                         'resource_type' => $candidate['resource']->resource_type,
                         'resource_path' => $candidate['resource']->file_path,
+                        'capture_id' => $candidate['capture']?->id,
                         'algorithm' => $this->algorithmName(),
                         'scores' => $candidate['scores'],
                         'weights' => $this->normalisedWeights(),
@@ -153,6 +194,7 @@ class InternalImageMatchService
                             'structured_regions' => ['name', 'art', 'text', 'footer'],
                             'candidate_resources' => count($candidateResources),
                             'scored_candidates' => count($preselected),
+                            'capture_frames' => count($captureProfiles),
                         ],
                     ],
                 ]);

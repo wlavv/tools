@@ -77,6 +77,10 @@ class VisualRecognitionController extends Controller
             'capture_type' => ['nullable', 'string', 'max:60'],
             'photo' => ['nullable', 'image', 'max:8192'],
             'photo_data' => ['nullable', 'string'],
+            'frame_index' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'frame_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'detection_source' => ['nullable', 'string', 'max:60'],
+            'cropped' => ['nullable', 'boolean'],
         ]);
 
         $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
@@ -84,11 +88,17 @@ class VisualRecognitionController extends Controller
             ->firstOrFail();
 
         $captureType = $validated['capture_type'] ?? 'object_photo';
+        $captureMetadata = [
+            'frame_index' => $validated['frame_index'] ?? null,
+            'frame_count' => $validated['frame_count'] ?? null,
+            'detection_source' => $validated['detection_source'] ?? null,
+            'cropped_client_side' => (bool) ($validated['cropped'] ?? false),
+        ];
 
         if ($request->hasFile('photo')) {
-            $capture = $service->storeCapture($session, $request->file('photo'), $captureType);
+            $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
         } elseif (!empty($validated['photo_data'])) {
-            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType);
+            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
         } else {
             return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
         }
@@ -107,6 +117,10 @@ class VisualRecognitionController extends Controller
             'capture_type' => ['nullable', 'string', 'max:60'],
             'photo' => ['nullable', 'image', 'max:8192'],
             'photo_data' => ['nullable', 'string'],
+            'frame_index' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'frame_count' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'detection_source' => ['nullable', 'string', 'max:60'],
+            'cropped' => ['nullable', 'boolean'],
         ]);
 
         $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
@@ -114,11 +128,17 @@ class VisualRecognitionController extends Controller
             ->firstOrFail();
 
         $captureType = $validated['capture_type'] ?? 'object_photo';
+        $captureMetadata = [
+            'frame_index' => $validated['frame_index'] ?? null,
+            'frame_count' => $validated['frame_count'] ?? null,
+            'detection_source' => $validated['detection_source'] ?? null,
+            'cropped_client_side' => (bool) ($validated['cropped'] ?? false),
+        ];
 
         if ($request->hasFile('photo')) {
-            $capture = $service->storeCapture($session, $request->file('photo'), $captureType);
+            $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
         } elseif (!empty($validated['photo_data'])) {
-            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType);
+            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
         } else {
             return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
         }
