@@ -147,6 +147,7 @@ class InternalImageMatchService
                             'edge_size' => 32,
                             'color_bins' => 4,
                             'variants' => ['object', 'center', 'full'],
+                            'structured_regions' => ['name', 'art', 'text', 'footer'],
                             'candidate_resources' => count($candidateResources),
                             'scored_candidates' => count($preselected),
                         ],
@@ -166,6 +167,8 @@ class InternalImageMatchService
                 'color_score' => round($candidate['scores']['color_score'] ?? 0, 2),
                 'embedding_score' => round($candidate['scores']['embedding_score'] ?? 0, 2),
                 'retrieval_score' => round($candidate['scores']['retrieval_score'] ?? 0, 2),
+                'region_score' => round($candidate['scores']['region_score'] ?? 0, 2),
+                'scoring_mode' => $candidate['scores']['scoring_mode'] ?? 'global',
                 'image_url' => $candidate['resource']->resolved_url,
                 'store_id' => $candidate['product']->id_store,
                 'store_name' => $candidate['product']->store?->name,
@@ -437,11 +440,13 @@ class InternalImageMatchService
 
         $sourceWidth = imagesx($image);
         $sourceHeight = imagesy($image);
+        $objectBox = $this->objectCropBox($image);
         $variants = [
-            'object' => $this->profileVariantFromBox($image, $this->objectCropBox($image), 96),
+            'object' => $this->profileVariantFromBox($image, $objectBox, 96),
             'center' => $this->profileVariantFromBox($image, $this->centerCropBox($sourceWidth, $sourceHeight), 96),
             'full' => $this->profileVariantFromBox($image, [0, 0, $sourceWidth, $sourceHeight], 96),
         ];
+        $regions = $this->structuredRegionProfiles($image, $objectBox, 96);
         $variants = array_filter($variants);
         imagedestroy($image);
 
@@ -455,6 +460,8 @@ class InternalImageMatchService
             'algorithm' => $this->algorithmName(),
             'source_width' => $sourceWidth,
             'source_height' => $sourceHeight,
+            'object_aspect_ratio' => $this->boxAspectRatio($objectBox),
+            'structured_regions' => $regions,
             'phash' => $primary['phash'] ?? null,
             'edge_hash' => $primary['edge_hash'] ?? null,
             'color_histogram' => $primary['color_histogram'] ?? [],
@@ -495,6 +502,53 @@ class InternalImageMatchService
         imagedestroy($prepared);
 
         return $profile;
+    }
+
+    private function structuredRegionProfiles($image, array $objectBox, int $size): array
+    {
+        if (!$this->looksLikeCard($objectBox)) {
+            return [];
+        }
+
+        [$x, $y, $width, $height] = $objectBox;
+        $regions = [
+            'name' => [0.08, 0.055, 0.84, 0.105],
+            'art' => [0.08, 0.18, 0.84, 0.325],
+            'text' => [0.08, 0.555, 0.84, 0.285],
+            'footer' => [0.08, 0.855, 0.84, 0.085],
+        ];
+
+        $profiles = [];
+        foreach ($regions as $name => [$rx, $ry, $rw, $rh]) {
+            $box = [
+                (int) round($x + ($width * $rx)),
+                (int) round($y + ($height * $ry)),
+                max(1, (int) round($width * $rw)),
+                max(1, (int) round($height * $rh)),
+            ];
+
+            $profile = $this->profileVariantFromBox($image, $box, $size);
+            if ($profile) {
+                $profiles[$name] = $profile;
+            }
+        }
+
+        return $profiles;
+    }
+
+    private function looksLikeCard(array $box): bool
+    {
+        $ratio = $this->boxAspectRatio($box);
+
+        return $ratio >= 1.18 && $ratio <= 1.72;
+    }
+
+    private function boxAspectRatio(array $box): float
+    {
+        $width = max(1, (float) ($box[2] ?? 1));
+        $height = max(1, (float) ($box[3] ?? 1));
+
+        return round($height / $width, 4);
     }
 
     private function prepareImage($image, int $size)
@@ -784,7 +838,55 @@ class InternalImageMatchService
             }
         }
 
-        return $best ?: $this->scoreSingleProfiles($a, $b);
+        $best = $best ?: $this->scoreSingleProfiles($a, $b);
+        $regionScore = $this->scoreStructuredRegions($a['structured_regions'] ?? [], $b['structured_regions'] ?? []);
+
+        if ($regionScore) {
+            $globalScore = (float) ($best['final_score'] ?? 0);
+            $finalScore = ($regionScore['region_score'] * 0.82) + ($globalScore * 0.18);
+            $best['global_score'] = round($globalScore, 4);
+            $best['region_score'] = round($regionScore['region_score'], 4);
+            $best['region_scores'] = $regionScore['regions'];
+            $best['final_score'] = round($finalScore, 4);
+            $best['scoring_mode'] = 'structured_regions';
+        } else {
+            $best['scoring_mode'] = 'global';
+        }
+
+        return $best;
+    }
+
+    private function scoreStructuredRegions(array $aRegions, array $bRegions): ?array
+    {
+        $weights = [
+            'art' => 0.48,
+            'text' => 0.24,
+            'name' => 0.18,
+            'footer' => 0.10,
+        ];
+        $weightedScore = 0.0;
+        $totalWeight = 0.0;
+        $scores = [];
+
+        foreach ($weights as $region => $weight) {
+            if (empty($aRegions[$region]) || empty($bRegions[$region])) {
+                continue;
+            }
+
+            $score = $this->scoreSingleProfiles($aRegions[$region], $bRegions[$region]);
+            $scores[$region] = $score;
+            $weightedScore += ((float) $score['final_score']) * $weight;
+            $totalWeight += $weight;
+        }
+
+        if ($totalWeight <= 0) {
+            return null;
+        }
+
+        return [
+            'region_score' => $weightedScore / $totalWeight,
+            'regions' => $scores,
+        ];
     }
 
     private function scoreSingleProfiles(array $a, array $b): array
@@ -910,7 +1012,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'composite_embedding_phash_color_edge_multi_variant_v3';
+        return 'structured_region_embedding_phash_color_edge_v3_1';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void

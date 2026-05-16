@@ -20,7 +20,7 @@
 @endphp
 
 <style>
-.wc-score-breakdown{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.wc-match-card .wc-preview-media{height:210px;background:#f8fafc}.wc-match-card .wc-preview-media img{width:100%;height:100%;object-fit:contain}.wc-associate-preview{display:none;margin:12px 0;padding:10px;border:1px solid rgba(148,163,184,.28);border-radius:5px;background:#f8fafc}.wc-associate-preview.is-visible{display:block}.wc-associate-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.wc-associate-shot{min-height:160px;border:1px solid rgba(148,163,184,.22);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-associate-shot img{width:100%;height:100%;max-height:220px;object-fit:contain}.wc-associate-shot span{color:#94a3b8;font-size:12px}.wc-associate-info p{margin:5px 0;color:#475569}.wc-associate-info strong{color:#0f172a}.wc-match-mini-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.wc-match-mini-title h4{margin:0}@media(max-width:768px){.wc-score-breakdown{grid-template-columns:repeat(2,minmax(0,1fr))}.wc-associate-compare{grid-template-columns:1fr}}
+.wc-score-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.wc-match-card .wc-preview-media{height:210px;background:#f8fafc}.wc-match-card .wc-preview-media img{width:100%;height:100%;object-fit:contain}.wc-associate-preview{display:none;margin:12px 0;padding:10px;border:1px solid rgba(148,163,184,.28);border-radius:5px;background:#f8fafc}.wc-associate-preview.is-visible{display:block}.wc-associate-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.wc-associate-shot{min-height:160px;border:1px solid rgba(148,163,184,.22);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-associate-shot img{width:100%;height:100%;max-height:220px;object-fit:contain}.wc-associate-shot span{color:#94a3b8;font-size:12px}.wc-associate-info p{margin:5px 0;color:#475569}.wc-associate-info strong{color:#0f172a}.wc-match-mini-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.wc-match-mini-title h4{margin:0}@media(max-width:768px){.wc-associate-compare{grid-template-columns:1fr}}
 </style>
 
 <div class="wc-editor-layout">
@@ -75,6 +75,14 @@
                                     <span><strong>Edges</strong> {{ number_format((float) ($scores['edge_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Color</strong> {{ number_format((float) ($scores['color_score'] ?? 0), 2) }}%</span>
                                 </div>
+                                @if(!empty($scores['region_scores']))
+                                    <p class="wc-muted">Region score: <strong>{{ number_format((float) ($scores['region_score'] ?? 0), 2) }}%</strong> - Mode: {{ $scores['scoring_mode'] ?? 'structured_regions' }}</p>
+                                    <div class="wc-score-breakdown">
+                                        @foreach($scores['region_scores'] as $regionName => $regionScores)
+                                            <span><strong>{{ ucfirst($regionName) }}</strong> {{ number_format((float) ($regionScores['final_score'] ?? 0), 2) }}%</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             @endif
                             <p><span class="wc-badge">{{ $match->status }}</span></p>
                             @if($match->product)
@@ -157,6 +165,14 @@
                                         <span><strong>Edges</strong> {{ number_format((float) ($forcedScores['edge_score'] ?? 0), 2) }}%</span>
                                         <span><strong>Color</strong> {{ number_format((float) ($forcedScores['color_score'] ?? 0), 2) }}%</span>
                                     </div>
+                                    @if(!empty($forcedScores['region_scores']))
+                                        <p><strong>Region score:</strong> {{ number_format((float) ($forcedScores['region_score'] ?? 0), 2) }}% - <strong>Mode:</strong> {{ $forcedScores['scoring_mode'] ?? 'structured_regions' }}</p>
+                                        <div class="wc-score-breakdown">
+                                            @foreach($forcedScores['region_scores'] as $regionName => $regionScores)
+                                                <span><strong>{{ ucfirst($regionName) }}</strong> {{ number_format((float) ($regionScores['final_score'] ?? 0), 2) }}%</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     <p><span class="wc-badge">Capture {{ $forcedScores['capture_variant'] ?? '-' }}</span> <span class="wc-badge">Product {{ $forcedScores['resource_variant'] ?? '-' }}</span></p>
                                 @else
                                     <p><strong>Forced comparison failed:</strong> {{ $forcedCompare['message'] ?? 'No result.' }}</p>
@@ -267,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (match) {
             info.innerHTML = '<p><strong>Score:</strong> ' + pct(match.score) + ' - <strong>Provider:</strong> ' + (match.provider || '-') + '</p>'
                 + scoreBlock(match.scores || {})
+                + (match.scores?.region_scores ? '<p><strong>Region score:</strong> ' + pct(match.scores.region_score) + ' - <strong>Mode:</strong> ' + (match.scores.scoring_mode || 'structured_regions') + '</p>' : '')
                 + '<p><span class="wc-badge">' + (match.status || 'suggested') + '</span> <span class="wc-badge">Rank ' + (match.rank || '-') + '</span></p>';
         } else {
             info.innerHTML = '<p><strong>No recorded match for this product.</strong></p>'
