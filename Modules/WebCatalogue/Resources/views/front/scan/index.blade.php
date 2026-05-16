@@ -541,7 +541,7 @@
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         const rect = detectedRectForCanvas(canvas.width, canvas.height);
-        if(focusEnhance && focusEnhance.checked && rect){
+        if(rect){
             return cropCanvasToRect(canvas, rect, lastDetectionSource === 'tensorflow' ? .10 : .06);
         }
 
