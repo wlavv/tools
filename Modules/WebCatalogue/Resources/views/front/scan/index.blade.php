@@ -122,6 +122,7 @@
     let tfDetectorPromise = null;
     let tfDetecting = false;
     let tfStatusShown = false;
+    let lastDetectionSource = 'none';
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
@@ -250,12 +251,12 @@
             let best = null;
             predictions.forEach(prediction => {
                 const score = Number(prediction.score || 0);
-                if(score < .38 || !prediction.bbox) return;
+                if(score < .55 || !prediction.bbox) return;
 
                 const [x, y, w, h] = prediction.bbox.map(value => Math.max(0, Number(value || 0)));
                 const widthRatio = w / sourceWidth;
                 const heightRatio = h / sourceHeight;
-                if(widthRatio < .08 || heightRatio < .08 || widthRatio > .96 || heightRatio > .96) return;
+                if(widthRatio < .12 || heightRatio < .12 || widthRatio > .90 || heightRatio > .92) return;
 
                 const centerX = x + (w / 2);
                 const centerY = y + (h / 2);
@@ -444,10 +445,12 @@
         detectionTimer = window.setInterval(async () => {
             if(!stream || video.readyState < 2) return;
             const aiDetected = tfDetector ? await findTensorFlowObjectRect() : null;
-            const detected = aiDetected || findProminentObjectRect();
+            const heuristicDetected = aiDetected ? null : findProminentObjectRect();
+            const detected = aiDetected || heuristicDetected;
             if(detected){
                 trackedRect = smoothRect(trackedRect, detected);
                 missedDetections = 0;
+                lastDetectionSource = aiDetected ? 'tensorflow' : 'heuristic';
                 updateDetectedBox(trackedRect, false);
             }else if(trackedRect && missedDetections < 8){
                 missedDetections++;
@@ -455,6 +458,7 @@
             }else{
                 trackedRect = null;
                 missedDetections++;
+                lastDetectionSource = 'estimated';
                 updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             }
         }, 260);
@@ -465,7 +469,42 @@
         detectionTimer = null;
         trackedRect = null;
         missedDetections = 0;
+        lastDetectionSource = 'none';
         updateDetectedBox(null);
+    }
+
+    function cropCanvasToRect(sourceCanvas, rect, paddingRatio = .08){
+        const sourceWidth = sourceCanvas.width;
+        const sourceHeight = sourceCanvas.height;
+        if(!sourceWidth || !sourceHeight || !rect) return sourceCanvas;
+
+        const padX = Math.round(rect.w * paddingRatio);
+        const padY = Math.round(rect.h * paddingRatio);
+        const x = Math.max(0, rect.x - padX);
+        const y = Math.max(0, rect.y - padY);
+        const right = Math.min(sourceWidth, rect.x + rect.w + padX);
+        const bottom = Math.min(sourceHeight, rect.y + rect.h + padY);
+        const width = Math.max(1, right - x);
+        const height = Math.max(1, bottom - y);
+        const maxSide = 1200;
+        const scale = Math.min(1, maxSide / Math.max(width, height));
+        const output = document.createElement('canvas');
+        output.width = Math.max(1, Math.round(width * scale));
+        output.height = Math.max(1, Math.round(height * scale));
+        output.getContext('2d').drawImage(sourceCanvas, x, y, width, height, 0, 0, output.width, output.height);
+
+        return output;
+    }
+
+    function detectedRectForCanvas(width, height){
+        if(!detectedRect || detectedRectIsEstimated) return null;
+
+        return {
+            x: Math.max(0, Math.round((detectedRect.x / (video.videoWidth || width)) * width)),
+            y: Math.max(0, Math.round((detectedRect.y / (video.videoHeight || height)) * height)),
+            w: Math.max(1, Math.round((detectedRect.w / (video.videoWidth || width)) * width)),
+            h: Math.max(1, Math.round((detectedRect.h / (video.videoHeight || height)) * height))
+        };
     }
 
     function applyFocusBlur(sourceCanvas){
@@ -473,14 +512,7 @@
         const height = sourceCanvas.height;
         if(!width || !height) return;
 
-        const rect = detectedRect && !detectedRectIsEstimated
-            ? {
-                x: Math.max(0, Math.round((detectedRect.x / (video.videoWidth || width)) * width)),
-                y: Math.max(0, Math.round((detectedRect.y / (video.videoHeight || height)) * height)),
-                w: Math.max(1, Math.round((detectedRect.w / (video.videoWidth || width)) * width)),
-                h: Math.max(1, Math.round((detectedRect.h / (video.videoHeight || height)) * height))
-            }
-            : getFocusRect(width, height);
+        const rect = detectedRectForCanvas(width, height) || getFocusRect(width, height);
         const ctx = sourceCanvas.getContext('2d');
         const original = document.createElement('canvas');
         original.width = width;
@@ -500,6 +532,24 @@
         ctx.filter = 'contrast(1.06) saturate(1.04)';
         ctx.drawImage(original, 0, 0);
         ctx.restore();
+    }
+
+    function createCaptureCanvas(){
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const rect = detectedRectForCanvas(canvas.width, canvas.height);
+        if(focusEnhance && focusEnhance.checked && rect){
+            return cropCanvasToRect(canvas, rect, lastDetectionSource === 'tensorflow' ? .10 : .06);
+        }
+
+        if(focusEnhance && focusEnhance.checked){
+            applyFocusBlur(canvas);
+        }
+
+        return canvas;
     }
 
     function renderSuggestions(items){
@@ -543,17 +593,11 @@
 
     captureBtn.addEventListener('click', async () => {
         await ensureSession();
-        canvas.width = video.videoWidth || 1280;
-        canvas.height = video.videoHeight || 720;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        if(focusEnhance && focusEnhance.checked){
-            applyFocusBlur(canvas);
-        }
-        const photoData = canvas.toDataURL('image/jpeg', .92);
+        const captureCanvas = createCaptureCanvas();
+        const photoData = captureCanvas.toDataURL('image/jpeg', .92);
         const res = await fetch(routes.capture, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken,capture_type:'object_photo',photo_data:photoData})});
         const data = await res.json();
-        if(data.ok){ searchBtn.disabled = false; clearSuggestions(); setMessage('Product image captured. You can now search the catalogue.'); }
+        if(data.ok){ searchBtn.disabled = false; clearSuggestions(); setMessage(detectedRect && !detectedRectIsEstimated ? 'Detected object crop captured. You can now search the catalogue.' : 'Product image captured. You can now search the catalogue.'); }
         else{ setMessage(data.message || 'Could not capture image.'); }
     });
 
