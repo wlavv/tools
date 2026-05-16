@@ -5,6 +5,8 @@ namespace Modules\WebCatalogue\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Modules\WebCatalogue\Console\RebuildRecognitionFingerprintsCommand;
+use Modules\WebCatalogue\Console\SeedTcgCollectorsMirrodinCommand;
 use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
@@ -26,6 +28,9 @@ class TemporaryTcgSeedController extends Controller
         $output = [];
         $output[] = 'WebCatalogue temporary TCG seed started at ' . now()->toDateTimeString();
 
+        Artisan::registerCommand(app(SeedTcgCollectorsMirrodinCommand::class));
+        Artisan::registerCommand(app(RebuildRecognitionFingerprintsCommand::class));
+
         try {
             $storageExitCode = Artisan::call('storage:link');
             $output[] = 'storage:link exit code: ' . $storageExitCode;
@@ -34,24 +39,34 @@ class TemporaryTcgSeedController extends Controller
             $output[] = 'storage:link warning: ' . $exception->getMessage();
         }
 
-        $seedExitCode = Artisan::call('webcatalogue:seed-tcg-collectors-mirrodin', [
-            '--refresh-images' => $request->boolean('refresh_images'),
-        ]);
+        $seedExitCode = 1;
 
-        $output[] = trim(Artisan::output());
-        $output[] = 'seed exit code: ' . $seedExitCode;
+        try {
+            $seedExitCode = Artisan::call('webcatalogue:seed-tcg-collectors-mirrodin', [
+                '--refresh-images' => $request->boolean('refresh_images'),
+            ]);
+
+            $output[] = trim(Artisan::output());
+            $output[] = 'seed exit code: ' . $seedExitCode;
+        } catch (\Throwable $exception) {
+            $output[] = 'seed error: ' . $exception->getMessage();
+        }
 
         if ($request->boolean('rebuild_fingerprints')) {
             $store = Store::where('slug', 'tcg-collectors')->first();
 
             if ($store) {
-                $rebuildExitCode = Artisan::call('webcatalogue:recognition-rebuild-fingerprints', [
-                    '--store' => $store->id,
-                    '--sync' => true,
-                ]);
+                try {
+                    $rebuildExitCode = Artisan::call('webcatalogue:recognition-rebuild-fingerprints', [
+                        '--store' => $store->id,
+                        '--sync' => true,
+                    ]);
 
-                $output[] = trim(Artisan::output());
-                $output[] = 'fingerprint rebuild exit code: ' . $rebuildExitCode;
+                    $output[] = trim(Artisan::output());
+                    $output[] = 'fingerprint rebuild exit code: ' . $rebuildExitCode;
+                } catch (\Throwable $exception) {
+                    $output[] = 'fingerprint rebuild error: ' . $exception->getMessage();
+                }
             } else {
                 $output[] = 'fingerprint rebuild skipped: store not found.';
             }
