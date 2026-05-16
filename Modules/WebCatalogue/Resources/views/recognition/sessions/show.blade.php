@@ -4,9 +4,11 @@
 @include('webcatalogue::Includes.css')
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
+@if(session('error'))<div class="wc-alert wc-alert-warning">{{ session('error') }}</div>@endif
 @if($errors->any())<div class="wc-alert wc-alert-warning">{{ $errors->first() }}</div>@endif
 @php
     $capturePreview = $item->captures->where('capture_type', 'object_photo')->sortByDesc('id')->first()?->resolved_url;
+    $forcedCompare = session('forced_compare');
     $matchByProduct = $item->matches->mapWithKeys(fn($match) => [$match->id_product => [
         'match_id' => $match->id,
         'rank' => $match->rank,
@@ -119,6 +121,7 @@
                                 @php($matchData = $matchByProduct[$product->id] ?? null)
                                 <option
                                     value="{{ $product->id }}"
+                                    @selected((string) old('id_product') === (string) $product->id)
                                     data-image="{{ $image }}"
                                     data-reference="{{ $product->reference }}"
                                     data-name="{{ strip_tags($product->name) }}"
@@ -141,7 +144,30 @@
                         </div>
                         <div class="wc-associate-info" data-associate-info></div>
                     </div>
-                    <button class="wc-primary-btn wc-full-action" type="submit"><i class="fa-solid fa-link"></i> Associate scan</button>
+                    @if(is_array($forcedCompare))
+                        <div class="wc-associate-preview is-visible">
+                            <div class="wc-associate-info">
+                                @if($forcedCompare['ok'] ?? false)
+                                    <p><strong>Forced comparison:</strong> {{ $forcedCompare['product_reference'] ?? '' }} - {{ $forcedCompare['product_name'] ?? '' }}</p>
+                                    <p><strong>Score:</strong> {{ number_format((float) ($forcedCompare['score'] ?? 0), 2) }}% - <strong>Provider:</strong> {{ $forcedCompare['provider'] ?? '-' }}</p>
+                                    @php($forcedScores = $forcedCompare['scores'] ?? [])
+                                    <div class="wc-score-breakdown">
+                                        <span><strong>Embedding</strong> {{ number_format((float) ($forcedScores['embedding_score'] ?? 0), 2) }}%</span>
+                                        <span><strong>pHash</strong> {{ number_format((float) ($forcedScores['phash_score'] ?? 0), 2) }}%</span>
+                                        <span><strong>Edges</strong> {{ number_format((float) ($forcedScores['edge_score'] ?? 0), 2) }}%</span>
+                                        <span><strong>Color</strong> {{ number_format((float) ($forcedScores['color_score'] ?? 0), 2) }}%</span>
+                                    </div>
+                                    <p><span class="wc-badge">Capture {{ $forcedScores['capture_variant'] ?? '-' }}</span> <span class="wc-badge">Product {{ $forcedScores['resource_variant'] ?? '-' }}</span></p>
+                                @else
+                                    <p><strong>Forced comparison failed:</strong> {{ $forcedCompare['message'] ?? 'No result.' }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+                    <div class="wc-actions-row">
+                        <button class="wc-secondary-btn" type="submit" formaction="{{ route('webcatalogue.recognition.sessions.compare_product', $item) }}"><i class="fa-solid fa-scale-balanced"></i> Compare selected</button>
+                        <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-link"></i> Associate scan</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -247,6 +273,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 + '<p class="wc-muted">Este produto não ficou nos candidatos gravados desta sessão. Para saber a posição exata seria necessário correr uma análise full-rank para esta captura.</p>';
         }
     });
+
+    if (select.value) {
+        select.dispatchEvent(new Event('change'));
+    }
 });
 </script>
 @endsection

@@ -274,6 +274,69 @@ class InternalImageMatchService
         ];
     }
 
+    public function compareSessionWithProduct(VisualRecognitionSession $session, Product $product): array
+    {
+        $capture = $session->captures()
+            ->where('capture_type', 'object_photo')
+            ->latest()
+            ->first();
+
+        if (!$capture || !$capture->file_path) {
+            return ['ok' => false, 'message' => 'No capture image available for comparison.'];
+        }
+
+        $captureProfile = $this->profileFromPublicPath($capture->file_path);
+        if (!$captureProfile) {
+            return ['ok' => false, 'message' => 'Could not process captured image.'];
+        }
+
+        $resources = Resource::query()
+            ->where('id_product', $product->id)
+            ->whereNotNull('file_path')
+            ->whereIn('resource_type', ['image', 'gallery_image', 'thumbnail', 'cover'])
+            ->where(function ($query) {
+                $query->whereNull('status')->orWhereNotIn('status', ['deleted', 'disabled', 'inactive']);
+            })
+            ->get();
+
+        $best = null;
+
+        foreach ($resources as $resource) {
+            $resourceProfile = $this->fingerprintForResource($resource);
+            if (!$resourceProfile) {
+                continue;
+            }
+
+            $scores = $this->scoreProfiles($captureProfile, $resourceProfile);
+            $scores['retrieval_score'] = $this->retrievalScore($captureProfile, $resourceProfile);
+
+            if ($best === null || $scores['final_score'] > $best['score']) {
+                $best = [
+                    'resource' => $resource,
+                    'score' => $scores['final_score'],
+                    'scores' => $scores,
+                ];
+            }
+        }
+
+        if (!$best) {
+            return ['ok' => false, 'message' => 'No comparable product image found.'];
+        }
+
+        return [
+            'ok' => true,
+            'product_id' => $product->id,
+            'product_reference' => $product->reference,
+            'product_name' => strip_tags((string) $product->name),
+            'resource_id' => $best['resource']->id,
+            'resource_url' => $best['resource']->resolved_url,
+            'score' => round((float) $best['score'], 4),
+            'scores' => $best['scores'],
+            'provider' => $this->algorithmName(),
+            'message' => 'Forced comparison completed.',
+        ];
+    }
+
     private function emptyResult(string $message): array
     {
         return [

@@ -14,6 +14,7 @@ use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\UnmatchedProductLead;
 use Modules\WebCatalogue\Models\VisualRecognitionMatch;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
+use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
 
 class RecognitionSessionController extends Controller
 {
@@ -203,6 +204,25 @@ class RecognitionSessionController extends Controller
         }
 
         return back()->with('success', 'Scan associated with product.');
+    }
+
+    public function compareProduct(Request $request, VisualRecognitionSession $session, InternalImageMatchService $matcher): RedirectResponse
+    {
+        $validated = $request->validate([
+            'id_product' => ['required', 'integer'],
+        ]);
+
+        $product = Product::query()
+            ->where('id', $validated['id_product'])
+            ->when($session->id_store, fn ($query) => $query->where('id_store', $session->id_store))
+            ->firstOrFail();
+
+        $result = $matcher->compareSessionWithProduct($session, $product);
+
+        return back()
+            ->withInput(['id_product' => $product->id])
+            ->with($result['ok'] ? 'success' : 'error', $result['message'] ?? 'Comparison finished.')
+            ->with('forced_compare', $result);
     }
 
     private function storeFeedbackCaptureAsProductResource(VisualRecognitionSession $session, Product $product): void
