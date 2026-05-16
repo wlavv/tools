@@ -56,7 +56,7 @@ class InternalImageMatchService
             return $this->emptyResult('Could not process captured image.');
         }
 
-        $scoresByProduct = [];
+        $preselected = [];
 
         foreach ($candidateResources as $resource) {
             $resourceProfile = $this->fingerprintForResource($resource);
@@ -64,7 +64,22 @@ class InternalImageMatchService
                 continue;
             }
 
-            $scoreSet = $this->scoreProfiles($captureProfile, $resourceProfile);
+            $preselected[] = [
+                'resource' => $resource,
+                'profile' => $resourceProfile,
+                'retrieval_score' => $this->retrievalScore($captureProfile, $resourceProfile),
+            ];
+        }
+
+        usort($preselected, fn ($a, $b) => $b['retrieval_score'] <=> $a['retrieval_score']);
+        $preselected = array_slice($preselected, 0, (int) config('webcatalogue.recognition.max_scored_candidates', 160));
+
+        $scoresByProduct = [];
+
+        foreach ($preselected as $candidateResource) {
+            $resource = $candidateResource['resource'];
+            $scoreSet = $this->scoreProfiles($captureProfile, $candidateResource['profile']);
+            $scoreSet['retrieval_score'] = round((float) $candidateResource['retrieval_score'], 4);
             $productId = (int) $resource->id_product;
 
             if (!isset($scoresByProduct[$productId]) || $scoreSet['final_score'] > $scoresByProduct[$productId]['score']) {
@@ -132,6 +147,8 @@ class InternalImageMatchService
                             'edge_size' => 32,
                             'color_bins' => 4,
                             'variants' => ['object', 'center', 'full'],
+                            'candidate_resources' => count($candidateResources),
+                            'scored_candidates' => count($preselected),
                         ],
                     ],
                 ]);
@@ -147,6 +164,8 @@ class InternalImageMatchService
                 'phash_score' => round($candidate['scores']['phash_score'] ?? 0, 2),
                 'edge_score' => round($candidate['scores']['edge_score'] ?? 0, 2),
                 'color_score' => round($candidate['scores']['color_score'] ?? 0, 2),
+                'embedding_score' => round($candidate['scores']['embedding_score'] ?? 0, 2),
+                'retrieval_score' => round($candidate['scores']['retrieval_score'] ?? 0, 2),
                 'image_url' => $candidate['resource']->resolved_url,
                 'store_id' => $candidate['product']->id_store,
                 'store_name' => $candidate['product']->store?->name,
@@ -401,6 +420,7 @@ class InternalImageMatchService
             'phash' => $phashImage ? $this->phashFromImage($phashImage) : null,
             'edge_hash' => $edgeImage ? $this->edgeHashFromImage($edgeImage) : null,
             'color_histogram' => $this->colorHistogramFromImage($prepared, 4),
+            'embedding' => $this->embeddingFromImage($prepared, 12),
         ];
 
         if ($phashImage) {
@@ -613,6 +633,46 @@ class InternalImageMatchService
         return array_map(fn ($count) => $count / $total, $histogram);
     }
 
+    private function embeddingFromImage($image, int $size = 12): array
+    {
+        $thumb = $this->resizeImage($image, $size, $size);
+        if (!$thumb) {
+            return [];
+        }
+
+        $values = [];
+        for ($y = 0; $y < $size; $y++) {
+            for ($x = 0; $x < $size; $x++) {
+                $rgb = imagecolorat($thumb, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+                $values[] = round(((($r * 0.299) + ($g * 0.587) + ($b * 0.114)) / 255), 6);
+            }
+        }
+
+        imagedestroy($thumb);
+
+        return $this->normaliseVector($values);
+    }
+
+    private function normaliseVector(array $values): array
+    {
+        if (!$values) {
+            return [];
+        }
+
+        $mean = array_sum($values) / count($values);
+        $centred = array_map(fn ($value) => (float) $value - $mean, $values);
+        $norm = sqrt(array_sum(array_map(fn ($value) => $value * $value, $centred)));
+
+        if ($norm <= 0) {
+            return array_fill(0, count($values), 0.0);
+        }
+
+        return array_map(fn ($value) => round($value / $norm, 6), $centred);
+    }
+
     private function dctHash(array $matrix): string
     {
         $size = 32;
@@ -666,21 +726,45 @@ class InternalImageMatchService
 
     private function scoreSingleProfiles(array $a, array $b): array
     {
+        $embeddingScore = $this->scoreEmbeddings($a['embedding'] ?? [], $b['embedding'] ?? []);
         $phashScore = $this->scoreHashes((string) ($a['phash'] ?? ''), (string) ($b['phash'] ?? ''));
         $edgeScore = $this->scoreHashes((string) ($a['edge_hash'] ?? ''), (string) ($b['edge_hash'] ?? ''));
         $colorScore = $this->scoreHistograms($a['color_histogram'] ?? [], $b['color_histogram'] ?? []);
         $weights = $this->normalisedWeights();
 
-        $final = ($phashScore * $weights['phash'])
+        $final = ($embeddingScore * $weights['embedding'])
+            + ($phashScore * $weights['phash'])
             + ($edgeScore * $weights['edge'])
             + ($colorScore * $weights['color']);
 
         return [
             'final_score' => round($final, 4),
+            'embedding_score' => round($embeddingScore, 4),
             'phash_score' => round($phashScore, 4),
             'edge_score' => round($edgeScore, 4),
             'color_score' => round($colorScore, 4),
         ];
+    }
+
+    private function retrievalScore(array $captureProfile, array $resourceProfile): float
+    {
+        $captureVariants = !empty($captureProfile['variants']) && is_array($captureProfile['variants'])
+            ? $captureProfile['variants']
+            : ['primary' => $captureProfile];
+        $resourceVariants = !empty($resourceProfile['variants']) && is_array($resourceProfile['variants'])
+            ? $resourceProfile['variants']
+            : ['primary' => $resourceProfile];
+        $best = 0.0;
+
+        foreach ($captureVariants as $captureVariant) {
+            foreach ($resourceVariants as $resourceVariant) {
+                $embedding = $this->scoreEmbeddings($captureVariant['embedding'] ?? [], $resourceVariant['embedding'] ?? []);
+                $color = $this->scoreHistograms($captureVariant['color_histogram'] ?? [], $resourceVariant['color_histogram'] ?? []);
+                $best = max($best, ($embedding * 0.75) + ($color * 0.25));
+            }
+        }
+
+        return round($best, 4);
     }
 
     private function scoreHashes(string $a, string $b): float
@@ -715,19 +799,35 @@ class InternalImageMatchService
         return max(0, min(100, $intersection * 100));
     }
 
+    private function scoreEmbeddings(array $a, array $b): float
+    {
+        $length = min(count($a), count($b));
+        if ($length === 0) {
+            return 0.0;
+        }
+
+        $dot = 0.0;
+        for ($i = 0; $i < $length; $i++) {
+            $dot += ((float) $a[$i]) * ((float) $b[$i]);
+        }
+
+        return max(0, min(100, (($dot + 1) / 2) * 100));
+    }
+
     private function normalisedWeights(): array
     {
         $weights = config('webcatalogue.recognition.composite_weights', []);
-        $phash = max(0, (float) ($weights['phash'] ?? 0.45));
-        $edge = max(0, (float) ($weights['edge'] ?? 0.35));
-        $color = max(0, (float) ($weights['color'] ?? 0.20));
-        $total = $phash + $edge + $color;
+        $embedding = max(0, (float) ($weights['embedding'] ?? 0.35));
+        $phash = max(0, (float) ($weights['phash'] ?? 0.30));
+        $edge = max(0, (float) ($weights['edge'] ?? 0.20));
+        $color = max(0, (float) ($weights['color'] ?? 0.15));
+        $total = $embedding + $phash + $edge + $color;
 
         if ($total <= 0) {
-            return ['phash' => 0.45, 'edge' => 0.35, 'color' => 0.20];
+            return ['embedding' => 0.35, 'phash' => 0.30, 'edge' => 0.20, 'color' => 0.15];
         }
 
-        return ['phash' => $phash / $total, 'edge' => $edge / $total, 'color' => $color / $total];
+        return ['embedding' => $embedding / $total, 'phash' => $phash / $total, 'edge' => $edge / $total, 'color' => $color / $total];
     }
 
     private function sourceSignature(string $path): ?string
@@ -747,7 +847,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'composite_phash_color_edge_multi_variant_v2_27';
+        return 'composite_embedding_phash_color_edge_multi_variant_v3';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void

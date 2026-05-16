@@ -55,9 +55,11 @@ return [
             'queue' => env('WEBCATALOGUE_RECOGNITION_REBUILD_QUEUE', 'webcatalogue_recognition'),
         ],
         'composite_weights' => [
-            'phash' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_PHASH', 0.45),
-            'edge' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_EDGE', 0.35),
-            'color' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_COLOR', 0.20),
+            'embedding' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_EMBEDDING', 0.35),
+            'phash' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_PHASH', 0.30),
+            'edge' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_EDGE', 0.20),
+            'color' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_COLOR', 0.15),
         ],
+        'max_scored_candidates' => env('WEBCATALOGUE_RECOGNITION_MAX_SCORED_CANDIDATES', 160),
     ],
 ];

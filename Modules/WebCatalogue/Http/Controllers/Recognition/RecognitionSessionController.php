@@ -177,6 +177,7 @@ class RecognitionSessionController extends Controller
         ]);
 
         $session->captures()->update(['id_product' => $product->id, 'status' => 'linked_to_product']);
+        $this->storeFeedbackCaptureAsProductResource($session, $product);
 
         VisualRecognitionMatch::updateOrCreate(
             [
@@ -201,6 +202,54 @@ class RecognitionSessionController extends Controller
         }
 
         return back()->with('success', 'Scan associated with product.');
+    }
+
+    private function storeFeedbackCaptureAsProductResource(VisualRecognitionSession $session, Product $product): void
+    {
+        $capture = $session->captures()->where('capture_type', 'object_photo')->latest()->first();
+
+        if (!$capture?->file_path || !Storage::disk('public')->exists($capture->file_path)) {
+            return;
+        }
+
+        $extension = pathinfo($capture->file_path, PATHINFO_EXTENSION) ?: 'jpg';
+        $target = 'webcatalogue/stores/' . (int) $product->id_store
+            . '/products/' . (int) $product->id
+            . '/feedback/recognition_session_' . (int) $session->id . '.' . $extension;
+
+        if (!Storage::disk('public')->exists($target)) {
+            Storage::disk('public')->copy($capture->file_path, $target);
+        }
+
+        Resource::updateOrCreate(
+            [
+                'id_store' => $product->id_store,
+                'id_product' => $product->id,
+                'resource_type' => 'image',
+                'source_url' => 'recognition_session:' . $session->id,
+            ],
+            [
+                'resource_owner_type' => 'product',
+                'resource_owner_id' => $product->id,
+                'title' => $product->reference . ' - recognition feedback',
+                'description' => 'Camera capture confirmed by manual recognition review.',
+                'source_type' => 'recognition_feedback',
+                'file_path' => $target,
+                'public_url' => '/storage/' . ltrim($target, '/'),
+                'filename' => basename($target),
+                'mime_type' => $capture->mime_type ?: 'image/jpeg',
+                'file_size' => Storage::disk('public')->size($target),
+                'extension' => $extension,
+                'is_main' => false,
+                'sort_order' => 80,
+                'status' => 'active',
+                'metadata' => [
+                    'source_capture_id' => $capture->id,
+                    'source_session_id' => $session->id,
+                    'feedback_type' => 'manual_match',
+                ],
+            ]
+        );
     }
 
     public function createLead(Request $request, VisualRecognitionSession $session): RedirectResponse
