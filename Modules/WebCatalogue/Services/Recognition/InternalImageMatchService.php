@@ -50,12 +50,13 @@ class InternalImageMatchService
                 continue;
             }
 
-            $profile = $this->profileFromPublicPath($capture->file_path);
+            $profilePath = $this->normalisedCaptureProfilePath($capture);
+            $profile = $this->profileFromPublicPath($profilePath);
             if ($profile === null) {
                 continue;
             }
 
-            $this->persistCaptureAnalysis($capture, $profile);
+            $this->persistCaptureAnalysis($capture, $profile, $profilePath);
             $captureProfiles[] = [
                 'capture' => $capture,
                 'profile' => $profile,
@@ -148,6 +149,7 @@ class InternalImageMatchService
                 'internal_composite_v2_26',
                 'internal_composite_v2_27',
                 'structured_region_embedding_phash_color_edge_v3_1',
+                'structured_region_embedding_phash_color_edge_v3_2',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -375,11 +377,12 @@ class InternalImageMatchService
             return ['ok' => false, 'message' => 'No capture image available for comparison.'];
         }
 
-        $captureProfile = $this->profileFromPublicPath($capture->file_path);
+        $profilePath = $this->normalisedCaptureProfilePath($capture);
+        $captureProfile = $this->profileFromPublicPath($profilePath);
         if (!$captureProfile) {
             return ['ok' => false, 'message' => 'Could not process captured image.'];
         }
-        $this->persistCaptureAnalysis($capture, $captureProfile);
+        $this->persistCaptureAnalysis($capture, $captureProfile, $profilePath);
 
         $resources = Resource::query()
             ->where('id_product', $product->id)
@@ -564,9 +567,27 @@ class InternalImageMatchService
         return $profile;
     }
 
-    private function persistCaptureAnalysis(VisualRecognitionCapture $capture, array $profile): void
+    private function normalisedCaptureProfilePath(VisualRecognitionCapture $capture): string
     {
-        if (!$capture->file_path || !Storage::disk('public')->exists($capture->file_path)) {
+        $metadata = $capture->metadata ?: [];
+        $existing = $metadata['opencv_analysis']['normalized_path'] ?? null;
+        if ($existing && Storage::disk('public')->exists($existing)) {
+            return $existing;
+        }
+
+        $result = app(OpenCvRecognitionClient::class)->normalizeCapture($capture);
+        if (!empty($result['normalized_path']) && Storage::disk('public')->exists($result['normalized_path'])) {
+            return $result['normalized_path'];
+        }
+
+        return $capture->file_path;
+    }
+
+    private function persistCaptureAnalysis(VisualRecognitionCapture $capture, array $profile, ?string $sourcePath = null): void
+    {
+        $sourcePath = $sourcePath ?: $capture->file_path;
+
+        if (!$sourcePath || !Storage::disk('public')->exists($sourcePath)) {
             return;
         }
 
@@ -580,11 +601,12 @@ class InternalImageMatchService
             !empty($metadata['detected_object_crop_path'])
             && Storage::disk('public')->exists($metadata['detected_object_crop_path'])
             && (($metadata['recognition_analysis']['algorithm'] ?? null) === $this->algorithmName())
+            && (($metadata['recognition_analysis']['source_path'] ?? null) === $sourcePath)
         ) {
             return;
         }
 
-        $binary = Storage::disk('public')->get($capture->file_path);
+        $binary = Storage::disk('public')->get($sourcePath);
         $image = @imagecreatefromstring($binary);
         if (!$image) {
             return;
@@ -602,7 +624,7 @@ class InternalImageMatchService
         imagecopyresampled($crop, $image, 0, 0, $x, $y, $width, $height, $width, $height);
 
         $directory = trim(dirname($capture->file_path), '/') . '/analysis';
-        $filename = pathinfo($capture->file_path, PATHINFO_FILENAME) . '_detected_crop.jpg';
+        $filename = pathinfo($sourcePath, PATHINFO_FILENAME) . '_detected_crop.jpg';
         $path = $directory . '/' . $filename;
 
         ob_start();
@@ -617,6 +639,7 @@ class InternalImageMatchService
             'metadata' => array_replace_recursive($metadata, [
                 'recognition_analysis' => [
                     'algorithm' => $this->algorithmName(),
+                    'source_path' => $sourcePath,
                     'source_width' => $profile['source_width'] ?? $sourceWidth,
                     'source_height' => $profile['source_height'] ?? $sourceHeight,
                     'object_box' => [$x, $y, $width, $height],
@@ -1294,7 +1317,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'structured_region_embedding_phash_color_edge_v3_2';
+        return 'structured_region_embedding_phash_color_edge_v3_3';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void

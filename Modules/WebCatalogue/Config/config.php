@@ -48,6 +48,14 @@ return [
         'debug_top' => env('WEBCATALOGUE_RECOGNITION_DEBUG_TOP', 20),
         'object_crop_enabled' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP', true),
         'object_crop_threshold' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP_THRESHOLD', 28),
+        'multi_frame_count' => env('WEBCATALOGUE_RECOGNITION_MULTI_FRAME_COUNT', 3),
+        'opencv' => [
+            'enabled' => env('WEBCATALOGUE_RECOGNITION_OPENCV_ENABLED', false),
+            'base_url' => env('WEBCATALOGUE_RECOGNITION_OPENCV_BASE_URL'),
+            'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN'),
+            'timeout' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TIMEOUT', 20),
+            'store_debug_image' => env('WEBCATALOGUE_RECOGNITION_OPENCV_STORE_DEBUG', true),
+        ],
         'fingerprint_rebuild' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_REBUILD_ENABLED', true),
             'daily_at' => env('WEBCATALOGUE_RECOGNITION_REBUILD_DAILY_AT', '03:30'),

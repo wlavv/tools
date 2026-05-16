@@ -496,6 +496,91 @@
         return output;
     }
 
+    function normalizeRectangularObjectCanvas(sourceCanvas){
+        const width = sourceCanvas.width;
+        const height = sourceCanvas.height;
+        if(width < 120 || height < 120) return sourceCanvas;
+
+        const aspect = height / Math.max(1, width);
+        if(aspect < 1.05 || aspect > 1.95) return sourceCanvas;
+
+        const sampleWidth = 140;
+        const sampleHeight = Math.max(100, Math.min(220, Math.round(height * (sampleWidth / width))));
+        const sample = document.createElement('canvas');
+        sample.width = sampleWidth;
+        sample.height = sampleHeight;
+        const sampleCtx = sample.getContext('2d', {willReadFrequently:true});
+        sampleCtx.drawImage(sourceCanvas, 0, 0, sampleWidth, sampleHeight);
+        const {data} = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+
+        const lumaAt = (x, y) => {
+            const idx = ((y * sampleWidth) + x) * 4;
+            return (0.299 * data[idx]) + (0.587 * data[idx + 1]) + (0.114 * data[idx + 2]);
+        };
+
+        const colScores = [];
+        for(let x = 0; x < sampleWidth; x++){
+            let score = 0;
+            for(let y = Math.round(sampleHeight * .06); y < Math.round(sampleHeight * .94); y++){
+                if(lumaAt(x, y) < 96) score++;
+            }
+            colScores[x] = score / sampleHeight;
+        }
+
+        const rowScores = [];
+        for(let y = 0; y < sampleHeight; y++){
+            let score = 0;
+            for(let x = Math.round(sampleWidth * .06); x < Math.round(sampleWidth * .94); x++){
+                if(lumaAt(x, y) < 96) score++;
+            }
+            rowScores[y] = score / sampleWidth;
+        }
+
+        const findEdge = (scores, fromStart, minIndex, maxIndex) => {
+            const threshold = .16;
+            if(fromStart){
+                for(let i = minIndex; i <= maxIndex; i++){
+                    if(scores[i] >= threshold) return i;
+                }
+            }else{
+                for(let i = maxIndex; i >= minIndex; i--){
+                    if(scores[i] >= threshold) return i;
+                }
+            }
+            return null;
+        };
+
+        const left = findEdge(colScores, true, 0, Math.round(sampleWidth * .42));
+        const right = findEdge(colScores, false, Math.round(sampleWidth * .58), sampleWidth - 1);
+        const top = findEdge(rowScores, true, 0, Math.round(sampleHeight * .42));
+        const bottom = findEdge(rowScores, false, Math.round(sampleHeight * .58), sampleHeight - 1);
+        if(left === null || right === null || top === null || bottom === null) return sourceCanvas;
+
+        const cropX = Math.max(0, Math.round((left / sampleWidth) * width) - Math.round(width * .01));
+        const cropY = Math.max(0, Math.round((top / sampleHeight) * height) - Math.round(height * .01));
+        const cropRight = Math.min(width, Math.round(((right + 1) / sampleWidth) * width) + Math.round(width * .01));
+        const cropBottom = Math.min(height, Math.round(((bottom + 1) / sampleHeight) * height) + Math.round(height * .01));
+        const cropWidth = Math.max(1, cropRight - cropX);
+        const cropHeight = Math.max(1, cropBottom - cropY);
+        const cropAspect = cropHeight / cropWidth;
+
+        if(cropAspect < 1.18 || cropAspect > 1.72 || cropWidth < width * .45 || cropHeight < height * .45) {
+            return sourceCanvas;
+        }
+
+        const targetHeight = 900;
+        const targetWidth = Math.round(targetHeight / 1.395);
+        const normalized = document.createElement('canvas');
+        normalized.width = targetWidth;
+        normalized.height = targetHeight;
+        const normalizedCtx = normalized.getContext('2d');
+        normalizedCtx.fillStyle = '#fff';
+        normalizedCtx.fillRect(0, 0, targetWidth, targetHeight);
+        normalizedCtx.drawImage(sourceCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, targetWidth, targetHeight);
+
+        return normalized;
+    }
+
     function detectedRectForCanvas(width, height){
         if(!detectedRect || detectedRectIsEstimated) return null;
 
@@ -542,7 +627,8 @@
 
         const rect = detectedRectForCanvas(canvas.width, canvas.height);
         if(rect){
-            return cropCanvasToRect(canvas, rect, lastDetectionSource === 'tensorflow' ? .10 : .06);
+            const cropped = cropCanvasToRect(canvas, rect, lastDetectionSource === 'tensorflow' ? .10 : .06);
+            return normalizeRectangularObjectCanvas(cropped);
         }
 
         if(focusEnhance && focusEnhance.checked){

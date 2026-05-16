@@ -1,0 +1,15 @@
+[Unit]
+Description=WebCatalogue OpenCV Recognition Microservice
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/webcatalogue-opencv
+EnvironmentFile=/opt/webcatalogue-opencv/.env
+ExecStart=/opt/webcatalogue-opencv/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8010 --proxy-headers
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

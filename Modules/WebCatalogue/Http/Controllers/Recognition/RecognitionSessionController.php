@@ -143,6 +143,12 @@ class RecognitionSessionController extends Controller
                 if ($cropPath && Storage::disk('public')->exists($cropPath)) {
                     Storage::disk('public')->delete($cropPath);
                 }
+                foreach (['normalized_path', 'debug_path'] as $opencvPathKey) {
+                    $opencvPath = $capture->metadata['opencv_analysis'][$opencvPathKey] ?? null;
+                    if ($opencvPath && Storage::disk('public')->exists($opencvPath)) {
+                        Storage::disk('public')->delete($opencvPath);
+                    }
+                }
             }
 
             $session->matches()->delete();

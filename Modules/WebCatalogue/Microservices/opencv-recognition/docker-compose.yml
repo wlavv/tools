@@ -1,0 +1,9 @@
+services:
+  webcatalogue-opencv:
+    build: .
+    container_name: webcatalogue-opencv
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8010:8010"
