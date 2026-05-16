@@ -119,8 +119,9 @@ class RecognitionSessionController extends Controller
         $this->disableDefaultAction('new');
 
         return $this->view('webcatalogue::recognition.sessions.show', [
-            'item' => $session->load(['store', 'product', 'captures', 'matches.product', 'lead']),
+            'item' => $session->load(['store', 'product', 'captures', 'matches.product.mainImageResource', 'lead']),
             'products' => Product::query()
+                ->with('mainImageResource')
                 ->when($session->id_store, fn ($query) => $query->where('id_store', $session->id_store))
                 ->orderBy('reference')
                 ->limit(1000)

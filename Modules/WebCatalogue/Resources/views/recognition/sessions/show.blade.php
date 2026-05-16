@@ -5,8 +5,21 @@
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="wc-alert wc-alert-warning">{{ $errors->first() }}</div>@endif
+@php
+    $capturePreview = $item->captures->where('capture_type', 'object_photo')->sortByDesc('id')->first()?->resolved_url;
+    $matchByProduct = $item->matches->mapWithKeys(fn($match) => [$match->id_product => [
+        'match_id' => $match->id,
+        'rank' => $match->rank,
+        'status' => $match->status,
+        'provider' => $match->match_provider,
+        'score' => (float) $match->score,
+        'scores' => $match->metadata['scores'] ?? [],
+    ]]);
+@endphp
 
-<style>.wc-score-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}</style>
+<style>
+.wc-score-breakdown{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0}.wc-score-breakdown span{background:rgba(15,23,42,.05);border:1px solid rgba(15,23,42,.08);border-radius:5px;padding:6px 8px;font-size:12px;color:#475569}.wc-score-breakdown strong{display:block;color:#0f172a;font-size:11px;text-transform:uppercase;letter-spacing:.04em}.wc-match-card .wc-preview-media{height:210px;background:#f8fafc}.wc-match-card .wc-preview-media img{width:100%;height:100%;object-fit:contain}.wc-associate-preview{display:none;margin:12px 0;padding:10px;border:1px solid rgba(148,163,184,.28);border-radius:5px;background:#f8fafc}.wc-associate-preview.is-visible{display:block}.wc-associate-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.wc-associate-shot{min-height:160px;border:1px solid rgba(148,163,184,.22);border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.wc-associate-shot img{width:100%;height:100%;max-height:220px;object-fit:contain}.wc-associate-shot span{color:#94a3b8;font-size:12px}.wc-associate-info p{margin:5px 0;color:#475569}.wc-associate-info strong{color:#0f172a}.wc-match-mini-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.wc-match-mini-title h4{margin:0}@media(max-width:768px){.wc-score-breakdown{grid-template-columns:repeat(2,minmax(0,1fr))}.wc-associate-compare{grid-template-columns:1fr}}
+</style>
 
 <div class="wc-editor-layout">
     <div>
@@ -41,20 +54,27 @@
         <div class="wc-card wc-spaced-card">
             <div class="wc-section-head"><div><h3>Recognition matches</h3><p class="wc-muted">Internal matching suggestions generated from captured product images.</p></div></div>
             <div class="wc-grid">
-                @forelse($item->matches()->with('product')->orderBy('rank')->get() as $match)
-                    <div class="wc-preview-card">
+                @php($rankedMatches = $item->matches->sortBy('rank')->take(3))
+                @forelse($rankedMatches as $match)
+                    @php($productImage = $match->product?->mainImageResource?->resolved_url)
+                    <div class="wc-preview-card wc-match-card">
+                        <div class="wc-preview-media">@if($productImage)<img src="{{ $productImage }}" alt="{{ $match->product?->name }}">@else<i class="fa-solid fa-image"></i>@endif</div>
                         <div class="wc-preview-body">
-                            <h4>{{ $match->product->name ?? 'Product #' . $match->id_product }}</h4>
+                            <div class="wc-match-mini-title">
+                                <h4>{{ $match->product->name ?? 'Product #' . $match->id_product }}</h4>
+                                <span class="wc-badge">Rank {{ $match->rank }}</span>
+                            </div>
                             <p class="wc-muted">Score: <strong>{{ number_format((float) $match->score, 2) }}%</strong> - Provider: {{ $match->match_provider }}</p>
                             @php($scores = $match->metadata['scores'] ?? [])
                             @if(!empty($scores))
                                 <div class="wc-score-breakdown">
+                                    <span><strong>Embedding</strong> {{ number_format((float) ($scores['embedding_score'] ?? 0), 2) }}%</span>
                                     <span><strong>pHash</strong> {{ number_format((float) ($scores['phash_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Edges</strong> {{ number_format((float) ($scores['edge_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Color</strong> {{ number_format((float) ($scores['color_score'] ?? 0), 2) }}%</span>
                                 </div>
                             @endif
-                            <p><span class="wc-badge">{{ $match->status }}</span> <span class="wc-badge">Rank {{ $match->rank }}</span></p>
+                            <p><span class="wc-badge">{{ $match->status }}</span></p>
                             @if($match->product)
                                 <div class="wc-actions-row">
                                     <a class="wc-action-link" href="{{ route('webcatalogue.products.show', $match->product) }}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open product</a>
@@ -92,12 +112,34 @@
                     @csrf
                     <div class="wc-field">
                         <label>Associate product</label>
-                        <select name="id_product" required>
+                        <select name="id_product" required data-associate-product-select>
                             <option value="">Select product</option>
                             @foreach($products as $product)
-                                <option value="{{ $product->id }}">#{{ $product->reference }} - {{ strip_tags($product->name) }}</option>
+                                @php($image = $product->mainImageResource?->resolved_url)
+                                @php($matchData = $matchByProduct[$product->id] ?? null)
+                                <option
+                                    value="{{ $product->id }}"
+                                    data-image="{{ $image }}"
+                                    data-reference="{{ $product->reference }}"
+                                    data-name="{{ strip_tags($product->name) }}"
+                                    data-match='@json($matchData)'
+                                >#{{ $product->reference }} - {{ strip_tags($product->name) }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <input type="hidden" name="match_id" data-associate-match-id>
+                    <div class="wc-associate-preview" data-associate-preview>
+                        <div class="wc-associate-compare">
+                            <div>
+                                <div class="wc-associate-shot">@if($capturePreview)<img src="{{ $capturePreview }}" alt="Capture">@else<span>No capture image</span>@endif</div>
+                                <p class="wc-muted">Scan capture</p>
+                            </div>
+                            <div>
+                                <div class="wc-associate-shot" data-product-image-wrap><span>Select product</span></div>
+                                <p class="wc-muted" data-product-caption>Product image</p>
+                            </div>
+                        </div>
+                        <div class="wc-associate-info" data-associate-info></div>
                     </div>
                     <button class="wc-primary-btn wc-full-action" type="submit"><i class="fa-solid fa-link"></i> Associate scan</button>
                 </form>
@@ -148,4 +190,63 @@
     </aside>
 </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const select = document.querySelector('[data-associate-product-select]');
+    const preview = document.querySelector('[data-associate-preview]');
+    const imageWrap = document.querySelector('[data-product-image-wrap]');
+    const caption = document.querySelector('[data-product-caption]');
+    const info = document.querySelector('[data-associate-info]');
+    const matchInput = document.querySelector('[data-associate-match-id]');
+    if (!select || !preview || !imageWrap || !info) return;
+
+    const pct = (value) => {
+        const number = parseFloat(value || 0);
+        return Number.isFinite(number) ? number.toFixed(2) + '%' : '-';
+    };
+
+    const scoreBlock = (scores) => {
+        if (!scores || Object.keys(scores).length === 0) return '';
+        return '<div class="wc-score-breakdown">'
+            + '<span><strong>Embedding</strong> ' + pct(scores.embedding_score) + '</span>'
+            + '<span><strong>pHash</strong> ' + pct(scores.phash_score) + '</span>'
+            + '<span><strong>Edges</strong> ' + pct(scores.edge_score) + '</span>'
+            + '<span><strong>Color</strong> ' + pct(scores.color_score) + '</span>'
+            + '</div>';
+    };
+
+    select.addEventListener('change', function () {
+        const option = select.options[select.selectedIndex];
+        const image = option?.dataset.image || '';
+        const name = option?.dataset.name || '';
+        const reference = option?.dataset.reference || '';
+        let match = null;
+
+        try {
+            match = option?.dataset.match ? JSON.parse(option.dataset.match) : null;
+        } catch (e) {
+            match = null;
+        }
+
+        preview.classList.toggle('is-visible', !!option?.value);
+        matchInput.value = match?.match_id || '';
+        imageWrap.innerHTML = image ? '<img src="' + image + '" alt="Product image">' : '<span>No product image</span>';
+        caption.textContent = reference ? ('#' + reference + ' - ' + name) : 'Product image';
+
+        if (!option?.value) {
+            info.innerHTML = '';
+            return;
+        }
+
+        if (match) {
+            info.innerHTML = '<p><strong>Score:</strong> ' + pct(match.score) + ' - <strong>Provider:</strong> ' + (match.provider || '-') + '</p>'
+                + scoreBlock(match.scores || {})
+                + '<p><span class="wc-badge">' + (match.status || 'suggested') + '</span> <span class="wc-badge">Rank ' + (match.rank || '-') + '</span></p>';
+        } else {
+            info.innerHTML = '<p><strong>No recorded match for this product.</strong></p>'
+                + '<p class="wc-muted">Este produto não ficou nos candidatos gravados desta sessão. Para saber a posição exata seria necessário correr uma análise full-rank para esta captura.</p>';
+        }
+    });
+});
+</script>
 @endsection
