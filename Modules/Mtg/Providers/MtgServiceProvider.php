@@ -3,6 +3,7 @@
 namespace Modules\Mtg\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Mtg\Console\ImportTcgCollectorsSetCommand;
 
 class MtgServiceProvider extends ServiceProvider
 {
@@ -27,5 +28,11 @@ class MtgServiceProvider extends ServiceProvider
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'mtg');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'mtg');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ImportTcgCollectorsSetCommand::class,
+            ]);
+        }
     }
 }

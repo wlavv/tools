@@ -84,6 +84,97 @@
         white-space: nowrap;
     }
 
+    .mtg-lsg-hero__side {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex: 0 0 auto;
+    }
+
+    .mtg-lsg-hero-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 38px;
+        padding: 0 12px;
+        border: 1px solid rgba(250, 204, 21, .38);
+        border-radius: 5px;
+        color: #111827;
+        background: #facc15;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .mtg-lsg-hero-action:hover {
+        background: #fde047;
+        border-color: rgba(250, 204, 21, .72);
+    }
+
+    .mtg-webcatalogue-modal .modal-content {
+        color: #111827;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 5px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+    }
+
+    .mtg-webcatalogue-modal .modal-header,
+    .mtg-webcatalogue-modal .modal-footer {
+        background: #f8fafc;
+        border-color: #e5e7eb;
+        padding: 14px 18px;
+    }
+
+    .mtg-webcatalogue-modal .modal-body {
+        padding: 18px;
+        background: #ffffff;
+    }
+
+    .mtg-webcatalogue-modal .modal-title {
+        color: #111827;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .mtg-webcatalogue-modal .form-label,
+    .mtg-webcatalogue-modal .form-check-label {
+        color: #374151;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .mtg-webcatalogue-modal .form-control,
+    .mtg-webcatalogue-modal .form-select {
+        color: #111827;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 5px;
+    }
+
+    .mtg-webcatalogue-modal .form-control:focus,
+    .mtg-webcatalogue-modal .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .mtg-webcatalogue-modal .btn-primary {
+        color: #ffffff;
+        background: #2563eb;
+        border-color: #2563eb;
+    }
+
+    .mtg-webcatalogue-modal .btn-secondary {
+        color: #374151;
+        background: #ffffff;
+        border-color: #d1d5db;
+    }
+
     .mtg-lsg-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
@@ -463,6 +554,14 @@
 
         .mtg-lsg-meta {
             white-space: normal;
+        }
+
+        .mtg-lsg-hero__side {
+            align-items: flex-start;
+        }
+
+        .mtg-lsg-hero-action {
+            width: 100%;
         }
 
         .mtg-lsg-title {

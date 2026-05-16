@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
+use Modules\Mtg\Console\ImportTcgCollectorsSetCommand;
 use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Console\RebuildRecognitionFingerprintsCommand;
-use Modules\WebCatalogue\Console\SeedTcgCollectorsMirrodinCommand;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\Store;
@@ -34,7 +34,7 @@ header('Content-Type: text/plain; charset=UTF-8');
 $output = [];
 $output[] = 'WebCatalogue temporary TCG seed started at ' . now()->toDateTimeString();
 
-Artisan::registerCommand($app->make(SeedTcgCollectorsMirrodinCommand::class));
+Artisan::registerCommand($app->make(ImportTcgCollectorsSetCommand::class));
 Artisan::registerCommand($app->make(RebuildRecognitionFingerprintsCommand::class));
 
 try {
@@ -48,7 +48,8 @@ try {
 $seedExitCode = 1;
 
 try {
-    $seedExitCode = Artisan::call('webcatalogue:seed-tcg-collectors-mirrodin', [
+    $seedExitCode = Artisan::call('mtg:tcg-collectors:import-set', [
+        'set_code' => 'mrd',
         '--refresh-images' => filter_var($_GET['refresh_images'] ?? false, FILTER_VALIDATE_BOOL),
     ]);
 

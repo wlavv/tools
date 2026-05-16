@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\Mtg\Models\mtg_cards;
 use Modules\Mtg\Models\mtg_sets;
+use Modules\WebCatalogue\Models\Store;
 
 class MtgController extends Controller
 {
@@ -51,6 +52,7 @@ class MtgController extends Controller
                 'set' => $set,
                 'cards' => mtg_cards::getCardsBySet($code),
                 'card_counters' => mtg_cards::getCounters($code),
+                'webcatalogueStores' => Store::orderBy('name')->get(),
             ]);
         }
 

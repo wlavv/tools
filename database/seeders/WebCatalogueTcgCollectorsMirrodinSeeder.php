@@ -14,7 +14,8 @@ class WebCatalogueTcgCollectorsMirrodinSeeder extends Seeder
             FILTER_VALIDATE_BOOL
         );
 
-        $exitCode = Artisan::call('webcatalogue:seed-tcg-collectors-mirrodin', [
+        $exitCode = Artisan::call('mtg:tcg-collectors:import-set', [
+            'set_code' => 'mrd',
             '--refresh-images' => $refreshImages,
         ]);
 

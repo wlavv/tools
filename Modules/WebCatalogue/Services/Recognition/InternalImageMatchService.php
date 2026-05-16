@@ -90,6 +90,7 @@ class InternalImageMatchService
                 'internal_phash',
                 'internal_composite',
                 'internal_composite_v2_26',
+                'internal_composite_v2_27',
             ])
             ->delete();
 
@@ -111,7 +112,7 @@ class InternalImageMatchService
                 $match = VisualRecognitionMatch::create([
                     'id_session' => $session->id,
                     'id_product' => $candidate['product']->id,
-                    'match_provider' => 'internal_composite_v2_26',
+                    'match_provider' => 'internal_composite_v2_27',
                     'score' => $score,
                     'rank' => $rank,
                     'status' => 'suggested',
@@ -130,6 +131,7 @@ class InternalImageMatchService
                             'phash_size' => 32,
                             'edge_size' => 32,
                             'color_bins' => 4,
+                            'variants' => ['object', 'center', 'full'],
                         ],
                     ],
                 ]);
@@ -353,8 +355,40 @@ class InternalImageMatchService
 
         $sourceWidth = imagesx($image);
         $sourceHeight = imagesy($image);
-        $prepared = $this->prepareImage($image, 96);
+        $variants = [
+            'object' => $this->profileVariantFromBox($image, $this->objectCropBox($image), 96),
+            'center' => $this->profileVariantFromBox($image, $this->centerCropBox($sourceWidth, $sourceHeight), 96),
+            'full' => $this->profileVariantFromBox($image, [0, 0, $sourceWidth, $sourceHeight], 96),
+        ];
+        $variants = array_filter($variants);
         imagedestroy($image);
+
+        if (empty($variants)) {
+            return null;
+        }
+
+        $primary = $variants['object'] ?? $variants['center'] ?? reset($variants);
+
+        $profile = [
+            'algorithm' => $this->algorithmName(),
+            'source_width' => $sourceWidth,
+            'source_height' => $sourceHeight,
+            'phash' => $primary['phash'] ?? null,
+            'edge_hash' => $primary['edge_hash'] ?? null,
+            'color_histogram' => $primary['color_histogram'] ?? [],
+            'variants' => $variants,
+        ];
+
+        if (!$profile['phash'] && !$profile['edge_hash'] && empty($profile['color_histogram'])) {
+            return null;
+        }
+
+        return $profile;
+    }
+
+    private function profileVariantFromBox($image, array $box, int $size): ?array
+    {
+        $prepared = $this->prepareImageFromBox($image, $box, $size);
 
         if (!$prepared) {
             return null;
@@ -364,9 +398,6 @@ class InternalImageMatchService
         $edgeImage = $this->resizeImage($prepared, 32, 32);
 
         $profile = [
-            'algorithm' => $this->algorithmName(),
-            'source_width' => $sourceWidth,
-            'source_height' => $sourceHeight,
             'phash' => $phashImage ? $this->phashFromImage($phashImage) : null,
             'edge_hash' => $edgeImage ? $this->edgeHashFromImage($edgeImage) : null,
             'color_histogram' => $this->colorHistogramFromImage($prepared, 4),
@@ -379,10 +410,6 @@ class InternalImageMatchService
             imagedestroy($edgeImage);
         }
         imagedestroy($prepared);
-
-        if (!$profile['phash'] && !$profile['edge_hash'] && empty($profile['color_histogram'])) {
-            return null;
-        }
 
         return $profile;
     }
@@ -397,6 +424,12 @@ class InternalImageMatchService
 
         [$srcX, $srcY, $cropWidth, $cropHeight] = $this->objectCropBox($image);
 
+        return $this->prepareImageFromBox($image, [$srcX, $srcY, $cropWidth, $cropHeight], $size);
+    }
+
+    private function prepareImageFromBox($image, array $box, int $size)
+    {
+        [$srcX, $srcY, $cropWidth, $cropHeight] = $box;
         $resized = imagecreatetruecolor($size, $size);
         $white = imagecolorallocate($resized, 255, 255, 255);
         imagefill($resized, 0, 0, $white);
@@ -612,6 +645,27 @@ class InternalImageMatchService
 
     private function scoreProfiles(array $a, array $b): array
     {
+        $aVariants = !empty($a['variants']) && is_array($a['variants']) ? $a['variants'] : ['primary' => $a];
+        $bVariants = !empty($b['variants']) && is_array($b['variants']) ? $b['variants'] : ['primary' => $b];
+        $best = null;
+
+        foreach ($aVariants as $aName => $aVariant) {
+            foreach ($bVariants as $bName => $bVariant) {
+                $score = $this->scoreSingleProfiles($aVariant, $bVariant);
+                $score['capture_variant'] = (string) $aName;
+                $score['resource_variant'] = (string) $bName;
+
+                if ($best === null || $score['final_score'] > $best['final_score']) {
+                    $best = $score;
+                }
+            }
+        }
+
+        return $best ?: $this->scoreSingleProfiles($a, $b);
+    }
+
+    private function scoreSingleProfiles(array $a, array $b): array
+    {
         $phashScore = $this->scoreHashes((string) ($a['phash'] ?? ''), (string) ($b['phash'] ?? ''));
         $edgeScore = $this->scoreHashes((string) ($a['edge_hash'] ?? ''), (string) ($b['edge_hash'] ?? ''));
         $colorScore = $this->scoreHistograms($a['color_histogram'] ?? [], $b['color_histogram'] ?? []);
@@ -693,7 +747,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'composite_phash_color_edge_object_crop_v2_26';
+        return 'composite_phash_color_edge_multi_variant_v2_27';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void

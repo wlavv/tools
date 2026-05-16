@@ -13,9 +13,17 @@
     </div>
 
     @if(!empty($meta))
-        <div class="mtg-lsg-meta">
-            <i class="{{ $metaIcon ?? 'fa-solid fa-layer-group' }}" aria-hidden="true"></i>
-            <span>{{ $meta }}</span>
+        <div class="mtg-lsg-hero__side">
+            <div class="mtg-lsg-meta">
+                <i class="{{ $metaIcon ?? 'fa-solid fa-layer-group' }}" aria-hidden="true"></i>
+                <span>{{ $meta }}</span>
+            </div>
+            @if(!empty($webCatalogueAction ?? false))
+                <button type="button" class="mtg-lsg-hero-action" data-bs-toggle="modal" data-bs-target="#mtgSendWebCatalogueModal">
+                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                    <span>Enviar para WebCatalogue</span>
+                </button>
+            @endif
         </div>
     @endif
 </section>
