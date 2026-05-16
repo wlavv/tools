@@ -115,6 +115,13 @@
     let stream = null;
     let detectionTimer = null;
     let detectedRect = null;
+    let detectedRectIsEstimated = false;
+    let trackedRect = null;
+    let missedDetections = 0;
+    let tfDetector = null;
+    let tfDetectorPromise = null;
+    let tfDetecting = false;
+    let tfStatusShown = false;
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
@@ -159,6 +166,7 @@
 
     function updateDetectedBox(rect, estimated = false){
         detectedRect = rect || null;
+        detectedRectIsEstimated = estimated;
         const metrics = videoDisplayMetrics();
         if(!rect || !metrics){
             detectedBox.classList.remove('is-visible');
@@ -173,6 +181,107 @@
         const label = detectedBox.querySelector('span');
         if(label) label.textContent = estimated ? 'Focus area' : 'Object focus';
         detectedBox.classList.add('is-visible');
+    }
+
+    function smoothRect(previous, next, amount = .38){
+        if(!previous) return next;
+        return {
+            x: Math.round(previous.x + ((next.x - previous.x) * amount)),
+            y: Math.round(previous.y + ((next.y - previous.y) * amount)),
+            w: Math.round(previous.w + ((next.w - previous.w) * amount)),
+            h: Math.round(previous.h + ((next.h - previous.h) * amount))
+        };
+    }
+
+    function loadScannerScript(src){
+        return new Promise((resolve, reject) => {
+            const existing = document.querySelector('script[src="' + src + '"]');
+            if(existing){
+                existing.addEventListener('load', resolve, {once:true});
+                existing.addEventListener('error', reject, {once:true});
+                if(existing.dataset.loaded === '1') resolve();
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = () => { script.dataset.loaded = '1'; resolve(); };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    async function ensureTensorFlowDetector(){
+        if(tfDetector) return tfDetector;
+        if(tfDetectorPromise) return tfDetectorPromise;
+
+        tfDetectorPromise = (async () => {
+            await loadScannerScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
+            await loadScannerScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js');
+            if(!window.cocoSsd) throw new Error('TensorFlow object model unavailable');
+            tfDetector = await window.cocoSsd.load({base: 'lite_mobilenet_v2'});
+            if(!tfStatusShown){
+                tfStatusShown = true;
+                setMessage('AI object tracking enabled. Keep the product inside the highlighted area.');
+            }
+            return tfDetector;
+        })().catch(() => {
+            tfDetectorPromise = null;
+            return null;
+        });
+
+        return tfDetectorPromise;
+    }
+
+    async function findTensorFlowObjectRect(){
+        if(tfDetecting || !stream || video.readyState < 2) return null;
+        tfDetecting = true;
+
+        try{
+            const detector = await ensureTensorFlowDetector();
+            if(!detector) return null;
+
+            const predictions = await detector.detect(video, 8);
+            const sourceWidth = video.videoWidth || 0;
+            const sourceHeight = video.videoHeight || 0;
+            if(!sourceWidth || !sourceHeight || !predictions.length) return null;
+
+            let best = null;
+            predictions.forEach(prediction => {
+                const score = Number(prediction.score || 0);
+                if(score < .38 || !prediction.bbox) return;
+
+                const [x, y, w, h] = prediction.bbox.map(value => Math.max(0, Number(value || 0)));
+                const widthRatio = w / sourceWidth;
+                const heightRatio = h / sourceHeight;
+                if(widthRatio < .08 || heightRatio < .08 || widthRatio > .96 || heightRatio > .96) return;
+
+                const centerX = x + (w / 2);
+                const centerY = y + (h / 2);
+                const centerPenalty = (Math.abs(centerX - (sourceWidth / 2)) / sourceWidth)
+                    + (Math.abs(centerY - (sourceHeight / 2)) / sourceHeight);
+                const areaScore = Math.min(1, (w * h) / (sourceWidth * sourceHeight) * 4);
+                const finalScore = (score * .72) + (areaScore * .18) + ((1 - Math.min(.8, centerPenalty)) * .10);
+
+                if(!best || finalScore > best.score){
+                    best = {
+                        x: Math.round(Math.max(0, x)),
+                        y: Math.round(Math.max(0, y)),
+                        w: Math.round(Math.min(sourceWidth - x, w)),
+                        h: Math.round(Math.min(sourceHeight - y, h)),
+                        score: finalScore,
+                        className: prediction.class || 'object'
+                    };
+                }
+            });
+
+            return best;
+        }catch(e){
+            return null;
+        }finally{
+            tfDetecting = false;
+        }
     }
 
     function findProminentObjectRect(){
@@ -262,6 +371,56 @@
             }
         }
 
+        if(!best){
+            const focus = getFocusRect(sampleWidth, sampleHeight);
+            const xs = [];
+            const ys = [];
+            const startX = Math.max(0, focus.x);
+            const startY = Math.max(0, focus.y);
+            const endX = Math.min(sampleWidth - 2, focus.x + focus.w);
+            const endY = Math.min(sampleHeight - 2, focus.y + focus.h);
+
+            for(let y = startY; y <= endY; y++){
+                for(let x = startX; x <= endX; x++){
+                    const p = readPixel(x, y);
+                    const right = readPixel(Math.min(sampleWidth - 1, x + 1), y);
+                    const down = readPixel(x, Math.min(sampleHeight - 1, y + 1));
+                    const max = Math.max(p.r, p.g, p.b);
+                    const min = Math.min(p.r, p.g, p.b);
+                    const luma = (0.299 * p.r) + (0.587 * p.g) + (0.114 * p.b);
+                    const saturation = max > 0 ? (max - min) / max : 0;
+                    const distance = Math.hypot(p.r - border.r, p.g - border.g, p.b - border.b);
+                    const edge = Math.max(
+                        Math.abs(p.r - right.r) + Math.abs(p.g - right.g) + Math.abs(p.b - right.b),
+                        Math.abs(p.r - down.r) + Math.abs(p.g - down.g) + Math.abs(p.b - down.b)
+                    ) / 3;
+
+                    if(distance > 45 || edge > 34 || luma < 72 || (luma < 126 && saturation > .28)){
+                        xs.push(x);
+                        ys.push(y);
+                    }
+                }
+            }
+
+            if(xs.length > 90){
+                xs.sort((a, b) => a - b);
+                ys.sort((a, b) => a - b);
+                const q = (items, ratio) => items[Math.max(0, Math.min(items.length - 1, Math.floor(items.length * ratio)))];
+                let minX = q(xs, .04);
+                let maxX = q(xs, .96);
+                let minY = q(ys, .04);
+                let maxY = q(ys, .96);
+                const w = maxX - minX + 1;
+                const h = maxY - minY + 1;
+                const widthRatio = w / sampleWidth;
+                const heightRatio = h / sampleHeight;
+
+                if(widthRatio >= .18 && heightRatio >= .18 && widthRatio <= .88 && heightRatio <= .94){
+                    best = {minX, minY, maxX, maxY, score: xs.length};
+                }
+            }
+        }
+
         if(!best) return null;
 
         const padX = Math.round((best.maxX - best.minX + 1) * .04);
@@ -281,12 +440,21 @@
 
     function startObjectDetection(){
         stopObjectDetection();
-        detectionTimer = window.setInterval(() => {
+        ensureTensorFlowDetector();
+        detectionTimer = window.setInterval(async () => {
             if(!stream || video.readyState < 2) return;
-            const detected = findProminentObjectRect();
+            const aiDetected = tfDetector ? await findTensorFlowObjectRect() : null;
+            const detected = aiDetected || findProminentObjectRect();
             if(detected){
-                updateDetectedBox(detected, false);
+                trackedRect = smoothRect(trackedRect, detected);
+                missedDetections = 0;
+                updateDetectedBox(trackedRect, false);
+            }else if(trackedRect && missedDetections < 8){
+                missedDetections++;
+                updateDetectedBox(trackedRect, false);
             }else{
+                trackedRect = null;
+                missedDetections++;
                 updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             }
         }, 260);
@@ -295,6 +463,8 @@
     function stopObjectDetection(){
         if(detectionTimer) window.clearInterval(detectionTimer);
         detectionTimer = null;
+        trackedRect = null;
+        missedDetections = 0;
         updateDetectedBox(null);
     }
 
@@ -303,7 +473,7 @@
         const height = sourceCanvas.height;
         if(!width || !height) return;
 
-        const rect = detectedRect
+        const rect = detectedRect && !detectedRectIsEstimated
             ? {
                 x: Math.max(0, Math.round((detectedRect.x / (video.videoWidth || width)) * width)),
                 y: Math.max(0, Math.round((detectedRect.y / (video.videoHeight || height)) * height)),
