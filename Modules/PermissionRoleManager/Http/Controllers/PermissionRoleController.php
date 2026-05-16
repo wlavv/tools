@@ -19,7 +19,11 @@ class PermissionRoleController extends Controller
             ->where('slug', 'like', 'route-access-%')
             ->count();
 
-        $roles = PermissionRole::withCount('permissions')
+        $totalActivePermissions = PermissionPermission::where('is_active', true)->count();
+
+        $roles = PermissionRole::withCount([
+                'permissions as active_permissions_count' => fn($query) => $query->where('is_active', true),
+            ])
             ->when(!$includeAutoProfiles, fn($q) => $q->where(function ($query) {
                 $query->where('is_system', false)
                     ->orWhere('slug', 'not like', 'route-access-%');
@@ -31,7 +35,7 @@ class PermissionRoleController extends Controller
             ->orderBy('name')
             ->paginate(20);
 
-        return $this->view('permission-role-manager::roles.index', compact('roles', 'autoProfilesCount', 'includeAutoProfiles'));
+        return $this->view('permission-role-manager::roles.index', compact('roles', 'autoProfilesCount', 'includeAutoProfiles', 'totalActivePermissions'));
     }
 
     public function create()

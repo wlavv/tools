@@ -26,6 +26,11 @@ return [
         'parent' => 'webcatalogue.stores.index',
         'translate' => false,
     ],
+    'webcatalogue.stores.publish.show' => [
+        'label' => 'Publish Flow',
+        'parent' => 'webcatalogue.stores.index',
+        'translate' => false,
+    ],
     'webcatalogue.catalogues.index' => [
         'label' => 'Catalogues',
         'parent' => 'webcatalogue.index',

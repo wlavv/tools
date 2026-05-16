@@ -6,7 +6,7 @@
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 
 <div class="wc-hero-card">
-    <div><span class="wc-eyebrow"><i class="fa-solid fa-tags"></i> Commercial layer</span><h2>Pricing</h2><p>Global audit and management of all product price rules. Day-to-day pricing can also be edited directly inside each product.</p></div>
+    <div><span class="wc-eyebrow"><i class="fa-solid fa-tags"></i> Commercial layer</span><h2>Pricing @if(!empty($store)) - {{ $store->name }} @endif</h2><p>Review and management of product price rules. Day-to-day pricing can also be edited directly inside each product.</p></div>
 </div>
 
 <div class="wc-commercial-note"><i class="fa-solid fa-circle-info"></i><div><strong>Recommended workflow:</strong> manage the primary price rule inside the product form. Use this area for global reviews, exceptions, B2B/wholesale lists and time-limited price rules.</div></div>

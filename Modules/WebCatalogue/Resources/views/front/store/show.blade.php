@@ -12,6 +12,12 @@
     }
 @endphp
 <div class="wc-front-container">
+    @if(!empty($isPreview))
+        <div class="wc-front-preview-banner">
+            <strong>Preview</strong>
+            <span>This catalogue is protected by a preview token and is not the public published link.</span>
+        </div>
+    @endif
     <section class="wc-hero wc-layout-hero wc-layout-hero-{{ $layoutKey }}">
         <div class="wc-hero-card">
             <div class="wc-eyebrow">Visual catalogue · {{ config('webcatalogue_front_layouts.' . $layoutKey . '.label', 'Classic Catalogue') }}</div>

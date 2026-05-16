@@ -4,6 +4,11 @@
 @include('webcatalogue::Includes.css')
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
+@php
+    $readinessScore = $item->readinessScore();
+    $readinessState = $item->readinessState();
+    $readinessChecklist = collect($item->readinessChecklist());
+@endphp
 
 <div class="wc-editor-layout">
     <div>
@@ -34,13 +39,36 @@
             <div class="wc-info-card"><i class="fa-solid fa-boxes-stacked"></i><span>Stock</span><strong>{{ $item->stock ?? '—' }}</strong></div>
         </div>
 
+        <div class="wc-readiness-card">
+            <div class="wc-section-head">
+                <div>
+                    <span class="wc-eyebrow"><i class="fa-solid fa-list-check"></i> Product readiness</span>
+                    <h3>{{ $readinessScore }}% complete</h3>
+                </div>
+            </div>
+            <div class="wc-readiness">
+                <div class="wc-readiness-track"><div class="wc-readiness-fill is-{{ $readinessState }}" style="width:{{ $readinessScore }}%"></div></div>
+            </div>
+            <div class="wc-readiness-grid">
+                @foreach($readinessChecklist as $entry)
+                    <div class="wc-readiness-item {{ $entry['ok'] ? 'is-ok' : 'is-missing' }}">
+                        <i class="fa-solid {{ $entry['ok'] ? 'fa-circle-check' : 'fa-circle-exclamation' }}"></i>
+                        <div>
+                            <strong>{{ $entry['label'] }} @if($entry['optional'] ?? false)<small class="wc-muted">optional</small>@endif</strong>
+                            <span>{{ $entry['ok'] ? 'Ready' : $entry['hint'] }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="wc-card wc-spaced-card">
             <div class="wc-section-head"><div><span class="wc-eyebrow"><i class="fa-solid fa-align-left"></i> Description</span><h3>Product content</h3></div></div>
             <div class="wc-html-content">{!! $item->description ?: '<p class="wc-muted">No long description has been added yet.</p>' !!}</div>
         </div>
 
         <div class="wc-card wc-spaced-card">
-            <div class="wc-section-head"><div><span class="wc-eyebrow"><i class="fa-solid fa-tags"></i> Pricing</span><h3>Commercial prices</h3></div><a class="wc-action-link" href="{{ route('webcatalogue.products.edit', $item) }}#commercial-pricing"><i class="fa-solid fa-pencil"></i> Edit on product</a></div>
+            <div class="wc-section-head"><div><span class="wc-eyebrow"><i class="fa-solid fa-tags"></i> Pricing</span><h3>Commercial prices</h3></div></div>
             <div class="wc-inline-list">
                 @forelse($item->prices ?? [] as $price)
                     <div class="wc-inline-row">
@@ -54,7 +82,7 @@
         </div>
 
         <div class="wc-card wc-spaced-card">
-            <div class="wc-section-head"><div><span class="wc-eyebrow"><i class="fa-solid fa-bullhorn"></i> Promotions</span><h3>Promotion links</h3></div><a class="wc-action-link" href="{{ route('webcatalogue.products.edit', $item) }}#commercial-promotions"><i class="fa-solid fa-pencil"></i> Edit on product</a></div>
+            <div class="wc-section-head"><div><span class="wc-eyebrow"><i class="fa-solid fa-bullhorn"></i> Promotions</span><h3>Promotion links</h3></div></div>
             <div class="wc-inline-list">
                 @forelse($item->promotions ?? [] as $promotion)
                     <div class="wc-inline-row">

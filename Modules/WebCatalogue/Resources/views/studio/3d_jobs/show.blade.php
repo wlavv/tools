@@ -48,15 +48,13 @@
             <div class="wc-preview-body"><h4>Preview status</h4><p class="wc-muted" id="wc3dPreviewStatus">{{ $item->resultResource ? '3D model resource is available for viewer integration.' : 'The job is queued/processing automatically. This panel refreshes the status every few seconds.' }}</p></div>
         </div>
         <div class="wc-preview-card"><div class="wc-preview-body"><h4>Provider</h4><p class="wc-muted"><strong>{{ $item->provider }}</strong><br>Task: {{ $item->provider_task_id ?: '—' }}<br>Status: <span id="wc3dProviderStatus">{{ $item->provider_status ?: '—' }}</span><br>Progress: <span id="wc3dProgress">{{ (int)($item->progress ?? 0) }}%</span></p></div></div>
-        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Actions</h4><div class="wc-actions-row">
+        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Job controls</h4><div class="wc-actions-row">
             @if(!in_array($item->status, ['queued','processing','completed']))
                 <form method="POST" action="{{ route('webcatalogue.studio.3d_jobs.run', $item) }}">@csrf<button class="wc-action-link" type="submit"><i class="fa-solid fa-play"></i> Run now</button></form>
             @endif
             @if($item->result_resource_id && $item->product)
                 <a class="wc-action-link" href="{{ route('webcatalogue.products.viewer', $item->product) }}"><i class="fa-solid fa-cube"></i> View 3D</a>
             @endif
-            <a class="wc-action-link" href="{{ route('webcatalogue.studio.3d_jobs.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a>
-            <a class="wc-action-link" href="{{ route('webcatalogue.studio.3d_jobs.index') }}"><i class="fa-solid fa-angle-left"></i> Back</a>
         </div></div></div>
     </aside>
 </div>

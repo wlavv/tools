@@ -46,7 +46,12 @@
                         <span class="prm-muted">{{ $role->description }}</span>
                     </td>
                     <td>{{ $role->slug }}</td>
-                    <td>{{ $role->permissions_count }}</td>
+                    <td>
+                        @php
+                            $assignedPermissions = (int) $role->active_permissions_count;
+                        @endphp
+                        <strong>{{ $assignedPermissions }} / {{ $totalActivePermissions }}</strong>
+                    </td>
                     <td>{{ $role->is_active ? 'Ativa' : 'Inativa' }}</td>
                     <td class="prm-actions">
                         <a class="prm-btn" href="{{ route('permission_role_manager.roles.edit',$role) }}"><i class="fa-solid fa-pencil"></i></a>

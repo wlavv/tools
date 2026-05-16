@@ -5,7 +5,7 @@
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 <div class="wc-card">
-    <div class="wc-list-toolbar"><div><span class="wc-eyebrow"><i class="fa-solid fa-vr-cardboard"></i> Immersive layer</span><h3>Environments</h3><p class="wc-muted">3D backgrounds, VR ambiences, lighting presets and AR/VR scene configuration.</p></div></div>
+    <div class="wc-list-toolbar"><div><span class="wc-eyebrow"><i class="fa-solid fa-vr-cardboard"></i> Immersive layer</span><h3>Environments @if(!empty($store)) - {{ $store->name }} @endif</h3><p class="wc-muted">3D backgrounds, VR ambiences, lighting presets and AR/VR scene configuration.</p></div></div>
     <div class="wc-rich-list">
     @forelse($items as $item)
         <div class="wc-rich-card">

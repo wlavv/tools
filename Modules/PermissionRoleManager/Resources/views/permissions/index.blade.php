@@ -17,5 +17,40 @@
         </form>
     </div>
 </div>
-<div class="prm-card"><table class="prm-table"><thead><tr><th>Key</th><th>Modulo</th><th>Risco</th><th>Estado</th><th>Acoes</th></tr></thead><tbody>@foreach($permissions as $permission)<tr><td><strong>{{ $permission->key }}</strong><br><span class="prm-muted">{{ $permission->label }}</span></td><td>{{ $permission->module }}</td><td><span class="prm-badge risk-{{ $permission->risk }}">{{ $permission->risk }}</span></td><td>{{ $permission->is_active ? 'Ativa' : 'Inativa' }}</td><td class="prm-actions"><a class="prm-btn" href="{{ route('permission_role_manager.permissions.edit',$permission) }}"><i class="fa-solid fa-pencil"></i></a><form method="post" action="{{ route('permission_role_manager.permissions.toggle',$permission) }}">@csrf<button class="prm-btn" title="{{ $permission->is_active ? 'Desativar' : 'Ativar' }}" aria-label="{{ $permission->is_active ? 'Desativar' : 'Ativar' }}"><i class="fa-solid {{ $permission->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button></form><form method="post" action="{{ route('permission_role_manager.permissions.destroy',$permission) }}">@csrf @method('DELETE')<button class="prm-btn" onclick="return confirm('Remover permission?')"><i class="fa-solid fa-trash"></i></button></form></td></tr>@endforeach</tbody></table>{{ $permissions->links() }}</div>
+<div class="prm-card">
+    <table class="prm-table">
+        <thead>
+            <tr>
+                <th>Permission</th>
+                <th>Modulo</th>
+                <th>Risco</th>
+                <th>Estado</th>
+                <th>Acoes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($permissions as $permission)
+                <tr>
+                    <td>@include('permission-role-manager::permissions._permission-label', ['permission' => $permission])</td>
+                    <td>{{ $permission->module }}</td>
+                    <td><span class="prm-badge risk-{{ $permission->risk }}">{{ $permission->risk }}</span></td>
+                    <td>{{ $permission->is_active ? 'Ativa' : 'Inativa' }}</td>
+                    <td class="prm-actions">
+                        <a class="prm-btn" href="{{ route('permission_role_manager.permissions.edit',$permission) }}"><i class="fa-solid fa-pencil"></i></a>
+                        <form method="post" action="{{ route('permission_role_manager.permissions.toggle',$permission) }}">
+                            @csrf
+                            <button class="prm-btn" title="{{ $permission->is_active ? 'Desativar' : 'Ativar' }}" aria-label="{{ $permission->is_active ? 'Desativar' : 'Ativar' }}"><i class="fa-solid {{ $permission->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i></button>
+                        </form>
+                        <form method="post" action="{{ route('permission_role_manager.permissions.destroy',$permission) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button class="prm-btn" onclick="return confirm('Remover permission?')"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+    {{ $permissions->links() }}
+</div>
 @endsection

@@ -9,7 +9,7 @@
     <div class="wc-list-toolbar">
         <div>
             <span class="wc-eyebrow"><i class="fa-solid fa-photo-film"></i> Assets</span>
-            <h3>Resources</h3>
+            <h3>Resources @if(!empty($store)) · {{ $store->name }} @endif</h3>
             <p class="wc-muted">Images, audio, video, documents, 3D models, AR and VR files.</p>
         </div>
     </div>

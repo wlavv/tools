@@ -18,12 +18,30 @@ class PromotionController extends Controller
     public function __construct(){ parent::__construct(); $this->pageTitle = $this->resolvePageTitle(); }
     protected function viewData(array $extra = []): array
     {
-        return array_merge(['stores' => Store::query()->orderBy('name')->get(), 'catalogues' => Catalogue::query()->orderBy('name')->get()], $extra);
+        $storeId = request()->integer('id_store') ?: null;
+        return array_merge([
+            'stores' => Store::query()->orderBy('name')->get(),
+            'catalogues' => Catalogue::query()->when($storeId, fn ($query) => $query->where('id_store', $storeId))->orderBy('name')->get(),
+        ], $extra);
     }
     public function index(Request $request): View
     {
-        $items = Promotion::query()->withCount('products')->latest('id')->paginate(25)->withQueryString();
-        return $this->view('webcatalogue::promotions.index', compact('items'));
+        $storeId = $request->integer('id_store') ?: null;
+        $store = $storeId ? Store::find($storeId) : null;
+        $items = Promotion::query()
+            ->with('store')
+            ->withCount('products')
+            ->when($storeId, fn ($query) => $query->where('id_store', $storeId))
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
+
+        if ($store) {
+            $this->replaceAction('back', ['label' => 'Store hub', 'name' => 'Store hub', 'icon' => 'fa-solid fa-store', 'url' => route('webcatalogue.stores.show', $store), 'route' => 'webcatalogue.stores.show', 'type' => 'link']);
+            $this->replaceAction('new', ['label' => 'New promotion', 'name' => 'New promotion', 'icon' => 'fa-solid fa-plus', 'class' => 'lsg-action-btn lsg-action-btn--success', 'url' => route('webcatalogue.promotions.create', ['id_store' => $store->id]), 'route' => 'webcatalogue.promotions.create', 'type' => 'link']);
+        }
+
+        return $this->view('webcatalogue::promotions.index', compact('items', 'store'));
     }
     public function create(): View { return $this->view('webcatalogue::promotions.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.promotions.store'), 'method' => 'POST'])); }
     public function store(Request $request): RedirectResponse

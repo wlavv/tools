@@ -5,6 +5,9 @@
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="wc-alert wc-alert-warning">{{ $errors->first() }}</div>@endif
+@php
+    $linkedProductIds = old('product_ids', $item?->products?->pluck('id')->map(fn ($id) => (string) $id)->toArray() ?? []);
+@endphp
 
 <div class="wc-editor-layout">
     <div class="wc-card">
@@ -12,8 +15,9 @@
         <form id="lsg-form" method="POST" enctype="multipart/form-data" action="{{ $action }}">
             @csrf
             @if($method !== 'POST') @method($method) @endif
+            @if(old('return_to', request('return_to')))<input type="hidden" name="return_to" value="{{ old('return_to', request('return_to')) }}">@endif
             <div class="wc-form-panel"><div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-layer-group"></i></span><div><h4>Base information</h4><p class="wc-muted">Store association and catalogue identity.</p></div></div><div class="wc-form-grid">
-                <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? '') === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
+                <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? request('id_store', '')) === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
                 <div class="wc-field"><label>Name</label><input name="name" required value="{{ old('name', $item->name ?? '') }}"></div>
                 <div class="wc-field"><label>Slug</label><input name="slug" value="{{ old('slug', $item->slug ?? '') }}"></div>
                 <div class="wc-field"><label>Cover Resource ID</label><input type="number" name="cover_resource_id" value="{{ old('cover_resource_id', $item->cover_resource_id ?? '') }}"></div>
@@ -28,6 +32,20 @@
                 <div class="wc-field"><label><input type="checkbox" name="show_prices" value="1" @checked(old('show_prices', $item->show_prices ?? false))> Show prices</label></div>
                 <div class="wc-field"><label><input type="checkbox" name="show_promotions" value="1" @checked(old('show_promotions', $item->show_promotions ?? false))> Show promotions</label></div>
             </div></div>
+            <div class="wc-form-panel" id="catalogue-products">
+                <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-boxes-stacked"></i></span><div><h4>Products in catalogue</h4><p class="wc-muted">Attach products from the selected store to this catalogue.</p></div></div>
+                <div class="wc-field">
+                    <label>Products</label>
+                    <select name="product_ids[]" multiple size="12">
+                        @foreach($products ?? [] as $product)
+                            <option value="{{ $product->id }}" @selected(in_array((string) $product->id, $linkedProductIds, true))>
+                                {{ $product->reference }} - {{ strip_tags($product->name) }} @if($product->status)({{ $product->status }})@endif
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="wc-upload-hint">Use Ctrl/Cmd to select multiple products. If you change the store, save and reopen the catalogue to refresh this list.</div>
+                </div>
+            </div>
             <div class="wc-form-panel"><div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-align-left"></i></span><div><h4>Content</h4></div></div><div class="wc-field"><label>Description</label><textarea name="description" rows="4">{{ old('description', $item->description ?? '') }}</textarea></div><div class="wc-field"><label>Metadata JSON</label><textarea name="metadata" rows="6">{{ old('metadata', isset($item->metadata) ? json_encode($item->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '') }}</textarea></div></div>
         </form>
     </div>

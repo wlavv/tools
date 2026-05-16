@@ -8,6 +8,7 @@
 @php
     $currentPrice = $item?->prices?->first();
     $linkedPromotionIds = $item?->promotions?->pluck('id')->map(fn($id) => (string) $id)->toArray() ?? [];
+    $linkedCatalogueIds = old('catalogue_ids', $item?->catalogues?->pluck('id')->map(fn($id) => (string) $id)->toArray() ?? []);
 @endphp
 
 <div class="wc-editor-layout">
@@ -23,11 +24,12 @@
             <form id="lsg-form" method="POST" enctype="multipart/form-data" action="{{ $action }}">
                 @csrf
                 @if($method !== 'POST') @method($method) @endif
+                @if(old('return_to', request('return_to')))<input type="hidden" name="return_to" value="{{ old('return_to', request('return_to')) }}">@endif
 
                 <div class="wc-form-panel">
                     <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-id-card"></i></span><div><h4>Identity</h4><p class="wc-muted">Main product identification and origin.</p></div></div>
                     <div class="wc-form-grid">
-                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? '') === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
+                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? request('id_store', '')) === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
                         <div class="wc-field"><label>Reference</label><input name="reference" required value="{{ old('reference', $item->reference ?? '') }}"></div>
                         <div class="wc-field"><label>Title / Name <small class="wc-field-note">HTML allowed</small></label><input name="name" required value="{{ old('name', $item->name ?? '') }}"></div>
                         <div class="wc-field"><label>Slug</label><input name="slug" value="{{ old('slug', $item->slug ?? '') }}"></div>
@@ -63,6 +65,21 @@
                         <div class="wc-field"><label>Valid From</label><input type="datetime-local" name="price_rule[valid_from]" value="{{ old('price_rule.valid_from', !empty($currentPrice?->valid_from) ? $currentPrice->valid_from->format('Y-m-d\TH:i') : '') }}"></div>
                         <div class="wc-field"><label>Valid Until</label><input type="datetime-local" name="price_rule[valid_until]" value="{{ old('price_rule.valid_until', !empty($currentPrice?->valid_until) ? $currentPrice->valid_until->format('Y-m-d\TH:i') : '') }}"></div>
                         <div class="wc-field"><label><input type="checkbox" name="price_rule[tax_included]" value="1" @checked(old('price_rule.tax_included', $currentPrice->tax_included ?? true))> Tax included</label></div>
+                    </div>
+                </div>
+
+                <div class="wc-form-panel" id="catalogue-placement">
+                    <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-book-open"></i></span><div><h4>Catalogue placement</h4><p class="wc-muted">A product can belong to multiple catalogues in the same store.</p></div></div>
+                    <div class="wc-field">
+                        <label>Catalogues</label>
+                        <select name="catalogue_ids[]" multiple size="8">
+                            @foreach($catalogues ?? [] as $catalogue)
+                                <option value="{{ $catalogue->id }}" @selected(in_array((string) $catalogue->id, $linkedCatalogueIds, true))>
+                                    {{ $catalogue->name }} @if($catalogue->status)({{ $catalogue->status }})@endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="wc-upload-hint">Use Ctrl/Cmd to select multiple catalogues. If you change the store, save and reopen the product to refresh this list.</div>
                     </div>
                 </div>
 

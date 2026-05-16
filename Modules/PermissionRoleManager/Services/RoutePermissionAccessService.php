@@ -44,10 +44,6 @@ class RoutePermissionAccessService
 
     private function canAccessPermissionKey(?int $userId, string $permissionKey): bool
     {
-        if ($userId === 1) {
-            return true;
-        }
-
         if (!$this->routePermissionExists($permissionKey)) {
             return true;
         }

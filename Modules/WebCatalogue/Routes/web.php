@@ -25,6 +25,7 @@ use Modules\WebCatalogue\Http\Controllers\Front\VisualRecognitionController;
 use Modules\WebCatalogue\Http\Controllers\Recognition\RecognitionDashboardController;
 use Modules\WebCatalogue\Http\Controllers\Recognition\RecognitionSessionController;
 use Modules\WebCatalogue\Http\Controllers\Recognition\UnmatchedLeadController;
+use Modules\WebCatalogue\Http\Controllers\Publish\StorePublishController;
 
 
 // Public WebCatalogue front layer. Kept outside the authenticated admin prefix.
@@ -32,6 +33,14 @@ Route::middleware(config('webcatalogue.front_middleware', ['web']))
     ->prefix('catalogue')
     ->name('webcatalogue.front.')
     ->group(function () {
+        Route::get('/preview/{token}', [FrontCatalogueController::class, 'preview'])->name('preview.store');
+        Route::get('/link/{token}', [FrontCatalogueController::class, 'publicLink'])->name('public_link');
+        Route::get('/scan', [VisualRecognitionController::class, 'globalIndex'])->name('scan.global.index');
+        Route::post('/scan/session', [VisualRecognitionController::class, 'globalSession'])->name('scan.global.session');
+        Route::post('/scan/capture', [VisualRecognitionController::class, 'globalCapture'])->name('scan.global.capture');
+        Route::post('/scan/match', [VisualRecognitionController::class, 'globalMatch'])->name('scan.global.match');
+        Route::post('/scan/unmatched', [VisualRecognitionController::class, 'globalUnmatched'])->name('scan.global.unmatched');
+        Route::get('/scan/result/{session_token}', [VisualRecognitionController::class, 'globalResult'])->name('scan.global.result');
         Route::get('/{store_slug}/scan', [VisualRecognitionController::class, 'index'])->name('scan.index');
         Route::post('/{store_slug}/scan/session', [VisualRecognitionController::class, 'session'])->name('scan.session');
         Route::post('/{store_slug}/scan/capture', [VisualRecognitionController::class, 'capture'])->name('scan.capture');
@@ -56,12 +65,21 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
             Route::get('/', [RecognitionDashboardController::class, 'index'])->name('index');
             Route::get('/sessions', [RecognitionSessionController::class, 'index'])->name('sessions.index');
             Route::get('/sessions/{session}', [RecognitionSessionController::class, 'show'])->name('sessions.show');
+            Route::delete('/sessions/{session}', [RecognitionSessionController::class, 'destroy'])->name('sessions.destroy');
+            Route::post('/sessions/{session}/associate-product', [RecognitionSessionController::class, 'associateProduct'])->name('sessions.associate_product');
+            Route::post('/sessions/{session}/create-lead', [RecognitionSessionController::class, 'createLead'])->name('sessions.create_lead');
+            Route::post('/sessions/{session}/create-product', [RecognitionSessionController::class, 'createProduct'])->name('sessions.create_product');
             Route::get('/leads', [UnmatchedLeadController::class, 'index'])->name('leads.index');
             Route::get('/leads/{lead}', [UnmatchedLeadController::class, 'show'])->name('leads.show');
             Route::post('/leads/{lead}/status', [UnmatchedLeadController::class, 'status'])->name('leads.status');
         });
 
         Route::resource('stores', StoreController::class);
+        Route::post('stores/{store}/recognition/fingerprints/rebuild', [StoreController::class, 'rebuildFingerprints'])->name('stores.recognition.fingerprints.rebuild');
+        Route::get('stores/{store}/publish', [StorePublishController::class, 'show'])->name('stores.publish.show');
+        Route::post('stores/{store}/publish/preview', [StorePublishController::class, 'preview'])->name('stores.publish.preview');
+        Route::post('stores/{store}/publish', [StorePublishController::class, 'publish'])->name('stores.publish.publish');
+        Route::post('stores/{store}/publish/unpublish', [StorePublishController::class, 'unpublish'])->name('stores.publish.unpublish');
         Route::resource('catalogues', CatalogueController::class);
         Route::resource('products', ProductController::class);
         Route::get('products/{product}/viewer', [Viewer3dController::class, 'product'])->name('products.viewer');

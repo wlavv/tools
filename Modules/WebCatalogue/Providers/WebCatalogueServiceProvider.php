@@ -3,6 +3,9 @@
 namespace Modules\WebCatalogue\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Console\Scheduling\Schedule;
+use Modules\WebCatalogue\Console\RebuildRecognitionFingerprintsCommand;
+use Modules\WebCatalogue\Console\SeedTcgCollectorsMirrodinCommand;
 use Modules\WebCatalogue\Services\Storage\WebCatalogueStorageService;
 
 class WebCatalogueServiceProvider extends ServiceProvider
@@ -34,5 +37,21 @@ class WebCatalogueServiceProvider extends ServiceProvider
         $this->loadViewsFrom($modulePath . '/Resources/views', 'webcatalogue');
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'webcatalogue');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                RebuildRecognitionFingerprintsCommand::class,
+                SeedTcgCollectorsMirrodinCommand::class,
+            ]);
+        }
+
+        $this->app->booted(function (): void {
+            $schedule = $this->app->make(Schedule::class);
+
+            $schedule->command('webcatalogue:recognition-rebuild-fingerprints')
+                ->dailyAt((string) config('webcatalogue.recognition.fingerprint_rebuild.daily_at', '03:30'))
+                ->when(fn () => (bool) config('webcatalogue.recognition.fingerprint_rebuild.enabled', true))
+                ->withoutOverlapping();
+        });
     }
 }

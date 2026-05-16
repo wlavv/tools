@@ -3,6 +3,7 @@
 namespace Modules\WebCatalogue\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class PublicLink extends Model
 {
@@ -28,5 +29,20 @@ class PublicLink extends Model
         'expires_at' => 'datetime',
     ];
 
+    public function store(){return $this->belongsTo(Store::class, 'id_store');}
+    public function catalogue(){return $this->belongsTo(Catalogue::class, 'id_catalogue');}
+    public function product(){return $this->belongsTo(Product::class, 'id_product');}
+
+    public function scopeUsable(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        });
+    }
+
+    public function getTrackedViewsAttribute(): int
+    {
+        return (int) data_get($this->metadata, 'tracking.views', 0);
+    }
 
 }

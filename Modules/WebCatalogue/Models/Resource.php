@@ -31,6 +31,7 @@ class Resource extends Model
     public function store(){return $this->belongsTo(Store::class, 'id_store');}
     public function product(){return $this->belongsTo(Product::class, 'id_product');}
     public function catalogue(){return $this->belongsTo(Catalogue::class, 'id_catalogue');}
+    public function fingerprints(){return $this->hasMany(ResourceFingerprint::class, 'id_resource');}
 
     public function getResolvedUrlAttribute(): ?string
     {

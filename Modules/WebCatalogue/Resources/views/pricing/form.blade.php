@@ -16,7 +16,7 @@
                 <div class="wc-form-panel">
                     <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-box-open"></i></span><div><h4>Product</h4><p class="wc-muted">Store and product to which this rule applies.</p></div></div>
                     <div class="wc-form-grid">
-                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? '') === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
+                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? request('id_store', '')) === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
                         <div class="wc-field"><label>Product</label><select name="id_product" required><option value="">Select product</option>@foreach($products ?? [] as $product)<option value="{{ $product->id }}" @selected((string)old('id_product', $item->id_product ?? '') === (string)$product->id)>{{ $product->reference }} — {{ $product->name }}</option>@endforeach</select></div>
                     </div>
                 </div>

@@ -9,7 +9,7 @@ trait HandlesWebCatalogueFormData
 {
     protected function cleanWebCatalogueData(Request $request, array $options = []): array
     {
-        $data = $request->except(['_token', '_method']);
+        $data = $request->except(['_token', '_method', 'return_to']);
 
         // Never persist file inputs as model attributes. Laravel includes UploadedFile
         // objects in request data when using all()/except() unless we explicitly
@@ -59,5 +59,24 @@ trait HandlesWebCatalogueFormData
         }
 
         return $data;
+    }
+
+    protected function safeReturnTo(Request $request): ?string
+    {
+        $target = trim((string) $request->input('return_to', ''));
+
+        if ($target === '') {
+            return null;
+        }
+
+        if (str_starts_with($target, '/') && !str_starts_with($target, '//')) {
+            return $target;
+        }
+
+        if (str_starts_with($target, url('/'))) {
+            return $target;
+        }
+
+        return null;
     }
 }

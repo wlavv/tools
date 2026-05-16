@@ -23,6 +23,16 @@ class InternalImageMatchService
      */
     public function matchSession(VisualRecognitionSession $session, Store $store, int $limit = 5): array
     {
+        return $this->matchAgainstResources($session, $this->candidateResources($store), $store, $limit);
+    }
+
+    public function matchGlobalSession(VisualRecognitionSession $session, int $limit = 5): array
+    {
+        return $this->matchAgainstResources($session, $this->globalCandidateResources(), null, $limit);
+    }
+
+    private function matchAgainstResources(VisualRecognitionSession $session, $candidateResources, ?Store $store, int $limit = 5): array
+    {
         $capture = $session->captures()
             ->where('capture_type', 'object_photo')
             ->latest()
@@ -48,7 +58,7 @@ class InternalImageMatchService
 
         $scoresByProduct = [];
 
-        foreach ($this->candidateResources($store) as $resource) {
+        foreach ($candidateResources as $resource) {
             $resourceProfile = $this->fingerprintForResource($resource);
             if (!$resourceProfile) {
                 continue;
@@ -136,7 +146,12 @@ class InternalImageMatchService
                 'edge_score' => round($candidate['scores']['edge_score'] ?? 0, 2),
                 'color_score' => round($candidate['scores']['color_score'] ?? 0, 2),
                 'image_url' => $candidate['resource']->resolved_url,
-                'product_url' => route('webcatalogue.front.product.show', [$store->slug, $candidate['product']->slug]),
+                'store_id' => $candidate['product']->id_store,
+                'store_name' => $candidate['product']->store?->name,
+                'store_slug' => $candidate['product']->store?->slug,
+                'product_url' => $candidate['product']->store
+                    ? route('webcatalogue.front.product.show', [$candidate['product']->store->slug, $candidate['product']->slug])
+                    : null,
             ];
 
             $debugMatches[] = $item;
@@ -205,6 +220,39 @@ class InternalImageMatchService
         ];
     }
 
+    public function rebuildStoreDataset(Store $store): array
+    {
+        $processed = 0;
+        $created = 0;
+        $failed = 0;
+
+        foreach ($this->candidateResources($store) as $resource) {
+            $processed++;
+            $before = ResourceFingerprint::where('id_resource', $resource->id)
+                ->where('algorithm', $this->algorithmName())
+                ->exists();
+
+            $profile = $this->fingerprintForResource($resource);
+
+            if (!$profile) {
+                $failed++;
+                continue;
+            }
+
+            if (!$before) {
+                $created++;
+            }
+        }
+
+        return [
+            'processed' => $processed,
+            'created' => $created,
+            'updated' => max(0, $processed - $created - $failed),
+            'failed' => $failed,
+            'algorithm' => $this->algorithmName(),
+        ];
+    }
+
     private function emptyResult(string $message): array
     {
         return [
@@ -219,7 +267,7 @@ class InternalImageMatchService
     private function candidateResources(Store $store)
     {
         return Resource::query()
-            ->with('product')
+            ->with('product.store')
             ->where('id_store', $store->id)
             ->whereNotNull('id_product')
             ->whereNotNull('file_path')
@@ -227,6 +275,22 @@ class InternalImageMatchService
             ->where(function ($query) {
                 $query->whereNull('status')->orWhereNotIn('status', ['deleted', 'disabled', 'inactive']);
             })
+            ->limit((int) config('webcatalogue.recognition.max_candidate_images', 800))
+            ->get()
+            ->filter(fn ($resource) => $resource->product instanceof Product);
+    }
+
+    private function globalCandidateResources()
+    {
+        return Resource::query()
+            ->with('product.store')
+            ->whereNotNull('id_product')
+            ->whereNotNull('file_path')
+            ->whereIn('resource_type', ['image', 'gallery_image', 'thumbnail', 'cover'])
+            ->where(function ($query) {
+                $query->whereNull('status')->orWhereNotIn('status', ['deleted', 'disabled', 'inactive']);
+            })
+            ->whereHas('product.store', fn ($query) => $query->where('status', 'active'))
             ->limit((int) config('webcatalogue.recognition.max_candidate_images', 800))
             ->get()
             ->filter(fn ($resource) => $resource->product instanceof Product);

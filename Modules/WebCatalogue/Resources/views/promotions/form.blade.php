@@ -16,7 +16,7 @@
                 <div class="wc-form-panel">
                     <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-store"></i></span><div><h4>Scope</h4><p class="wc-muted">Store and optional catalogue scope.</p></div></div>
                     <div class="wc-form-grid">
-                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? '') === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
+                        <div class="wc-field"><label>Store</label><select name="id_store" required><option value="">Select store</option>@foreach($stores ?? [] as $store)<option value="{{ $store->id }}" @selected((string)old('id_store', $item->id_store ?? request('id_store', '')) === (string)$store->id)>{{ $store->name }}</option>@endforeach</select></div>
                         <div class="wc-field"><label>Catalogue</label><select name="id_catalogue"><option value="">All / none</option>@foreach($catalogues ?? [] as $catalogue)<option value="{{ $catalogue->id }}" @selected((string)old('id_catalogue', $item->id_catalogue ?? '') === (string)$catalogue->id)>{{ $catalogue->name }}</option>@endforeach</select></div>
                     </div>
                 </div>

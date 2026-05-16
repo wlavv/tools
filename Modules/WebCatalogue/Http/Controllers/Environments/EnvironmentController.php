@@ -20,8 +20,21 @@ class EnvironmentController extends Controller
 
     public function index(Request $request): View
     {
-        $items = StoreEnvironment::query()->with('store')->latest('id')->paginate(25)->withQueryString();
-        return $this->view('webcatalogue::environments.index', compact('items'));
+        $storeId = $request->integer('id_store') ?: null;
+        $store = $storeId ? Store::find($storeId) : null;
+        $items = StoreEnvironment::query()
+            ->with('store')
+            ->when($storeId, fn ($query) => $query->where('id_store', $storeId))
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
+
+        if ($store) {
+            $this->replaceAction('back', ['label' => 'Store hub', 'name' => 'Store hub', 'icon' => 'fa-solid fa-store', 'url' => route('webcatalogue.stores.show', $store), 'route' => 'webcatalogue.stores.show', 'type' => 'link']);
+            $this->replaceAction('new', ['label' => 'New environment', 'name' => 'New environment', 'icon' => 'fa-solid fa-plus', 'class' => 'lsg-action-btn lsg-action-btn--success', 'url' => route('webcatalogue.environments.create', ['id_store' => $store->id]), 'route' => 'webcatalogue.environments.create', 'type' => 'link']);
+        }
+
+        return $this->view('webcatalogue::environments.index', compact('items', 'store'));
     }
     public function create(): View { return $this->view('webcatalogue::environments.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.environments.store'), 'method' => 'POST'])); }
     public function store(Request $request, WebCatalogueResourceUploadService $resources): RedirectResponse

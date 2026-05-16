@@ -24,6 +24,15 @@ class VisualRecognitionController extends Controller
 
         return view('webcatalogue::front.scan.index', [
             'store' => $store,
+            'isGlobalScan' => false,
+        ]);
+    }
+
+    public function globalIndex(): View
+    {
+        return view('webcatalogue::front.scan.index', [
+            'store' => null,
+            'isGlobalScan' => true,
         ]);
     }
 
@@ -32,6 +41,21 @@ class VisualRecognitionController extends Controller
         $store = Store::where('slug', $store_slug)->firstOrFail();
 
         $session = $service->createSession($store, [
+            'device_type' => $request->input('device_type'),
+            'user_agent' => $request->userAgent(),
+            'ip_address' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'session_token' => $session->session_token,
+            'session_id' => $session->id,
+        ]);
+    }
+
+    public function globalSession(Request $request, VisualRecognitionService $service): JsonResponse
+    {
+        $session = $service->createSession(null, [
             'device_type' => $request->input('device_type'),
             'user_agent' => $request->userAgent(),
             'ip_address' => $request->ip(),
@@ -76,6 +100,36 @@ class VisualRecognitionController extends Controller
         ]);
     }
 
+    public function globalCapture(Request $request, VisualRecognitionService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'session_token' => ['required', 'string'],
+            'capture_type' => ['nullable', 'string', 'max:60'],
+            'photo' => ['nullable', 'image', 'max:8192'],
+            'photo_data' => ['nullable', 'string'],
+        ]);
+
+        $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
+            ->whereNull('id_store')
+            ->firstOrFail();
+
+        $captureType = $validated['capture_type'] ?? 'object_photo';
+
+        if ($request->hasFile('photo')) {
+            $capture = $service->storeCapture($session, $request->file('photo'), $captureType);
+        } elseif (!empty($validated['photo_data'])) {
+            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType);
+        } else {
+            return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'capture_id' => $capture->id,
+            'capture_url' => $capture->resolved_url,
+        ]);
+    }
+
     public function match(Request $request, string $store_slug, InternalImageMatchService $matcher): JsonResponse
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
@@ -98,6 +152,30 @@ class VisualRecognitionController extends Controller
             'suggestions' => $result['suggestions'] ?? [],
             'message' => $result['message'] ?? 'Recognition completed.',
             'product_url' => $result['auto_match']['product_url'] ?? null,
+        ]);
+    }
+
+    public function globalMatch(Request $request, InternalImageMatchService $matcher): JsonResponse
+    {
+        $validated = $request->validate([
+            'session_token' => ['required', 'string'],
+        ]);
+
+        $session = VisualRecognitionSession::with('captures')
+            ->where('session_token', $validated['session_token'])
+            ->whereNull('id_store')
+            ->firstOrFail();
+
+        $result = $matcher->matchGlobalSession($session);
+
+        return response()->json([
+            'ok' => true,
+            'matched' => (bool) ($result['matched'] ?? false),
+            'auto_match' => $result['auto_match'] ?? null,
+            'suggestions' => $result['suggestions'] ?? [],
+            'message' => $result['message'] ?? 'Recognition completed.',
+            'product_url' => null,
+            'result_url' => route('webcatalogue.front.scan.global.result', $session->session_token),
         ]);
     }
 
@@ -139,17 +217,127 @@ class VisualRecognitionController extends Controller
             ->with('success', 'Obrigado. O pedido foi registado.');
     }
 
+    public function globalUnmatched(Request $request, VisualRecognitionService $service): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'session_token' => ['required', 'string'],
+            'brand' => ['nullable', 'string', 'max:190'],
+            'model' => ['nullable', 'string', 'max:190'],
+            'reference' => ['nullable', 'string', 'max:190'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'customer_email' => ['nullable', 'email', 'max:190'],
+            'label_photo' => ['nullable', 'image', 'max:8192'],
+        ]);
+
+        $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
+            ->whereNull('id_store')
+            ->firstOrFail();
+
+        if ($request->hasFile('label_photo')) {
+            $labelCapture = $service->storeCapture($session, $request->file('label_photo'), 'label_photo');
+            $validated['label_photo_path'] = $labelCapture->file_path;
+        }
+
+        $lead = $service->createUnmatchedLead($session, $validated);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'lead_id' => $lead->id,
+                'message' => 'Thank you. This product request has been submitted.',
+            ]);
+        }
+
+        return redirect()
+            ->route('webcatalogue.front.scan.global.result', $session->session_token)
+            ->with('success', 'Obrigado. O pedido foi registado.');
+    }
+
     public function result(string $store_slug, string $session_token): View
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
-        $session = VisualRecognitionSession::with(['lead', 'captures', 'product'])
+        $session = VisualRecognitionSession::with([
+            'lead',
+            'captures',
+            'matches' => fn ($query) => $query->with('product.store', 'product.resources')->orderBy('rank'),
+            'product' => fn ($query) => $query->with(['store', 'resources', 'prices', 'catalogues']),
+        ])
             ->where('session_token', $session_token)
             ->where('id_store', $store->id)
             ->firstOrFail();
 
+        return $this->renderResult($store, $session, false);
+    }
+
+    public function globalResult(string $session_token): View
+    {
+        $session = VisualRecognitionSession::with([
+            'lead',
+            'captures',
+            'matches' => fn ($query) => $query->with('product.store', 'product.resources')->orderBy('rank'),
+            'product' => fn ($query) => $query->with(['store', 'resources', 'prices', 'catalogues']),
+        ])
+            ->where('session_token', $session_token)
+            ->whereNull('id_store')
+            ->firstOrFail();
+
+        return $this->renderResult(null, $session, true);
+    }
+
+    private function renderResult(?Store $store, VisualRecognitionSession $session, bool $isGlobalScan = false): View
+    {
+        $product = $session->product?->loadMissing(['store', 'resources', 'prices', 'catalogues']);
+        $sourceStore = $store ?: $product?->store;
+        $resources = $product?->resources
+            ? $product->resources->whereNotIn('status', ['deleted', 'disabled', 'inactive'])->sortBy([['is_main', 'desc'], ['sort_order', 'asc'], ['id', 'asc']])->values()
+            : collect();
+        $images = $resources->filter(fn ($resource) => in_array($resource->resource_type, ['image', 'gallery_image', 'thumbnail', 'cover'], true))->values();
+        $documents = $resources->filter(fn ($resource) => in_array($resource->resource_type, ['manual', 'datasheet', 'assembly_instructions', 'download', 'safety_sheet', 'spec_sheet'], true))->values();
+        $assembly = $resources->filter(fn ($resource) => in_array($resource->resource_type, ['assembly_instructions', 'how_to', 'how_to_video', 'troubleshooting'], true))->values();
+        $videos = $resources->filter(fn ($resource) => in_array($resource->resource_type, ['video', 'how_to_video', 'review_video'], true))->values();
+        $immersive = $resources->filter(fn ($resource) => in_array($resource->resource_type, ['model_3d', 'ar_file', 'vr_file', 'vr_scene'], true))->values();
+        $thumbnail = $images->firstWhere('is_main', true) ?: $images->first();
+        $activePrice = $product?->prices
+            ? $product->prices->whereIn('status', ['active', 'published'])->sortByDesc('id')->first()
+            : null;
+        $purchaseUrl = $this->purchaseUrl($product);
+
         return view('webcatalogue::front.scan.result', [
-            'store' => $store,
+            'store' => $sourceStore,
+            'scanStore' => $store,
+            'isGlobalScan' => $isGlobalScan,
             'session' => $session,
+            'product' => $product,
+            'resources' => $resources,
+            'images' => $images,
+            'documents' => $documents,
+            'assembly' => $assembly,
+            'videos' => $videos,
+            'immersive' => $immersive,
+            'thumbnail' => $thumbnail,
+            'activePrice' => $activePrice,
+            'purchaseUrl' => $purchaseUrl,
+            'suggestions' => $session->matches
+                ->where('status', 'suggested')
+                ->filter(fn ($match) => $match->product && $match->product->store && in_array((string) $match->product->status, config('webcatalogue.front_visible_statuses', ['published', 'active']), true))
+                ->take(3)
+                ->values(),
         ]);
+    }
+
+    private function purchaseUrl($product): ?string
+    {
+        if (!$product) {
+            return null;
+        }
+
+        $metadata = is_array($product->metadata ?? null) ? $product->metadata : [];
+        foreach (['purchase_url', 'buy_url', 'product_url', 'external_url', 'source_url'] as $key) {
+            if (!empty($metadata[$key])) {
+                return (string) $metadata[$key];
+            }
+        }
+
+        return null;
     }
 }

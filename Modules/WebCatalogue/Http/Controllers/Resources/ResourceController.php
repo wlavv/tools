@@ -22,17 +22,48 @@ class ResourceController extends Controller
 
     protected function viewData(array $extra = []): array
     {
+        $storeId = request()->integer('id_store') ?: null;
+
         return array_merge([
             'stores' => Store::query()->orderBy('name')->get(),
-            'catalogues' => Catalogue::query()->orderBy('name')->get(),
-            'products' => Product::query()->orderBy('reference')->get(),
+            'catalogues' => Catalogue::query()->when($storeId, fn ($query) => $query->where('id_store', $storeId))->orderBy('name')->get(),
+            'products' => Product::query()->when($storeId, fn ($query) => $query->where('id_store', $storeId))->orderBy('reference')->get(),
         ], $extra);
     }
 
     public function index(Request $request): View
     {
-        $items = Resource::query()->with(['store','product','catalogue'])->latest('id')->paginate(25)->withQueryString();
-        return $this->view('webcatalogue::resources.index', compact('items'));
+        $storeId = $request->integer('id_store') ?: null;
+        $store = $storeId ? Store::find($storeId) : null;
+        $items = Resource::query()
+            ->with(['store','product','catalogue'])
+            ->when($storeId, fn ($query) => $query->where('id_store', $storeId))
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
+
+        if ($store) {
+            $this->replaceAction('back', [
+                'label' => 'Store hub',
+                'name' => 'Store hub',
+                'icon' => 'fa-solid fa-store',
+                'class' => 'lsg-action-btn lsg-action-btn--back',
+                'url' => route('webcatalogue.stores.show', $store),
+                'route' => 'webcatalogue.stores.show',
+                'type' => 'link',
+            ]);
+            $this->replaceAction('new', [
+                'label' => 'New resource',
+                'name' => 'New resource',
+                'icon' => 'fa-solid fa-plus',
+                'class' => 'lsg-action-btn lsg-action-btn--success',
+                'url' => route('webcatalogue.resources.create', ['id_store' => $store->id]),
+                'route' => 'webcatalogue.resources.create',
+                'type' => 'link',
+            ]);
+        }
+
+        return $this->view('webcatalogue::resources.index', compact('items', 'store'));
     }
 
     public function create(): View

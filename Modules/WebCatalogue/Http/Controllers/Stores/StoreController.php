@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\WebCatalogue\Models\FingerprintRebuildLog;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Services\Resources\WebCatalogueResourceUploadService;
+use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
 use Modules\WebCatalogue\Services\Storage\WebCatalogueStorageService;
 use Modules\WebCatalogue\Support\Concerns\HandlesWebCatalogueFormData;
 
@@ -19,7 +21,21 @@ class StoreController extends Controller
 
     public function index(Request $request): View
     {
-        $items = Store::query()->with('logoResource')->withCount(['catalogues','products','resources','themes','environments'])->latest('id')->paginate(25)->withQueryString();
+        $search = trim((string) $request->input('q', ''));
+        $items = Store::query()
+            ->with('logoResource')
+            ->withCount(['catalogues','products','resources','themes','environments','prices','promotions'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('domain', 'like', '%' . $search . '%')
+                        ->orWhere('code', 'like', '%' . $search . '%')
+                        ->orWhere('slug', 'like', '%' . $search . '%');
+                });
+            })
+            ->latest('id')
+            ->paginate(24)
+            ->withQueryString();
         return $this->view('webcatalogue::stores.index', compact('items'));
     }
 
@@ -30,14 +46,28 @@ class StoreController extends Controller
 
     public function store(Request $request, WebCatalogueStorageService $storage, WebCatalogueResourceUploadService $resources): RedirectResponse
     {
+        $this->validateLogoUpload($request);
         $data = $this->storePayload($request);
         $item = Store::create($data);
         $storage->ensureStoreStructure((int) $item->id);
         $this->handleLogoUpload($request, $item, $resources);
-        return redirect()->route('webcatalogue.stores.show', $item)->with('success', 'Store created.');
+        return redirect()->to($this->safeReturnTo($request) ?: route('webcatalogue.stores.show', $item))->with('success', 'Store created.');
     }
 
-    public function show(Store $store): View { return $this->view('webcatalogue::stores.show', ['item' => $store]); }
+    public function show(Store $store): View
+    {
+        $store->loadCount(['catalogues','products','resources','themes','environments','prices','promotions'])
+            ->load([
+                'logoResource',
+                'latestFingerprintRebuildLog',
+                'environments' => fn ($query) => $query->orderByDesc('is_default')->latest('id')->limit(1),
+                'catalogues' => fn ($query) => $query->withCount('products')->latest('id')->limit(6),
+                'products' => fn ($query) => $query->with(['mainImageResource','prices','resources','catalogues'])->withCount(['resources','catalogues'])->latest('id')->limit(6),
+                'resources' => fn ($query) => $query->with(['product','catalogue'])->latest('id')->limit(8),
+            ]);
+
+        return $this->view('webcatalogue::stores.show', ['item' => $store]);
+    }
 
     public function edit(Store $store): View
     {
@@ -46,15 +76,60 @@ class StoreController extends Controller
 
     public function update(Request $request, Store $store, WebCatalogueResourceUploadService $resources): RedirectResponse
     {
+        $this->validateLogoUpload($request);
         $store->update($this->storePayload($request));
         $this->handleLogoUpload($request, $store, $resources);
-        return redirect()->route('webcatalogue.stores.show', $store)->with('success', 'Store updated.');
+        return redirect()->to($this->safeReturnTo($request) ?: route('webcatalogue.stores.show', $store))->with('success', 'Store updated.');
     }
 
     public function destroy(Store $store): RedirectResponse
     {
         $store->delete();
         return redirect()->route('webcatalogue.stores.index')->with('success', 'Store deleted.');
+    }
+
+    public function rebuildFingerprints(Store $store, InternalImageMatchService $matcher): RedirectResponse
+    {
+        $startedAt = now();
+        $log = FingerprintRebuildLog::create([
+            'id_store' => $store->id,
+            'trigger' => 'manual',
+            'status' => 'running',
+            'started_at' => $startedAt,
+            'metadata' => ['user_id' => auth()->id()],
+        ]);
+
+        try {
+            $result = $matcher->rebuildStoreDataset($store);
+            $log->update([
+                'status' => 'completed',
+                'processed' => (int) ($result['processed'] ?? 0),
+                'created_count' => (int) ($result['created'] ?? 0),
+                'updated_count' => (int) ($result['updated'] ?? 0),
+                'failed_count' => (int) ($result['failed'] ?? 0),
+                'algorithm' => $result['algorithm'] ?? null,
+                'finished_at' => now(),
+                'duration_ms' => max(1, $startedAt->diffInMilliseconds(now())),
+            ]);
+        } catch (\Throwable $exception) {
+            $log->update([
+                'status' => 'failed',
+                'finished_at' => now(),
+                'duration_ms' => max(1, $startedAt->diffInMilliseconds(now())),
+                'error_message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        }
+
+        return back()->with(
+            'success',
+            'Fingerprints rebuilt for ' . $store->name . ': '
+                . (int) ($result['processed'] ?? 0) . ' images, '
+                . (int) ($result['created'] ?? 0) . ' new fingerprints, '
+                . (int) ($result['updated'] ?? 0) . ' updated, '
+                . (int) ($result['failed'] ?? 0) . ' failed.'
+        );
     }
 
     protected function storePayload(Request $request): array
@@ -117,5 +192,12 @@ class StoreController extends Controller
         ]);
 
         $store->update(['logo_path' => $resource->public_url ?: $resource->file_path]);
+    }
+
+    protected function validateLogoUpload(Request $request): void
+    {
+        $request->validate([
+            'logo_upload' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,svg', 'max:4096'],
+        ]);
     }
 }

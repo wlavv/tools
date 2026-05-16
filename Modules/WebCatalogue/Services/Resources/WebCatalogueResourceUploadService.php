@@ -47,7 +47,7 @@ class WebCatalogueResourceUploadService
             'source_type' => 'upload',
             'source_url' => null,
             'file_path' => $path,
-            'public_url' => Storage::disk($disk)->url($path),
+            'public_url' => $disk === 'public' ? '/storage/' . ltrim($path, '/') : Storage::disk($disk)->url($path),
             'filename' => $filename,
             'mime_type' => $file->getMimeType(),
             'file_size' => $file->getSize(),

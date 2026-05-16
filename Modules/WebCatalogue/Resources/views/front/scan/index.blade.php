@@ -4,9 +4,9 @@
 <div class="wc-front-container wc-scan-page">
     <section class="wc-front-hero wc-scan-hero">
         <div>
-            <span class="wc-front-kicker"><i class="fa-solid fa-camera-viewfinder"></i> Visual Recognition</span>
-            <h1>Scan a product</h1>
-            <p>Point your camera at a product. For best results, center the object, use a neutral background and avoid strong shadows. If we find it, we open the product page. If not, you can request it and help us identify market demand.</p>
+            <span class="wc-front-kicker"><i class="fa-solid fa-camera"></i> Visual Recognition</span>
+            <h1>{{ !empty($isGlobalScan) ? 'Understand this object' : 'Scan a product' }}</h1>
+            <p>{{ !empty($isGlobalScan) ? 'Point your camera at an object. We identify it and show useful information: manuals, assembly instructions, videos, technical files, images, 3D/AR resources and related documentation.' : 'Point your camera at a product. For best results, center the object, use a neutral background and avoid strong shadows. If we find it, we open the product intelligence page. If not, you can request it and help us improve the dataset.' }}</p>
         </div>
     </section>
 
@@ -45,8 +45,8 @@
         </div>
 
         <aside class="wc-scan-side-card">
-            <h3>When no match is found</h3>
-            <p>We ask for brand, model, reference or a label photo. This creates a WebCatalogue lead that can later be used to contact the brand.</p>
+            <h3>{{ !empty($isGlobalScan) ? 'Object intelligence' : 'When no match is found' }}</h3>
+            <p>{{ !empty($isGlobalScan) ? 'This scan is not tied to one store. The system searches the shared object dataset and opens the best available information page for the matched item.' : 'We ask for brand, model, reference or a label photo. This creates a WebCatalogue lead that can later enrich the product knowledge base.' }}</p>
             <ul>
                 <li><i class="fa-solid fa-check"></i> Use a plain / neutral background</li>
                 <li><i class="fa-solid fa-check"></i> Center the product inside the focus frame</li>
@@ -88,11 +88,11 @@
 <script>
 (() => {
     const routes = {
-        session: @json(route('webcatalogue.front.scan.session', $store->slug)),
-        capture: @json(route('webcatalogue.front.scan.capture', $store->slug)),
-        match: @json(route('webcatalogue.front.scan.match', $store->slug)),
-        unmatched: @json(route('webcatalogue.front.scan.unmatched', $store->slug)),
-        resultBase: @json(url('/catalogue/' . $store->slug . '/scan/result')),
+        session: @json(!empty($isGlobalScan) ? route('webcatalogue.front.scan.global.session') : route('webcatalogue.front.scan.session', $store->slug)),
+        capture: @json(!empty($isGlobalScan) ? route('webcatalogue.front.scan.global.capture') : route('webcatalogue.front.scan.capture', $store->slug)),
+        match: @json(!empty($isGlobalScan) ? route('webcatalogue.front.scan.global.match') : route('webcatalogue.front.scan.match', $store->slug)),
+        unmatched: @json(!empty($isGlobalScan) ? route('webcatalogue.front.scan.global.unmatched') : route('webcatalogue.front.scan.unmatched', $store->slug)),
+        resultBase: @json(!empty($isGlobalScan) ? url('/catalogue/scan/result') : url('/catalogue/' . $store->slug . '/scan/result')),
     };
     const csrf = @json(csrf_token());
     const video = document.getElementById('wcScanVideo');
@@ -208,6 +208,7 @@
         setMessage('Searching catalogue...');
         const res = await fetch(routes.match, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken})});
         const data = await res.json();
+        if(data.result_url){ window.location.href = data.result_url; return; }
         if(data.matched && data.product_url){ window.location.href = data.product_url; return; }
         if(data.suggestions && data.suggestions.length){
             setMessage('We found possible matches. Select a product or tell us this is not listed yet.');

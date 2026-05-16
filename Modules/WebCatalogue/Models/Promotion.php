@@ -28,5 +28,6 @@ class Promotion extends Model
         'expires_at' => 'datetime',
     ];
 
+    public function store(){return $this->belongsTo(Store::class, 'id_store');}
     public function products(){return $this->belongsToMany(Product::class, 'wc_promotion_products', 'id_promotion', 'id_product')->withPivot(['id_store','custom_badge_label','custom_sale_price','sort_order','status','metadata'])->withTimestamps();}
 }

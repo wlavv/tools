@@ -13,22 +13,26 @@ use Modules\WebCatalogue\Models\VisualRecognitionSession;
 
 class VisualRecognitionService
 {
-    public function createSession(Store $store, array $context = []): VisualRecognitionSession
+    public function createSession(?Store $store = null, array $context = []): VisualRecognitionSession
     {
         return VisualRecognitionSession::create([
-            'id_store' => $store->id,
+            'id_store' => $store?->id,
             'session_token' => (string) Str::uuid(),
             'device_type' => $context['device_type'] ?? null,
             'user_agent' => $context['user_agent'] ?? null,
             'ip_address' => $context['ip_address'] ?? null,
             'status' => 'started',
-            'metadata' => $context,
+            'metadata' => array_merge($context, [
+                'scan_scope' => $store ? 'store' : 'global',
+            ]),
         ]);
     }
 
     public function storeCapture(VisualRecognitionSession $session, UploadedFile|string $file, string $captureType = 'object_photo'): VisualRecognitionCapture
     {
-        $directory = 'webcatalogue/stores/' . (int) $session->id_store . '/recognition/sessions/' . (int) $session->id . '/captures';
+        $directory = $session->id_store
+            ? 'webcatalogue/stores/' . (int) $session->id_store . '/recognition/sessions/' . (int) $session->id . '/captures'
+            : 'webcatalogue/global/recognition/sessions/' . (int) $session->id . '/captures';
         $mimeType = null;
         $size = null;
 

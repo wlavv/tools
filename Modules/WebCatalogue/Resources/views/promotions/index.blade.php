@@ -6,7 +6,7 @@
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 
 <div class="wc-hero-card">
-    <div><span class="wc-eyebrow"><i class="fa-solid fa-bullhorn"></i> Commercial layer</span><h2>Promotions</h2><p>Global campaign management for product badges, discounts, seasonal highlights and catalogue-wide promotions.</p></div>
+    <div><span class="wc-eyebrow"><i class="fa-solid fa-bullhorn"></i> Commercial layer</span><h2>Promotions @if(!empty($store)) - {{ $store->name }} @endif</h2><p>Campaign management for product badges, discounts, seasonal highlights and catalogue-wide promotions.</p></div>
 </div>
 
 <div class="wc-commercial-note"><i class="fa-solid fa-circle-info"></i><div><strong>Recommended workflow:</strong> attach/create simple promotions from the product form. Use this area to manage broader campaigns and catalogue promotions.</div></div>

@@ -71,9 +71,7 @@
                     @foreach($modulePermissions as $permission)
                         <tr>
                             <td>
-                                <strong>{{ $permission->key }}</strong><br>
-                                <span class="prm-badge risk-{{ $permission->risk }}">{{ $permission->risk }}</span>
-                                <span class="prm-muted">{{ $permission->label }}</span>
+                                @include('permission-role-manager::permissions._permission-label', ['permission' => $permission])
                             </td>
                             @foreach($roles as $role)
                                 <td>

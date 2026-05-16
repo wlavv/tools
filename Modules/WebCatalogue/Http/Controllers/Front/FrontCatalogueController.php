@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Models\Product;
+use Modules\WebCatalogue\Models\PublicLink;
+use Modules\WebCatalogue\Models\SessionLog;
 use Modules\WebCatalogue\Models\Store;
 
 class FrontCatalogueController extends Controller
@@ -41,6 +43,34 @@ class FrontCatalogueController extends Controller
         $filters = $this->buildFilters($store);
 
         return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'products', 'filters'));
+    }
+
+    public function preview(Request $request, string $token): View
+    {
+        $link = PublicLink::query()
+            ->with('store')
+            ->where('token', $token)
+            ->where('status', 'preview')
+            ->usable()
+            ->firstOrFail();
+
+        $this->trackLink($link, $request, 'preview.view');
+
+        return $this->renderStoreLink($request, $link, ['draft', 'active', 'published', 'preview'], true);
+    }
+
+    public function publicLink(Request $request, string $token): View
+    {
+        $link = PublicLink::query()
+            ->with('store')
+            ->where('token', $token)
+            ->where('status', 'active')
+            ->usable()
+            ->firstOrFail();
+
+        $this->trackLink($link, $request, 'public_link.view');
+
+        return $this->renderStoreLink($request, $link, $this->frontVisibleStatuses(), false);
     }
 
     public function catalogue(Request $request, string $store_slug, string $catalogue_slug): View
@@ -192,11 +222,11 @@ class FrontCatalogueController extends Controller
         }
     }
 
-    private function buildFilters(Store $store, ?Catalogue $catalogue = null): array
+    private function buildFilters(Store $store, ?Catalogue $catalogue = null, ?array $statuses = null): array
     {
         $base = Product::query()
             ->where('wc_products.id_store', $store->id)
-            ->whereIn('status', $this->frontVisibleStatuses());
+            ->whereIn('status', $statuses ?: $this->frontVisibleStatuses());
 
         if ($catalogue) {
             $base->whereHas('catalogues', function (Builder $query) use ($catalogue) {
@@ -248,5 +278,61 @@ class FrontCatalogueController extends Controller
         $statuses = config('webcatalogue.front_visible_statuses', ['published', 'active']);
 
         return array_values(array_filter((array) $statuses, fn ($status) => is_string($status) && trim($status) !== ''));
+    }
+
+    private function renderStoreLink(Request $request, PublicLink $link, array $statuses, bool $isPreview): View
+    {
+        $store = Store::query()
+            ->with(['themes', 'environments', 'resources'])
+            ->findOrFail($link->id_store);
+
+        $catalogues = Catalogue::query()
+            ->where('id_store', $store->id)
+            ->whereIn('status', $statuses)
+            ->orderByRaw("FIELD(status, 'published', 'active', 'draft', 'preview')")
+            ->orderBy('name')
+            ->get();
+
+        $productsQuery = Product::query()
+            ->with(['resources', 'prices', 'promotions'])
+            ->where('id_store', $store->id)
+            ->whereIn('status', $statuses);
+
+        $this->applyFrontFilters($productsQuery, $request);
+
+        $products = $productsQuery->orderBy('name')
+            ->paginate(24)
+            ->withQueryString();
+
+        $filters = $this->buildFilters($store, null, $statuses);
+        $publicLink = $link;
+
+        return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'products', 'filters', 'publicLink', 'isPreview'));
+    }
+
+    private function trackLink(PublicLink $link, Request $request, string $event): void
+    {
+        $metadata = is_array($link->metadata ?? null) ? $link->metadata : [];
+        $metadata['tracking'] = is_array($metadata['tracking'] ?? null) ? $metadata['tracking'] : [];
+        $metadata['tracking']['views'] = (int) ($metadata['tracking']['views'] ?? 0) + 1;
+        $metadata['tracking']['last_viewed_at'] = now()->toIso8601String();
+        $metadata['tracking']['last_ip'] = $request->ip();
+
+        $link->forceFill(['metadata' => $metadata])->save();
+
+        SessionLog::create([
+            'id_store' => $link->id_store,
+            'id_product' => $link->id_product,
+            'session_token' => $request->session()->getId(),
+            'event' => $event,
+            'url' => $request->fullUrl(),
+            'ip_address' => $request->ip(),
+            'user_agent' => (string) $request->userAgent(),
+            'payload' => [
+                'public_link_id' => $link->id,
+                'link_type' => $link->link_type,
+                'status' => $link->status,
+            ],
+        ]);
     }
 }

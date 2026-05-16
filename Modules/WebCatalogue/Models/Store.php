@@ -32,6 +32,11 @@ class Store extends Model
     public function products(){return $this->hasMany(Product::class, 'id_store');}
     public function themes(){return $this->hasMany(StoreTheme::class, 'id_store');}
     public function environments(){return $this->hasMany(StoreEnvironment::class, 'id_store');}
+    public function prices(){return $this->hasMany(ProductPrice::class, 'id_store');}
+    public function promotions(){return $this->hasMany(Promotion::class, 'id_store');}
+    public function publicLinks(){return $this->hasMany(PublicLink::class, 'id_store');}
+    public function fingerprintRebuildLogs(){return $this->hasMany(FingerprintRebuildLog::class, 'id_store');}
+    public function latestFingerprintRebuildLog(){return $this->hasOne(FingerprintRebuildLog::class, 'id_store')->latestOfMany();}
 
     public function resources(){return $this->hasMany(Resource::class, 'id_store');}
     public function logoResource()

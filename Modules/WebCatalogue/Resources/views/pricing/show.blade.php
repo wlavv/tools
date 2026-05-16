@@ -50,7 +50,6 @@
             <div class="wc-preview-media"><i class="fa-solid fa-tags wc-preview-icon"></i></div>
             <div class="wc-preview-body"><h4>Price Rule preview</h4><p class="wc-muted">Visual summary of this record.</p></div>
         </div>
-        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Actions</h4><div class="wc-actions-row"><a class="wc-action-link" href="{{ route('webcatalogue.pricing.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a><a class="wc-action-link" href="{{ route('webcatalogue.pricing.index') }}"><i class="fa-solid fa-angle-left"></i> Back</a></div></div></div>
     </aside>
 </div>
 </div>

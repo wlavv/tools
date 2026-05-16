@@ -62,7 +62,6 @@
             </div>
             <div class="wc-preview-body"><h4>Resource preview</h4><p class="wc-muted">{{ $item->filename ?: $item->source_url ?: 'No file attached.' }}</p></div>
         </div>
-        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Actions</h4><div class="wc-actions-row"><a class="wc-action-link" href="{{ route('webcatalogue.resources.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a><a class="wc-action-link" href="{{ route('webcatalogue.resources.index') }}"><i class="fa-solid fa-angle-left"></i> Back</a></div></div></div>
     </aside>
 </div>
 </div>

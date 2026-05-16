@@ -5,6 +5,19 @@
 <div class="webcatalogue-shell">
 @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="wc-alert wc-alert-warning">{{ $errors->first() }}</div>@endif
+@php
+    $previewLogoPath = trim((string) ($item->logo_path ?? ''));
+    $previewLogoUrl = null;
+    if ($previewLogoPath !== '') {
+        $normalizedPreviewLogoPath = ltrim($previewLogoPath, '/');
+        $previewLogoUrl = match (true) {
+            str_starts_with($previewLogoPath, 'http://'), str_starts_with($previewLogoPath, 'https://') => $previewLogoPath,
+            str_starts_with($previewLogoPath, '/storage/') => $previewLogoPath,
+            str_starts_with($normalizedPreviewLogoPath, 'storage/') => '/' . $normalizedPreviewLogoPath,
+            default => asset('storage/' . $normalizedPreviewLogoPath),
+        };
+    }
+@endphp
 
 <div class="wc-editor-layout">
     <div class="wc-card">
@@ -12,6 +25,7 @@
         <form id="lsg-form" method="POST" enctype="multipart/form-data" action="{{ $action }}">
             @csrf
             @if($method !== 'POST') @method($method) @endif
+            @if(old('return_to', request('return_to')))<input type="hidden" name="return_to" value="{{ old('return_to', request('return_to')) }}">@endif
             <div class="wc-form-panel">
                 <div class="wc-form-panel-head"><span class="wc-form-panel-icon"><i class="fa-solid fa-building"></i></span><div><h4>Store identity</h4><p class="wc-muted">Core identification used by imports and public URLs.</p></div></div>
                 <div class="wc-form-grid">
@@ -94,8 +108,8 @@
             <div class="wc-live-preview-header" data-preview-header>
                 <div class="wc-live-preview-brand">
                     <span class="wc-live-preview-mark">
-                        @if(!empty($item?->logo_path))
-                            <img src="{{ str_starts_with($item->logo_path, 'http') ? $item->logo_path : asset('storage/' . ltrim($item->logo_path, '/')) }}" alt="Logo">
+                        @if($previewLogoUrl)
+                            <img src="{{ $previewLogoUrl }}" alt="Logo">
                         @else
                             WC
                         @endif

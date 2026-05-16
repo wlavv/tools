@@ -47,6 +47,12 @@ return [
         'debug_top' => env('WEBCATALOGUE_RECOGNITION_DEBUG_TOP', 20),
         'object_crop_enabled' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP', true),
         'object_crop_threshold' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP_THRESHOLD', 28),
+        'fingerprint_rebuild' => [
+            'enabled' => env('WEBCATALOGUE_RECOGNITION_REBUILD_ENABLED', true),
+            'daily_at' => env('WEBCATALOGUE_RECOGNITION_REBUILD_DAILY_AT', '03:30'),
+            'days_per_cycle' => env('WEBCATALOGUE_RECOGNITION_REBUILD_DAYS', 7),
+            'queue' => env('WEBCATALOGUE_RECOGNITION_REBUILD_QUEUE', 'webcatalogue_recognition'),
+        ],
         'composite_weights' => [
             'phash' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_PHASH', 0.45),
             'edge' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_EDGE', 0.35),
