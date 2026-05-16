@@ -153,6 +153,7 @@ class InternalImageMatchService
                 'structured_region_embedding_phash_color_edge_v3_2',
                 'structured_region_embedding_phash_color_edge_v3_3',
                 'structured_region_embedding_phash_color_edge_v3_4',
+                'structured_region_embedding_phash_color_edge_v3_5',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -1155,7 +1156,9 @@ class InternalImageMatchService
         }
 
         $best = $best ?: $this->scoreSingleProfiles($a, $b);
-        $regionScore = $this->scoreStructuredRegions($a['structured_regions'] ?? [], $b['structured_regions'] ?? []);
+        $regionScore = (bool) config('webcatalogue.recognition.structured_regions_enabled', false)
+            ? $this->scoreStructuredRegions($a['structured_regions'] ?? [], $b['structured_regions'] ?? [])
+            : null;
 
         if ($regionScore) {
             $globalScore = (float) ($best['final_score'] ?? 0);
@@ -1354,7 +1357,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'structured_region_embedding_phash_color_edge_v3_5';
+        return 'opencv_embedding_phash_color_edge_v3_6';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void
