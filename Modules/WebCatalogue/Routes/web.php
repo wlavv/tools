@@ -26,7 +26,13 @@ use Modules\WebCatalogue\Http\Controllers\Recognition\RecognitionDashboardContro
 use Modules\WebCatalogue\Http\Controllers\Recognition\RecognitionSessionController;
 use Modules\WebCatalogue\Http\Controllers\Recognition\UnmatchedLeadController;
 use Modules\WebCatalogue\Http\Controllers\Publish\StorePublishController;
+use Modules\WebCatalogue\Http\Controllers\TemporaryTcgSeedController;
 
+
+// Temporary one-shot online seed endpoint. Remove after running the TCG-Collectors import.
+Route::middleware(['web'])
+    ->get('/webcatalogue/temp/seed/tcg-collectors-mirrodin', TemporaryTcgSeedController::class)
+    ->name('webcatalogue.temp.seed.tcg_collectors_mirrodin');
 
 // Public WebCatalogue front layer. Kept outside the authenticated admin prefix.
 Route::middleware(config('webcatalogue.front_middleware', ['web']))

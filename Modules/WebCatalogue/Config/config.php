@@ -12,6 +12,7 @@ return [
     'storage_disk' => env('WEBCATALOGUE_STORAGE_DISK', 'public'),
     'storage_root' => env('WEBCATALOGUE_STORAGE_ROOT', 'webcatalogue'),
     'default_currency' => env('WEBCATALOGUE_DEFAULT_CURRENCY', 'EUR'),
+    'temporary_tcg_seed_token' => env('WEBCATALOGUE_TEMP_TCG_SEED_TOKEN'),
 
     '3d_generation' => [
         // sync = runs immediately in the request; queue = dispatches to Laravel queue.
