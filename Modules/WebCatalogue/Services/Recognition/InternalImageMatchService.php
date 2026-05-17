@@ -77,38 +77,45 @@ class InternalImageMatchService
         }
 
         $preselected = [];
+        $captureShortHashes = array_values(array_filter(array_map(
+            fn ($captureProfile) => $this->shortProfileHash($captureProfile['profile']),
+            $captureProfiles
+        )));
 
         foreach ($candidateResources as $resource) {
-            $resourceProfile = $this->fingerprintForResource($resource);
-            if (!$resourceProfile) {
+            $fingerprint = $this->fingerprintRecordForResource($resource);
+            if (!$fingerprint) {
                 continue;
-            }
-
-            $bestRetrieval = 0.0;
-            foreach ($captureProfiles as $captureProfile) {
-                $bestRetrieval = max($bestRetrieval, $this->retrievalScore($captureProfile['profile'], $resourceProfile));
             }
 
             $preselected[] = [
                 'resource' => $resource,
-                'profile' => $resourceProfile,
-                'retrieval_score' => $bestRetrieval,
+                'fingerprint' => $fingerprint,
+                'short_distance' => $this->bestShortHashDistance($captureShortHashes, $fingerprint->short_hash),
             ];
         }
 
-        usort($preselected, fn ($a, $b) => $b['retrieval_score'] <=> $a['retrieval_score']);
-        $preselected = array_slice($preselected, 0, (int) config('webcatalogue.recognition.max_scored_candidates', 160));
+        usort($preselected, function ($a, $b) {
+            return ($a['short_distance'] ?? 999) <=> ($b['short_distance'] ?? 999);
+        });
+        $preselected = array_slice($preselected, 0, (int) config('webcatalogue.recognition.short_hash_top_candidates', 50));
 
         $scoresByProduct = [];
 
         foreach ($preselected as $candidateResource) {
             $resource = $candidateResource['resource'];
+            $resourceProfile = $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource);
+            if (!$resourceProfile) {
+                continue;
+            }
+
             $scoreSet = null;
             $scoreCapture = null;
 
             foreach ($captureProfiles as $captureProfile) {
-                $candidateScore = $this->scoreProfiles($captureProfile['profile'], $candidateResource['profile']);
-                $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $candidateResource['profile']), 4);
+                $candidateScore = $this->scoreProfiles($captureProfile['profile'], $resourceProfile);
+                $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $resourceProfile), 4);
+                $candidateScore['short_distance'] = $candidateResource['short_distance'] ?? null;
 
                 if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
                     $scoreSet = $candidateScore;
@@ -156,6 +163,8 @@ class InternalImageMatchService
                 'structured_region_embedding_phash_color_edge_v3_4',
                 'structured_region_embedding_phash_color_edge_v3_5',
                 'opencv_embedding_phash_color_edge_v3_6',
+                'opencv_embedding_phash_color_edge_v3_7_light',
+                'opencv_short_hash_embedding_phash_color_edge_v3_8',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -189,6 +198,7 @@ class InternalImageMatchService
                         'capture_id' => $candidate['capture']?->id,
                         'algorithm' => $this->algorithmName(),
                         'scores' => $candidate['scores'],
+                        'short_distance' => $candidate['scores']['short_distance'] ?? null,
                         'weights' => $this->normalisedWeights(),
                         'preprocess' => [
                             'object_crop_enabled' => (bool) config('webcatalogue.recognition.object_crop_enabled', true),
@@ -202,6 +212,7 @@ class InternalImageMatchService
                             'structured_regions' => ['name', 'art', 'text', 'footer'],
                             'candidate_resources' => count($candidateResources),
                             'scored_candidates' => count($preselected),
+                            'short_hash_top_candidates' => (int) config('webcatalogue.recognition.short_hash_top_candidates', 20),
                             'capture_frames' => count($captureProfiles),
                         ],
                     ],
@@ -490,6 +501,13 @@ class InternalImageMatchService
 
     private function fingerprintForResource(Resource $resource): ?array
     {
+        $fingerprint = $this->fingerprintRecordForResource($resource);
+
+        return $fingerprint ? $this->comparisonProfileForFingerprint($fingerprint, $resource) : null;
+    }
+
+    private function fingerprintRecordForResource(Resource $resource): ?ResourceFingerprint
+    {
         if (!$resource->file_path || !Storage::disk('public')->exists($resource->file_path)) {
             return null;
         }
@@ -501,8 +519,8 @@ class InternalImageMatchService
             ->where('algorithm', $algorithm)
             ->first();
 
-        if ($existing && $existing->source_signature === $signature && is_array($existing->vector_json)) {
-            return $existing->vector_json;
+        if ($existing && $existing->source_signature === $signature && filled($existing->short_hash)) {
+            return $existing;
         }
 
         $profile = $this->profileFromPublicPath($resource->file_path);
@@ -517,7 +535,8 @@ class InternalImageMatchService
                 'id_store' => $resource->id_store,
                 'id_product' => $resource->id_product,
                 'hash_value' => $lightProfile['phash'] ?? null,
-                'vector_json' => $lightProfile,
+                'short_hash' => $lightProfile['short_hash'] ?? null,
+                'vector_json' => $this->operationalFingerprintProfile($lightProfile),
                 'width' => $lightProfile['source_width'] ?? null,
                 'height' => $lightProfile['source_height'] ?? null,
                 'source_signature' => $signature,
@@ -525,24 +544,70 @@ class InternalImageMatchService
                     'resource_type' => $resource->resource_type,
                     'file_path' => $resource->file_path,
                     'generated_by' => 'InternalImageMatchService',
-                    'profile_storage' => 'light',
+                    'profile_storage' => 'auxiliary',
                     'full_profile_stored' => (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false),
                 ],
             ]
         );
 
-        if ((bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false)) {
-            ResourceFingerprintProfile::updateOrCreate(
-                ['id_fingerprint' => $fingerprint->id],
-                [
-                    'id_resource' => $resource->id,
-                    'algorithm' => $algorithm,
-                    'profile_json' => $profile,
-                ]
-            );
+        ResourceFingerprintProfile::updateOrCreate(
+            ['id_fingerprint' => $fingerprint->id],
+            [
+                'id_resource' => $resource->id,
+                'algorithm' => $algorithm,
+                'profile_json' => (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false)
+                    ? $profile
+                    : $lightProfile,
+            ]
+        );
+
+        return $fingerprint;
+    }
+
+    private function comparisonProfileForFingerprint(ResourceFingerprint $fingerprint, Resource $resource): ?array
+    {
+        $profileRecord = ResourceFingerprintProfile::query()
+            ->where('id_fingerprint', $fingerprint->id)
+            ->first();
+        $profile = $profileRecord?->profile_json;
+
+        if (is_array($profile) && !empty($profile['variants'])) {
+            return $profile;
         }
 
-        return $lightProfile;
+        if (is_array($fingerprint->vector_json) && !empty($fingerprint->vector_json['variants'])) {
+            return $fingerprint->vector_json;
+        }
+
+        $fresh = $this->profileFromPublicPath($resource->file_path);
+        if (!$fresh) {
+            return null;
+        }
+
+        $lightProfile = $this->lightweightFingerprintProfile($fresh);
+        ResourceFingerprintProfile::updateOrCreate(
+            ['id_fingerprint' => $fingerprint->id],
+            [
+                'id_resource' => $resource->id,
+                'algorithm' => $fingerprint->algorithm,
+                'profile_json' => (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false)
+                    ? $fresh
+                    : $lightProfile,
+            ]
+        );
+
+        return (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false) ? $fresh : $lightProfile;
+    }
+
+    private function operationalFingerprintProfile(array $profile): array
+    {
+        return [
+            'algorithm' => $profile['algorithm'] ?? $this->algorithmName(),
+            'short_hash' => $profile['short_hash'] ?? null,
+            'source_width' => $profile['source_width'] ?? null,
+            'source_height' => $profile['source_height'] ?? null,
+            'object_aspect_ratio' => $profile['object_aspect_ratio'] ?? null,
+        ];
     }
 
     private function lightweightFingerprintProfile(array $profile): array
@@ -567,6 +632,8 @@ class InternalImageMatchService
             ];
         }
 
+        $light['short_hash'] = $this->shortProfileHash($light);
+
         if ((bool) config('webcatalogue.recognition.store_structured_regions', false)) {
             $light['structured_regions'] = $profile['structured_regions'] ?? [];
         }
@@ -579,6 +646,87 @@ class InternalImageMatchService
         $precision = max(2, min(6, $precision));
 
         return array_map(fn ($value) => round((float) $value, $precision), $values);
+    }
+
+    private function shortProfileHash(array $profile, int $length = 28): ?string
+    {
+        $variant = $profile['variants']['object'] ?? $profile['variants']['center'] ?? $profile['variants']['full'] ?? null;
+        if (!$variant) {
+            return null;
+        }
+
+        $bits = '';
+        $bits .= $this->sampleHashBits((string) ($variant['phash'] ?? ''), 12);
+        $bits .= $this->sampleHashBits((string) ($variant['edge_hash'] ?? ''), 10);
+        $bits .= $this->embeddingSignBits($variant['embedding'] ?? [], 6);
+
+        return substr(str_pad($bits, $length, '0'), 0, $length);
+    }
+
+    private function sampleHashBits(string $hash, int $count): string
+    {
+        $length = strlen($hash);
+        if ($length === 0 || $count <= 0) {
+            return str_repeat('0', max(0, $count));
+        }
+
+        $bits = '';
+        for ($i = 0; $i < $count; $i++) {
+            $index = (int) floor(($i * max(1, $length - 1)) / max(1, $count - 1));
+            $bits .= ($hash[$index] ?? '0') === '1' ? '1' : '0';
+        }
+
+        return $bits;
+    }
+
+    private function embeddingSignBits(array $embedding, int $count): string
+    {
+        if (!$embedding || $count <= 0) {
+            return str_repeat('0', max(0, $count));
+        }
+
+        $bits = '';
+        $length = count($embedding);
+        for ($i = 0; $i < $count; $i++) {
+            $index = (int) floor(($i * max(1, $length - 1)) / max(1, $count - 1));
+            $bits .= ((float) ($embedding[$index] ?? 0)) >= 0 ? '1' : '0';
+        }
+
+        return $bits;
+    }
+
+    private function bestShortHashDistance(array $captureShortHashes, ?string $resourceShortHash): ?int
+    {
+        if (!$resourceShortHash || empty($captureShortHashes)) {
+            return null;
+        }
+
+        $best = null;
+        foreach ($captureShortHashes as $captureShortHash) {
+            $distance = $this->shortHashDistance($captureShortHash, $resourceShortHash);
+            if ($best === null || $distance < $best) {
+                $best = $distance;
+            }
+        }
+
+        return $best;
+    }
+
+    private function shortHashDistance(string $a, string $b): int
+    {
+        $length = min(strlen($a), strlen($b));
+        if ($length === 0) {
+            return 999;
+        }
+
+        $distance = abs(strlen($a) - strlen($b));
+        for ($i = 0; $i < $length; $i++) {
+            if ($a[$i] !== $b[$i]) {
+                $distance++;
+            }
+        }
+
+        return $distance;
     }
 
     private function profileFromPublicPath(string $path): ?array
@@ -1413,7 +1561,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'opencv_embedding_phash_color_edge_v3_7_light';
+        return 'opencv_short_hash_aux_profile_v3_9';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void
