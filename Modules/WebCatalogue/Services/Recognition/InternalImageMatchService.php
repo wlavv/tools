@@ -113,19 +113,24 @@ class InternalImageMatchService
 
         $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
 
+        $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
+        $markerCandidateTop = (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30);
+
         usort($preselected, function ($a, $b) {
             $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999));
             $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999));
 
             return $aRank <=> $bRank;
         });
-        $preselected = array_slice($preselected, 0, (int) config('webcatalogue.recognition.short_hash_top_candidates', 50));
+        $preselected = array_slice($preselected, 0, max($shortHashLimit, $markerCandidateTop));
 
         $scoresByProduct = [];
 
         foreach ($preselected as $candidateResource) {
             $resource = $candidateResource['resource'];
-            $resourceProfile = $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource);
+            $resourceProfile = !empty($candidateResource['fingerprint'])
+                ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
+                : $this->fingerprintForResource($resource);
             if (!$resourceProfile) {
                 continue;
             }
@@ -1525,7 +1530,7 @@ class InternalImageMatchService
         $markerCandidates = array_slice(
             $markerCandidates,
             0,
-            (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30),
+            (int) config('webcatalogue.recognition.visual_markers.candidate_pool', 60),
             true
         );
 
@@ -1562,9 +1567,6 @@ class InternalImageMatchService
             }
 
             $fingerprint = $this->fingerprintRecordForResource($resource);
-            if (!$fingerprint) {
-                continue;
-            }
 
             $byResource[$resourceId] = [
                 'resource' => $resource,

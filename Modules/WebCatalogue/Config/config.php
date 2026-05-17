@@ -70,6 +70,7 @@ return [
             'score_weight' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORE_WEIGHT', 0.35),
             'min_score_for_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN_SCORE_FOR_BOOST', 8),
             'candidate_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_TOP', 30),
+            'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 60),
             'boost_per_good_match' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BOOST_PER_GOOD_MATCH', 0.18),
             'max_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX_BOOST', 8),
         ],
