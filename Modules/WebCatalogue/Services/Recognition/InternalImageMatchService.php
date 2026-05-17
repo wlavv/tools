@@ -7,6 +7,7 @@ use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\ResourceFingerprint;
 use Modules\WebCatalogue\Models\ResourceFingerprintProfile;
+use Modules\WebCatalogue\Models\ResourceVisualMarker;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\VisualRecognitionCapture;
 use Modules\WebCatalogue\Models\VisualRecognitionMatch;
@@ -14,6 +15,10 @@ use Modules\WebCatalogue\Models\VisualRecognitionSession;
 
 class InternalImageMatchService
 {
+    public function __construct(private OpenCvRecognitionClient $openCv)
+    {
+    }
+
     /**
      * v2.26: composite matching.
      *
@@ -46,6 +51,7 @@ class InternalImageMatchService
         }
 
         $captureProfiles = [];
+        $captureMarkers = [];
         foreach ($captures as $capture) {
             if (!$capture->file_path) {
                 continue;
@@ -62,6 +68,14 @@ class InternalImageMatchService
                 'capture' => $capture,
                 'profile' => $profile,
             ];
+
+            $markers = $this->markersFromPublicPath($profilePath);
+            if ($markers) {
+                $captureMarkers[] = [
+                    'capture' => $capture,
+                    'markers' => $markers,
+                ];
+            }
         }
 
         if (empty($captureProfiles)) {
@@ -129,6 +143,7 @@ class InternalImageMatchService
 
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = count($captureProfiles);
+            $scoreSet = $this->applyMarkerScore($scoreSet, $captureMarkers, $resource);
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
 
@@ -408,6 +423,14 @@ class InternalImageMatchService
             return ['ok' => false, 'message' => 'Could not process captured image.'];
         }
         $this->persistCaptureAnalysis($capture, $captureProfile, $profilePath);
+        $captureMarkers = [];
+        $markers = $this->markersFromPublicPath($profilePath);
+        if ($markers) {
+            $captureMarkers[] = [
+                'capture' => $capture,
+                'markers' => $markers,
+            ];
+        }
 
         $resources = Resource::query()
             ->where('id_product', $product->id)
@@ -428,6 +451,7 @@ class InternalImageMatchService
 
             $scores = $this->scoreProfiles($captureProfile, $resourceProfile);
             $scores['retrieval_score'] = $this->retrievalScore($captureProfile, $resourceProfile);
+            $scores = $this->applyMarkerScore($scores, $captureMarkers, $resource);
 
             if ($best === null || $scores['final_score'] > $best['score']) {
                 $best = [
@@ -781,6 +805,36 @@ class InternalImageMatchService
         return $profile;
     }
 
+    private function markersFromPublicPath(string $path): ?array
+    {
+        if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || !Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        $markers = $this->openCv->extractMarkers(
+            $path,
+            (int) config('webcatalogue.recognition.visual_markers.max_markers', 250)
+        );
+
+        if (!$markers || empty($markers['descriptors'])) {
+            return null;
+        }
+
+        $minMarkers = (int) config('webcatalogue.recognition.visual_markers.min_markers', 40);
+        if ((int) ($markers['marker_count'] ?? count($markers['descriptors'])) < $minMarkers) {
+            return null;
+        }
+
+        return [
+            'keypoints' => $markers['keypoints'] ?? [],
+            'descriptors' => $markers['descriptors'] ?? [],
+            'width' => $markers['width'] ?? null,
+            'height' => $markers['height'] ?? null,
+            'marker_count' => (int) ($markers['marker_count'] ?? count($markers['descriptors'] ?? [])),
+            'marker_hash' => $markers['marker_hash'] ?? null,
+        ];
+    }
+
     private function normalisedCaptureProfilePath(VisualRecognitionCapture $capture): string
     {
         $metadata = $capture->metadata ?: [];
@@ -789,7 +843,7 @@ class InternalImageMatchService
             return $existing;
         }
 
-        $result = app(OpenCvRecognitionClient::class)->normalizeCapture($capture);
+        $result = $this->openCv->normalizeCapture($capture);
         if (!empty($result['normalized_path']) && Storage::disk('public')->exists($result['normalized_path'])) {
             return $result['normalized_path'];
         }
@@ -1417,6 +1471,75 @@ class InternalImageMatchService
             'region_score' => $weightedScore / $totalWeight,
             'regions' => $scores,
         ];
+    }
+
+    private function applyMarkerScore(array $scoreSet, array $captureMarkers, Resource $resource): array
+    {
+        if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || empty($captureMarkers)) {
+            $scoreSet['marker_applied'] = false;
+            return $scoreSet;
+        }
+
+        $resourceMarkers = ResourceVisualMarker::query()
+            ->where('id_resource', $resource->id)
+            ->where('algorithm', (string) config('webcatalogue.recognition.visual_markers.algorithm', 'orb_v1'))
+            ->latest('id')
+            ->first();
+
+        if (!$resourceMarkers || empty($resourceMarkers->descriptors_json)) {
+            $scoreSet['marker_applied'] = false;
+            $scoreSet['marker_status'] = 'missing_resource_markers';
+            return $scoreSet;
+        }
+
+        $reference = [
+            'keypoints' => $resourceMarkers->keypoints_json ?: [],
+            'descriptors' => $resourceMarkers->descriptors_json ?: [],
+            'width' => $resourceMarkers->width,
+            'height' => $resourceMarkers->height,
+        ];
+        $best = null;
+
+        foreach ($captureMarkers as $captureMarker) {
+            $comparison = $this->openCv->compareMarkers($captureMarker['markers'], $reference);
+            if (!$comparison) {
+                continue;
+            }
+
+            $comparison['capture_id'] = $captureMarker['capture']?->id;
+            if ($best === null || (float) ($comparison['score'] ?? 0) > (float) ($best['score'] ?? 0)) {
+                $best = $comparison;
+            }
+        }
+
+        if (!$best) {
+            $scoreSet['marker_applied'] = false;
+            $scoreSet['marker_status'] = 'comparison_failed';
+            return $scoreSet;
+        }
+
+        $baseScore = (float) ($scoreSet['final_score'] ?? 0);
+        $markerScore = (float) ($best['score'] ?? 0);
+        $weight = max(0, min(1, (float) config('webcatalogue.recognition.visual_markers.score_weight', 0.35)));
+        $minScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.min_score_for_boost', 8)));
+        $combinedScore = (($baseScore * (1 - $weight)) + ($markerScore * $weight));
+        $finalScore = $markerScore >= $minScore ? max($baseScore, $combinedScore) : $baseScore;
+
+        $scoreSet['final_score_before_markers'] = round($baseScore, 4);
+        $scoreSet['marker_score'] = round($markerScore, 4);
+        $scoreSet['marker_boost'] = round(max(0, $finalScore - $baseScore), 4);
+        $scoreSet['marker_weight'] = round($weight, 4);
+        $scoreSet['marker_min_score_for_boost'] = round($minScore, 4);
+        $scoreSet['marker_applied'] = $finalScore > $baseScore;
+        $scoreSet['marker_status'] = $markerScore >= $minScore ? 'scored' : 'below_min_score';
+        $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
+        $scoreSet['marker_good_matches'] = (int) ($best['good_matches'] ?? 0);
+        $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
+        $scoreSet['marker_capture_id'] = $best['capture_id'] ?? null;
+        $scoreSet['marker_resource_marker_id'] = $resourceMarkers->id;
+        $scoreSet['final_score'] = round($finalScore, 4);
+
+        return $scoreSet;
     }
 
     private function applyCaptureScoreBoost(array $scoreSet, ?VisualRecognitionCapture $capture): array

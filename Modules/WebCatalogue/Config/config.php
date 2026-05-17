@@ -67,6 +67,8 @@ return [
             'algorithm' => env('WEBCATALOGUE_RECOGNITION_MARKERS_ALGORITHM', 'orb_v1'),
             'max_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX', 250),
             'min_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN', 40),
+            'score_weight' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORE_WEIGHT', 0.35),
+            'min_score_for_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN_SCORE_FOR_BOOST', 8),
         ],
         'store_full_fingerprint_profile' => env('WEBCATALOGUE_RECOGNITION_STORE_FULL_PROFILE', false),
         'region_global_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_GLOBAL_WEIGHT', 0.45),

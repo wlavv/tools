@@ -2,6 +2,8 @@
 
 namespace Modules\WebCatalogue\Services\Recognition;
 
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
@@ -30,9 +32,21 @@ class VisualMarkerService
             return 'failed';
         }
 
-        $signature = $this->sourceSignature($resource->file_path);
         $algorithm = $this->algorithmName();
-        $this->removeDuplicateMarkers($resource, $algorithm);
+
+        try {
+            return Cache::lock($this->lockName($resource, $algorithm), 300)->block(20, function () use ($resource, $algorithm, $force) {
+                return $this->rebuildResourceLocked($resource, $algorithm, $force);
+            });
+        } catch (LockTimeoutException) {
+            return 'failed';
+        }
+    }
+
+    private function rebuildResourceLocked(Resource $resource, string $algorithm, bool $force = false): string
+    {
+        $signature = $this->sourceSignature($resource->file_path);
+        $this->removeDuplicateMarkers($resource, $algorithm, true);
 
         $existing = $this->existingMarker($resource, $algorithm);
 
@@ -67,17 +81,19 @@ class VisualMarkerService
             ],
         ];
 
-        if ($existing) {
-            $existing->update($data);
-            return 'updated';
-        }
+        $status = $existing ? 'updated' : 'created';
+
+        ResourceVisualMarker::query()
+            ->where('id_resource', $resource->id)
+            ->where('algorithm', $algorithm)
+            ->delete();
 
         ResourceVisualMarker::create(array_merge($data, [
             'id_resource' => $resource->id,
             'algorithm' => $algorithm,
         ]));
 
-        return 'created';
+        return $status;
     }
 
     private function rebuildResources($resources, bool $force = false): array
@@ -123,7 +139,7 @@ class VisualMarkerService
             ->first();
     }
 
-    private function removeDuplicateMarkers(Resource $resource, string $algorithm): void
+    private function removeDuplicateMarkers(Resource $resource, string $algorithm, bool $keepNewest = false): void
     {
         $markers = ResourceVisualMarker::query()
             ->where('id_resource', $resource->id)
@@ -135,9 +151,22 @@ class VisualMarkerService
             return;
         }
 
+        if (!$keepNewest) {
+            ResourceVisualMarker::query()
+                ->whereIn('id', $markers->pluck('id')->all())
+                ->delete();
+
+            return;
+        }
+
         ResourceVisualMarker::query()
             ->whereIn('id', $markers->slice(1)->pluck('id')->all())
             ->delete();
+    }
+
+    private function lockName(Resource $resource, string $algorithm): string
+    {
+        return 'webcatalogue:visual-marker:' . (int) $resource->id . ':' . sha1($algorithm);
     }
 
     private function imageResourcesQuery()

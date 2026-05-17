@@ -115,6 +115,15 @@
                                     <span><strong>Edges</strong> {{ number_format((float) ($scores['edge_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Color</strong> {{ number_format((float) ($scores['color_score'] ?? 0), 2) }}%</span>
                                 </div>
+                                @if(array_key_exists('marker_score', $scores))
+                                    <p class="wc-muted">Marker score: <strong>{{ number_format((float) ($scores['marker_score'] ?? 0), 2) }}%</strong> - {{ ($scores['marker_applied'] ?? false) ? 'boost applied' : ($scores['marker_status'] ?? 'observed') }}</p>
+                                    <div class="wc-score-breakdown">
+                                        <span><strong>Marker boost</strong> {{ number_format((float) ($scores['marker_boost'] ?? 0), 2) }}</span>
+                                        <span><strong>Good matches</strong> {{ (int) ($scores['marker_good_matches'] ?? 0) }} / {{ (int) ($scores['marker_matches'] ?? 0) }}</span>
+                                        <span><strong>Inlier ratio</strong> {{ number_format(((float) ($scores['marker_inlier_ratio'] ?? 0)) * 100, 2) }}%</span>
+                                        <span><strong>Base score</strong> {{ number_format((float) ($scores['final_score_before_markers'] ?? $match->score), 2) }}%</span>
+                                    </div>
+                                @endif
                                 @if(!empty($scores['region_scores']))
                                     <p class="wc-muted">Region score: <strong>{{ number_format((float) ($scores['region_score'] ?? 0), 2) }}%</strong> - Mode: {{ $scores['scoring_mode'] ?? 'structured_regions' }} @if(array_key_exists('region_applied', $scores))- {{ $scores['region_applied'] ? 'applied' : 'global kept' }}@endif</p>
                                     <div class="wc-score-breakdown">
@@ -205,6 +214,15 @@
                                         <span><strong>Edges</strong> {{ number_format((float) ($forcedScores['edge_score'] ?? 0), 2) }}%</span>
                                         <span><strong>Color</strong> {{ number_format((float) ($forcedScores['color_score'] ?? 0), 2) }}%</span>
                                     </div>
+                                    @if(array_key_exists('marker_score', $forcedScores))
+                                        <p><strong>Marker score:</strong> {{ number_format((float) ($forcedScores['marker_score'] ?? 0), 2) }}% - <strong>Status:</strong> {{ ($forcedScores['marker_applied'] ?? false) ? 'boost applied' : ($forcedScores['marker_status'] ?? 'observed') }}</p>
+                                        <div class="wc-score-breakdown">
+                                            <span><strong>Marker boost</strong> {{ number_format((float) ($forcedScores['marker_boost'] ?? 0), 2) }}</span>
+                                            <span><strong>Good matches</strong> {{ (int) ($forcedScores['marker_good_matches'] ?? 0) }} / {{ (int) ($forcedScores['marker_matches'] ?? 0) }}</span>
+                                            <span><strong>Inlier ratio</strong> {{ number_format(((float) ($forcedScores['marker_inlier_ratio'] ?? 0)) * 100, 2) }}%</span>
+                                            <span><strong>Base score</strong> {{ number_format((float) ($forcedScores['final_score_before_markers'] ?? $forcedCompare['score'] ?? 0), 2) }}%</span>
+                                        </div>
+                                    @endif
                                     @if(!empty($forcedScores['region_scores']))
                                         <p><strong>Region score:</strong> {{ number_format((float) ($forcedScores['region_score'] ?? 0), 2) }}% - <strong>Mode:</strong> {{ $forcedScores['scoring_mode'] ?? 'structured_regions' }} @if(array_key_exists('region_applied', $forcedScores))- {{ $forcedScores['region_applied'] ? 'applied' : 'global kept' }}@endif</p>
                                         <div class="wc-score-breakdown">
@@ -297,6 +315,17 @@ document.addEventListener('DOMContentLoaded', function () {
             + '</div>';
     };
 
+    const markerBlock = (scores) => {
+        if (!scores || typeof scores.marker_score === 'undefined') return '';
+        return '<p><strong>Marker score:</strong> ' + pct(scores.marker_score) + ' - <strong>Status:</strong> ' + (scores.marker_applied ? 'boost applied' : (scores.marker_status || 'observed')) + '</p>'
+            + '<div class="wc-score-breakdown">'
+            + '<span><strong>Marker boost</strong> ' + pct(scores.marker_boost) + '</span>'
+            + '<span><strong>Good matches</strong> ' + (scores.marker_good_matches || 0) + ' / ' + (scores.marker_matches || 0) + '</span>'
+            + '<span><strong>Inlier ratio</strong> ' + pct((scores.marker_inlier_ratio || 0) * 100) + '</span>'
+            + '<span><strong>Base score</strong> ' + pct(scores.final_score_before_markers || 0) + '</span>'
+            + '</div>';
+    };
+
     select.addEventListener('change', function () {
         const option = select.options[select.selectedIndex];
         const image = option?.dataset.image || '';
@@ -323,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (match) {
             info.innerHTML = '<p><strong>Score:</strong> ' + pct(match.score) + ' - <strong>Provider:</strong> ' + (match.provider || '-') + '</p>'
                 + scoreBlock(match.scores || {})
+                + markerBlock(match.scores || {})
                 + (match.scores?.region_scores ? '<p><strong>Region score:</strong> ' + pct(match.scores.region_score) + ' - <strong>Mode:</strong> ' + (match.scores.scoring_mode || 'structured_regions') + '</p>' : '')
                 + '<p><span class="wc-badge">' + (match.status || 'suggested') + '</span> <span class="wc-badge">Rank ' + (match.rank || '-') + '</span></p>';
         } else {
