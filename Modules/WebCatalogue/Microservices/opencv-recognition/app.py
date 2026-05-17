@@ -5,12 +5,25 @@ from typing import Optional
 import cv2
 import numpy as np
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from pydantic import BaseModel
 
 
 APP_TOKEN = os.getenv("WEBCATALOGUE_OPENCV_TOKEN", "")
 MAX_IMAGE_BYTES = int(os.getenv("WEBCATALOGUE_OPENCV_MAX_IMAGE_BYTES", "12000000"))
 
 app = FastAPI(title="WebCatalogue OpenCV Recognition", version="0.1.0")
+
+
+class MarkerPayload(BaseModel):
+    keypoints: list
+    descriptors: list
+    width: Optional[int] = None
+    height: Optional[int] = None
+
+
+class CompareMarkersPayload(BaseModel):
+    query: MarkerPayload
+    reference: MarkerPayload
 
 
 @app.get("/health")
@@ -56,6 +69,44 @@ async def normalize(
         response["debug_image_base64"] = encode_jpeg(debug_image)
 
     return response
+
+
+@app.post("/recognition/markers")
+async def markers(
+    image: UploadFile = File(...),
+    max_markers: int = Form(250),
+    authorization: Optional[str] = Header(default=None),
+):
+    require_token(authorization)
+
+    content = await image.read()
+    if len(content) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image too large")
+
+    source = decode_image(content)
+    if source is None:
+        raise HTTPException(status_code=422, detail="Could not decode image")
+
+    marker_set = extract_orb_markers(source, max_markers=max_markers)
+    return {
+        "ok": True,
+        "algorithm": "orb_v1",
+        "descriptor_type": "ORB",
+        "width": int(source.shape[1]),
+        "height": int(source.shape[0]),
+        **marker_set,
+    }
+
+
+@app.post("/recognition/compare-markers")
+async def compare_markers(
+    payload: CompareMarkersPayload,
+    authorization: Optional[str] = Header(default=None),
+):
+    require_token(authorization)
+
+    result = compare_orb_marker_sets(payload.query.descriptors, payload.reference.descriptors)
+    return {"ok": True, **result}
 
 
 def require_token(authorization: Optional[str]) -> None:
@@ -217,3 +268,89 @@ def draw_debug(image, result):
         cv2.putText(debug, str(index + 1), tuple(point), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
     return debug
+
+
+def extract_orb_markers(image, max_markers: int = 250):
+    max_markers = max(20, min(1000, int(max_markers or 250)))
+    normalized = resize_max_side(image, 1200)
+    gray = cv2.cvtColor(normalized, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
+    orb = cv2.ORB_create(nfeatures=max_markers, scaleFactor=1.2, nlevels=8, edgeThreshold=16, patchSize=31)
+    keypoints, descriptors = orb.detectAndCompute(gray, None)
+
+    if descriptors is None or not keypoints:
+        return {
+            "marker_count": 0,
+            "marker_hash": None,
+            "keypoints": [],
+            "descriptors": [],
+        }
+
+    ranked = sorted(
+        zip(keypoints, descriptors.tolist()),
+        key=lambda item: item[0].response,
+        reverse=True,
+    )[:max_markers]
+
+    keypoints_payload = []
+    descriptors_payload = []
+    for keypoint, descriptor in ranked:
+        keypoints_payload.append(
+            {
+                "x": round(float(keypoint.pt[0]), 2),
+                "y": round(float(keypoint.pt[1]), 2),
+                "size": round(float(keypoint.size), 2),
+                "angle": round(float(keypoint.angle), 2),
+                "response": round(float(keypoint.response), 6),
+                "octave": int(keypoint.octave),
+            }
+        )
+        descriptors_payload.append([int(value) for value in descriptor])
+
+    return {
+        "marker_count": len(descriptors_payload),
+        "marker_hash": marker_hash(descriptors_payload),
+        "keypoints": keypoints_payload,
+        "descriptors": descriptors_payload,
+    }
+
+
+def marker_hash(descriptors):
+    if not descriptors:
+        return None
+
+    array = np.array(descriptors, dtype=np.uint8)
+    means = np.mean(array, axis=0)
+    bits = "".join("1" if value >= 127 else "0" for value in means[:64])
+    return bits[:64]
+
+
+def compare_orb_marker_sets(query_descriptors, reference_descriptors):
+    if not query_descriptors or not reference_descriptors:
+        return {"score": 0.0, "matches": 0, "good_matches": 0, "inlier_ratio": 0.0}
+
+    query = np.array(query_descriptors, dtype=np.uint8)
+    reference = np.array(reference_descriptors, dtype=np.uint8)
+    if len(query.shape) != 2 or len(reference.shape) != 2:
+        return {"score": 0.0, "matches": 0, "good_matches": 0, "inlier_ratio": 0.0}
+
+    matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=False)
+    raw_matches = matcher.knnMatch(query, reference, k=2)
+    good = []
+    for match_pair in raw_matches:
+        if len(match_pair) < 2:
+            continue
+        first, second = match_pair
+        if first.distance < 0.76 * second.distance:
+            good.append(first)
+
+    denominator = max(1, min(len(query), len(reference)))
+    match_ratio = len(good) / denominator
+    score = min(100.0, match_ratio * 100.0)
+
+    return {
+        "score": round(float(score), 4),
+        "matches": len(raw_matches),
+        "good_matches": len(good),
+        "inlier_ratio": round(float(match_ratio), 4),
+    }

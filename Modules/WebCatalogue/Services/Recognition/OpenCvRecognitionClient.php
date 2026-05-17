@@ -93,6 +93,40 @@ class OpenCvRecognitionClient
         }
     }
 
+    public function extractMarkers(string $publicPath, int $maxMarkers = 250): ?array
+    {
+        if (!$this->enabled() || !Storage::disk('public')->exists($publicPath)) {
+            return null;
+        }
+
+        try {
+            $baseUrl = rtrim((string) config('webcatalogue.recognition.opencv.base_url'), '/');
+            $token = config('webcatalogue.recognition.opencv.token');
+            $timeout = (int) config('webcatalogue.recognition.opencv.timeout', 20);
+            $path = Storage::disk('public')->path($publicPath);
+            $request = Http::timeout($timeout)->acceptJson();
+
+            if (filled($token)) {
+                $request = $request->withToken((string) $token);
+            }
+
+            $response = $request
+                ->attach('image', fopen($path, 'rb'), basename($path))
+                ->post($baseUrl . '/recognition/markers', [
+                    'max_markers' => (string) max(20, min(1000, $maxMarkers)),
+                ]);
+
+            if (!$response->ok()) {
+                return null;
+            }
+
+            $payload = $response->json();
+            return is_array($payload) && !empty($payload['ok']) ? $payload : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function rememberFailure(VisualRecognitionCapture $capture, string $reason): void
     {
         $metadata = $capture->metadata ?: [];

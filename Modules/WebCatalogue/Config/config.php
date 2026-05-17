@@ -62,6 +62,12 @@ return [
         'store_structured_regions' => env('WEBCATALOGUE_RECOGNITION_STORE_STRUCTURED_REGIONS', false),
         'embedding_precision' => env('WEBCATALOGUE_RECOGNITION_EMBEDDING_PRECISION', 4),
         'short_hash_top_candidates' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_TOP', 20),
+        'visual_markers' => [
+            'enabled' => env('WEBCATALOGUE_RECOGNITION_MARKERS_ENABLED', true),
+            'algorithm' => env('WEBCATALOGUE_RECOGNITION_MARKERS_ALGORITHM', 'orb_v1'),
+            'max_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX', 250),
+            'min_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN', 40),
+        ],
         'store_full_fingerprint_profile' => env('WEBCATALOGUE_RECOGNITION_STORE_FULL_PROFILE', false),
         'region_global_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_GLOBAL_WEIGHT', 0.45),
         'region_structured_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_STRUCTURED_WEIGHT', 0.55),
