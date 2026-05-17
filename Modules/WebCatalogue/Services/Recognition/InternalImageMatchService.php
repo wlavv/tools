@@ -106,11 +106,18 @@ class InternalImageMatchService
                 'resource' => $resource,
                 'fingerprint' => $fingerprint,
                 'short_distance' => $this->bestShortHashDistance($captureShortHashes, $fingerprint->short_hash),
+                'marker_hash_distance' => null,
+                'candidate_sources' => ['short_hash'],
             ];
         }
 
+        $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
+
         usort($preselected, function ($a, $b) {
-            return ($a['short_distance'] ?? 999) <=> ($b['short_distance'] ?? 999);
+            $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999));
+            $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999));
+
+            return $aRank <=> $bRank;
         });
         $preselected = array_slice($preselected, 0, (int) config('webcatalogue.recognition.short_hash_top_candidates', 50));
 
@@ -130,6 +137,8 @@ class InternalImageMatchService
                 $candidateScore = $this->scoreProfiles($captureProfile['profile'], $resourceProfile);
                 $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $resourceProfile), 4);
                 $candidateScore['short_distance'] = $candidateResource['short_distance'] ?? null;
+                $candidateScore['marker_hash_distance'] = $candidateResource['marker_hash_distance'] ?? null;
+                $candidateScore['candidate_sources'] = $candidateResource['candidate_sources'] ?? ['short_hash'];
 
                 if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
                     $scoreSet = $candidateScore;
@@ -214,6 +223,8 @@ class InternalImageMatchService
                         'algorithm' => $this->algorithmName(),
                         'scores' => $candidate['scores'],
                         'short_distance' => $candidate['scores']['short_distance'] ?? null,
+                        'marker_hash_distance' => $candidate['scores']['marker_hash_distance'] ?? null,
+                        'candidate_sources' => $candidate['scores']['candidate_sources'] ?? [],
                         'weights' => $this->normalisedWeights(),
                         'preprocess' => [
                             'object_crop_enabled' => (bool) config('webcatalogue.recognition.object_crop_enabled', true),
@@ -228,6 +239,7 @@ class InternalImageMatchService
                             'candidate_resources' => count($candidateResources),
                             'scored_candidates' => count($preselected),
                             'short_hash_top_candidates' => (int) config('webcatalogue.recognition.short_hash_top_candidates', 20),
+                            'marker_candidate_top' => (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30),
                             'capture_frames' => count($captureProfiles),
                         ],
                     ],
@@ -1473,6 +1485,99 @@ class InternalImageMatchService
         ];
     }
 
+    private function mergeMarkerCandidates(array $preselected, array $captureMarkers, ?Store $store): array
+    {
+        if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || empty($captureMarkers)) {
+            return $preselected;
+        }
+
+        $captureMarkerHashes = array_values(array_filter(array_map(
+            fn ($captureMarker) => $captureMarker['markers']['marker_hash'] ?? null,
+            $captureMarkers
+        )));
+
+        if (empty($captureMarkerHashes)) {
+            return $preselected;
+        }
+
+        $algorithm = (string) config('webcatalogue.recognition.visual_markers.algorithm', 'orb_v1');
+        $markerRows = ResourceVisualMarker::query()
+            ->where('algorithm', $algorithm)
+            ->whereNotNull('marker_hash')
+            ->when($store, fn ($query) => $query->where('id_store', $store->id))
+            ->get(['id_resource', 'marker_hash']);
+
+        if ($markerRows->isEmpty()) {
+            return $preselected;
+        }
+
+        $markerCandidates = [];
+        foreach ($markerRows as $row) {
+            $distance = $this->bestShortHashDistance($captureMarkerHashes, (string) $row->marker_hash);
+            $resourceId = (int) $row->id_resource;
+
+            if (!isset($markerCandidates[$resourceId]) || $distance < $markerCandidates[$resourceId]) {
+                $markerCandidates[$resourceId] = $distance;
+            }
+        }
+
+        asort($markerCandidates);
+        $markerCandidates = array_slice(
+            $markerCandidates,
+            0,
+            (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30),
+            true
+        );
+
+        if (empty($markerCandidates)) {
+            return $preselected;
+        }
+
+        $byResource = [];
+        foreach ($preselected as $candidate) {
+            $resourceId = (int) $candidate['resource']->id;
+            $byResource[$resourceId] = $candidate;
+        }
+
+        $missingIds = array_values(array_diff(array_keys($markerCandidates), array_keys($byResource)));
+        $missingResources = Resource::query()
+            ->with('product.store')
+            ->whereIn('id', $missingIds)
+            ->whereNotNull('id_product')
+            ->get()
+            ->keyBy('id');
+
+        foreach ($markerCandidates as $resourceId => $distance) {
+            if (isset($byResource[$resourceId])) {
+                $byResource[$resourceId]['marker_hash_distance'] = $distance;
+                $sources = $byResource[$resourceId]['candidate_sources'] ?? [];
+                $sources[] = 'marker_hash';
+                $byResource[$resourceId]['candidate_sources'] = array_values(array_unique($sources));
+                continue;
+            }
+
+            $resource = $missingResources->get($resourceId);
+            if (!$resource) {
+                continue;
+            }
+
+            $fingerprint = $this->fingerprintRecordForResource($resource);
+            if (!$fingerprint) {
+                continue;
+            }
+
+            $byResource[$resourceId] = [
+                'resource' => $resource,
+                'fingerprint' => $fingerprint,
+                'short_distance' => null,
+                'marker_hash_distance' => $distance,
+                'candidate_sources' => ['marker_hash'],
+            ];
+        }
+
+        return array_values($byResource);
+    }
+
     private function applyMarkerScore(array $scoreSet, array $captureMarkers, Resource $resource): array
     {
         if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || empty($captureMarkers)) {
@@ -1522,18 +1627,25 @@ class InternalImageMatchService
         $markerScore = (float) ($best['score'] ?? 0);
         $weight = max(0, min(1, (float) config('webcatalogue.recognition.visual_markers.score_weight', 0.35)));
         $minScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.min_score_for_boost', 8)));
-        $combinedScore = (($baseScore * (1 - $weight)) + ($markerScore * $weight));
-        $finalScore = $markerScore >= $minScore ? max($baseScore, $combinedScore) : $baseScore;
+        $boostPerGoodMatch = max(0, (float) config('webcatalogue.recognition.visual_markers.boost_per_good_match', 0.18));
+        $maxBoost = max(0, (float) config('webcatalogue.recognition.visual_markers.max_boost', 8));
+        $goodMatches = (int) ($best['good_matches'] ?? 0);
+        $relativeBoost = $markerScore >= $minScore
+            ? min($maxBoost, ($markerScore * $weight) + ($goodMatches * $boostPerGoodMatch))
+            : 0.0;
+        $finalScore = min(100, $baseScore + $relativeBoost);
 
         $scoreSet['final_score_before_markers'] = round($baseScore, 4);
         $scoreSet['marker_score'] = round($markerScore, 4);
         $scoreSet['marker_boost'] = round(max(0, $finalScore - $baseScore), 4);
         $scoreSet['marker_weight'] = round($weight, 4);
         $scoreSet['marker_min_score_for_boost'] = round($minScore, 4);
+        $scoreSet['marker_boost_per_good_match'] = round($boostPerGoodMatch, 4);
+        $scoreSet['marker_max_boost'] = round($maxBoost, 4);
         $scoreSet['marker_applied'] = $finalScore > $baseScore;
         $scoreSet['marker_status'] = $markerScore >= $minScore ? 'scored' : 'below_min_score';
         $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
-        $scoreSet['marker_good_matches'] = (int) ($best['good_matches'] ?? 0);
+        $scoreSet['marker_good_matches'] = $goodMatches;
         $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
         $scoreSet['marker_capture_id'] = $best['capture_id'] ?? null;
         $scoreSet['marker_resource_marker_id'] = $resourceMarkers->id;
