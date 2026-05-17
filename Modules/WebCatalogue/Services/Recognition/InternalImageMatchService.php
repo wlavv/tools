@@ -549,7 +549,9 @@ class InternalImageMatchService
             'center' => $this->profileVariantFromBox($image, $this->centerCropBox($sourceWidth, $sourceHeight), 96),
             'full' => $this->profileVariantFromBox($image, [0, 0, $sourceWidth, $sourceHeight], 96),
         ];
-        $regions = $this->structuredRegionProfiles($image, $objectBox, 96);
+        $regions = (bool) config('webcatalogue.recognition.store_structured_regions', false)
+            ? $this->structuredRegionProfiles($image, $objectBox, 96)
+            : [];
         $variants = array_filter($variants);
         imagedestroy($image);
 
@@ -1104,7 +1106,9 @@ class InternalImageMatchService
             return array_fill(0, count($values), 0.0);
         }
 
-        return array_map(fn ($value) => round($value / $norm, 6), $centred);
+        $precision = max(2, min(6, (int) config('webcatalogue.recognition.embedding_precision', 4)));
+
+        return array_map(fn ($value) => round($value / $norm, $precision), $centred);
     }
 
     private function dctHash(array $matrix): string

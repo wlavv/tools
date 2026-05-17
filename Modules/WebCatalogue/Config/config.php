@@ -59,6 +59,8 @@ return [
         ],
         'auto_match_min_margin' => env('WEBCATALOGUE_RECOGNITION_AUTO_MIN_MARGIN', 5),
         'structured_regions_enabled' => env('WEBCATALOGUE_RECOGNITION_STRUCTURED_REGIONS_ENABLED', false),
+        'store_structured_regions' => env('WEBCATALOGUE_RECOGNITION_STORE_STRUCTURED_REGIONS', false),
+        'embedding_precision' => env('WEBCATALOGUE_RECOGNITION_EMBEDDING_PRECISION', 4),
         'region_global_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_GLOBAL_WEIGHT', 0.45),
         'region_structured_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_STRUCTURED_WEIGHT', 0.55),
         'region_weights' => [
