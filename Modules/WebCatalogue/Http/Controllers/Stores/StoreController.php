@@ -133,14 +133,30 @@ class StoreController extends Controller
         );
     }
 
-    public function rebuildMarkers(Store $store, VisualMarkerService $markers): RedirectResponse
+    public function syncMarkers(Store $store, VisualMarkerService $markers): RedirectResponse
     {
-        $result = $markers->rebuildStore($store);
+        $result = $markers->rebuildStore($store, false);
 
         return back()->with(
             'success',
-            'Visual markers rebuilt for ' . $store->name . ': '
+            'Visual markers synced for ' . $store->name . ': '
+                . (int) ($result['processed'] ?? 0) . ' images checked, '
+                . (int) ($result['created'] ?? 0) . ' created, '
+                . (int) ($result['updated'] ?? 0) . ' updated, '
+                . (int) ($result['skipped'] ?? 0) . ' already current, '
+                . (int) ($result['failed'] ?? 0) . ' failed.'
+        );
+    }
+
+    public function rebuildMarkers(Store $store, VisualMarkerService $markers): RedirectResponse
+    {
+        $result = $markers->rebuildStore($store, true);
+
+        return back()->with(
+            'success',
+            'Visual markers full rebuild for ' . $store->name . ': '
                 . (int) ($result['processed'] ?? 0) . ' images, '
+                . (int) ($result['created'] ?? 0) . ' created, '
                 . (int) ($result['updated'] ?? 0) . ' updated, '
                 . (int) ($result['failed'] ?? 0) . ' failed.'
         );

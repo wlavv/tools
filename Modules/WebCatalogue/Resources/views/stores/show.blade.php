@@ -225,7 +225,7 @@
         <div class="wc-preview-card">
             <div class="wc-preview-body">
                 <h4>Visual Recognition</h4>
-                <p class="wc-muted">Rebuild search fingerprints or OpenCV visual markers for this store only.</p>
+                <p class="wc-muted">Rebuild search fingerprints or manage OpenCV visual markers for this store only.</p>
                 @if($item->latestFingerprintRebuildLog)
                     <div class="wc-store-detail-list">
                         <div class="wc-store-detail-item"><span>Last rebuild</span><strong>{{ $item->latestFingerprintRebuildLog->finished_at?->format('Y-m-d H:i') ?: $item->latestFingerprintRebuildLog->created_at?->format('Y-m-d H:i') }}</strong></div>
@@ -239,9 +239,13 @@
                     @csrf
                     <button class="wc-secondary-btn wc-full-action" type="submit"><i class="fa-solid fa-rotate"></i> Rebuild fingerprints</button>
                 </form>
+                <form method="post" action="{{ route('webcatalogue.stores.recognition.markers.sync', $item) }}">
+                    @csrf
+                    <button class="wc-secondary-btn wc-full-action" type="submit"><i class="fa-solid fa-location-crosshairs"></i> Add new markers</button>
+                </form>
                 <form method="post" action="{{ route('webcatalogue.stores.recognition.markers.rebuild', $item) }}">
                     @csrf
-                    <button class="wc-secondary-btn wc-full-action" type="submit"><i class="fa-solid fa-location-crosshairs"></i> Generate visual markers</button>
+                    <button class="wc-secondary-btn wc-full-action" type="submit"><i class="fa-solid fa-arrows-rotate"></i> Full markers rebuild</button>
                 </form>
             </div>
         </div>

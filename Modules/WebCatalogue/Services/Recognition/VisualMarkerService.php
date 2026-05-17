@@ -14,31 +14,30 @@ class VisualMarkerService
     {
     }
 
-    public function rebuildStore(Store $store): array
+    public function rebuildStore(Store $store, bool $force = false): array
     {
-        return $this->rebuildResources($this->imageResourcesQuery()->where('id_store', $store->id)->get());
+        return $this->rebuildResources($this->imageResourcesQuery()->where('id_store', $store->id)->get(), $force);
     }
 
-    public function rebuildProduct(Product $product): array
+    public function rebuildProduct(Product $product, bool $force = false): array
     {
-        return $this->rebuildResources($this->imageResourcesQuery()->where('id_product', $product->id)->get());
+        return $this->rebuildResources($this->imageResourcesQuery()->where('id_product', $product->id)->get(), $force);
     }
 
-    public function rebuildResource(Resource $resource): bool
+    public function rebuildResource(Resource $resource, bool $force = false): string
     {
         if (!$this->canProcess($resource)) {
-            return false;
+            return 'failed';
         }
 
         $signature = $this->sourceSignature($resource->file_path);
         $algorithm = $this->algorithmName();
-        $existing = ResourceVisualMarker::query()
-            ->where('id_resource', $resource->id)
-            ->where('algorithm', $algorithm)
-            ->first();
+        $this->removeDuplicateMarkers($resource, $algorithm);
 
-        if ($existing && $existing->source_signature === $signature && (int) $existing->marker_count > 0) {
-            return true;
+        $existing = $this->existingMarker($resource, $algorithm);
+
+        if (!$force && $existing && $existing->source_signature === $signature && (int) $existing->marker_count > 0) {
+            return 'skipped';
         }
 
         $payload = $this->client->extractMarkers(
@@ -47,42 +46,58 @@ class VisualMarkerService
         );
 
         if (!$payload || empty($payload['descriptors'])) {
-            return false;
+            return 'failed';
         }
 
-        ResourceVisualMarker::updateOrCreate(
-            ['id_resource' => $resource->id, 'algorithm' => $algorithm],
-            [
-                'id_store' => $resource->id_store,
-                'id_product' => $resource->id_product,
-                'marker_count' => (int) ($payload['marker_count'] ?? count($payload['descriptors'] ?? [])),
-                'marker_hash' => $payload['marker_hash'] ?? null,
-                'keypoints_json' => $payload['keypoints'] ?? [],
-                'descriptors_json' => $payload['descriptors'] ?? [],
-                'width' => $payload['width'] ?? null,
-                'height' => $payload['height'] ?? null,
-                'source_signature' => $signature,
-                'metadata' => [
-                    'provider' => 'opencv_microservice',
-                    'descriptor_type' => $payload['descriptor_type'] ?? 'ORB',
-                    'generated_at' => now()->toIso8601String(),
-                ],
-            ]
-        );
+        $data = [
+            'id_store' => $resource->id_store,
+            'id_product' => $resource->id_product,
+            'marker_count' => (int) ($payload['marker_count'] ?? count($payload['descriptors'] ?? [])),
+            'marker_hash' => $payload['marker_hash'] ?? null,
+            'keypoints_json' => $payload['keypoints'] ?? [],
+            'descriptors_json' => $payload['descriptors'] ?? [],
+            'width' => $payload['width'] ?? null,
+            'height' => $payload['height'] ?? null,
+            'source_signature' => $signature,
+            'metadata' => [
+                'provider' => 'opencv_microservice',
+                'descriptor_type' => $payload['descriptor_type'] ?? 'ORB',
+                'generated_at' => now()->toIso8601String(),
+                'force_rebuild' => $force,
+            ],
+        ];
 
-        return true;
+        if ($existing) {
+            $existing->update($data);
+            return 'updated';
+        }
+
+        ResourceVisualMarker::create(array_merge($data, [
+            'id_resource' => $resource->id,
+            'algorithm' => $algorithm,
+        ]));
+
+        return 'created';
     }
 
-    private function rebuildResources($resources): array
+    private function rebuildResources($resources, bool $force = false): array
     {
         $processed = 0;
+        $created = 0;
         $updated = 0;
+        $skipped = 0;
         $failed = 0;
 
         foreach ($resources as $resource) {
             $processed++;
-            if ($this->rebuildResource($resource)) {
+            $status = $this->rebuildResource($resource, $force);
+
+            if ($status === 'created') {
+                $created++;
+            } elseif ($status === 'updated') {
                 $updated++;
+            } elseif ($status === 'skipped') {
+                $skipped++;
             } else {
                 $failed++;
             }
@@ -90,10 +105,39 @@ class VisualMarkerService
 
         return [
             'processed' => $processed,
+            'created' => $created,
             'updated' => $updated,
+            'skipped' => $skipped,
             'failed' => $failed,
             'algorithm' => $this->algorithmName(),
+            'mode' => $force ? 'full_rebuild' : 'incremental',
         ];
+    }
+
+    private function existingMarker(Resource $resource, string $algorithm): ?ResourceVisualMarker
+    {
+        return ResourceVisualMarker::query()
+            ->where('id_resource', $resource->id)
+            ->where('algorithm', $algorithm)
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    private function removeDuplicateMarkers(Resource $resource, string $algorithm): void
+    {
+        $markers = ResourceVisualMarker::query()
+            ->where('id_resource', $resource->id)
+            ->where('algorithm', $algorithm)
+            ->orderByDesc('id')
+            ->get(['id']);
+
+        if ($markers->count() <= 1) {
+            return;
+        }
+
+        ResourceVisualMarker::query()
+            ->whereIn('id', $markers->slice(1)->pluck('id')->all())
+            ->delete();
     }
 
     private function imageResourcesQuery()
