@@ -18,4 +18,5 @@ class ResourceFingerprint extends Model
     public function store(){return $this->belongsTo(Store::class, 'id_store');}
     public function product(){return $this->belongsTo(Product::class, 'id_product');}
     public function resource(){return $this->belongsTo(Resource::class, 'id_resource');}
+    public function fullProfile(){return $this->hasOne(ResourceFingerprintProfile::class, 'id_fingerprint');}
 }

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\ResourceFingerprint;
+use Modules\WebCatalogue\Models\ResourceFingerprintProfile;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\VisualRecognitionCapture;
 use Modules\WebCatalogue\Models\VisualRecognitionMatch;
@@ -154,6 +155,7 @@ class InternalImageMatchService
                 'structured_region_embedding_phash_color_edge_v3_3',
                 'structured_region_embedding_phash_color_edge_v3_4',
                 'structured_region_embedding_phash_color_edge_v3_5',
+                'opencv_embedding_phash_color_edge_v3_6',
                 $this->algorithmName(),
             ])
             ->delete();
@@ -508,25 +510,75 @@ class InternalImageMatchService
             return null;
         }
 
-        ResourceFingerprint::updateOrCreate(
+        $lightProfile = $this->lightweightFingerprintProfile($profile);
+        $fingerprint = ResourceFingerprint::updateOrCreate(
             ['id_resource' => $resource->id, 'algorithm' => $algorithm],
             [
                 'id_store' => $resource->id_store,
                 'id_product' => $resource->id_product,
-                'hash_value' => $profile['phash'] ?? null,
-                'vector_json' => $profile,
-                'width' => $profile['source_width'] ?? null,
-                'height' => $profile['source_height'] ?? null,
+                'hash_value' => $lightProfile['phash'] ?? null,
+                'vector_json' => $lightProfile,
+                'width' => $lightProfile['source_width'] ?? null,
+                'height' => $lightProfile['source_height'] ?? null,
                 'source_signature' => $signature,
                 'metadata' => [
                     'resource_type' => $resource->resource_type,
                     'file_path' => $resource->file_path,
                     'generated_by' => 'InternalImageMatchService',
+                    'profile_storage' => 'light',
+                    'full_profile_stored' => (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false),
                 ],
             ]
         );
 
-        return $profile;
+        if ((bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false)) {
+            ResourceFingerprintProfile::updateOrCreate(
+                ['id_fingerprint' => $fingerprint->id],
+                [
+                    'id_resource' => $resource->id,
+                    'algorithm' => $algorithm,
+                    'profile_json' => $profile,
+                ]
+            );
+        }
+
+        return $lightProfile;
+    }
+
+    private function lightweightFingerprintProfile(array $profile): array
+    {
+        $light = [
+            'algorithm' => $profile['algorithm'] ?? $this->algorithmName(),
+            'source_width' => $profile['source_width'] ?? null,
+            'source_height' => $profile['source_height'] ?? null,
+            'object_aspect_ratio' => $profile['object_aspect_ratio'] ?? null,
+            'phash' => $profile['phash'] ?? null,
+            'edge_hash' => $profile['edge_hash'] ?? null,
+            'color_histogram' => $this->roundFloatArray($profile['color_histogram'] ?? [], 4),
+            'variants' => [],
+        ];
+
+        foreach (($profile['variants'] ?? []) as $variantName => $variant) {
+            $light['variants'][$variantName] = [
+                'phash' => $variant['phash'] ?? null,
+                'edge_hash' => $variant['edge_hash'] ?? null,
+                'color_histogram' => $this->roundFloatArray($variant['color_histogram'] ?? [], 4),
+                'embedding' => $this->roundFloatArray($variant['embedding'] ?? [], (int) config('webcatalogue.recognition.embedding_precision', 4)),
+            ];
+        }
+
+        if ((bool) config('webcatalogue.recognition.store_structured_regions', false)) {
+            $light['structured_regions'] = $profile['structured_regions'] ?? [];
+        }
+
+        return $light;
+    }
+
+    private function roundFloatArray(array $values, int $precision): array
+    {
+        $precision = max(2, min(6, $precision));
+
+        return array_map(fn ($value) => round((float) $value, $precision), $values);
     }
 
     private function profileFromPublicPath(string $path): ?array
@@ -1361,7 +1413,7 @@ class InternalImageMatchService
 
     private function algorithmName(): string
     {
-        return 'opencv_embedding_phash_color_edge_v3_6';
+        return 'opencv_embedding_phash_color_edge_v3_7_light';
     }
 
     private function sendMatchedNotification(VisualRecognitionSession $session, array $match): void
