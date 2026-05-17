@@ -83,6 +83,7 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
 
         Route::resource('stores', StoreController::class);
         Route::post('stores/{store}/recognition/fingerprints/rebuild', [StoreController::class, 'rebuildFingerprints'])->name('stores.recognition.fingerprints.rebuild');
+        Route::post('stores/{store}/recognition/markers/rebuild', [StoreController::class, 'rebuildMarkers'])->name('stores.recognition.markers.rebuild');
         Route::get('stores/{store}/publish', [StorePublishController::class, 'show'])->name('stores.publish.show');
         Route::post('stores/{store}/publish/preview', [StorePublishController::class, 'preview'])->name('stores.publish.preview');
         Route::post('stores/{store}/publish', [StorePublishController::class, 'publish'])->name('stores.publish.publish');

@@ -10,6 +10,7 @@ use Modules\WebCatalogue\Models\FingerprintRebuildLog;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Services\Resources\WebCatalogueResourceUploadService;
 use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
+use Modules\WebCatalogue\Services\Recognition\VisualMarkerService;
 use Modules\WebCatalogue\Services\Storage\WebCatalogueStorageService;
 use Modules\WebCatalogue\Support\Concerns\HandlesWebCatalogueFormData;
 
@@ -127,6 +128,19 @@ class StoreController extends Controller
             'Fingerprints rebuilt for ' . $store->name . ': '
                 . (int) ($result['processed'] ?? 0) . ' images, '
                 . (int) ($result['created'] ?? 0) . ' new fingerprints, '
+                . (int) ($result['updated'] ?? 0) . ' updated, '
+                . (int) ($result['failed'] ?? 0) . ' failed.'
+        );
+    }
+
+    public function rebuildMarkers(Store $store, VisualMarkerService $markers): RedirectResponse
+    {
+        $result = $markers->rebuildStore($store);
+
+        return back()->with(
+            'success',
+            'Visual markers rebuilt for ' . $store->name . ': '
+                . (int) ($result['processed'] ?? 0) . ' images, '
                 . (int) ($result['updated'] ?? 0) . ' updated, '
                 . (int) ($result['failed'] ?? 0) . ' failed.'
         );
