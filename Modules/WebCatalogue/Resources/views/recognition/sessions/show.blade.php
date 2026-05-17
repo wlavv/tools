@@ -122,6 +122,7 @@
                                         <span><strong>Good matches</strong> {{ (int) ($scores['marker_good_matches'] ?? 0) }} / {{ (int) ($scores['marker_matches'] ?? 0) }}</span>
                                         <span><strong>Inlier ratio</strong> {{ number_format(((float) ($scores['marker_inlier_ratio'] ?? 0)) * 100, 2) }}%</span>
                                         <span><strong>Base score</strong> {{ number_format((float) ($scores['final_score_before_markers'] ?? $match->score), 2) }}%</span>
+                                        @if(array_key_exists('marker_confidence_score', $scores))<span><strong>Marker confidence</strong> {{ number_format((float) ($scores['marker_confidence_score'] ?? 0), 2) }}%</span>@endif
                                         @if(array_key_exists('marker_hash_distance', $scores))<span><strong>Marker hash distance</strong> {{ $scores['marker_hash_distance'] ?? '-' }}</span>@endif
                                         @if(!empty($scores['candidate_sources']))<span><strong>Candidate source</strong> {{ implode(', ', (array) $scores['candidate_sources']) }}</span>@endif
                                     </div>
@@ -223,6 +224,7 @@
                                             <span><strong>Good matches</strong> {{ (int) ($forcedScores['marker_good_matches'] ?? 0) }} / {{ (int) ($forcedScores['marker_matches'] ?? 0) }}</span>
                                             <span><strong>Inlier ratio</strong> {{ number_format(((float) ($forcedScores['marker_inlier_ratio'] ?? 0)) * 100, 2) }}%</span>
                                             <span><strong>Base score</strong> {{ number_format((float) ($forcedScores['final_score_before_markers'] ?? $forcedCompare['score'] ?? 0), 2) }}%</span>
+                                            @if(array_key_exists('marker_confidence_score', $forcedScores))<span><strong>Marker confidence</strong> {{ number_format((float) ($forcedScores['marker_confidence_score'] ?? 0), 2) }}%</span>@endif
                                             @if(array_key_exists('marker_hash_distance', $forcedScores))<span><strong>Marker hash distance</strong> {{ $forcedScores['marker_hash_distance'] ?? '-' }}</span>@endif
                                             @if(!empty($forcedScores['candidate_sources']))<span><strong>Candidate source</strong> {{ implode(', ', (array) $forcedScores['candidate_sources']) }}</span>@endif
                                         </div>
@@ -327,6 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '<span><strong>Good matches</strong> ' + (scores.marker_good_matches || 0) + ' / ' + (scores.marker_matches || 0) + '</span>'
             + '<span><strong>Inlier ratio</strong> ' + pct((scores.marker_inlier_ratio || 0) * 100) + '</span>'
             + '<span><strong>Base score</strong> ' + pct(scores.final_score_before_markers || 0) + '</span>'
+            + (typeof scores.marker_confidence_score !== 'undefined' ? '<span><strong>Marker confidence</strong> ' + pct(scores.marker_confidence_score) + '</span>' : '')
             + (typeof scores.marker_hash_distance !== 'undefined' ? '<span><strong>Marker hash distance</strong> ' + (scores.marker_hash_distance ?? '-') + '</span>' : '')
             + (scores.candidate_sources ? '<span><strong>Candidate source</strong> ' + scores.candidate_sources.join(', ') + '</span>' : '')
             + '</div>';

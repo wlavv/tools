@@ -1631,11 +1631,21 @@ class InternalImageMatchService
         $minScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.min_score_for_boost', 8)));
         $boostPerGoodMatch = max(0, (float) config('webcatalogue.recognition.visual_markers.boost_per_good_match', 0.18));
         $maxBoost = max(0, (float) config('webcatalogue.recognition.visual_markers.max_boost', 8));
+        $strongMinScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.strong_min_score', 18)));
+        $strongMinGoodMatches = max(1, (int) config('webcatalogue.recognition.visual_markers.strong_min_good_matches', 35));
         $goodMatches = (int) ($best['good_matches'] ?? 0);
         $relativeBoost = $markerScore >= $minScore
             ? min($maxBoost, ($markerScore * $weight) + ($goodMatches * $boostPerGoodMatch))
             : 0.0;
-        $finalScore = min(100, $baseScore + $relativeBoost);
+        $markerConfidence = 0.0;
+        $strongMarkerApplied = false;
+
+        if ($markerScore >= $strongMinScore && $goodMatches >= $strongMinGoodMatches) {
+            $markerConfidence = min(100, ($markerScore * 1.65) + ($goodMatches * 0.38));
+            $strongMarkerApplied = true;
+        }
+
+        $finalScore = min(100, max($baseScore + $relativeBoost, $markerConfidence));
 
         $scoreSet['final_score_before_markers'] = round($baseScore, 4);
         $scoreSet['marker_score'] = round($markerScore, 4);
@@ -1644,8 +1654,12 @@ class InternalImageMatchService
         $scoreSet['marker_min_score_for_boost'] = round($minScore, 4);
         $scoreSet['marker_boost_per_good_match'] = round($boostPerGoodMatch, 4);
         $scoreSet['marker_max_boost'] = round($maxBoost, 4);
+        $scoreSet['marker_confidence_score'] = round($markerConfidence, 4);
+        $scoreSet['marker_strong_min_score'] = round($strongMinScore, 4);
+        $scoreSet['marker_strong_min_good_matches'] = $strongMinGoodMatches;
+        $scoreSet['marker_strong_applied'] = $strongMarkerApplied && $markerConfidence >= $baseScore + $relativeBoost;
         $scoreSet['marker_applied'] = $finalScore > $baseScore;
-        $scoreSet['marker_status'] = $markerScore >= $minScore ? 'scored' : 'below_min_score';
+        $scoreSet['marker_status'] = $strongMarkerApplied ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score');
         $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
         $scoreSet['marker_good_matches'] = $goodMatches;
         $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
