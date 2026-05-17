@@ -32,8 +32,8 @@
             <div class="wc-scan-actions">
                 <button type="button" class="wc-front-btn wc-front-btn-primary" id="wcStartCamera"><i class="fa-solid fa-video"></i> Open camera</button>
                 <button type="button" class="wc-front-btn" id="wcToggleTorch" disabled><i class="fa-solid fa-bolt"></i> Flash</button>
-                <button type="button" class="wc-front-btn" id="wcCaptureProduct" disabled><i class="fa-solid fa-camera"></i> Capture product</button>
-                <button type="button" class="wc-front-btn" id="wcSearchProduct" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Find product</button>
+                <button type="button" class="wc-front-btn" id="wcCaptureProduct" disabled><i class="fa-solid fa-camera"></i> Scan now</button>
+                <button type="button" class="wc-front-btn" id="wcSearchProduct" disabled hidden><i class="fa-solid fa-wand-magic-sparkles"></i> Find product</button>
             </div>
             <div class="wc-scan-focus-tools">
                 <label class="wc-scan-toggle">
@@ -127,9 +127,22 @@
     let tfDetecting = false;
     let tfStatusShown = false;
     let lastDetectionSource = 'none';
+    let scanState = 'camera_idle';
+    let stableSince = null;
+    let lastStableRect = null;
+    let processingScan = false;
+    let scanCooldownUntil = 0;
+    const autoScanEnabled = true;
+    const stableScanDelay = 900;
+    const scanCooldownMs = 4200;
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
+
+    function setScanState(state, message){
+        scanState = state;
+        if(message) setMessage(message);
+    }
 
     function updateTorchButton(){
         if(!torchBtn) return;
@@ -509,6 +522,7 @@
                 lastDetectionSource = 'estimated';
                 updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             }
+            maybeAutoScan();
         }, 260);
     }
 
@@ -516,9 +530,92 @@
         if(detectionTimer) window.clearInterval(detectionTimer);
         detectionTimer = null;
         trackedRect = null;
+        stableSince = null;
+        lastStableRect = null;
         missedDetections = 0;
         lastDetectionSource = 'none';
         updateDetectedBox(null);
+    }
+
+    function rectSimilarity(a, b){
+        if(!a || !b) return 0;
+        const ax = a.x + (a.w / 2);
+        const ay = a.y + (a.h / 2);
+        const bx = b.x + (b.w / 2);
+        const by = b.y + (b.h / 2);
+        const videoWidth = video.videoWidth || 1280;
+        const videoHeight = video.videoHeight || 720;
+        const centerShift = (Math.abs(ax - bx) / videoWidth) + (Math.abs(ay - by) / videoHeight);
+        const sizeShift = Math.abs(a.w - b.w) / videoWidth + Math.abs(a.h - b.h) / videoHeight;
+        return Math.max(0, 1 - (centerShift * 3.4) - (sizeShift * 2.2));
+    }
+
+    function rectQuality(rect){
+        if(!rect || detectedRectIsEstimated) return false;
+        const videoWidth = video.videoWidth || 1280;
+        const videoHeight = video.videoHeight || 720;
+        const areaRatio = (rect.w * rect.h) / Math.max(1, videoWidth * videoHeight);
+        const aspect = rect.h / Math.max(1, rect.w);
+        return areaRatio >= .12 && areaRatio <= .82 && aspect >= .55 && aspect <= 2.4;
+    }
+
+    function maybeAutoScan(){
+        if(!autoScanEnabled || processingScan || Date.now() < scanCooldownUntil || suggestionsBox.hidden === false || modal.hidden === false) return;
+        if(!rectQuality(trackedRect)){
+            stableSince = null;
+            lastStableRect = null;
+            if(stream && scanState !== 'camera_idle' && scanState !== 'processing') setScanState('object_waiting', 'Point the camera at the object and keep it inside the frame.');
+            return;
+        }
+
+        const similarity = rectSimilarity(trackedRect, lastStableRect);
+        if(!stableSince || similarity < .84){
+            stableSince = Date.now();
+            lastStableRect = {...trackedRect};
+            setScanState('object_detected', 'Object detected. Hold still...');
+            return;
+        }
+
+        if(Date.now() - stableSince >= stableScanDelay){
+            runAutoScan();
+        }
+    }
+
+    async function runAutoScan(){
+        if(processingScan) return;
+        processingScan = true;
+        scanCooldownUntil = Date.now() + scanCooldownMs;
+        captureBtn.disabled = true;
+        searchBtn.disabled = true;
+        clearSuggestions();
+        setScanState('processing', 'Scanning object...');
+
+        try{
+            await ensureSession(true);
+            const res = await sendCaptureFrame(1, 1);
+            const captureData = await res.json();
+            if(!captureData.ok) throw new Error(captureData.message || 'Could not capture image.');
+
+            setMessage('Searching catalogue...');
+            const matchRes = await fetch(routes.match, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken})});
+            const data = await matchRes.json();
+            if(data.result_url){ window.location.href = data.result_url; return; }
+            if(data.matched && data.product_url){ window.location.href = data.product_url; return; }
+            if(data.suggestions && data.suggestions.length){
+                setScanState('suggestions', 'We found possible matches. Select a product or scan again.');
+                renderSuggestions(data.suggestions);
+                return;
+            }
+            setScanState('no_match', 'No product found. Please submit details so we can review it.');
+            modal.hidden = false;
+        }catch(e){
+            setScanState('error', 'Scan failed: ' + e.message);
+        }finally{
+            processingScan = false;
+            captureBtn.disabled = false;
+            stableSince = null;
+            lastStableRect = null;
+        }
     }
 
     function cropCanvasToRect(sourceCanvas, rect, paddingRatio = .08){
@@ -723,8 +820,8 @@
         if(missingBtn){ missingBtn.addEventListener('click', () => { modal.hidden = false; }); }
     }
 
-    async function ensureSession(){
-        if(sessionToken) return sessionToken;
+    async function ensureSession(forceNew = false){
+        if(sessionToken && !forceNew) return sessionToken;
         const res = await fetch(routes.session, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({device_type:navigator.userAgent})});
         const data = await res.json();
         sessionToken = data.session_token;
@@ -734,7 +831,6 @@
 
     startBtn.addEventListener('click', async () => {
         try{
-            await ensureSession();
             stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
             video.srcObject = stream;
             placeholder.style.display = 'none';
@@ -745,7 +841,7 @@
             video.addEventListener('loadedmetadata', () => {
                 updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             }, {once:true});
-            setMessage('Camera ready. Center the product, keep a neutral background and avoid shadows before capturing.');
+            setScanState('object_waiting', 'Camera ready. Point at an object and hold still to scan automatically.');
         }catch(e){ setMessage('Could not open camera: ' + e.message); }
     });
 
@@ -756,44 +852,11 @@
     }
 
     captureBtn.addEventListener('click', async () => {
-        await ensureSession();
-        captureBtn.disabled = true;
-        searchBtn.disabled = true;
-        clearSuggestions();
-        const frameCount = 3;
-        let stored = 0;
-
-        for(let i = 1; i <= frameCount; i++){
-            setMessage('Capturing frame ' + i + ' of ' + frameCount + '...');
-            const res = await sendCaptureFrame(i, frameCount);
-            const data = await res.json();
-            if(data.ok) stored++;
-            if(i < frameCount) await wait(180);
-        }
-
-        captureBtn.disabled = false;
-        if(stored > 0){
-            searchBtn.disabled = false;
-            setMessage(stored + ' frames captured. The matcher will use the best frame.');
-        }else{
-            setMessage('Could not capture image.');
-        }
+        await runAutoScan();
     });
 
     searchBtn.addEventListener('click', async () => {
-        setMessage('Searching catalogue...');
-        const res = await fetch(routes.match, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken})});
-        const data = await res.json();
-        if(data.result_url){ window.location.href = data.result_url; return; }
-        if(data.matched && data.product_url){ window.location.href = data.product_url; return; }
-        if(data.suggestions && data.suggestions.length){
-            setMessage('We found possible matches. Select a product or tell us this is not listed yet.');
-            renderSuggestions(data.suggestions);
-            return;
-        }
-        clearSuggestions();
-        setMessage('No product found. Please submit details so we can review it.');
-        modal.hidden = false;
+        await runAutoScan();
     });
 
     closeBtn.addEventListener('click', () => modal.hidden = true);
@@ -806,6 +869,16 @@
         const data = await res.json();
         if(data.ok){ window.location.href = routes.resultBase + '/' + sessionToken; }
         else{ setMessage(data.message || 'Could not submit request.'); }
+    });
+
+    document.addEventListener('click', (event) => {
+        if(event.target?.id === 'wcOpenMissingFromSuggestions') return;
+        if(event.target?.closest?.('.wc-scan-suggestion-card')) return;
+        if(suggestionsBox.hidden === false && stream && !processingScan){
+            clearSuggestions();
+            scanCooldownUntil = Date.now() + 1200;
+            setScanState('object_waiting', 'Point at another object and hold still to scan again.');
+        }
     });
 })();
 </script>

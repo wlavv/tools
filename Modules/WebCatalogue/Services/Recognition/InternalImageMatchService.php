@@ -1637,15 +1637,10 @@ class InternalImageMatchService
         $relativeBoost = $markerScore >= $minScore
             ? min($maxBoost, ($markerScore * $weight) + ($goodMatches * $boostPerGoodMatch))
             : 0.0;
-        $markerConfidence = 0.0;
-        $strongMarkerApplied = false;
-
-        if ($markerScore >= $strongMinScore && $goodMatches >= $strongMinGoodMatches) {
-            $markerConfidence = min(100, ($markerScore * 1.65) + ($goodMatches * 0.38));
-            $strongMarkerApplied = true;
-        }
-
-        $finalScore = min(100, max($baseScore + $relativeBoost, $markerConfidence));
+        $markerConfidence = min(100, ($markerScore * 1.65) + ($goodMatches * 0.38));
+        $strongMarkerQualified = $markerScore >= $strongMinScore && $goodMatches >= $strongMinGoodMatches;
+        $strongMarkerScore = $strongMarkerQualified ? $markerConfidence : 0.0;
+        $finalScore = min(100, max($baseScore + $relativeBoost, $strongMarkerScore));
 
         $scoreSet['final_score_before_markers'] = round($baseScore, 4);
         $scoreSet['marker_score'] = round($markerScore, 4);
@@ -1657,9 +1652,10 @@ class InternalImageMatchService
         $scoreSet['marker_confidence_score'] = round($markerConfidence, 4);
         $scoreSet['marker_strong_min_score'] = round($strongMinScore, 4);
         $scoreSet['marker_strong_min_good_matches'] = $strongMinGoodMatches;
-        $scoreSet['marker_strong_applied'] = $strongMarkerApplied && $markerConfidence >= $baseScore + $relativeBoost;
+        $scoreSet['marker_strong_qualified'] = $strongMarkerQualified;
+        $scoreSet['marker_strong_applied'] = $strongMarkerQualified && $markerConfidence >= $baseScore + $relativeBoost;
         $scoreSet['marker_applied'] = $finalScore > $baseScore;
-        $scoreSet['marker_status'] = $strongMarkerApplied ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score');
+        $scoreSet['marker_status'] = $strongMarkerQualified ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score');
         $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
         $scoreSet['marker_good_matches'] = $goodMatches;
         $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
