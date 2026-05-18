@@ -178,12 +178,13 @@ class RecognitionCandidateService
         }
 
         asort($markerCandidates);
-        $markerCandidates = array_slice(
-            $markerCandidates,
-            0,
-            (int) config('webcatalogue.recognition.visual_markers.candidate_pool', 60),
-            true
-        );
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
+        $candidatePool = (int) config('webcatalogue.recognition.visual_markers.candidate_pool', 60);
+        if ($candidatePool > 0) {
+            $markerCandidates = array_slice($markerCandidates, 0, $candidatePool, true);
+        } elseif (!$markerOnly) {
+            $markerCandidates = [];
+        }
 
         if (empty($markerCandidates)) {
             return $preselected;
@@ -203,7 +204,6 @@ class RecognitionCandidateService
             ->get()
             ->keyBy('id');
         $missingFingerprints = $this->existingFingerprintsForResources($missingResources->all());
-        $markerOnly = $this->markerScoringMode() === 'markers_only';
 
         foreach ($markerCandidates as $resourceId => $distance) {
             if (isset($byResource[$resourceId])) {
