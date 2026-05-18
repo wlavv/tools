@@ -17,8 +17,27 @@ class InpostTrackingClient extends AbstractHttpCarrierClient
         $response = $this->http($credentials)
             ->withHeaders(array_filter([
                 'Authorization' => $credentials->apiKey ? 'Bearer ' . $credentials->apiKey : null,
+                'Accept-Language' => $credentials->setting('language', $request->language),
+                'X-Country-Code' => $credentials->setting('country', $request->destinationCountry),
             ]))
             ->get($this->endpoint($credentials, 'v1/tracking/' . rawurlencode($request->trackingNumber)));
+
+        if ($response->status() === 404) {
+            $payload = $response->json() ?? ['raw_body' => $response->body()];
+
+            return new CarrierTrackingResponse(
+                status: 'unknown',
+                substatus: 'not_found',
+                events: [[
+                    'carrier_event_id' => $this->eventId('inpost', $request->trackingNumber, now()->toDateTimeString(), 'not_found'),
+                    'raw_status' => 'not_found',
+                    'description' => data_get($payload, 'message', 'Tracking information not found.'),
+                    'event_at' => now(),
+                    'raw_payload' => $payload,
+                ]],
+                raw: $payload,
+            );
+        }
 
         $response->throw();
         $payload = $response->json() ?? [];

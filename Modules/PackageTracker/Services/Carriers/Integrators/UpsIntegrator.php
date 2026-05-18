@@ -39,7 +39,11 @@ class UpsIntegrator extends AbstractCarrierIntegrator
 
     public function credentialSchema(): array
     {
-        return [['key' => 'client_id', 'label' => 'Client Id', 'type' => 'password', 'required' => true], ['key' => 'client_secret', 'label' => 'Client Secret', 'type' => 'password', 'required' => true], ['key' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => true]];
+        return [
+            ['key' => 'client_id', 'label' => 'Client Id', 'type' => 'password', 'required' => true],
+            ['key' => 'client_secret', 'label' => 'Client Secret', 'type' => 'password', 'required' => true],
+            ['key' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => false],
+        ];
     }
 
     public function trackingNumberHints(): array

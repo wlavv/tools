@@ -47,6 +47,8 @@ class Shipment extends Model
             if ($shipment->public_tracking_enabled === null) {
                 $shipment->public_tracking_enabled = true;
             }
+
+            $shipment->destination_country = strtoupper((string) ($shipment->destination_country ?: config('package_tracker.default_destination_country', 'PT')));
         });
     }
 

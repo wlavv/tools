@@ -2,6 +2,7 @@
 
 namespace Modules\PackageTracker\Services\Carriers\Drivers;
 
+use InvalidArgumentException;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Models\Shipment;
 use Modules\PackageTracker\Services\Carriers\CarrierTrackingResponse;
@@ -14,6 +15,10 @@ class NacexTrackingClient extends AbstractHttpCarrierClient
 {
     protected function track(CarrierCredentials $credentials, TrackingRequest $request, Carrier $carrier, Shipment $shipment): CarrierTrackingResponse
     {
+        if (! $credentials->baseUrl) {
+            throw new InvalidArgumentException('NACEX API base URL missing. Configure api_base_url on the NACEX carrier or PACKAGE_TRACKER_NACEX_BASE_URL.');
+        }
+
         $path = $credentials->setting('tracking_path', 'ws');
         $params = array_filter([
             'method' => $credentials->setting('method_name', 'getEstadoEnvio'),

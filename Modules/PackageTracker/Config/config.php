@@ -9,6 +9,7 @@ return [
     'layout' => env('PACKAGE_TRACKER_LAYOUT', 'layouts.app'),
 
     'queue' => env('PACKAGE_TRACKER_QUEUE', 'default'),
+    'default_destination_country' => env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT'),
 
     'public' => [
         'enabled' => env('PACKAGE_TRACKER_PUBLIC_ENABLED', true),
@@ -129,6 +130,10 @@ return [
             'driver' => Modules\PackageTracker\Services\Carriers\Drivers\InpostTrackingClient::class,
             'base_url' => env('PACKAGE_TRACKER_INPOST_BASE_URL', 'https://api-shipx-pl.easypack24.net'),
             'api_key' => env('PACKAGE_TRACKER_INPOST_TOKEN'),
+            'settings' => [
+                'country' => env('PACKAGE_TRACKER_INPOST_COUNTRY', env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT')),
+                'language' => env('PACKAGE_TRACKER_INPOST_LANGUAGE', env('APP_LOCALE', 'pt')),
+            ],
         ],
         'mondial_relay' => [
             'label' => 'Mondial Relay',
@@ -137,7 +142,8 @@ return [
             'api_key' => env('PACKAGE_TRACKER_MONDIAL_RELAY_ENSEIGNE'),
             'api_secret' => env('PACKAGE_TRACKER_MONDIAL_RELAY_PRIVATE_KEY'),
             'settings' => [
-                'language' => env('PACKAGE_TRACKER_MONDIAL_RELAY_LANGUAGE', 'FR'),
+                'country' => env('PACKAGE_TRACKER_MONDIAL_RELAY_COUNTRY', env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT')),
+                'language' => env('PACKAGE_TRACKER_MONDIAL_RELAY_LANGUAGE', 'PT'),
             ],
         ],
     ],

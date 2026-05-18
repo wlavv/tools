@@ -2,6 +2,7 @@
 
 namespace Modules\PackageTracker\Services\Carriers\Drivers;
 
+use InvalidArgumentException;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Models\Shipment;
 use Modules\PackageTracker\Services\Carriers\CarrierTrackingResponse;
@@ -14,6 +15,10 @@ class DpdTrackingClient extends AbstractHttpCarrierClient
 {
     protected function track(CarrierCredentials $credentials, TrackingRequest $request, Carrier $carrier, Shipment $shipment): CarrierTrackingResponse
     {
+        if (! $credentials->baseUrl) {
+            throw new InvalidArgumentException('DPD API base URL missing. Configure api_base_url on the DPD carrier or PACKAGE_TRACKER_DPD_BASE_URL.');
+        }
+
         $path = $credentials->setting('tracking_path', 'tracking');
         $method = strtoupper((string) $credentials->setting('method', 'GET'));
         $trackingParam = $credentials->setting('tracking_param', 'trackingNumber');

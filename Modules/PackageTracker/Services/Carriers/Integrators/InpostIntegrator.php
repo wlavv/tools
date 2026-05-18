@@ -34,7 +34,10 @@ class InpostIntegrator extends AbstractCarrierIntegrator
 
     public function defaultSettings(): array
     {
-        return [];
+        return [
+            'country' => env('PACKAGE_TRACKER_INPOST_COUNTRY', env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT')),
+            'language' => env('PACKAGE_TRACKER_INPOST_LANGUAGE', env('APP_LOCALE', 'pt')),
+        ];
     }
 
     public function credentialSchema(): array

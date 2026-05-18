@@ -2,6 +2,8 @@
 
 namespace Modules\PackageTracker\Services\Carriers\Drivers;
 
+use Illuminate\Support\Facades\Cache;
+use InvalidArgumentException;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Models\Shipment;
 use Modules\PackageTracker\Services\Carriers\CarrierTrackingResponse;
@@ -62,20 +64,31 @@ class UpsTrackingClient extends AbstractHttpCarrierClient
 
     private function resolveAccessToken(CarrierCredentials $credentials): string
     {
+        if ($credentials->apiKey && $credentials->apiSecret) {
+            $cacheKey = 'package_tracker:ups:access_token:' . sha1($credentials->apiKey . '|' . $credentials->baseUrl);
+
+            return Cache::remember($cacheKey, now()->addMinutes(50), function () use ($credentials) {
+                $response = $this->http($credentials)
+                    ->asForm()
+                    ->withBasicAuth($credentials->apiKey, $credentials->apiSecret)
+                    ->post($this->endpoint($credentials, 'security/v1/oauth/token'), ['grant_type' => 'client_credentials']);
+
+                $response->throw();
+
+                $token = (string) data_get($response->json(), 'access_token');
+
+                if ($token === '') {
+                    throw new InvalidArgumentException('UPS OAuth response did not include an access token.');
+                }
+
+                return $token;
+            });
+        }
+
         if ($token = $credentials->setting('access_token')) {
             return $token;
         }
 
-        if (!$credentials->apiKey || !$credentials->apiSecret) {
-            return '';
-        }
-
-        $response = $this->http($credentials)
-            ->asForm()
-            ->withBasicAuth($credentials->apiKey, $credentials->apiSecret)
-            ->post($this->endpoint($credentials, 'security/v1/oauth/token'), ['grant_type' => 'client_credentials']);
-
-        $response->throw();
-        return (string) data_get($response->json(), 'access_token');
+        throw new InvalidArgumentException('UPS credentials missing. Configure client_id/client_secret or a valid access_token.');
     }
 }

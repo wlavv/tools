@@ -34,7 +34,10 @@ class MondialRelayIntegrator extends AbstractCarrierIntegrator
 
     public function defaultSettings(): array
     {
-        return ['language' => env('PACKAGE_TRACKER_MONDIAL_RELAY_LANGUAGE', 'FR')];
+        return [
+            'country' => env('PACKAGE_TRACKER_MONDIAL_RELAY_COUNTRY', env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT')),
+            'language' => env('PACKAGE_TRACKER_MONDIAL_RELAY_LANGUAGE', 'PT'),
+        ];
     }
 
     public function credentialSchema(): array

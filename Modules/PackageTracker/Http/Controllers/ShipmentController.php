@@ -58,6 +58,8 @@ class ShipmentController extends Controller
             'sla_due_at' => ['nullable', 'date'],
         ]);
 
+        $data['destination_country'] = strtoupper((string) ($data['destination_country'] ?? config('package_tracker.default_destination_country', 'PT')));
+
         Shipment::create($data + ['status' => 'pending']);
 
         return redirect()->route('package_tracker.shipments.index')->with('success', 'Shipment created successfully.');

@@ -24,10 +24,10 @@ class TrackingRequest
         return new self(
             trackingNumber: $shipment->tracking_number,
             carrierCode: $carrier->code,
-            destinationCountry: $shipment->destination_country,
+            destinationCountry: strtoupper((string) ($shipment->destination_country ?: config('package_tracker.default_destination_country', 'PT'))),
             postalCode: $metadata['destination_postal_code'] ?? $metadata['postal_code'] ?? null,
             orderReference: $shipment->order_reference,
-            language: $metadata['language'] ?? config('app.locale'),
+            language: $metadata['language'] ?? strtolower((string) config('app.locale', 'pt')),
             metadata: $metadata,
         );
     }
