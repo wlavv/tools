@@ -13,5 +13,11 @@ return [
             'create' => 'New carrier',
             'edit' => 'Edit carrier',
         ],
+        'clients' => [
+            'index' => 'Clients',
+            'create' => 'New client account',
+            'show' => 'Client account',
+            'edit' => 'Edit client account',
+        ],
     ],
 ];

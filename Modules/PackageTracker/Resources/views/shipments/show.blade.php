@@ -2,6 +2,7 @@
 @section('content')
 @php($publicUrl = $shipment->publicUrl())
 @include('package-tracker::partials.flash')
+@include('package-tracker::partials.module-nav')
 
 <div class="row g-4">
     <div class="col-lg-4">
@@ -10,6 +11,7 @@
             <div class="card-body">
                 <dl class="row mb-0">
                     <dt class="col-5">Carrier</dt><dd class="col-7">{{ $shipment->carrier?->name }}</dd>
+                    <dt class="col-5">Client</dt><dd class="col-7">{{ $shipment->client?->name ?: '-' }}</dd>
                     <dt class="col-5">Status</dt><dd class="col-7"><span class="{{ $shipment->statusEnum()->badgeClass() }}">{{ $shipment->statusEnum()->label() }}</span></dd>
                     <dt class="col-5">Order</dt><dd class="col-7">{{ $shipment->order_reference ?: '-' }}</dd>
                     <dt class="col-5">Store</dt><dd class="col-7">{{ $shipment->store_code ?: '-' }}</dd>

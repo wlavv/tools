@@ -16,7 +16,7 @@ class Shipment extends Model
     protected $table = 'package_tracker_shipments';
 
     protected $fillable = [
-        'carrier_id', 'tracking_number', 'public_token', 'public_tracking_enabled',
+        'carrier_id', 'client_key', 'tracking_number', 'public_token', 'public_tracking_enabled',
         'external_reference', 'store_code', 'order_reference', 'customer_email',
         'destination_country', 'status', 'substatus', 'last_location',
         'estimated_delivery_at', 'delivered_at', 'last_event_at', 'last_polled_at', 'next_poll_at',
@@ -53,6 +53,11 @@ class Shipment extends Model
     public function carrier(): BelongsTo
     {
         return $this->belongsTo(Carrier::class, 'carrier_id');
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(PackageTrackerClient::class, 'client_key', 'client_key');
     }
 
     public function events(): HasMany

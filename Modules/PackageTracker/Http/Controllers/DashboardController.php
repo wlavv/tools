@@ -4,6 +4,7 @@ namespace Modules\PackageTracker\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Modules\PackageTracker\Models\Carrier;
+use Modules\PackageTracker\Models\PackageTrackerClient;
 use Modules\PackageTracker\Models\Shipment;
 
 class DashboardController extends Controller
@@ -17,6 +18,7 @@ class DashboardController extends Controller
             'exceptions' => Shipment::where('has_exception', true)->count(),
             'stale' => Shipment::where('is_stale', true)->count(),
             'carriers' => Carrier::where('is_active', true)->count(),
+            'clients' => PackageTrackerClient::where('is_active', true)->count(),
         ];
 
         $byStatus = Shipment::query()

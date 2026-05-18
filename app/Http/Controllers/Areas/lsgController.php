@@ -23,6 +23,7 @@ class lsgController extends Controller
         $this->addRouteAccess('catalog-manager.dashboard', 'Catalog Manager', 'fa-solid fa-boxes-stacked');
         $this->addRouteAccess('package_tracker.dashboard', 'Package Tracker', 'fa-solid fa-truck-fast');
         $this->addRouteAccess('package_tracker.shipments.index', 'Trackings', 'fa-solid fa-boxes-packing');
+        $this->addRouteAccess('package_tracker.clients.index', 'Clientes tracking', 'fa-solid fa-users');
 
         $sites = CatalogTable::exists('catalog_stores')
             ? DB::table('catalog_stores')

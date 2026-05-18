@@ -13,5 +13,11 @@ return [
             'create' => 'Nova transportadora',
             'edit' => 'Editar transportadora',
         ],
+        'clients' => [
+            'index' => 'Clientes',
+            'create' => 'Nova conta cliente',
+            'show' => 'Conta cliente',
+            'edit' => 'Editar conta cliente',
+        ],
     ],
 ];

@@ -2,6 +2,7 @@
 
 @section('content')
 @include('package-tracker::partials.flash')
+@include('package-tracker::partials.module-nav')
 
 <div class="row g-3 mb-4">
     @foreach([
@@ -11,8 +12,9 @@
         ['Exceptions', $stats['exceptions'], 'fa-triangle-exclamation'],
         ['Stale', $stats['stale'], 'fa-clock'],
         ['Carriers', $stats['carriers'], 'fa-network-wired'],
+        ['Clients', $stats['clients'], 'fa-users'],
     ] as [$label, $value, $icon])
-        <div class="col-6 col-md-4 col-xl-2">
+        <div class="col-6 col-md-4 col-xl">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between">
@@ -48,7 +50,7 @@
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <strong>Recent Shipments</strong>
-                <a href="{{ route('package_tracker.shipments.index') }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye me-1"></i>Show all</a>
+                <a href="{{ route('package_tracker.shipments.index') }}" class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact"><i class="fa-solid fa-eye"></i><span>Show all</span></a>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -59,7 +61,7 @@
                             <td>{{ $shipment->tracking_number }}<br><small class="text-muted">{{ $shipment->order_reference }}</small></td>
                             <td>{{ $shipment->carrier?->name }}</td>
                             <td><span class="{{ $shipment->statusEnum()->badgeClass() }}">{{ $shipment->statusEnum()->label() }}</span></td>
-                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('package_tracker.shipments.show', $shipment) }}"><i class="fa-solid fa-eye"></i></a></td>
+                            <td class="text-end"><a class="lsg-action-btn lsg-action-btn--primary lsg-action-btn--compact" href="{{ route('package_tracker.shipments.show', $shipment) }}"><i class="fa-solid fa-eye"></i></a></td>
                         </tr>
                     @empty
                         <tr><td colspan="4" class="text-muted">No shipments found.</td></tr>

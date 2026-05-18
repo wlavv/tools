@@ -1,6 +1,7 @@
 @extends(config('package_tracker.layout'))
 @section('content')
 @include('package-tracker::partials.flash')
+@include('package-tracker::partials.module-nav')
 
 <div class="card shadow-sm border-0">
     <div class="table-responsive">

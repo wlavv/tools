@@ -5,6 +5,7 @@ namespace Modules\PackageTracker\Http\Controllers;
 use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
+use Modules\PackageTracker\Models\PackageTrackerClient;
 use Modules\PackageTracker\Models\Shipment;
 
 class PublicTrackingController extends Controller
@@ -27,12 +28,43 @@ class PublicTrackingController extends Controller
         ]);
     }
 
+    public function client(string $token): View
+    {
+        $client = PackageTrackerClient::query()
+            ->where('public_token', $token)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $client->forceFill(['last_viewed_at' => now()])->saveQuietly();
+
+        $shipments = Shipment::query()
+            ->with(['carrier', 'events'])
+            ->where('client_key', $client->client_key)
+            ->where('public_tracking_enabled', true)
+            ->latest()
+            ->paginate(20);
+
+        return view('package-tracker::public.client', [
+            'client' => $client,
+            'shipments' => $shipments,
+            'theme' => $this->themeFrom($client->theme ?? []),
+        ]);
+    }
+
     private function themeFor(Shipment $shipment): array
     {
-        $theme = array_merge(
-            config('package_tracker.public.theme', []),
-            Arr::get($shipment->metadata ?? [], 'public_theme', [])
-        );
+        $theme = array_merge(config('package_tracker.public.theme', []), Arr::get($shipment->metadata ?? [], 'public_theme', []));
+
+        if ($shipment->client?->theme) {
+            $theme = array_merge($theme, $shipment->client->theme);
+        }
+
+        return $this->themeFrom($theme);
+    }
+
+    private function themeFrom(array $theme): array
+    {
+        $theme = array_merge(config('package_tracker.public.theme', []), $theme);
 
         return [
             'brand_name' => $this->safeText($theme['brand_name'] ?? 'Package Tracker', 'Package Tracker'),

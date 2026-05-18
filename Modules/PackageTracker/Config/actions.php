@@ -21,6 +21,13 @@ return [
                 'icon' => 'fa-solid fa-truck',
                 'class' => 'lsg-action-btn lsg-action-btn--primary',
             ],
+            'clients' => [
+                'label' => 'Clients',
+                'name' => 'Clients',
+                'route' => 'package_tracker.clients.index',
+                'icon' => 'fa-solid fa-users',
+                'class' => 'lsg-action-btn lsg-action-btn--primary',
+            ],
         ],
         'package_tracker.shipments.index' => [
             'new' => [
@@ -64,6 +71,30 @@ return [
         'package_tracker.carriers.edit' => [
             'back' => 'package_tracker.carriers.index',
             'save' => true,
+            'delete' => false,
+        ],
+        'package_tracker.clients.index' => [
+            'new' => [
+                'label' => 'New client',
+                'name' => 'New client',
+                'route' => 'package_tracker.clients.create',
+                'icon' => 'fa-solid fa-plus',
+                'class' => 'lsg-action-btn lsg-action-btn--success',
+            ],
+        ],
+        'package_tracker.clients.create' => [
+            'back' => 'package_tracker.clients.index',
+            'save' => true,
+        ],
+        'package_tracker.clients.show' => [
+            'back' => 'package_tracker.clients.index',
+            'edit' => 'package_tracker.clients.edit',
+            'delete' => false,
+        ],
+        'package_tracker.clients.edit' => [
+            'back' => 'package_tracker.clients.index',
+            'save' => true,
+            'show' => 'package_tracker.clients.show',
             'delete' => false,
         ],
     ],

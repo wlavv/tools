@@ -1,11 +1,20 @@
 @extends(config('package_tracker.layout'))
 @section('content')
 @include('package-tracker::partials.flash')
+@include('package-tracker::partials.module-nav')
 
 <div class="card shadow-sm border-0 mb-3">
     <div class="card-body">
         <form class="row g-2">
-            <div class="col-md-5"><input name="q" value="{{ request('q') }}" class="form-control" placeholder="Search tracking, order, customer..."></div>
+            <div class="col-md-4"><input name="q" value="{{ request('q') }}" class="form-control" placeholder="Search tracking, order, customer..."></div>
+            <div class="col-md-3">
+                <select name="client_key" class="form-select">
+                    <option value="">All clients</option>
+                    @foreach($clients as $client)
+                        <option value="{{ $client->client_key }}" @selected(request('client_key') === $client->client_key)>{{ $client->name }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-3"><input name="status" value="{{ request('status') }}" class="form-control" placeholder="Status"></div>
             <div class="col-md-2"><button class="btn btn-outline-primary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i>Filter</button></div>
         </form>
@@ -20,7 +29,7 @@
             @foreach($shipments as $shipment)
                 <tr>
                     <td><strong>{{ $shipment->tracking_number }}</strong><br><small class="text-muted">{{ $shipment->external_reference }}</small></td>
-                    <td>{{ $shipment->carrier?->name }}</td>
+                    <td>{{ $shipment->carrier?->name }}<br><small class="text-muted">{{ $shipment->client?->name }}</small></td>
                     <td>{{ $shipment->order_reference ?: '-' }}</td>
                     <td><span class="{{ $shipment->statusEnum()->badgeClass() }}">{{ $shipment->statusEnum()->label() }}</span></td>
                     <td>{{ optional($shipment->last_event_at)->format('Y-m-d H:i') ?: '-' }}</td>

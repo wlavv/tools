@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\PackageTracker\Jobs\SyncShipmentTrackingJob;
 use Modules\PackageTracker\Models\Carrier;
+use Modules\PackageTracker\Models\PackageTrackerClient;
 use Modules\PackageTracker\Models\Shipment;
 
 class ShipmentController extends Controller
@@ -13,7 +14,8 @@ class ShipmentController extends Controller
     public function index(Request $request)
     {
         $shipments = Shipment::query()
-            ->with('carrier')
+            ->with(['carrier', 'client'])
+            ->when($request->filled('client_key'), fn ($q) => $q->where('client_key', $request->string('client_key')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . $request->string('q') . '%';
@@ -28,19 +30,24 @@ class ShipmentController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return $this->view('package-tracker::shipments.index', compact('shipments'));
+        $clients = PackageTrackerClient::query()->where('is_active', true)->orderBy('name')->get();
+
+        return $this->view('package-tracker::shipments.index', compact('shipments', 'clients'));
     }
 
     public function create()
     {
         $carriers = Carrier::where('is_active', true)->orderBy('name')->get();
-        return $this->view('package-tracker::shipments.create', compact('carriers'));
+        $clients = PackageTrackerClient::query()->where('is_active', true)->orderBy('name')->get();
+
+        return $this->view('package-tracker::shipments.create', compact('carriers', 'clients'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'carrier_id' => ['required', 'exists:package_tracker_carriers,id'],
+            'client_key' => ['nullable', 'exists:package_tracker_clients,client_key'],
             'tracking_number' => ['required', 'string', 'max:120'],
             'order_reference' => ['nullable', 'string', 'max:120'],
             'external_reference' => ['nullable', 'string', 'max:120'],
