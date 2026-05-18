@@ -3,6 +3,7 @@
 namespace Modules\WebCatalogue\Services\Recognition;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\ResourceFingerprint;
@@ -103,12 +104,19 @@ class InternalImageMatchService
         }
 
         if (empty($captureProfiles)) {
+            $profileFailures = $this->captureProfileFailures($captures);
             $session->update([
                 'status' => 'match_failed',
                 'metadata' => array_merge($session->metadata ?: [], [
                     'match_error' => 'Could not create image profile for captured images.',
                     'recognition_algorithm' => $this->algorithmName(),
+                    'capture_profile_failures' => $profileFailures,
                 ]),
+            ]);
+
+            Log::warning('WebCatalogue recognition could not create capture profiles.', [
+                'session_id' => $session->id,
+                'capture_profile_failures' => $profileFailures,
             ]);
 
             return $this->emptyResult('Could not process captured images.');
@@ -512,6 +520,58 @@ class InternalImageMatchService
             'debug_matches' => [],
             'message' => $message,
         ];
+    }
+
+    private function captureProfileFailures($captures): array
+    {
+        return $captures->map(function (VisualRecognitionCapture $capture): array {
+            $path = $capture->file_path;
+            $metadata = $capture->metadata ?: [];
+            $normalizedPath = $metadata['opencv_analysis']['normalized_path'] ?? null;
+            $diagnosticPath = $normalizedPath ?: $path;
+
+            return [
+                'capture_id' => $capture->id,
+                'file_path' => $path,
+                'normalized_path' => $normalizedPath,
+                'diagnostic_path' => $diagnosticPath,
+                'gd_loaded' => extension_loaded('gd'),
+                'file_exists' => $path ? Storage::disk('public')->exists($path) : false,
+                'normalized_exists' => $normalizedPath ? Storage::disk('public')->exists($normalizedPath) : null,
+                'reason' => $this->captureProfileFailureReason($diagnosticPath),
+            ];
+        })->values()->all();
+    }
+
+    private function captureProfileFailureReason(?string $path): string
+    {
+        if (!extension_loaded('gd')) {
+            return 'gd_extension_missing';
+        }
+
+        if (!$path) {
+            return 'capture_path_missing';
+        }
+
+        if (!Storage::disk('public')->exists($path)) {
+            return 'capture_file_missing';
+        }
+
+        $binary = Storage::disk('public')->get($path);
+        $image = @imagecreatefromstring($binary);
+        if (!$image) {
+            return 'image_decode_failed';
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        imagedestroy($image);
+
+        if ($width < 8 || $height < 8) {
+            return 'image_too_small';
+        }
+
+        return 'profile_variants_empty';
     }
 
     private function matchByDetectedIdentifiers(VisualRecognitionSession $session, $captures, ?Store $store): ?array

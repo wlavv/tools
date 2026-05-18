@@ -21,7 +21,18 @@ class RecognitionCandidateService
         )));
         $captureShortPrefixes = $this->shortHashPrefixes($captureShortHashes);
         $captureAspectBuckets = $this->aspectBucketsFromProfiles($captureProfiles);
+        $retrievalSource = 'resource_fingerprints_bucketed';
         $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById, $captureShortPrefixes, $captureAspectBuckets);
+
+        if ($fingerprintsByResource->isEmpty() && (!empty($captureShortPrefixes) || !empty($captureAspectBuckets))) {
+            $retrievalSource = 'resource_fingerprints_aspect_fallback';
+            $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById, [], $captureAspectBuckets);
+        }
+
+        if ($fingerprintsByResource->isEmpty()) {
+            $retrievalSource = 'resource_fingerprints_full_fallback';
+            $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById);
+        }
 
         foreach ($fingerprintsByResource as $resourceId => $fingerprint) {
             $resource = $resourcesById[(int) $resourceId] ?? null;
@@ -63,7 +74,7 @@ class RecognitionCandidateService
                 'short_hash_top_candidates' => $shortHashLimit,
                 'marker_candidate_top' => $markerCandidateTop,
                 'build_missing_fingerprints_during_match' => false,
-                'retrieval_source' => 'resource_fingerprints_bucketed',
+                'retrieval_source' => $retrievalSource,
                 'short_hash_prefixes' => $captureShortPrefixes,
                 'aspect_ratio_buckets' => $captureAspectBuckets,
             ],

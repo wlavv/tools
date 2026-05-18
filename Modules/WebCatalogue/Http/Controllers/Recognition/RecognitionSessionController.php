@@ -31,7 +31,7 @@ class RecognitionSessionController extends Controller
         $groups = [
             'review' => [
                 'label' => 'To review',
-                'statuses' => ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'match_failed'],
+                'statuses' => ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'capture_failed', 'capture_received', 'matching', 'match_failed'],
             ],
             'suggestions_found' => [
                 'label' => 'Suggestions',
@@ -39,7 +39,7 @@ class RecognitionSessionController extends Controller
             ],
             'started' => [
                 'label' => 'Started',
-                'statuses' => ['started'],
+                'statuses' => ['started', 'capture_received', 'matching'],
             ],
             'manual_matched' => [
                 'label' => 'Manual matched',

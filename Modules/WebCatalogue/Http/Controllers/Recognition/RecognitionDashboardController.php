@@ -23,7 +23,7 @@ class RecognitionDashboardController extends Controller
 
     public function index(): View
     {
-        $reviewStatuses = ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'match_failed', 'started'];
+        $reviewStatuses = ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'capture_failed', 'capture_received', 'matching', 'match_failed', 'started'];
         $totalSessions = VisualRecognitionSession::count();
         $matchedSessions = VisualRecognitionSession::whereIn('status', ['matched', 'manual_matched'])->count();
         $actionNeededSessions = VisualRecognitionSession::whereIn('status', $reviewStatuses)->count();

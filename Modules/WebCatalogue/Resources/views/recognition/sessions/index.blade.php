@@ -43,6 +43,14 @@
                         <span class="wc-rich-metric"><i class="fa-solid fa-box"></i>{{ $item->product->name ?? 'No product match' }}</span>
                         <span class="wc-rich-metric"><i class="fa-solid fa-clock"></i>{{ $item->created_at?->format('Y-m-d H:i') }}</span>
                     </div>
+                    @if(!empty($item->metadata['match_error']) || !empty($item->metadata['capture_error']))
+                        <p class="wc-muted">
+                            {{ $item->metadata['match_error'] ?? $item->metadata['capture_error'] }}
+                            @if(!empty($item->metadata['capture_profile_failures'][0]['reason']))
+                                - {{ str_replace('_', ' ', $item->metadata['capture_profile_failures'][0]['reason']) }}
+                            @endif
+                        </p>
+                    @endif
 
                     @if($suggestions->isNotEmpty())
                         <div class="wc-session-match-list">

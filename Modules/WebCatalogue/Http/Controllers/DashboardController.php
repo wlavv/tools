@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
         $readyProductsCount = $products->filter(fn (Product $product) => $product->readinessScore() >= 100)->count();
         $needsWorkProductsCount = $products->count() - $readyProductsCount;
-        $reviewStatuses = ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'match_failed'];
+        $reviewStatuses = ['suggestions_found', 'no_match', 'unmatched_lead_created', 'capture_missing', 'capture_failed', 'capture_received', 'matching', 'match_failed'];
         $activePublicLinksCount = PublicLink::query()->where('status', 'active')->usable()->count();
         $candidateImagesCount = Resource::query()
             ->whereNotNull('id_product')

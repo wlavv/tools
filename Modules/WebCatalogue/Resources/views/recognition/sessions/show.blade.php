@@ -105,6 +105,26 @@
 
         <div class="wc-card wc-spaced-card">
             <div class="wc-section-head"><div><h3>Recognition matches</h3><p class="wc-muted">Internal matching suggestions generated from captured product images.</p></div></div>
+            @if(!empty($item->metadata['match_error']) || !empty($item->metadata['capture_error']))
+                <div class="wc-alert wc-alert-warning">
+                    <strong>{{ $item->metadata['match_error'] ?? $item->metadata['capture_error'] }}</strong>
+                    @if(!empty($item->metadata['match_exception']))
+                        <br><span>{{ $item->metadata['match_exception'] }}</span>
+                    @endif
+                    @if(!empty($item->metadata['capture_profile_failures']))
+                        <div class="wc-score-breakdown">
+                            @foreach($item->metadata['capture_profile_failures'] as $failure)
+                                <span>
+                                    <strong>Capture #{{ $failure['capture_id'] ?? '-' }}</strong>
+                                    {{ str_replace('_', ' ', $failure['reason'] ?? 'unknown') }}
+                                    @if(array_key_exists('file_exists', $failure)) - file {{ !empty($failure['file_exists']) ? 'exists' : 'missing' }}@endif
+                                    @if(array_key_exists('normalized_exists', $failure) && $failure['normalized_exists'] !== null) - normalized {{ !empty($failure['normalized_exists']) ? 'exists' : 'missing' }}@endif
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endif
             <div class="wc-grid">
                 @php($rankedMatches = $item->matches->sortBy('rank')->take(3))
                 @forelse($rankedMatches as $match)
@@ -161,7 +181,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="wc-list-empty"><i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>No matches recorded.</strong><p class="wc-muted">Run recognition from the front scan page to create suggestions.</p></div></div>
+                    <div class="wc-list-empty"><i class="fa-solid fa-wand-magic-sparkles"></i><div><strong>No matches recorded.</strong><p class="wc-muted">No visual candidate could be scored yet. Check the diagnostics above or run a forced comparison after the capture is available.</p></div></div>
                 @endforelse
             </div>
         </div>
