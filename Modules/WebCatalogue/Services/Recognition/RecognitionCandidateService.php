@@ -61,8 +61,11 @@ class RecognitionCandidateService
 
         $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
         $markerCandidateTop = (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30);
+        $markerCandidatePool = (int) config('webcatalogue.recognition.visual_markers.candidate_pool', 60);
         $verificationPoolSize = (int) config('webcatalogue.recognition.verification_pool.size', 120);
-        $limit = max($shortHashLimit, $markerCandidateTop, $verificationPoolSize);
+        $limit = $markerOnly && $markerCandidatePool <= 0
+            ? count($preselected)
+            : max($shortHashLimit, $markerCandidateTop, $verificationPoolSize);
 
         usort($preselected, function ($a, $b) {
             $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999), (float) ($a['verification_distance'] ?? 999));
@@ -87,6 +90,8 @@ class RecognitionCandidateService
                 'scored_candidates' => count($limited),
                 'short_hash_top_candidates' => $shortHashLimit,
                 'marker_candidate_top' => $markerCandidateTop,
+                'marker_candidate_pool' => $markerCandidatePool,
+                'marker_exhaustive_candidates' => $markerOnly && $markerCandidatePool <= 0,
                 'build_missing_fingerprints_during_match' => false,
                 'retrieval_source' => $retrievalSource,
                 'short_hash_prefixes' => $captureShortPrefixes,
