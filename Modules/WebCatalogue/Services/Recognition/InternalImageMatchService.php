@@ -144,6 +144,7 @@ class InternalImageMatchService
         $candidateSet = $this->candidates->retrieve($candidateResources, $captureProfiles, $captureMarkers, $store);
         $preselected = $candidateSet['candidates'] ?? [];
         $candidateStats = $candidateSet['stats'] ?? [];
+        $markerBatchScores = $markerOnly ? $this->markerOnlyBatchScores($preselected, $captureMarkers) : [];
 
         $scoresByProduct = [];
 
@@ -153,18 +154,13 @@ class InternalImageMatchService
             $scoreCapture = null;
 
             if ($markerOnly) {
-                $scoreSet = [
-                    'final_score' => 0.0,
-                    'retrieval_score' => null,
-                    'short_distance' => $candidateResource['short_distance'] ?? null,
-                    'marker_hash_distance' => $candidateResource['marker_hash_distance'] ?? null,
-                    'verification_score' => null,
-                    'verification_distance' => null,
-                    'candidate_sources' => $candidateResource['candidate_sources'] ?? ['marker_hash'],
-                    'scoring_mode' => 'markers_only',
-                    'visual_score_ignored' => true,
-                ];
-                $scoreCapture = $captureMarkers[0]['capture'] ?? null;
+                $batchScore = $markerBatchScores[(int) $resource->id] ?? null;
+                if (!$batchScore) {
+                    continue;
+                }
+
+                $scoreSet = $this->markerOnlyScoreSetFromBatch($batchScore, $candidateResource);
+                $scoreCapture = $batchScore['capture'] ?? ($captureMarkers[0]['capture'] ?? null);
             } else {
                 $resourceProfile = !empty($candidateResource['fingerprint'])
                     ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
@@ -195,7 +191,9 @@ class InternalImageMatchService
 
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = $markerOnly ? count($captureMarkers) : count($captureProfiles);
-            $scoreSet = $this->applyMarkerScore($scoreSet, $captureMarkers, $resource);
+            if (!$markerOnly) {
+                $scoreSet = $this->applyMarkerScore($scoreSet, $captureMarkers, $resource);
+            }
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
 
@@ -1999,6 +1997,127 @@ class InternalImageMatchService
         $scoreSet['final_score'] = round($finalScore, 4);
 
         return $scoreSet;
+    }
+
+    private function markerOnlyBatchScores(array $preselected, array $captureMarkers): array
+    {
+        if (empty($preselected) || empty($captureMarkers)) {
+            return [];
+        }
+
+        $resourcesById = [];
+        foreach ($preselected as $candidate) {
+            $resource = $candidate['resource'] ?? null;
+            if ($resource instanceof Resource) {
+                $resourcesById[(int) $resource->id] = $resource;
+            }
+        }
+
+        if (empty($resourcesById)) {
+            return [];
+        }
+
+        $markersByResource = ResourceVisualMarker::query()
+            ->whereIn('id_resource', array_keys($resourcesById))
+            ->where('algorithm', (string) config('webcatalogue.recognition.visual_markers.algorithm', 'orb_v1'))
+            ->whereNotNull('descriptors_json')
+            ->latest('id')
+            ->get()
+            ->unique('id_resource')
+            ->keyBy('id_resource');
+
+        if ($markersByResource->isEmpty()) {
+            return [];
+        }
+
+        $batchSize = max(1, min(500, (int) config('webcatalogue.recognition.visual_markers.batch_size', 120)));
+        $bestByResource = [];
+
+        foreach ($captureMarkers as $captureMarker) {
+            $references = [];
+            foreach ($markersByResource as $resourceId => $marker) {
+                $references[] = [
+                    'id' => (string) $resourceId,
+                    'keypoints' => $marker->keypoints_json ?: [],
+                    'descriptors' => $marker->descriptors_json ?: [],
+                    'width' => $marker->width,
+                    'height' => $marker->height,
+                    'resource_marker_id' => $marker->id,
+                ];
+            }
+
+            foreach (array_chunk($references, $batchSize) as $chunk) {
+                $payload = $this->openCv->compareMarkersBatch($captureMarker['markers'], $chunk);
+                $results = is_array($payload) ? ($payload['results'] ?? []) : [];
+
+                if (empty($results)) {
+                    foreach ($chunk as $reference) {
+                        $fallback = $this->openCv->compareMarkers($captureMarker['markers'], $reference);
+                        if ($fallback) {
+                            $results[] = ['id' => $reference['id'], ...$fallback];
+                        }
+                    }
+                }
+
+                foreach ($results as $result) {
+                    $resourceId = (int) ($result['id'] ?? 0);
+                    if (!$resourceId || !$markersByResource->has($resourceId)) {
+                        continue;
+                    }
+
+                    $markerScore = (float) ($result['score'] ?? 0);
+                    $goodMatches = (int) ($result['good_matches'] ?? 0);
+                    $confidence = $this->markerConfidenceScore($markerScore, $goodMatches);
+
+                    if (!isset($bestByResource[$resourceId]) || $confidence > (float) ($bestByResource[$resourceId]['marker_confidence_score'] ?? 0)) {
+                        $bestByResource[$resourceId] = [
+                            'capture' => $captureMarker['capture'] ?? null,
+                            'resource_marker_id' => $markersByResource->get($resourceId)?->id,
+                            'marker_score' => $markerScore,
+                            'marker_confidence_score' => $confidence,
+                            'matches' => (int) ($result['matches'] ?? 0),
+                            'good_matches' => $goodMatches,
+                            'inlier_ratio' => (float) ($result['inlier_ratio'] ?? 0),
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $bestByResource;
+    }
+
+    private function markerOnlyScoreSetFromBatch(array $batchScore, array $candidateResource): array
+    {
+        return [
+            'final_score' => round((float) ($batchScore['marker_confidence_score'] ?? 0), 4),
+            'final_score_before_markers' => 0.0,
+            'retrieval_score' => null,
+            'short_distance' => $candidateResource['short_distance'] ?? null,
+            'marker_hash_distance' => $candidateResource['marker_hash_distance'] ?? null,
+            'verification_score' => null,
+            'verification_distance' => null,
+            'candidate_sources' => $candidateResource['candidate_sources'] ?? ['marker_hash'],
+            'scoring_mode' => 'markers_only',
+            'visual_score_ignored' => true,
+            'marker_applied' => ((float) ($batchScore['marker_score'] ?? 0)) > 0,
+            'marker_status' => 'markers_only_batch',
+            'marker_score' => round((float) ($batchScore['marker_score'] ?? 0), 4),
+            'marker_boost' => 0.0,
+            'marker_weight' => round((float) config('webcatalogue.recognition.visual_markers.score_weight', 0.35), 4),
+            'marker_scoring_mode' => 'markers_only',
+            'marker_confidence_score' => round((float) ($batchScore['marker_confidence_score'] ?? 0), 4),
+            'marker_matches' => (int) ($batchScore['matches'] ?? 0),
+            'marker_good_matches' => (int) ($batchScore['good_matches'] ?? 0),
+            'marker_inlier_ratio' => round((float) ($batchScore['inlier_ratio'] ?? 0), 4),
+            'marker_capture_id' => $batchScore['capture']?->id,
+            'marker_resource_marker_id' => $batchScore['resource_marker_id'] ?? null,
+        ];
+    }
+
+    private function markerConfidenceScore(float $markerScore, int $goodMatches): float
+    {
+        return round(min(100, ($markerScore * 1.65) + ($goodMatches * 0.38)), 4);
     }
 
     private function applyCaptureScoreBoost(array $scoreSet, ?VisualRecognitionCapture $capture): array

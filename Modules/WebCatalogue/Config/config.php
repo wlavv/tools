@@ -77,6 +77,7 @@ return [
             'candidate_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_TOP', 30),
             // In markers_only mode, set this to 0 to compare every stored marker candidate.
             'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 60),
+            'batch_size' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BATCH_SIZE', 120),
             'boost_per_good_match' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BOOST_PER_GOOD_MATCH', 0.18),
             'max_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX_BOOST', 8),
             'strong_min_score' => env('WEBCATALOGUE_RECOGNITION_MARKERS_STRONG_MIN_SCORE', 18),

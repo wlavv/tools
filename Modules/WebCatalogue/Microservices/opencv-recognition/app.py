@@ -26,6 +26,15 @@ class CompareMarkersPayload(BaseModel):
     reference: MarkerPayload
 
 
+class BatchReferenceMarkersPayload(MarkerPayload):
+    id: str
+
+
+class CompareMarkersBatchPayload(BaseModel):
+    query: MarkerPayload
+    references: list[BatchReferenceMarkersPayload]
+
+
 @app.get("/health")
 def health():
     return {"ok": True, "service": "webcatalogue-opencv-recognition"}
@@ -132,6 +141,21 @@ async def compare_markers(
 
     result = compare_orb_marker_sets(payload.query.descriptors, payload.reference.descriptors)
     return {"ok": True, **result}
+
+
+@app.post("/recognition/compare-markers-batch")
+async def compare_markers_batch(
+    payload: CompareMarkersBatchPayload,
+    authorization: Optional[str] = Header(default=None),
+):
+    require_token(authorization)
+
+    results = []
+    for reference in payload.references[:500]:
+        result = compare_orb_marker_sets(payload.query.descriptors, reference.descriptors)
+        results.append({"id": reference.id, **result})
+
+    return {"ok": True, "count": len(results), "results": results}
 
 
 def require_token(authorization: Optional[str]) -> None:

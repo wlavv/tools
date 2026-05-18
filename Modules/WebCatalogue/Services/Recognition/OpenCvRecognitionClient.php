@@ -201,6 +201,43 @@ class OpenCvRecognitionClient
         }
     }
 
+    public function compareMarkersBatch(array $queryMarkers, array $references): ?array
+    {
+        if (!$this->enabled() || empty($references)) {
+            return null;
+        }
+
+        try {
+            $baseUrl = rtrim((string) config('webcatalogue.recognition.opencv.base_url'), '/');
+            $token = config('webcatalogue.recognition.opencv.token');
+            $timeout = (int) config('webcatalogue.recognition.opencv.timeout', 20);
+            $request = Http::timeout($timeout)->acceptJson();
+
+            if (filled($token)) {
+                $request = $request->withToken((string) $token);
+            }
+
+            $response = $request->post($baseUrl . '/recognition/compare-markers-batch', [
+                'query' => [
+                    'keypoints' => $queryMarkers['keypoints'] ?? [],
+                    'descriptors' => $queryMarkers['descriptors'] ?? [],
+                    'width' => $queryMarkers['width'] ?? null,
+                    'height' => $queryMarkers['height'] ?? null,
+                ],
+                'references' => array_values($references),
+            ]);
+
+            if (!$response->ok()) {
+                return null;
+            }
+
+            $payload = $response->json();
+            return is_array($payload) && !empty($payload['ok']) ? $payload : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     private function rememberFailure(VisualRecognitionCapture $capture, string $reason): void
     {
         $metadata = $capture->metadata ?: [];
