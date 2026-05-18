@@ -76,6 +76,11 @@ return [
             'strong_min_score' => env('WEBCATALOGUE_RECOGNITION_MARKERS_STRONG_MIN_SCORE', 18),
             'strong_min_good_matches' => env('WEBCATALOGUE_RECOGNITION_MARKERS_STRONG_MIN_GOOD_MATCHES', 35),
         ],
+        'identifiers' => [
+            'enabled' => env('WEBCATALOGUE_RECOGNITION_IDENTIFIERS_ENABLED', true),
+            'server_fallback_enabled' => env('WEBCATALOGUE_RECOGNITION_IDENTIFIERS_SERVER_FALLBACK', true),
+            'exact_match_score' => env('WEBCATALOGUE_RECOGNITION_IDENTIFIER_EXACT_SCORE', 99),
+        ],
         'store_full_fingerprint_profile' => env('WEBCATALOGUE_RECOGNITION_STORE_FULL_PROFILE', false),
         'region_global_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_GLOBAL_WEIGHT', 0.45),
         'region_structured_weight' => env('WEBCATALOGUE_RECOGNITION_REGION_STRUCTURED_WEIGHT', 0.55),

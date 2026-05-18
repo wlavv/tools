@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Modules\WebCatalogue\Console\RebuildRecognitionFingerprintsCommand;
 use Modules\WebCatalogue\Console\RebuildRecognitionMarkersCommand;
+use Modules\WebCatalogue\Console\SeedRecognitionTestProductsCommand;
+use Modules\WebCatalogue\Console\SyncProductIdentifiersCommand;
 use Modules\WebCatalogue\Services\Storage\WebCatalogueStorageService;
 
 class WebCatalogueServiceProvider extends ServiceProvider
@@ -42,6 +44,8 @@ class WebCatalogueServiceProvider extends ServiceProvider
             $this->commands([
                 RebuildRecognitionFingerprintsCommand::class,
                 RebuildRecognitionMarkersCommand::class,
+                SeedRecognitionTestProductsCommand::class,
+                SyncProductIdentifiersCommand::class,
             ]);
         }
 

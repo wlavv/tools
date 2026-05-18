@@ -6,6 +6,9 @@ Small FastAPI service used by WebCatalogue to normalize camera captures before m
 
 - `GET /health`
 - `POST /recognition/normalize`
+- `POST /recognition/identifiers`
+- `POST /recognition/markers`
+- `POST /recognition/compare-markers`
 
 `/recognition/normalize` receives multipart field `image` and returns:
 
@@ -107,3 +110,5 @@ The first implementation focuses on rectangular objects:
 - boxes photographed from the front
 
 If no reliable contour is found, the service returns a resized fallback image so Laravel can continue with the local recognition pipeline.
+
+`/recognition/identifiers` uses OpenCV QR/barcode detectors when available and returns normalized payload items with `format`, `rawValue`, `source`, optional `points`, and `confidence`.

@@ -15,7 +15,11 @@ use Modules\WebCatalogue\Models\VisualRecognitionSession;
 
 class InternalImageMatchService
 {
-    public function __construct(private OpenCvRecognitionClient $openCv)
+    public function __construct(
+        private OpenCvRecognitionClient $openCv,
+        private ProductIdentifierService $productIdentifiers,
+        private RecognitionCandidateService $candidates
+    )
     {
     }
 
@@ -48,6 +52,26 @@ class InternalImageMatchService
         if ($captures->isEmpty()) {
             $session->update(['status' => 'capture_missing']);
             return $this->emptyResult('No capture image available for matching.');
+        }
+
+        $identifierMatch = $this->matchByDetectedIdentifiers($session, $captures, $store);
+        if ($identifierMatch) {
+            return $identifierMatch;
+        }
+
+        $serverIdentifiers = $this->extractServerIdentifiers($session, $captures);
+        if (!empty($serverIdentifiers)) {
+            $session->refresh();
+            $captures = $session->captures()
+                ->where('capture_type', 'object_photo')
+                ->latest()
+                ->limit((int) config('webcatalogue.recognition.multi_frame_count', 3))
+                ->get();
+
+            $identifierMatch = $this->matchByDetectedIdentifiers($session, $captures, $store);
+            if ($identifierMatch) {
+                return $identifierMatch;
+            }
         }
 
         $captureProfiles = [];
@@ -90,39 +114,9 @@ class InternalImageMatchService
             return $this->emptyResult('Could not process captured images.');
         }
 
-        $preselected = [];
-        $captureShortHashes = array_values(array_filter(array_map(
-            fn ($captureProfile) => $this->shortProfileHash($captureProfile['profile']),
-            $captureProfiles
-        )));
-
-        foreach ($candidateResources as $resource) {
-            $fingerprint = $this->fingerprintRecordForResource($resource);
-            if (!$fingerprint) {
-                continue;
-            }
-
-            $preselected[] = [
-                'resource' => $resource,
-                'fingerprint' => $fingerprint,
-                'short_distance' => $this->bestShortHashDistance($captureShortHashes, $fingerprint->short_hash),
-                'marker_hash_distance' => null,
-                'candidate_sources' => ['short_hash'],
-            ];
-        }
-
-        $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
-
-        $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
-        $markerCandidateTop = (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30);
-
-        usort($preselected, function ($a, $b) {
-            $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999));
-            $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999));
-
-            return $aRank <=> $bRank;
-        });
-        $preselected = array_slice($preselected, 0, max($shortHashLimit, $markerCandidateTop));
+        $candidateSet = $this->candidates->retrieve($candidateResources, $captureProfiles, $captureMarkers, $store);
+        $preselected = $candidateSet['candidates'] ?? [];
+        $candidateStats = $candidateSet['stats'] ?? [];
 
         $scoresByProduct = [];
 
@@ -130,7 +124,7 @@ class InternalImageMatchService
             $resource = $candidateResource['resource'];
             $resourceProfile = !empty($candidateResource['fingerprint'])
                 ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
-                : $this->fingerprintForResource($resource);
+                : null;
             if (!$resourceProfile) {
                 continue;
             }
@@ -241,10 +235,14 @@ class InternalImageMatchService
                             'color_bins' => 4,
                             'variants' => ['object', 'center', 'full'],
                             'structured_regions' => ['name', 'art', 'text', 'footer'],
-                            'candidate_resources' => count($candidateResources),
-                            'scored_candidates' => count($preselected),
-                            'short_hash_top_candidates' => (int) config('webcatalogue.recognition.short_hash_top_candidates', 20),
-                            'marker_candidate_top' => (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30),
+                            'candidate_resources' => $candidateStats['candidate_resources'] ?? count($candidateResources),
+                            'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
+                            'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
+                            'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
+                            'build_missing_fingerprints_during_match' => $candidateStats['build_missing_fingerprints_during_match'] ?? false,
+                            'scored_candidates' => $candidateStats['scored_candidates'] ?? count($preselected),
+                            'short_hash_top_candidates' => $candidateStats['short_hash_top_candidates'] ?? (int) config('webcatalogue.recognition.short_hash_top_candidates', 20),
+                            'marker_candidate_top' => $candidateStats['marker_candidate_top'] ?? (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30),
                             'capture_frames' => count($captureProfiles),
                         ],
                     ],
@@ -304,6 +302,10 @@ class InternalImageMatchService
                     'suggestion_threshold' => $suggestionThreshold,
                     'best_debug_score' => $debugMatches[0]['score'] ?? null,
                     'best_debug_scores' => $debugMatches[0] ?? null,
+                    'candidate_resources' => $candidateStats['candidate_resources'] ?? count($candidateResources),
+                    'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
+                    'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
+                    'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
                 ]),
             ]);
 
@@ -336,6 +338,10 @@ class InternalImageMatchService
                 'best_debug_score' => $debugMatches[0]['score'] ?? null,
                 'best_debug_scores' => $debugMatches[0] ?? null,
                 'debug_top_count' => count($debugMatches),
+                'candidate_resources' => $candidateStats['candidate_resources'] ?? count($candidateResources),
+                'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
+                'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
+                'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
             ]),
         ]);
 
@@ -508,6 +514,284 @@ class InternalImageMatchService
         ];
     }
 
+    private function matchByDetectedIdentifiers(VisualRecognitionSession $session, $captures, ?Store $store): ?array
+    {
+        if (!(bool) config('webcatalogue.recognition.identifiers.enabled', true)) {
+            return null;
+        }
+
+        $identifiers = $this->detectedIdentifiers($session, $captures);
+        if (empty($identifiers)) {
+            return null;
+        }
+
+        $candidates = $this->productIdentifiers->candidateValuesFromDetectedIdentifiers($identifiers);
+        if ($candidates->isEmpty()) {
+            return null;
+        }
+
+        $product = $this->productIdentifiers->matchDetectedIdentifiers($identifiers, $store);
+        $candidateValues = $candidates->pluck('normalized')->take(20)->values()->all();
+
+        if (!$product) {
+            $session->update([
+                'metadata' => array_replace_recursive($session->metadata ?: [], [
+                    'detected_identifiers' => $identifiers,
+                    'identifier_match' => [
+                        'matched' => false,
+                        'candidates' => $candidateValues,
+                        'checked_at' => now()->toIso8601String(),
+                    ],
+                ]),
+            ]);
+
+            return null;
+        }
+
+        VisualRecognitionMatch::where('id_session', $session->id)
+            ->where('match_provider', 'identifier_exact_match_v1')
+            ->delete();
+
+        $score = (float) config('webcatalogue.recognition.identifiers.exact_match_score', 99);
+        $match = VisualRecognitionMatch::create([
+            'id_session' => $session->id,
+            'id_product' => $product->id,
+            'match_provider' => 'identifier_exact_match_v1',
+            'score' => $score,
+            'rank' => 1,
+            'status' => 'matched',
+            'metadata' => [
+                'algorithm' => 'identifier_exact_match_v1',
+                'detected_identifiers' => $identifiers,
+                'candidate_values' => $candidateValues,
+                'matched_fields' => $this->matchedIdentifierFields($product, $candidateValues),
+            ],
+        ]);
+
+        $item = $this->productMatchItem($product, $match->id, $score, 'identifier_exact_match_v1');
+
+        $session->update([
+            'id_product' => $product->id,
+            'matched_score' => $score,
+            'matched_at' => now(),
+            'status' => 'matched',
+            'metadata' => array_replace_recursive($session->metadata ?: [], [
+                'recognition_algorithm' => 'identifier_exact_match_v1',
+                'detected_identifiers' => $identifiers,
+                'identifier_match' => [
+                    'matched' => true,
+                    'product_id' => $product->id,
+                    'candidate_values' => $candidateValues,
+                    'matched_fields' => $this->matchedIdentifierFields($product, $candidateValues),
+                    'matched_at' => now()->toIso8601String(),
+                ],
+            ]),
+        ]);
+
+        $this->sendMatchedNotification($session, $item);
+
+        return [
+            'matched' => true,
+            'auto_match' => $item,
+            'suggestions' => [$item],
+            'debug_matches' => [$item],
+            'message' => 'Product matched by barcode or QR identifier.',
+        ];
+    }
+
+    private function detectedIdentifiers(VisualRecognitionSession $session, $captures): array
+    {
+        $items = [];
+        foreach (($session->metadata['detected_identifiers'] ?? []) as $identifier) {
+            if (is_array($identifier)) {
+                $items[] = $identifier;
+            }
+        }
+
+        foreach ($captures as $capture) {
+            foreach (($capture->metadata['identifiers'] ?? []) as $identifier) {
+                if (is_array($identifier)) {
+                    $items[] = $identifier;
+                }
+            }
+        }
+
+        $clean = [];
+        foreach ($items as $identifier) {
+            $value = trim((string) ($identifier['value'] ?? $identifier['rawValue'] ?? $identifier['text'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $format = trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown';
+            $key = strtolower($format . ':' . $value);
+            $clean[$key] = [
+                'format' => $format,
+                'value' => mb_substr($value, 0, 500),
+                'source' => $identifier['source'] ?? 'client_barcode_detector',
+            ];
+        }
+
+        return array_values($clean);
+    }
+
+    private function extractServerIdentifiers(VisualRecognitionSession $session, $captures): array
+    {
+        if (!(bool) config('webcatalogue.recognition.identifiers.server_fallback_enabled', true)) {
+            return [];
+        }
+
+        $collected = [];
+        foreach ($captures as $capture) {
+            if (!$capture->file_path || !empty($capture->metadata['identifiers'])) {
+                continue;
+            }
+
+            $payload = $this->openCv->extractIdentifiers($capture->file_path);
+            $identifiers = $this->cleanServerIdentifiers($payload['identifiers'] ?? []);
+            if (empty($identifiers)) {
+                $this->rememberServerIdentifierAttempt($capture, false, $payload);
+                continue;
+            }
+
+            $metadata = $capture->metadata ?: [];
+            $capture->update([
+                'metadata' => array_replace_recursive($metadata, [
+                    'identifiers' => $identifiers,
+                    'identifier_analysis' => [
+                        'ok' => true,
+                        'provider' => $payload['provider'] ?? 'opencv',
+                        'source' => 'server_fallback',
+                        'count' => count($identifiers),
+                        'generated_at' => now()->toIso8601String(),
+                    ],
+                ]),
+            ]);
+
+            $collected = array_merge($collected, $identifiers);
+        }
+
+        if (!empty($collected)) {
+            $metadata = $session->metadata ?: [];
+            $existing = is_array($metadata['detected_identifiers'] ?? null) ? $metadata['detected_identifiers'] : [];
+            $session->update([
+                'metadata' => array_replace_recursive($metadata, [
+                    'detected_identifiers' => $this->mergeIdentifierPayloads($existing, $collected),
+                    'identifier_server_fallback' => [
+                        'ok' => true,
+                        'count' => count($collected),
+                        'generated_at' => now()->toIso8601String(),
+                    ],
+                ]),
+            ]);
+        }
+
+        return $collected;
+    }
+
+    private function cleanServerIdentifiers(array $identifiers): array
+    {
+        $clean = [];
+        foreach ($identifiers as $identifier) {
+            if (!is_array($identifier)) {
+                continue;
+            }
+
+            $rawValue = trim((string) ($identifier['rawValue'] ?? $identifier['value'] ?? $identifier['text'] ?? ''));
+            if ($rawValue === '') {
+                continue;
+            }
+
+            $clean[] = [
+                'format' => mb_substr(trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown', 0, 60),
+                'rawValue' => mb_substr($rawValue, 0, 500),
+                'value' => mb_substr($rawValue, 0, 500),
+                'source' => mb_substr(trim((string) ($identifier['source'] ?? 'opencv_server_fallback')) ?: 'opencv_server_fallback', 0, 80),
+                'confidence' => isset($identifier['confidence']) ? (float) $identifier['confidence'] : null,
+                'points' => $identifier['points'] ?? null,
+            ];
+        }
+
+        return array_slice($clean, 0, 8);
+    }
+
+    private function rememberServerIdentifierAttempt(VisualRecognitionCapture $capture, bool $ok, ?array $payload = null): void
+    {
+        $metadata = $capture->metadata ?: [];
+        $capture->update([
+            'metadata' => array_replace_recursive($metadata, [
+                'identifier_analysis' => [
+                    'ok' => $ok,
+                    'provider' => $payload['provider'] ?? 'opencv',
+                    'source' => 'server_fallback',
+                    'count' => 0,
+                    'attempted_at' => now()->toIso8601String(),
+                ],
+            ]),
+        ]);
+    }
+
+    private function mergeIdentifierPayloads(array $existing, array $incoming): array
+    {
+        $byKey = [];
+        foreach (array_merge($existing, $incoming) as $identifier) {
+            if (!is_array($identifier)) {
+                continue;
+            }
+
+            $value = trim((string) ($identifier['value'] ?? $identifier['rawValue'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $format = trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown';
+            $byKey[strtolower($format . ':' . $value)] = array_replace($identifier, [
+                'format' => $format,
+                'value' => mb_substr($value, 0, 500),
+                'rawValue' => mb_substr((string) ($identifier['rawValue'] ?? $value), 0, 500),
+            ]);
+        }
+
+        return array_slice(array_values($byKey), 0, 20);
+    }
+
+    private function matchedIdentifierFields(Product $product, array $candidates): array
+    {
+        $candidateLookup = array_flip(array_map('strval', $candidates));
+        $fields = [];
+        foreach (['reference', 'sku', 'ean13', 'external_id'] as $field) {
+            $value = trim((string) ($product->{$field} ?? ''));
+            $normalized = $this->productIdentifiers->normalizeValue($value, $field);
+            if ($normalized !== null && isset($candidateLookup[$normalized])) {
+                $fields[$field] = $value;
+            }
+        }
+
+        return $fields;
+    }
+
+    private function productMatchItem(Product $product, ?int $matchId, float $score, string $provider): array
+    {
+        $image = $product->relationLoaded('mainImageResource') ? $product->mainImageResource : null;
+
+        return [
+            'match_id' => $matchId,
+            'product_id' => $product->id,
+            'name' => strip_tags((string) $product->name),
+            'reference' => $product->reference,
+            'slug' => $product->slug,
+            'score' => round($score, 2),
+            'match_provider' => $provider,
+            'image_url' => $image?->resolved_url,
+            'store_id' => $product->id_store,
+            'store_name' => $product->store?->name,
+            'store_slug' => $product->store?->slug,
+            'product_url' => $product->store
+                ? route('webcatalogue.front.product.show', [$product->store->slug, $product->slug])
+                : null,
+        ];
+    }
+
     private function candidateResources(Store $store)
     {
         return Resource::query()
@@ -547,7 +831,7 @@ class InternalImageMatchService
         return $fingerprint ? $this->comparisonProfileForFingerprint($fingerprint, $resource) : null;
     }
 
-    private function fingerprintRecordForResource(Resource $resource): ?ResourceFingerprint
+    private function fingerprintRecordForResource(Resource $resource, bool $createIfMissing = true): ?ResourceFingerprint
     {
         if (!$resource->file_path || !Storage::disk('public')->exists($resource->file_path)) {
             return null;
@@ -564,6 +848,10 @@ class InternalImageMatchService
             return $existing;
         }
 
+        if (!$createIfMissing) {
+            return null;
+        }
+
         $profile = $this->profileFromPublicPath($resource->file_path);
         if (!$profile) {
             return null;
@@ -577,9 +865,11 @@ class InternalImageMatchService
                 'id_product' => $resource->id_product,
                 'hash_value' => $lightProfile['phash'] ?? null,
                 'short_hash' => $lightProfile['short_hash'] ?? null,
+                'short_hash_prefix' => $this->shortHashPrefix($lightProfile['short_hash'] ?? null),
                 'vector_json' => $this->operationalFingerprintProfile($lightProfile),
                 'width' => $lightProfile['source_width'] ?? null,
                 'height' => $lightProfile['source_height'] ?? null,
+                'aspect_ratio_bucket' => $this->aspectRatioBucket($lightProfile['object_aspect_ratio'] ?? null),
                 'source_signature' => $signature,
                 'metadata' => [
                     'resource_type' => $resource->resource_type,
@@ -649,6 +939,21 @@ class InternalImageMatchService
             'source_height' => $profile['source_height'] ?? null,
             'object_aspect_ratio' => $profile['object_aspect_ratio'] ?? null,
         ];
+    }
+
+    private function shortHashPrefix(?string $shortHash): ?string
+    {
+        $shortHash = trim((string) $shortHash);
+        return $shortHash !== '' ? substr($shortHash, 0, 8) : null;
+    }
+
+    private function aspectRatioBucket(mixed $aspectRatio): ?int
+    {
+        if (!is_numeric($aspectRatio) || (float) $aspectRatio <= 0) {
+            return null;
+        }
+
+        return (int) round(((float) $aspectRatio) * 20);
     }
 
     private function lightweightFingerprintProfile(array $profile): array
@@ -734,40 +1039,6 @@ class InternalImageMatchService
         }
 
         return $bits;
-    }
-
-    private function bestShortHashDistance(array $captureShortHashes, ?string $resourceShortHash): ?int
-    {
-        if (!$resourceShortHash || empty($captureShortHashes)) {
-            return null;
-        }
-
-        $best = null;
-        foreach ($captureShortHashes as $captureShortHash) {
-            $distance = $this->shortHashDistance($captureShortHash, $resourceShortHash);
-            if ($best === null || $distance < $best) {
-                $best = $distance;
-            }
-        }
-
-        return $best;
-    }
-
-    private function shortHashDistance(string $a, string $b): int
-    {
-        $length = min(strlen($a), strlen($b));
-        if ($length === 0) {
-            return 999;
-        }
-
-        $distance = abs(strlen($a) - strlen($b));
-        for ($i = 0; $i < $length; $i++) {
-            if ($a[$i] !== $b[$i]) {
-                $distance++;
-            }
-        }
-
-        return $distance;
     }
 
     private function profileFromPublicPath(string $path): ?array
@@ -1488,96 +1759,6 @@ class InternalImageMatchService
             'region_score' => $weightedScore / $totalWeight,
             'regions' => $scores,
         ];
-    }
-
-    private function mergeMarkerCandidates(array $preselected, array $captureMarkers, ?Store $store): array
-    {
-        if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || empty($captureMarkers)) {
-            return $preselected;
-        }
-
-        $captureMarkerHashes = array_values(array_filter(array_map(
-            fn ($captureMarker) => $captureMarker['markers']['marker_hash'] ?? null,
-            $captureMarkers
-        )));
-
-        if (empty($captureMarkerHashes)) {
-            return $preselected;
-        }
-
-        $algorithm = (string) config('webcatalogue.recognition.visual_markers.algorithm', 'orb_v1');
-        $markerRows = ResourceVisualMarker::query()
-            ->where('algorithm', $algorithm)
-            ->whereNotNull('marker_hash')
-            ->when($store, fn ($query) => $query->where('id_store', $store->id))
-            ->get(['id_resource', 'marker_hash']);
-
-        if ($markerRows->isEmpty()) {
-            return $preselected;
-        }
-
-        $markerCandidates = [];
-        foreach ($markerRows as $row) {
-            $distance = $this->bestShortHashDistance($captureMarkerHashes, (string) $row->marker_hash);
-            $resourceId = (int) $row->id_resource;
-
-            if (!isset($markerCandidates[$resourceId]) || $distance < $markerCandidates[$resourceId]) {
-                $markerCandidates[$resourceId] = $distance;
-            }
-        }
-
-        asort($markerCandidates);
-        $markerCandidates = array_slice(
-            $markerCandidates,
-            0,
-            (int) config('webcatalogue.recognition.visual_markers.candidate_pool', 60),
-            true
-        );
-
-        if (empty($markerCandidates)) {
-            return $preselected;
-        }
-
-        $byResource = [];
-        foreach ($preselected as $candidate) {
-            $resourceId = (int) $candidate['resource']->id;
-            $byResource[$resourceId] = $candidate;
-        }
-
-        $missingIds = array_values(array_diff(array_keys($markerCandidates), array_keys($byResource)));
-        $missingResources = Resource::query()
-            ->with('product.store')
-            ->whereIn('id', $missingIds)
-            ->whereNotNull('id_product')
-            ->get()
-            ->keyBy('id');
-
-        foreach ($markerCandidates as $resourceId => $distance) {
-            if (isset($byResource[$resourceId])) {
-                $byResource[$resourceId]['marker_hash_distance'] = $distance;
-                $sources = $byResource[$resourceId]['candidate_sources'] ?? [];
-                $sources[] = 'marker_hash';
-                $byResource[$resourceId]['candidate_sources'] = array_values(array_unique($sources));
-                continue;
-            }
-
-            $resource = $missingResources->get($resourceId);
-            if (!$resource) {
-                continue;
-            }
-
-            $fingerprint = $this->fingerprintRecordForResource($resource);
-
-            $byResource[$resourceId] = [
-                'resource' => $resource,
-                'fingerprint' => $fingerprint,
-                'short_distance' => null,
-                'marker_hash_distance' => $distance,
-                'candidate_sources' => ['marker_hash'],
-            ];
-        }
-
-        return array_values($byResource);
     }
 
     private function applyMarkerScore(array $scoreSet, array $captureMarkers, Resource $resource): array

@@ -12,6 +12,7 @@ use Modules\WebCatalogue\Models\ProductPrice;
 use Modules\WebCatalogue\Models\Promotion;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Services\Resources\WebCatalogueResourceUploadService;
+use Modules\WebCatalogue\Services\Recognition\ProductIdentifierService;
 use Modules\WebCatalogue\Services\Storage\WebCatalogueStorageService;
 use Modules\WebCatalogue\Support\Concerns\HandlesWebCatalogueFormData;
 
@@ -91,7 +92,7 @@ class ProductController extends Controller
         return $this->view('webcatalogue::products.form', $this->viewData(['item' => null, 'action' => route('webcatalogue.products.store'), 'method' => 'POST']));
     }
 
-    public function store(Request $request, WebCatalogueStorageService $storage, WebCatalogueResourceUploadService $resources): RedirectResponse
+    public function store(Request $request, WebCatalogueStorageService $storage, WebCatalogueResourceUploadService $resources, ProductIdentifierService $identifiers): RedirectResponse
     {
         $data = $this->cleanProductData($request);
         $item = Product::create($data);
@@ -99,6 +100,7 @@ class ProductController extends Controller
         $this->handleProductUploads($request, $item, $resources);
         $this->syncProductCommercials($request, $item);
         $this->syncProductCatalogues($request, $item);
+        $identifiers->syncProduct($item->fresh());
         return redirect()->to($this->safeReturnTo($request) ?: route('webcatalogue.products.show', $item))->with('success', 'Product created.');
     }
 
@@ -109,12 +111,13 @@ class ProductController extends Controller
         return $this->view('webcatalogue::products.form', $this->viewData(['item' => $product->load(['prices','promotions','resources','catalogues']), 'action' => route('webcatalogue.products.update', $product), 'method' => 'PUT']));
     }
 
-    public function update(Request $request, Product $product, WebCatalogueResourceUploadService $resources): RedirectResponse
+    public function update(Request $request, Product $product, WebCatalogueResourceUploadService $resources, ProductIdentifierService $identifiers): RedirectResponse
     {
         $product->update($this->cleanProductData($request));
         $this->handleProductUploads($request, $product, $resources);
         $this->syncProductCommercials($request, $product);
         $this->syncProductCatalogues($request, $product);
+        $identifiers->syncProduct($product->fresh());
         return redirect()->to($this->safeReturnTo($request) ?: route('webcatalogue.products.show', $product))->with('success', 'Product updated.');
     }
 

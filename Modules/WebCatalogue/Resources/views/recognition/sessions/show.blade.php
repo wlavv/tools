@@ -51,6 +51,7 @@
                         @php($opencv = $capture->metadata['opencv_analysis'] ?? [])
                         @php($opencvUrl = $opencv['normalized_url'] ?? null)
                         @php($opencvDebugUrl = $opencv['debug_url'] ?? null)
+                        @php($identifiers = $capture->metadata['identifiers'] ?? [])
                         <div class="wc-preview-body">
                             <h4>{{ str_replace('_',' ', $capture->capture_type) }}</h4>
                             <p class="wc-muted">{{ $capture->created_at?->format('Y-m-d H:i') }}</p>
@@ -82,7 +83,16 @@
                                     @if(!empty($analysis['object_aspect_ratio'])) · Aspect: {{ $analysis['object_aspect_ratio'] }}@endif
                                     @if(!empty($analysis['algorithm'])) · {{ $analysis['algorithm'] }}@endif
                                 </p>
-                            @elseif($capture->capture_type === 'object_photo')
+                            @endif
+                            @if(!empty($identifiers))
+                                <p class="wc-capture-meta">
+                                    Identifiers:
+                                    @foreach($identifiers as $identifier)
+                                        <span class="wc-badge">{{ $identifier['format'] ?? 'code' }}: {{ $identifier['rawValue'] ?? $identifier['value'] ?? '' }}</span>
+                                    @endforeach
+                                </p>
+                            @endif
+                            @if(empty($analysis) && $capture->capture_type === 'object_photo')
                                 <p class="wc-capture-meta">Run or force a comparison to generate the detected crop.</p>
                             @endif
                         </div>

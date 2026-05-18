@@ -61,8 +61,19 @@ class VisualRecognitionService
         ]);
 
         $metadata = $session->metadata ?: [];
+        $detectedIdentifiers = $this->detectedIdentifiersFromMetadata($capture->metadata ?: []);
+        if ($detectedIdentifiers) {
+            $metadata['detected_identifiers'] = $this->mergeDetectedIdentifiers(
+                $metadata['detected_identifiers'] ?? [],
+                $detectedIdentifiers
+            );
+        }
+
         if ($captureType === 'object_photo' && empty($metadata['object_photo_path'])) {
             $metadata['object_photo_path'] = $path;
+        }
+
+        if ($detectedIdentifiers || ($captureType === 'object_photo' && empty(($session->metadata ?: [])['object_photo_path']))) {
             $session->update(['metadata' => $metadata]);
         }
 
@@ -128,6 +139,60 @@ class VisualRecognitionService
             if (!empty($data[$field])) $score += 10;
         }
         return min($score, 100);
+    }
+
+    private function detectedIdentifiersFromMetadata(array $metadata): array
+    {
+        $identifiers = $metadata['identifiers'] ?? [];
+        if (!is_array($identifiers)) {
+            return [];
+        }
+
+        $clean = [];
+        foreach ($identifiers as $identifier) {
+            if (!is_array($identifier)) {
+                continue;
+            }
+
+            $value = trim((string) ($identifier['rawValue'] ?? $identifier['text'] ?? $identifier['value'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $clean[] = [
+                'format' => trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown',
+                'value' => mb_substr($value, 0, 500),
+                'source' => trim((string) ($identifier['source'] ?? 'client_barcode_detector')) ?: 'client_barcode_detector',
+                'detected_at' => now()->toIso8601String(),
+            ];
+        }
+
+        return array_slice($clean, 0, 8);
+    }
+
+    private function mergeDetectedIdentifiers(array $existing, array $incoming): array
+    {
+        $byKey = [];
+        foreach (array_merge($existing, $incoming) as $identifier) {
+            if (!is_array($identifier)) {
+                continue;
+            }
+
+            $value = trim((string) ($identifier['value'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $format = trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown';
+            $byKey[strtolower($format . ':' . $value)] = [
+                'format' => $format,
+                'value' => mb_substr($value, 0, 500),
+                'source' => $identifier['source'] ?? 'client_barcode_detector',
+                'detected_at' => $identifier['detected_at'] ?? now()->toIso8601String(),
+            ];
+        }
+
+        return array_slice(array_values($byKey), 0, 20);
     }
 
     private function sendLeadNotification(UnmatchedProductLead $lead): void

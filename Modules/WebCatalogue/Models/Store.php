@@ -30,6 +30,7 @@ class Store extends Model
 
     public function catalogues(){return $this->hasMany(Catalogue::class, 'id_store');}
     public function products(){return $this->hasMany(Product::class, 'id_store');}
+    public function productIdentifiers(){return $this->hasMany(ProductIdentifier::class, 'id_store');}
     public function themes(){return $this->hasMany(StoreTheme::class, 'id_store');}
     public function environments(){return $this->hasMany(StoreEnvironment::class, 'id_store');}
     public function prices(){return $this->hasMany(ProductPrice::class, 'id_store');}

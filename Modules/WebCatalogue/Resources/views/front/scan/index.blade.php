@@ -127,6 +127,13 @@
     let tfDetecting = false;
     let tfStatusShown = false;
     let lastDetectionSource = 'none';
+    let barcodeDetector = null;
+    let barcodeDetectorReady = false;
+    let barcodeDetecting = false;
+    let lastBarcodeCheck = 0;
+    let detectedIdentifiers = [];
+    let stableIdentifierValue = null;
+    let stableIdentifierSince = null;
     let scanState = 'camera_idle';
     let stableSince = null;
     let lastStableRect = null;
@@ -272,6 +279,77 @@
             script.onerror = reject;
             document.head.appendChild(script);
         });
+    }
+
+    async function setupIdentifierDetector(){
+        barcodeDetectorReady = false;
+        barcodeDetector = null;
+        detectedIdentifiers = [];
+        stableIdentifierValue = null;
+        stableIdentifierSince = null;
+
+        if(!('BarcodeDetector' in window)) return false;
+
+        try{
+            const preferredFormats = ['qr_code','ean_13','ean_8','code_128','code_39','code_93','upc_a','upc_e','itf','pdf417','aztec','data_matrix'];
+            const supported = window.BarcodeDetector.getSupportedFormats
+                ? await window.BarcodeDetector.getSupportedFormats()
+                : preferredFormats;
+            const formats = preferredFormats.filter(format => supported.includes(format));
+            barcodeDetector = new window.BarcodeDetector(formats.length ? {formats} : undefined);
+            barcodeDetectorReady = true;
+            return true;
+        }catch(e){
+            barcodeDetectorReady = false;
+            barcodeDetector = null;
+            return false;
+        }
+    }
+
+    function cleanIdentifierDetections(detections){
+        const unique = new Map();
+        (detections || []).forEach(item => {
+            const rawValue = String(item.rawValue || '').trim();
+            if(!rawValue) return;
+            const format = String(item.format || 'unknown').trim() || 'unknown';
+            unique.set((format + ':' + rawValue).toLowerCase(), {
+                format,
+                rawValue: rawValue.slice(0, 500),
+                source: 'client_barcode_detector'
+            });
+        });
+
+        return Array.from(unique.values()).slice(0, 8);
+    }
+
+    async function detectIdentifiersFromVideo(){
+        if(!barcodeDetectorReady || !barcodeDetector || barcodeDetecting || !stream || video.readyState < 2) return;
+        if(Date.now() - lastBarcodeCheck < 360) return;
+
+        barcodeDetecting = true;
+        lastBarcodeCheck = Date.now();
+        try{
+            const detections = await barcodeDetector.detect(video);
+            const identifiers = cleanIdentifierDetections(detections);
+            if(identifiers.length){
+                detectedIdentifiers = identifiers;
+                const firstValue = identifiers[0].rawValue;
+                if(stableIdentifierValue !== firstValue){
+                    stableIdentifierValue = firstValue;
+                    stableIdentifierSince = Date.now();
+                    setScanState('identifier_detected', 'Identifier detected. Hold still...');
+                }else if(Date.now() - stableIdentifierSince >= 350 && !processingScan && suggestionsBox.hidden !== false && modal.hidden !== false){
+                    runAutoScan();
+                }
+            }else if(stableIdentifierSince && Date.now() - stableIdentifierSince > 1800){
+                stableIdentifierValue = null;
+                stableIdentifierSince = null;
+            }
+        }catch(e){
+            barcodeDetectorReady = false;
+        }finally{
+            barcodeDetecting = false;
+        }
     }
 
     async function ensureTensorFlowDetector(){
@@ -505,6 +583,7 @@
         ensureTensorFlowDetector();
         detectionTimer = window.setInterval(async () => {
             if(!stream || video.readyState < 2) return;
+            detectIdentifiersFromVideo();
             const aiDetected = tfDetector ? await findTensorFlowObjectRect() : null;
             const heuristicDetected = aiDetected ? null : findProminentObjectRect();
             const detected = aiDetected || heuristicDetected;
@@ -801,7 +880,8 @@
                 frame_index:frameIndex,
                 frame_count:frameCount,
                 detection_source:lastDetectionSource,
-                cropped:!!(detectedRect && !detectedRectIsEstimated)
+                cropped:!!(detectedRect && !detectedRectIsEstimated),
+                identifiers:detectedIdentifiers
             })
         });
     }
@@ -836,6 +916,7 @@
             placeholder.style.display = 'none';
             captureBtn.disabled = false;
             await setupTorch();
+            await setupIdentifierDetector();
             clearSuggestions();
             startObjectDetection();
             video.addEventListener('loadedmetadata', () => {

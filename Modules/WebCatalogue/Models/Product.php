@@ -32,6 +32,7 @@ class Product extends Model
     public function store(){return $this->belongsTo(Store::class, 'id_store');}
     public function catalogues(){return $this->belongsToMany(Catalogue::class, 'wc_catalogue_products', 'id_product', 'id_catalogue')->withPivot(['id_store','sort_order','is_featured','status','metadata'])->withTimestamps();}
     public function resources(){return $this->hasMany(Resource::class, 'id_product');}
+    public function identifiers(){return $this->hasMany(ProductIdentifier::class, 'id_product');}
     public function prices(){return $this->hasMany(ProductPrice::class, 'id_product');}
     public function promotions(){return $this->belongsToMany(Promotion::class, 'wc_promotion_products', 'id_product', 'id_promotion')->withPivot(['id_store','custom_badge_label','custom_sale_price','sort_order','status','metadata'])->withTimestamps();}
 

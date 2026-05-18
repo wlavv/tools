@@ -98,6 +98,31 @@ async def markers(
     }
 
 
+@app.post("/recognition/identifiers")
+async def identifiers(
+    image: UploadFile = File(...),
+    authorization: Optional[str] = Header(default=None),
+):
+    require_token(authorization)
+
+    content = await image.read()
+    if len(content) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image too large")
+
+    source = decode_image(content)
+    if source is None:
+        raise HTTPException(status_code=422, detail="Could not decode image")
+
+    detected = extract_identifiers(source)
+    return {
+        "ok": True,
+        "provider": "opencv",
+        "width": int(source.shape[1]),
+        "height": int(source.shape[0]),
+        "identifiers": detected,
+    }
+
+
 @app.post("/recognition/compare-markers")
 async def compare_markers(
     payload: CompareMarkersPayload,
@@ -268,6 +293,151 @@ def draw_debug(image, result):
         cv2.putText(debug, str(index + 1), tuple(point), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
     return debug
+
+
+def extract_identifiers(image):
+    working = resize_max_side(image, 1600)
+    identifiers = []
+    identifiers.extend(detect_qr_codes(working))
+    identifiers.extend(detect_barcodes(working))
+
+    unique = {}
+    for item in identifiers:
+        raw_value = str(item.get("rawValue", "")).strip()
+        if not raw_value:
+            continue
+        fmt = str(item.get("format", "unknown")).strip() or "unknown"
+        unique[(fmt.lower(), raw_value)] = {
+            "format": fmt,
+            "rawValue": raw_value,
+            "source": item.get("source", "opencv"),
+            "points": item.get("points"),
+            "confidence": item.get("confidence"),
+        }
+
+    return list(unique.values())
+
+
+def detect_qr_codes(image):
+    detector = cv2.QRCodeDetector()
+    results = []
+
+    try:
+        ok, decoded_info, points, _ = detector.detectAndDecodeMulti(image)
+        if ok and decoded_info:
+            for index, raw_value in enumerate(decoded_info):
+                raw_value = str(raw_value or "").strip()
+                if not raw_value:
+                    continue
+                item_points = points[index] if points is not None and len(points) > index else None
+                results.append(
+                    {
+                        "format": "qr_code",
+                        "rawValue": raw_value,
+                        "source": "opencv_qrcode_detector",
+                        "points": points_payload(item_points),
+                        "confidence": 1.0,
+                    }
+                )
+    except Exception:
+        pass
+
+    if results:
+        return results
+
+    try:
+        raw_value, points, _ = detector.detectAndDecode(image)
+        raw_value = str(raw_value or "").strip()
+        if raw_value:
+            results.append(
+                {
+                    "format": "qr_code",
+                    "rawValue": raw_value,
+                    "source": "opencv_qrcode_detector",
+                    "points": points_payload(points),
+                    "confidence": 1.0,
+                }
+            )
+    except Exception:
+        pass
+
+    return results
+
+
+def detect_barcodes(image):
+    if not hasattr(cv2, "barcode") or not hasattr(cv2.barcode, "BarcodeDetector"):
+        return []
+
+    detector = cv2.barcode.BarcodeDetector()
+    results = []
+
+    try:
+        detected = detector.detectAndDecode(image)
+    except Exception:
+        return []
+
+    if not isinstance(detected, tuple) or len(detected) < 3:
+        return []
+
+    decoded_info = detected[0]
+    decoded_type = detected[1] if len(detected) > 1 else None
+    points = detected[2] if len(detected) > 2 else None
+
+    if isinstance(decoded_info, str):
+        decoded_values = [decoded_info]
+    else:
+        decoded_values = list(decoded_info or [])
+
+    if isinstance(decoded_type, str):
+        decoded_types = [decoded_type]
+    else:
+        decoded_types = list(decoded_type or [])
+
+    for index, raw_value in enumerate(decoded_values):
+        raw_value = str(raw_value or "").strip()
+        if not raw_value:
+            continue
+        fmt = decoded_types[index] if len(decoded_types) > index and decoded_types[index] else "barcode"
+        item_points = points[index] if points is not None and len(points) > index else points
+        results.append(
+            {
+                "format": normalize_barcode_format(fmt),
+                "rawValue": raw_value,
+                "source": "opencv_barcode_detector",
+                "points": points_payload(item_points),
+                "confidence": 1.0,
+            }
+        )
+
+    return results
+
+
+def normalize_barcode_format(value):
+    value = str(value or "barcode").strip().lower().replace("-", "_")
+    mapping = {
+        "ean_13": "ean_13",
+        "ean13": "ean_13",
+        "ean_8": "ean_8",
+        "ean8": "ean_8",
+        "upc_a": "upc_a",
+        "upca": "upc_a",
+        "upc_e": "upc_e",
+        "upce": "upc_e",
+        "code_128": "code_128",
+        "code128": "code_128",
+        "code_39": "code_39",
+        "code39": "code_39",
+        "qr_code": "qr_code",
+    }
+    return mapping.get(value, value or "barcode")
+
+
+def points_payload(points):
+    if points is None:
+        return None
+
+    array = np.array(points).reshape(-1, 2)
+    return [[int(round(float(point[0]))), int(round(float(point[1])))] for point in array]
 
 
 def extract_orb_markers(image, max_markers: int = 250):

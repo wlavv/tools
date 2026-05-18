@@ -81,6 +81,7 @@ class VisualRecognitionController extends Controller
             'frame_count' => ['nullable', 'integer', 'min:1', 'max:10'],
             'detection_source' => ['nullable', 'string', 'max:60'],
             'cropped' => ['nullable', 'boolean'],
+            'identifiers' => ['nullable', 'array', 'max:8'],
         ]);
 
         $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
@@ -93,6 +94,7 @@ class VisualRecognitionController extends Controller
             'frame_count' => $validated['frame_count'] ?? null,
             'detection_source' => $validated['detection_source'] ?? null,
             'cropped_client_side' => (bool) ($validated['cropped'] ?? false),
+            'identifiers' => $this->cleanDetectedIdentifiers($validated['identifiers'] ?? []),
         ];
 
         if ($request->hasFile('photo')) {
@@ -121,6 +123,7 @@ class VisualRecognitionController extends Controller
             'frame_count' => ['nullable', 'integer', 'min:1', 'max:10'],
             'detection_source' => ['nullable', 'string', 'max:60'],
             'cropped' => ['nullable', 'boolean'],
+            'identifiers' => ['nullable', 'array', 'max:8'],
         ]);
 
         $session = VisualRecognitionSession::where('session_token', $validated['session_token'])
@@ -133,6 +136,7 @@ class VisualRecognitionController extends Controller
             'frame_count' => $validated['frame_count'] ?? null,
             'detection_source' => $validated['detection_source'] ?? null,
             'cropped_client_side' => (bool) ($validated['cropped'] ?? false),
+            'identifiers' => $this->cleanDetectedIdentifiers($validated['identifiers'] ?? []),
         ];
 
         if ($request->hasFile('photo')) {
@@ -359,5 +363,28 @@ class VisualRecognitionController extends Controller
         }
 
         return null;
+    }
+
+    private function cleanDetectedIdentifiers(array $identifiers): array
+    {
+        $clean = [];
+        foreach ($identifiers as $identifier) {
+            if (!is_array($identifier)) {
+                continue;
+            }
+
+            $value = trim((string) ($identifier['rawValue'] ?? $identifier['text'] ?? $identifier['value'] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+
+            $clean[] = [
+                'format' => mb_substr(trim((string) ($identifier['format'] ?? 'unknown')) ?: 'unknown', 0, 60),
+                'rawValue' => mb_substr($value, 0, 500),
+                'source' => mb_substr(trim((string) ($identifier['source'] ?? 'client_barcode_detector')) ?: 'client_barcode_detector', 0, 80),
+            ];
+        }
+
+        return array_slice($clean, 0, 8);
     }
 }
