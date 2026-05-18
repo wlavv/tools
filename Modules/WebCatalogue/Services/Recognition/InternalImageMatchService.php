@@ -75,6 +75,7 @@ class InternalImageMatchService
             }
         }
 
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
         $captureProfiles = [];
         $captureMarkers = [];
         foreach ($captures as $capture) {
@@ -83,6 +84,19 @@ class InternalImageMatchService
             }
 
             $profilePath = $this->normalisedCaptureProfilePath($capture);
+
+            $markers = $this->markersFromPublicPath($profilePath);
+            if ($markers) {
+                $captureMarkers[] = [
+                    'capture' => $capture,
+                    'markers' => $markers,
+                ];
+            }
+
+            if ($markerOnly) {
+                continue;
+            }
+
             $profile = $this->profileFromPublicPath($profilePath);
             if ($profile === null) {
                 continue;
@@ -93,17 +107,22 @@ class InternalImageMatchService
                 'capture' => $capture,
                 'profile' => $profile,
             ];
-
-            $markers = $this->markersFromPublicPath($profilePath);
-            if ($markers) {
-                $captureMarkers[] = [
-                    'capture' => $capture,
-                    'markers' => $markers,
-                ];
-            }
         }
 
-        if (empty($captureProfiles)) {
+        if ($markerOnly && empty($captureMarkers)) {
+            $session->update([
+                'status' => 'match_failed',
+                'metadata' => array_merge($session->metadata ?: [], [
+                    'match_error' => 'Could not extract visual markers from captured images.',
+                    'recognition_algorithm' => $this->algorithmName(),
+                    'marker_scoring_mode' => 'markers_only',
+                ]),
+            ]);
+
+            return $this->emptyResult('Could not extract visual markers from captured images.');
+        }
+
+        if (!$markerOnly && empty($captureProfiles)) {
             $profileFailures = $this->captureProfileFailures($captures);
             $session->update([
                 'status' => 'match_failed',
@@ -130,28 +149,43 @@ class InternalImageMatchService
 
         foreach ($preselected as $candidateResource) {
             $resource = $candidateResource['resource'];
-            $resourceProfile = !empty($candidateResource['fingerprint'])
-                ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
-                : null;
-            if (!$resourceProfile) {
-                continue;
-            }
-
             $scoreSet = null;
             $scoreCapture = null;
 
-            foreach ($captureProfiles as $captureProfile) {
-                $candidateScore = $this->scoreProfiles($captureProfile['profile'], $resourceProfile);
-                $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $resourceProfile), 4);
-                $candidateScore['short_distance'] = $candidateResource['short_distance'] ?? null;
-                $candidateScore['marker_hash_distance'] = $candidateResource['marker_hash_distance'] ?? null;
-                $candidateScore['verification_score'] = $candidateResource['verification_score'] ?? null;
-                $candidateScore['verification_distance'] = $candidateResource['verification_distance'] ?? null;
-                $candidateScore['candidate_sources'] = $candidateResource['candidate_sources'] ?? ['short_hash'];
+            if ($markerOnly) {
+                $scoreSet = [
+                    'final_score' => 0.0,
+                    'retrieval_score' => null,
+                    'short_distance' => $candidateResource['short_distance'] ?? null,
+                    'marker_hash_distance' => $candidateResource['marker_hash_distance'] ?? null,
+                    'verification_score' => null,
+                    'verification_distance' => null,
+                    'candidate_sources' => $candidateResource['candidate_sources'] ?? ['marker_hash'],
+                    'scoring_mode' => 'markers_only',
+                    'visual_score_ignored' => true,
+                ];
+                $scoreCapture = $captureMarkers[0]['capture'] ?? null;
+            } else {
+                $resourceProfile = !empty($candidateResource['fingerprint'])
+                    ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
+                    : null;
+                if (!$resourceProfile) {
+                    continue;
+                }
 
-                if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
-                    $scoreSet = $candidateScore;
-                    $scoreCapture = $captureProfile['capture'];
+                foreach ($captureProfiles as $captureProfile) {
+                    $candidateScore = $this->scoreProfiles($captureProfile['profile'], $resourceProfile);
+                    $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $resourceProfile), 4);
+                    $candidateScore['short_distance'] = $candidateResource['short_distance'] ?? null;
+                    $candidateScore['marker_hash_distance'] = $candidateResource['marker_hash_distance'] ?? null;
+                    $candidateScore['verification_score'] = $candidateResource['verification_score'] ?? null;
+                    $candidateScore['verification_distance'] = $candidateResource['verification_distance'] ?? null;
+                    $candidateScore['candidate_sources'] = $candidateResource['candidate_sources'] ?? ['short_hash'];
+
+                    if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
+                        $scoreSet = $candidateScore;
+                        $scoreCapture = $captureProfile['capture'];
+                    }
                 }
             }
 
@@ -160,7 +194,7 @@ class InternalImageMatchService
             }
 
             $scoreSet['capture_id'] = $scoreCapture?->id;
-            $scoreSet['multi_frame_count'] = count($captureProfiles);
+            $scoreSet['multi_frame_count'] = $markerOnly ? count($captureMarkers) : count($captureProfiles);
             $scoreSet = $this->applyMarkerScore($scoreSet, $captureMarkers, $resource);
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
@@ -452,6 +486,7 @@ class InternalImageMatchService
 
     public function compareSessionWithProduct(VisualRecognitionSession $session, Product $product): array
     {
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
         $capture = $session->captures()
             ->where('capture_type', 'object_photo')
             ->latest()
@@ -462,11 +497,6 @@ class InternalImageMatchService
         }
 
         $profilePath = $this->normalisedCaptureProfilePath($capture);
-        $captureProfile = $this->profileFromPublicPath($profilePath);
-        if (!$captureProfile) {
-            return ['ok' => false, 'message' => 'Could not process captured image.'];
-        }
-        $this->persistCaptureAnalysis($capture, $captureProfile, $profilePath);
         $captureMarkers = [];
         $markers = $this->markersFromPublicPath($profilePath);
         if ($markers) {
@@ -474,6 +504,19 @@ class InternalImageMatchService
                 'capture' => $capture,
                 'markers' => $markers,
             ];
+        }
+
+        if ($markerOnly && empty($captureMarkers)) {
+            return ['ok' => false, 'message' => 'Could not extract visual markers from captured image.'];
+        }
+
+        $captureProfile = null;
+        if (!$markerOnly) {
+            $captureProfile = $this->profileFromPublicPath($profilePath);
+            if (!$captureProfile) {
+                return ['ok' => false, 'message' => 'Could not process captured image.'];
+            }
+            $this->persistCaptureAnalysis($capture, $captureProfile, $profilePath);
         }
 
         $resources = Resource::query()
@@ -488,13 +531,23 @@ class InternalImageMatchService
         $best = null;
 
         foreach ($resources as $resource) {
-            $resourceProfile = $this->fingerprintForResource($resource);
-            if (!$resourceProfile) {
-                continue;
-            }
+            if ($markerOnly) {
+                $scores = [
+                    'final_score' => 0.0,
+                    'retrieval_score' => null,
+                    'scoring_mode' => 'markers_only',
+                    'visual_score_ignored' => true,
+                    'candidate_sources' => ['forced_product_compare'],
+                ];
+            } else {
+                $resourceProfile = $this->fingerprintForResource($resource);
+                if (!$resourceProfile) {
+                    continue;
+                }
 
-            $scores = $this->scoreProfiles($captureProfile, $resourceProfile);
-            $scores['retrieval_score'] = $this->retrievalScore($captureProfile, $resourceProfile);
+                $scores = $this->scoreProfiles($captureProfile, $resourceProfile);
+                $scores['retrieval_score'] = $this->retrievalScore($captureProfile, $resourceProfile);
+            }
             $scores = $this->applyMarkerScore($scores, $captureMarkers, $resource);
 
             if ($best === null || $scores['final_score'] > $best['score']) {

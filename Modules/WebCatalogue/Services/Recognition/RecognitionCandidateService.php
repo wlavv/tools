@@ -16,21 +16,24 @@ class RecognitionCandidateService
         $candidateCount = count($candidateResources);
         $preselected = [];
         $resourcesById = $this->resourcesById($candidateResources);
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
         $captureShortHashes = array_values(array_filter(array_map(
             fn ($captureProfile) => $this->shortProfileHash($captureProfile['profile'] ?? []),
             $captureProfiles
         )));
         $captureShortPrefixes = $this->shortHashPrefixes($captureShortHashes);
         $captureAspectBuckets = $this->aspectBucketsFromProfiles($captureProfiles);
-        $retrievalSource = 'resource_fingerprints_bucketed';
-        $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById, $captureShortPrefixes, $captureAspectBuckets);
+        $retrievalSource = $markerOnly ? 'marker_hash_only' : 'resource_fingerprints_bucketed';
+        $fingerprintsByResource = $markerOnly
+            ? collect()
+            : $this->existingFingerprintsForResources($resourcesById, $captureShortPrefixes, $captureAspectBuckets);
 
-        if ($fingerprintsByResource->isEmpty() && (!empty($captureShortPrefixes) || !empty($captureAspectBuckets))) {
+        if (!$markerOnly && $fingerprintsByResource->isEmpty() && (!empty($captureShortPrefixes) || !empty($captureAspectBuckets))) {
             $retrievalSource = 'resource_fingerprints_aspect_fallback';
             $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById, [], $captureAspectBuckets);
         }
 
-        if ($fingerprintsByResource->isEmpty()) {
+        if (!$markerOnly && $fingerprintsByResource->isEmpty()) {
             $retrievalSource = 'resource_fingerprints_full_fallback';
             $fingerprintsByResource = $this->existingFingerprintsForResources($resourcesById);
         }
@@ -51,7 +54,9 @@ class RecognitionCandidateService
         $fingerprintedCount = count($preselected);
         $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
         $beforeVerificationPool = count($preselected);
-        $preselected = $this->mergeVerificationPool($preselected, $resourcesById, $captureProfiles, $captureShortHashes);
+        $preselected = $markerOnly
+            ? $preselected
+            : $this->mergeVerificationPool($preselected, $resourcesById, $captureProfiles, $captureShortHashes);
         $verificationAdded = max(0, count($preselected) - $beforeVerificationPool);
 
         $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
@@ -75,8 +80,9 @@ class RecognitionCandidateService
                 'fingerprinted_candidates' => $fingerprintedCount,
                 'marker_augmented_candidates' => count($preselected),
                 'verification_pool_added_candidates' => $verificationAdded,
-                'verification_pool_enabled' => (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
+                'verification_pool_enabled' => !$markerOnly && (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
                 'verification_pool_size' => $verificationPoolSize,
+                'marker_scoring_mode' => $this->markerScoringMode(),
                 'missing_fingerprint_candidates' => max(0, $candidateCount - $fingerprintedCount),
                 'scored_candidates' => count($limited),
                 'short_hash_top_candidates' => $shortHashLimit,
@@ -197,6 +203,7 @@ class RecognitionCandidateService
             ->get()
             ->keyBy('id');
         $missingFingerprints = $this->existingFingerprintsForResources($missingResources->all());
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
 
         foreach ($markerCandidates as $resourceId => $distance) {
             if (isset($byResource[$resourceId])) {
@@ -213,7 +220,7 @@ class RecognitionCandidateService
             }
 
             $fingerprint = $missingFingerprints->get($resource->id);
-            if (!$fingerprint) {
+            if (!$fingerprint && !$markerOnly) {
                 continue;
             }
 
@@ -474,6 +481,13 @@ class RecognitionCandidateService
         }
 
         return md5($path . '|' . Storage::disk('public')->size($path) . '|' . Storage::disk('public')->lastModified($path));
+    }
+
+    private function markerScoringMode(): string
+    {
+        $mode = strtolower(trim((string) config('webcatalogue.recognition.visual_markers.scoring_mode', 'boost')));
+
+        return in_array($mode, ['markers_only', 'marker_only', 'only'], true) ? 'markers_only' : 'boost';
     }
 
     private function algorithmName(): string
