@@ -28,7 +28,7 @@ class NacexTrackingClient extends AbstractHttpCarrierClient
             'ref' => $request->orderReference,
         ]);
 
-        $response = $this->http($credentials)->get($this->endpoint($credentials, $path), $params);
+        $response = $this->http($credentials)->get($this->trackingEndpoint($credentials, $path), $params);
         $response->throw();
 
         $payload = $this->decodePayload($response->body(), $response->json());
@@ -74,5 +74,22 @@ class NacexTrackingClient extends AbstractHttpCarrierClient
 
         $lines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n|\|/', $body))));
         return ['status' => $lines[0] ?? 'unknown', 'raw_lines' => $lines, 'raw_body' => $body];
+    }
+
+    private function trackingEndpoint(CarrierCredentials $credentials, ?string $path): string
+    {
+        $baseUrl = rtrim((string) $credentials->baseUrl, '/');
+
+        if (in_array(parse_url($baseUrl, PHP_URL_HOST), ['api.nacex.com', 'www.api.nacex.com'], true)) {
+            $baseUrl = 'https://pda.nacex.com/nacex_ws';
+        }
+
+        if (str_ends_with($baseUrl, '/nacex_ws') && trim((string) $path, '/') === 'ws') {
+            return $baseUrl;
+        }
+
+        $path = ltrim((string) $path, '/');
+
+        return $path === '' ? $baseUrl : $baseUrl . '/' . $path;
     }
 }

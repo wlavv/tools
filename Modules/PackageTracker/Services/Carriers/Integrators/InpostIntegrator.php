@@ -37,6 +37,8 @@ class InpostIntegrator extends AbstractCarrierIntegrator
         return [
             'country' => env('PACKAGE_TRACKER_INPOST_COUNTRY', env('PACKAGE_TRACKER_DEFAULT_DESTINATION_COUNTRY', 'PT')),
             'language' => env('PACKAGE_TRACKER_INPOST_LANGUAGE', env('APP_LOCALE', 'pt')),
+            'requires_postal_code' => env('PACKAGE_TRACKER_INPOST_REQUIRES_POSTAL_CODE', true),
+            'postal_code_param' => env('PACKAGE_TRACKER_INPOST_POSTAL_CODE_PARAM', 'postalCode'),
         ];
     }
 

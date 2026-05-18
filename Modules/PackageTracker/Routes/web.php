@@ -24,7 +24,7 @@ Route::middleware(config('package_tracker.middleware'))
         Route::get('/', DashboardController::class)->name('dashboard');
 
         Route::post('/shipments/{shipment}/sync', [ShipmentController::class, 'sync'])->name('shipments.sync');
-        Route::resource('/shipments', ShipmentController::class)->only(['index', 'create', 'store', 'show']);
+        Route::resource('/shipments', ShipmentController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
 
         Route::resource('/clients', ClientController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
         Route::resource('/carriers', CarrierController::class)->except(['show', 'destroy']);

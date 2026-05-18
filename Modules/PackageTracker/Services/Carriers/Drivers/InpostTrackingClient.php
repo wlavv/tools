@@ -2,6 +2,7 @@
 
 namespace Modules\PackageTracker\Services\Carriers\Drivers;
 
+use InvalidArgumentException;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Models\Shipment;
 use Modules\PackageTracker\Services\Carriers\CarrierTrackingResponse;
@@ -14,13 +15,22 @@ class InpostTrackingClient extends AbstractHttpCarrierClient
 {
     protected function track(CarrierCredentials $credentials, TrackingRequest $request, Carrier $carrier, Shipment $shipment): CarrierTrackingResponse
     {
+        if ($credentials->setting('requires_postal_code', true) && ! $request->postalCode) {
+            throw new InvalidArgumentException('InPost tracking requires destination postal code. Configure destination_postal_code on the shipment metadata.');
+        }
+
+        $query = array_filter([
+            $credentials->setting('postal_code_param', 'postalCode') => $request->postalCode,
+            'country' => $credentials->setting('country', $request->destinationCountry),
+        ]);
+
         $response = $this->http($credentials)
             ->withHeaders(array_filter([
                 'Authorization' => $credentials->apiKey ? 'Bearer ' . $credentials->apiKey : null,
                 'Accept-Language' => $credentials->setting('language', $request->language),
                 'X-Country-Code' => $credentials->setting('country', $request->destinationCountry),
             ]))
-            ->get($this->endpoint($credentials, 'v1/tracking/' . rawurlencode($request->trackingNumber)));
+            ->get($this->endpoint($credentials, 'v1/tracking/' . rawurlencode($request->trackingNumber)), $query);
 
         if ($response->status() === 404) {
             $payload = $response->json() ?? ['raw_body' => $response->body()];

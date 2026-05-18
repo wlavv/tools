@@ -32,13 +32,13 @@ class CarrierController extends Controller
 
     public function update(Request $request, Carrier $carrier)
     {
-        $carrier->update($this->validated($request, $carrier));
+        $carrier->update($this->validated($request, $carrier, true));
         return redirect()->route('package_tracker.carriers.index')->with('success', 'Carrier updated successfully.');
     }
 
-    private function validated(Request $request, ?Carrier $carrier = null): array
+    private function validated(Request $request, ?Carrier $carrier = null, bool $isUpdate = false): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'code' => ['required', 'string', 'max:80', 'unique:package_tracker_carriers,code' . ($carrier?->id ? ',' . $carrier->id : '')],
             'name' => ['required', 'string', 'max:255'],
             'driver' => ['nullable', 'string', 'max:255'],
@@ -51,5 +51,15 @@ class CarrierController extends Controller
             'is_active' => $request->boolean('is_active'),
             'supports_webhooks' => $request->boolean('supports_webhooks'),
         ];
+
+        if ($isUpdate) {
+            foreach (['api_key', 'api_secret'] as $credentialField) {
+                if (($data[$credentialField] ?? '') === '') {
+                    unset($data[$credentialField]);
+                }
+            }
+        }
+
+        return $data;
     }
 }

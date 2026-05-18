@@ -19,6 +19,10 @@ class DpdTrackingClient extends AbstractHttpCarrierClient
             throw new InvalidArgumentException('DPD API base URL missing. Configure api_base_url on the DPD carrier or PACKAGE_TRACKER_DPD_BASE_URL.');
         }
 
+        if (in_array(parse_url((string) $credentials->baseUrl, PHP_URL_HOST), ['api-test.dpd.com', 'www.api-test.dpd.com'], true)) {
+            throw new InvalidArgumentException('DPD API base URL is invalid: api-test.dpd.com does not resolve. Configure the official DPD endpoint for the contracted account/country.');
+        }
+
         $path = $credentials->setting('tracking_path', 'tracking');
         $method = strtoupper((string) $credentials->setting('method', 'GET'));
         $trackingParam = $credentials->setting('tracking_param', 'trackingNumber');

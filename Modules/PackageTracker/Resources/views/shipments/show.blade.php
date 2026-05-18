@@ -16,6 +16,8 @@
                     <dt class="col-5">Order</dt><dd class="col-7">{{ $shipment->order_reference ?: '-' }}</dd>
                     <dt class="col-5">Store</dt><dd class="col-7">{{ $shipment->store_code ?: '-' }}</dd>
                     <dt class="col-5">Customer</dt><dd class="col-7">{{ $shipment->customer_email ?: '-' }}</dd>
+                    <dt class="col-5">Country</dt><dd class="col-7">{{ $shipment->destination_country ?: '-' }}</dd>
+                    <dt class="col-5">Postal code</dt><dd class="col-7">{{ data_get($shipment->metadata, 'destination_postal_code') ?: '-' }}</dd>
                     <dt class="col-5">Location</dt><dd class="col-7">{{ $shipment->last_location ?: '-' }}</dd>
                     <dt class="col-5">ETA</dt><dd class="col-7">{{ optional($shipment->estimated_delivery_at)->format('Y-m-d H:i') ?: '-' }}</dd>
                     <dt class="col-5">SLA</dt><dd class="col-7">{{ optional($shipment->sla_due_at)->format('Y-m-d H:i') ?: '-' }}</dd>
