@@ -138,6 +138,9 @@
                             </div>
                             <p class="wc-muted">Score: <strong>{{ number_format((float) $match->score, 2) }}%</strong> - Provider: {{ $match->match_provider }}</p>
                             @php($scores = $match->metadata['scores'] ?? [])
+                            @if(!empty($scores['visual_score_ignored']))
+                                <p><span class="wc-badge">Marker-only mode: visual score ignored</span></p>
+                            @endif
                             @if(!empty($scores))
                                 <div class="wc-score-breakdown">
                                     <span><strong>Embedding</strong> {{ number_format((float) ($scores['embedding_score'] ?? 0), 2) }}%</span>

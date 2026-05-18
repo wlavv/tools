@@ -72,6 +72,7 @@ return [
             'max_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX', 250),
             'min_markers' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN', 40),
             'score_weight' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORE_WEIGHT', 0.35),
+            'scoring_mode' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORING_MODE', 'boost'),
             'min_score_for_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN_SCORE_FOR_BOOST', 8),
             'candidate_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_TOP', 30),
             'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 60),

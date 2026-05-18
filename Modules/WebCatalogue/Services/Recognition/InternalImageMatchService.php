@@ -1836,8 +1836,17 @@ class InternalImageMatchService
 
     private function applyMarkerScore(array $scoreSet, array $captureMarkers, Resource $resource): array
     {
+        $markerOnly = $this->markerScoringMode() === 'markers_only';
+
         if (!(bool) config('webcatalogue.recognition.visual_markers.enabled', true) || empty($captureMarkers)) {
             $scoreSet['marker_applied'] = false;
+            if ($markerOnly) {
+                $scoreSet['final_score_before_markers'] = round((float) ($scoreSet['final_score'] ?? 0), 4);
+                $scoreSet['final_score'] = 0.0;
+                $scoreSet['marker_status'] = empty($captureMarkers) ? 'missing_capture_markers' : 'markers_disabled';
+                $scoreSet['scoring_mode'] = 'markers_only';
+                $scoreSet['visual_score_ignored'] = true;
+            }
             return $scoreSet;
         }
 
@@ -1850,6 +1859,12 @@ class InternalImageMatchService
         if (!$resourceMarkers || empty($resourceMarkers->descriptors_json)) {
             $scoreSet['marker_applied'] = false;
             $scoreSet['marker_status'] = 'missing_resource_markers';
+            if ($markerOnly) {
+                $scoreSet['final_score_before_markers'] = round((float) ($scoreSet['final_score'] ?? 0), 4);
+                $scoreSet['final_score'] = 0.0;
+                $scoreSet['scoring_mode'] = 'markers_only';
+                $scoreSet['visual_score_ignored'] = true;
+            }
             return $scoreSet;
         }
 
@@ -1876,6 +1891,12 @@ class InternalImageMatchService
         if (!$best) {
             $scoreSet['marker_applied'] = false;
             $scoreSet['marker_status'] = 'comparison_failed';
+            if ($markerOnly) {
+                $scoreSet['final_score_before_markers'] = round((float) ($scoreSet['final_score'] ?? 0), 4);
+                $scoreSet['final_score'] = 0.0;
+                $scoreSet['scoring_mode'] = 'markers_only';
+                $scoreSet['visual_score_ignored'] = true;
+            }
             return $scoreSet;
         }
 
@@ -1894,12 +1915,15 @@ class InternalImageMatchService
         $markerConfidence = min(100, ($markerScore * 1.65) + ($goodMatches * 0.38));
         $strongMarkerQualified = $markerScore >= $strongMinScore && $goodMatches >= $strongMinGoodMatches;
         $strongMarkerScore = $strongMarkerQualified ? $markerConfidence : 0.0;
-        $finalScore = min(100, max($baseScore + $relativeBoost, $strongMarkerScore));
+        $finalScore = $markerOnly
+            ? $markerConfidence
+            : min(100, max($baseScore + $relativeBoost, $strongMarkerScore));
 
         $scoreSet['final_score_before_markers'] = round($baseScore, 4);
         $scoreSet['marker_score'] = round($markerScore, 4);
-        $scoreSet['marker_boost'] = round(max(0, $finalScore - $baseScore), 4);
+        $scoreSet['marker_boost'] = $markerOnly ? 0.0 : round(max(0, $finalScore - $baseScore), 4);
         $scoreSet['marker_weight'] = round($weight, 4);
+        $scoreSet['marker_scoring_mode'] = $this->markerScoringMode();
         $scoreSet['marker_min_score_for_boost'] = round($minScore, 4);
         $scoreSet['marker_boost_per_good_match'] = round($boostPerGoodMatch, 4);
         $scoreSet['marker_max_boost'] = round($maxBoost, 4);
@@ -1908,13 +1932,17 @@ class InternalImageMatchService
         $scoreSet['marker_strong_min_good_matches'] = $strongMinGoodMatches;
         $scoreSet['marker_strong_qualified'] = $strongMarkerQualified;
         $scoreSet['marker_strong_applied'] = $strongMarkerQualified && $markerConfidence >= $baseScore + $relativeBoost;
-        $scoreSet['marker_applied'] = $finalScore > $baseScore;
-        $scoreSet['marker_status'] = $strongMarkerQualified ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score');
+        $scoreSet['marker_applied'] = $markerOnly ? $markerScore > 0 : $finalScore > $baseScore;
+        $scoreSet['marker_status'] = $markerOnly ? 'markers_only' : ($strongMarkerQualified ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score'));
         $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
         $scoreSet['marker_good_matches'] = $goodMatches;
         $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
         $scoreSet['marker_capture_id'] = $best['capture_id'] ?? null;
         $scoreSet['marker_resource_marker_id'] = $resourceMarkers->id;
+        if ($markerOnly) {
+            $scoreSet['visual_score_ignored'] = true;
+            $scoreSet['scoring_mode'] = 'markers_only';
+        }
         $scoreSet['final_score'] = round($finalScore, 4);
 
         return $scoreSet;
@@ -1922,6 +1950,10 @@ class InternalImageMatchService
 
     private function applyCaptureScoreBoost(array $scoreSet, ?VisualRecognitionCapture $capture): array
     {
+        if (($scoreSet['scoring_mode'] ?? null) === 'markers_only' || $this->markerScoringMode() === 'markers_only') {
+            return $scoreSet;
+        }
+
         if (!$capture || empty($capture->metadata['opencv_analysis']['ok'])) {
             return $scoreSet;
         }
@@ -1937,6 +1969,13 @@ class InternalImageMatchService
         $scoreSet['final_score'] = round(min(100, $before + $boost), 4);
 
         return $scoreSet;
+    }
+
+    private function markerScoringMode(): string
+    {
+        $mode = strtolower(trim((string) config('webcatalogue.recognition.visual_markers.scoring_mode', 'boost')));
+
+        return in_array($mode, ['markers_only', 'marker_only', 'only'], true) ? 'markers_only' : 'boost';
     }
 
     private function scoreSingleProfiles(array $a, array $b): array
