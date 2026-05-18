@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Modules\PackageTracker\Enums\TrackingStatus;
+use Modules\PackageTracker\Support\JsonSanitizer;
 
 class Shipment extends Model
 {
@@ -84,5 +85,10 @@ class Shipment extends Model
         }
 
         return route('package_tracker.public.show', $this->public_token);
+    }
+
+    public function setMetadataAttribute(mixed $value): void
+    {
+        $this->attributes['metadata'] = JsonSanitizer::encode($value);
     }
 }

@@ -8,6 +8,7 @@ use Modules\PackageTracker\Services\Carriers\Integrators\DpdIntegrator;
 use Modules\PackageTracker\Services\Carriers\Integrators\InpostIntegrator;
 use Modules\PackageTracker\Services\Carriers\Integrators\MondialRelayIntegrator;
 use Modules\PackageTracker\Services\Carriers\Integrators\NacexIntegrator;
+use Modules\PackageTracker\Services\Carriers\Integrators\TrackingMoreDpdIntegrator;
 use Modules\PackageTracker\Services\Carriers\Integrators\UpsIntegrator;
 use Modules\PackageTracker\Services\Carriers\ManualCarrierClient;
 use Modules\PackageTracker\Services\Carriers\MockCarrierClient;
@@ -81,6 +82,7 @@ class PackageTrackerCarrierSeeder extends Seeder
         return [
             new UpsIntegrator(),
             new DpdIntegrator(),
+            new TrackingMoreDpdIntegrator(),
             new NacexIntegrator(),
             new InpostIntegrator(),
             new MondialRelayIntegrator(),

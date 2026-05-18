@@ -64,13 +64,16 @@ class UpsTrackingClient extends AbstractHttpCarrierClient
 
     private function resolveAccessToken(CarrierCredentials $credentials): string
     {
-        if ($credentials->apiKey && $credentials->apiSecret) {
-            $cacheKey = 'package_tracker:ups:access_token:' . sha1($credentials->apiKey . '|' . $credentials->baseUrl);
+        $clientId = $credentials->apiKey ?: $credentials->setting('client_id');
+        $clientSecret = $credentials->apiSecret ?: $credentials->setting('client_secret');
 
-            return Cache::remember($cacheKey, now()->addMinutes(50), function () use ($credentials) {
+        if ($clientId && $clientSecret) {
+            $cacheKey = 'package_tracker:ups:access_token:' . sha1($clientId . '|' . $credentials->baseUrl);
+
+            return Cache::remember($cacheKey, now()->addMinutes(50), function () use ($credentials, $clientId, $clientSecret) {
                 $response = $this->http($credentials)
                     ->asForm()
-                    ->withBasicAuth($credentials->apiKey, $credentials->apiSecret)
+                    ->withBasicAuth($clientId, $clientSecret)
                     ->post($this->endpoint($credentials, 'security/v1/oauth/token'), ['grant_type' => 'client_credentials']);
 
                 $response->throw();
@@ -89,6 +92,6 @@ class UpsTrackingClient extends AbstractHttpCarrierClient
             return $token;
         }
 
-        throw new InvalidArgumentException('UPS credentials missing. Configure client_id/client_secret or a valid access_token.');
+        throw new InvalidArgumentException('UPS credentials missing. Configure UPS Client ID/API Key and UPS Client Secret/API Secret on the carrier, or provide settings.client_id/settings.client_secret.');
     }
 }

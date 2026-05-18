@@ -5,6 +5,7 @@ namespace Modules\PackageTracker\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\PackageTracker\Support\JsonSanitizer;
 
 class TrackingEvent extends Model
 {
@@ -30,5 +31,10 @@ class TrackingEvent extends Model
     public function carrier(): BelongsTo
     {
         return $this->belongsTo(Carrier::class, 'carrier_id');
+    }
+
+    public function setRawPayloadAttribute(mixed $value): void
+    {
+        $this->attributes['raw_payload'] = JsonSanitizer::encode($value);
     }
 }

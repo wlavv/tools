@@ -3,6 +3,7 @@
 namespace Modules\PackageTracker\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\PackageTracker\Support\JsonSanitizer;
 
 class CarrierSuggestion extends Model
 {
@@ -18,4 +19,9 @@ class CarrierSuggestion extends Model
         'raw_payload' => 'array',
         'resolved_at' => 'datetime',
     ];
+
+    public function setRawPayloadAttribute(mixed $value): void
+    {
+        $this->attributes['raw_payload'] = JsonSanitizer::encode($value);
+    }
 }

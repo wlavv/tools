@@ -74,12 +74,31 @@ return [
         'dpd' => [
             'label' => 'DPD',
             'driver' => Modules\PackageTracker\Services\Carriers\Drivers\DpdTrackingClient::class,
-            'base_url' => env('PACKAGE_TRACKER_DPD_BASE_URL'),
+            'base_url' => env('PACKAGE_TRACKER_DPD_BASE_URL', match (strtoupper((string) env('PACKAGE_TRACKER_DPD_COUNTRY'))) {
+                'LT' => 'https://esiunta.dpd.lt/api/v1',
+                'LV' => 'https://eserviss.dpd.lv/api/v1',
+                'EE' => 'https://telli.dpd.ee/api/v1',
+                default => null,
+            }),
             'api_key' => env('PACKAGE_TRACKER_DPD_API_KEY'),
             'settings' => [
-                'tracking_path' => env('PACKAGE_TRACKER_DPD_TRACKING_PATH', 'tracking'),
-                'tracking_param' => env('PACKAGE_TRACKER_DPD_TRACKING_PARAM', 'trackingNumber'),
+                'api_type' => env('PACKAGE_TRACKER_DPD_API_TYPE', 'status_tracking'),
+                'country' => env('PACKAGE_TRACKER_DPD_COUNTRY'),
+                'tracking_path' => env('PACKAGE_TRACKER_DPD_TRACKING_PATH', 'status/tracking'),
+                'tracking_param' => env('PACKAGE_TRACKER_DPD_TRACKING_PARAM', 'pknr'),
                 'method' => env('PACKAGE_TRACKER_DPD_METHOD', 'GET'),
+                'detail' => env('PACKAGE_TRACKER_DPD_DETAIL', '3'),
+                'show_all' => env('PACKAGE_TRACKER_DPD_SHOW_ALL', '1'),
+                'lang' => env('PACKAGE_TRACKER_DPD_LANG', 'en'),
+            ],
+        ],
+        'trackingmore_dpd' => [
+            'label' => 'TrackingMore DPD',
+            'driver' => Modules\PackageTracker\Services\Carriers\Drivers\TrackingMoreClient::class,
+            'base_url' => env('PACKAGE_TRACKER_TRACKINGMORE_BASE_URL', 'https://api.trackingmore.com'),
+            'api_key' => env('PACKAGE_TRACKER_TRACKINGMORE_API_KEY'),
+            'settings' => [
+                'courier_code' => env('PACKAGE_TRACKER_TRACKINGMORE_DPD_COURIER_CODE', 'dpd'),
             ],
         ],
         'dhl' => [
