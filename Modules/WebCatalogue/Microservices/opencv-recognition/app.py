@@ -84,6 +84,7 @@ async def normalize(
 async def markers(
     image: UploadFile = File(...),
     max_markers: int = Form(250),
+    preprocess: str = Form("clahe"),
     authorization: Optional[str] = Header(default=None),
 ):
     require_token(authorization)
@@ -96,11 +97,12 @@ async def markers(
     if source is None:
         raise HTTPException(status_code=422, detail="Could not decode image")
 
-    marker_set = extract_orb_markers(source, max_markers=max_markers)
+    marker_set = extract_orb_markers(source, max_markers=max_markers, preprocess=preprocess)
     return {
         "ok": True,
         "algorithm": "orb_v1",
         "descriptor_type": "ORB",
+        "preprocess": marker_set.get("preprocess", normalize_marker_preprocess(preprocess)),
         "width": int(source.shape[1]),
         "height": int(source.shape[0]),
         **marker_set,
@@ -464,11 +466,11 @@ def points_payload(points):
     return [[int(round(float(point[0]))), int(round(float(point[1])))] for point in array]
 
 
-def extract_orb_markers(image, max_markers: int = 250):
+def extract_orb_markers(image, max_markers: int = 250, preprocess: str = "clahe"):
     max_markers = max(20, min(1000, int(max_markers or 250)))
+    preprocess = normalize_marker_preprocess(preprocess)
     normalized = resize_max_side(image, 1200)
-    gray = cv2.cvtColor(normalized, cv2.COLOR_BGR2GRAY)
-    gray = cv2.equalizeHist(gray)
+    gray = preprocess_marker_image(normalized, preprocess)
     orb = cv2.ORB_create(nfeatures=max_markers, scaleFactor=1.2, nlevels=8, edgeThreshold=16, patchSize=31)
     keypoints, descriptors = orb.detectAndCompute(gray, None)
 
@@ -476,6 +478,7 @@ def extract_orb_markers(image, max_markers: int = 250):
         return {
             "marker_count": 0,
             "marker_hash": None,
+            "preprocess": preprocess,
             "keypoints": [],
             "descriptors": [],
         }
@@ -504,9 +507,35 @@ def extract_orb_markers(image, max_markers: int = 250):
     return {
         "marker_count": len(descriptors_payload),
         "marker_hash": marker_hash(descriptors_payload),
+        "preprocess": preprocess,
         "keypoints": keypoints_payload,
         "descriptors": descriptors_payload,
     }
+
+
+def normalize_marker_preprocess(value):
+    value = str(value or "clahe").strip().lower().replace("-", "_")
+    if value in {"gray", "none", "raw"}:
+        return "gray"
+    if value in {"equalize", "equalize_hist", "hist"}:
+        return "equalize"
+    if value in {"blur", "gaussian", "gaussian_blur"}:
+        return "blur"
+    return "clahe"
+
+
+def preprocess_marker_image(image, mode: str):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    if mode == "gray":
+        return gray
+    if mode == "equalize":
+        return cv2.equalizeHist(gray)
+    if mode == "blur":
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+        return cv2.equalizeHist(blurred)
+
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    return clahe.apply(gray)
 
 
 def marker_hash(descriptors):

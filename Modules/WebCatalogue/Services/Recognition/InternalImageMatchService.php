@@ -1225,7 +1225,8 @@ class InternalImageMatchService
 
         $markers = $this->openCv->extractMarkers(
             $path,
-            (int) config('webcatalogue.recognition.visual_markers.max_markers', 250)
+            (int) config('webcatalogue.recognition.visual_markers.max_markers', 250),
+            (string) config('webcatalogue.recognition.visual_markers.preprocess', 'clahe')
         );
 
         if (!$markers || empty($markers['descriptors'])) {
@@ -1244,6 +1245,7 @@ class InternalImageMatchService
             'height' => $markers['height'] ?? null,
             'marker_count' => (int) ($markers['marker_count'] ?? count($markers['descriptors'] ?? [])),
             'marker_hash' => $markers['marker_hash'] ?? null,
+            'preprocess' => $markers['preprocess'] ?? config('webcatalogue.recognition.visual_markers.preprocess', 'clahe'),
         ];
     }
 

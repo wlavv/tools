@@ -56,7 +56,8 @@ class VisualMarkerService
 
         $payload = $this->client->extractMarkers(
             $resource->file_path,
-            (int) config('webcatalogue.recognition.visual_markers.max_markers', 250)
+            (int) config('webcatalogue.recognition.visual_markers.max_markers', 250),
+            (string) config('webcatalogue.recognition.visual_markers.preprocess', 'clahe')
         );
 
         if (!$payload || empty($payload['descriptors'])) {
@@ -76,6 +77,7 @@ class VisualMarkerService
             'metadata' => [
                 'provider' => 'opencv_microservice',
                 'descriptor_type' => $payload['descriptor_type'] ?? 'ORB',
+                'preprocess' => $payload['preprocess'] ?? config('webcatalogue.recognition.visual_markers.preprocess', 'clahe'),
                 'generated_at' => now()->toIso8601String(),
                 'force_rebuild' => $force,
             ],

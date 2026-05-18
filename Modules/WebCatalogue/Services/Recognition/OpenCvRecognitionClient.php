@@ -93,7 +93,7 @@ class OpenCvRecognitionClient
         }
     }
 
-    public function extractMarkers(string $publicPath, int $maxMarkers = 250): ?array
+    public function extractMarkers(string $publicPath, int $maxMarkers = 250, ?string $preprocess = null): ?array
     {
         if (!$this->enabled() || !Storage::disk('public')->exists($publicPath)) {
             return null;
@@ -114,6 +114,7 @@ class OpenCvRecognitionClient
                 ->attach('image', fopen($path, 'rb'), basename($path))
                 ->post($baseUrl . '/recognition/markers', [
                     'max_markers' => (string) max(20, min(1000, $maxMarkers)),
+                    'preprocess' => $preprocess ?: (string) config('webcatalogue.recognition.visual_markers.preprocess', 'clahe'),
                 ]);
 
             if (!$response->ok()) {
