@@ -5,6 +5,7 @@ namespace Modules\WebCatalogue\Services\Recognition;
 use Illuminate\Support\Facades\Storage;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\ResourceFingerprint;
+use Modules\WebCatalogue\Models\ResourceFingerprintProfile;
 use Modules\WebCatalogue\Models\ResourceVisualMarker;
 use Modules\WebCatalogue\Models\Store;
 
@@ -49,14 +50,18 @@ class RecognitionCandidateService
 
         $fingerprintedCount = count($preselected);
         $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
+        $beforeVerificationPool = count($preselected);
+        $preselected = $this->mergeVerificationPool($preselected, $resourcesById, $captureProfiles, $captureShortHashes);
+        $verificationAdded = max(0, count($preselected) - $beforeVerificationPool);
 
         $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
         $markerCandidateTop = (int) config('webcatalogue.recognition.visual_markers.candidate_top', 30);
-        $limit = max($shortHashLimit, $markerCandidateTop);
+        $verificationPoolSize = (int) config('webcatalogue.recognition.verification_pool.size', 120);
+        $limit = max($shortHashLimit, $markerCandidateTop, $verificationPoolSize);
 
         usort($preselected, function ($a, $b) {
-            $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999));
-            $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999));
+            $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999), (float) ($a['verification_distance'] ?? 999));
+            $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999), (float) ($b['verification_distance'] ?? 999));
 
             return $aRank <=> $bRank;
         });
@@ -69,6 +74,9 @@ class RecognitionCandidateService
                 'candidate_resources' => $candidateCount,
                 'fingerprinted_candidates' => $fingerprintedCount,
                 'marker_augmented_candidates' => count($preselected),
+                'verification_pool_added_candidates' => $verificationAdded,
+                'verification_pool_enabled' => (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
+                'verification_pool_size' => $verificationPoolSize,
                 'missing_fingerprint_candidates' => max(0, $candidateCount - $fingerprintedCount),
                 'scored_candidates' => count($limited),
                 'short_hash_top_candidates' => $shortHashLimit,
@@ -219,6 +227,137 @@ class RecognitionCandidateService
         }
 
         return array_values($byResource);
+    }
+
+    private function mergeVerificationPool(array $preselected, array $resourcesById, array $captureProfiles, array $captureShortHashes): array
+    {
+        if (!(bool) config('webcatalogue.recognition.verification_pool.enabled', true) || empty($resourcesById) || empty($captureProfiles)) {
+            return $preselected;
+        }
+
+        $poolSize = max(0, (int) config('webcatalogue.recognition.verification_pool.size', 120));
+        if ($poolSize <= 0) {
+            return $preselected;
+        }
+
+        $byResource = [];
+        foreach ($preselected as $candidate) {
+            $resourceId = (int) $candidate['resource']->id;
+            $byResource[$resourceId] = $candidate;
+        }
+
+        $fingerprints = $this->existingFingerprintsForResources($resourcesById);
+        $profilesByFingerprint = ResourceFingerprintProfile::query()
+            ->whereIn('id_fingerprint', $fingerprints->pluck('id')->all())
+            ->get()
+            ->keyBy('id_fingerprint');
+        $ranked = [];
+
+        foreach ($fingerprints as $resourceId => $fingerprint) {
+            $resource = $resourcesById[(int) $resourceId] ?? null;
+            if (!$resource || isset($byResource[(int) $resourceId])) {
+                continue;
+            }
+
+            $profile = $profilesByFingerprint->get($fingerprint->id)?->profile_json;
+            if (!is_array($profile) || empty($profile['variants'])) {
+                $profile = is_array($fingerprint->vector_json) ? $fingerprint->vector_json : [];
+            }
+
+            $verificationScore = $this->bestRetrievalScore($captureProfiles, $profile);
+            $shortDistance = $this->bestShortHashDistance($captureShortHashes, $fingerprint->short_hash);
+
+            if ($verificationScore <= 0 && $shortDistance === null) {
+                continue;
+            }
+
+            $ranked[] = [
+                'resource' => $resource,
+                'fingerprint' => $fingerprint,
+                'short_distance' => $shortDistance,
+                'marker_hash_distance' => null,
+                'verification_score' => round($verificationScore, 4),
+                'verification_distance' => round(max(0, 100 - $verificationScore), 4),
+                'candidate_sources' => ['verification_pool'],
+            ];
+        }
+
+        usort($ranked, function ($a, $b) {
+            $scoreCompare = ((float) ($b['verification_score'] ?? 0)) <=> ((float) ($a['verification_score'] ?? 0));
+            if ($scoreCompare !== 0) {
+                return $scoreCompare;
+            }
+
+            return ((float) ($a['short_distance'] ?? 999)) <=> ((float) ($b['short_distance'] ?? 999));
+        });
+
+        foreach (array_slice($ranked, 0, $poolSize) as $candidate) {
+            $byResource[(int) $candidate['resource']->id] = $candidate;
+        }
+
+        return array_values($byResource);
+    }
+
+    private function bestRetrievalScore(array $captureProfiles, array $resourceProfile): float
+    {
+        $best = 0.0;
+
+        foreach ($captureProfiles as $captureProfile) {
+            $best = max($best, $this->retrievalScore($captureProfile['profile'] ?? [], $resourceProfile));
+        }
+
+        return $best;
+    }
+
+    private function retrievalScore(array $captureProfile, array $resourceProfile): float
+    {
+        $captureVariants = !empty($captureProfile['variants']) && is_array($captureProfile['variants'])
+            ? $captureProfile['variants']
+            : ['primary' => $captureProfile];
+        $resourceVariants = !empty($resourceProfile['variants']) && is_array($resourceProfile['variants'])
+            ? $resourceProfile['variants']
+            : ['primary' => $resourceProfile];
+        $best = 0.0;
+
+        foreach ($captureVariants as $captureVariant) {
+            foreach ($resourceVariants as $resourceVariant) {
+                $embedding = $this->scoreEmbeddings($captureVariant['embedding'] ?? [], $resourceVariant['embedding'] ?? []);
+                $color = $this->scoreHistograms($captureVariant['color_histogram'] ?? [], $resourceVariant['color_histogram'] ?? []);
+                $best = max($best, ($embedding * 0.75) + ($color * 0.25));
+            }
+        }
+
+        return round($best, 4);
+    }
+
+    private function scoreEmbeddings(array $a, array $b): float
+    {
+        $length = min(count($a), count($b));
+        if ($length === 0) {
+            return 0.0;
+        }
+
+        $dot = 0.0;
+        for ($i = 0; $i < $length; $i++) {
+            $dot += ((float) $a[$i]) * ((float) $b[$i]);
+        }
+
+        return max(0, min(100, (($dot + 1) / 2) * 100));
+    }
+
+    private function scoreHistograms(array $a, array $b): float
+    {
+        $length = min(count($a), count($b));
+        if ($length === 0) {
+            return 0.0;
+        }
+
+        $intersection = 0.0;
+        for ($i = 0; $i < $length; $i++) {
+            $intersection += min((float) $a[$i], (float) $b[$i]);
+        }
+
+        return max(0, min(100, $intersection * 100));
     }
 
     private function shortProfileHash(array $profile, int $length = 28): ?string

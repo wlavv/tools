@@ -144,6 +144,8 @@
                                     <span><strong>pHash</strong> {{ number_format((float) ($scores['phash_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Edges</strong> {{ number_format((float) ($scores['edge_score'] ?? 0), 2) }}%</span>
                                     <span><strong>Color</strong> {{ number_format((float) ($scores['color_score'] ?? 0), 2) }}%</span>
+                                    @if(array_key_exists('verification_score', $scores))<span><strong>Verification</strong> {{ number_format((float) ($scores['verification_score'] ?? 0), 2) }}%</span>@endif
+                                    @if(!empty($scores['candidate_sources']))<span><strong>Candidate source</strong> {{ implode(', ', (array) $scores['candidate_sources']) }}</span>@endif
                                 </div>
                                 @if(array_key_exists('marker_score', $scores))
                                     <p class="wc-muted">Marker score: <strong>{{ number_format((float) ($scores['marker_score'] ?? 0), 2) }}%</strong> - {{ ($scores['marker_applied'] ?? false) ? 'boost applied' : ($scores['marker_status'] ?? 'observed') }}</p>
@@ -154,7 +156,6 @@
                                         <span><strong>Base score</strong> {{ number_format((float) ($scores['final_score_before_markers'] ?? $match->score), 2) }}%</span>
                                         @if(array_key_exists('marker_confidence_score', $scores))<span><strong>Marker confidence</strong> {{ number_format((float) ($scores['marker_confidence_score'] ?? 0), 2) }}%</span>@endif
                                         @if(array_key_exists('marker_hash_distance', $scores))<span><strong>Marker hash distance</strong> {{ $scores['marker_hash_distance'] ?? '-' }}</span>@endif
-                                        @if(!empty($scores['candidate_sources']))<span><strong>Candidate source</strong> {{ implode(', ', (array) $scores['candidate_sources']) }}</span>@endif
                                     </div>
                                 @endif
                                 @if(!empty($scores['region_scores']))

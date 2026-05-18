@@ -145,6 +145,8 @@ class InternalImageMatchService
                 $candidateScore['retrieval_score'] = round((float) $this->retrievalScore($captureProfile['profile'], $resourceProfile), 4);
                 $candidateScore['short_distance'] = $candidateResource['short_distance'] ?? null;
                 $candidateScore['marker_hash_distance'] = $candidateResource['marker_hash_distance'] ?? null;
+                $candidateScore['verification_score'] = $candidateResource['verification_score'] ?? null;
+                $candidateScore['verification_distance'] = $candidateResource['verification_distance'] ?? null;
                 $candidateScore['candidate_sources'] = $candidateResource['candidate_sources'] ?? ['short_hash'];
 
                 if ($scoreSet === null || $candidateScore['final_score'] > $scoreSet['final_score']) {
@@ -231,6 +233,8 @@ class InternalImageMatchService
                         'scores' => $candidate['scores'],
                         'short_distance' => $candidate['scores']['short_distance'] ?? null,
                         'marker_hash_distance' => $candidate['scores']['marker_hash_distance'] ?? null,
+                        'verification_score' => $candidate['scores']['verification_score'] ?? null,
+                        'verification_distance' => $candidate['scores']['verification_distance'] ?? null,
                         'candidate_sources' => $candidate['scores']['candidate_sources'] ?? [],
                         'weights' => $this->normalisedWeights(),
                         'preprocess' => [
@@ -247,6 +251,9 @@ class InternalImageMatchService
                             'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
                             'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
                             'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
+                            'verification_pool_enabled' => $candidateStats['verification_pool_enabled'] ?? (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
+                            'verification_pool_size' => $candidateStats['verification_pool_size'] ?? (int) config('webcatalogue.recognition.verification_pool.size', 120),
+                            'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? 0,
                             'build_missing_fingerprints_during_match' => $candidateStats['build_missing_fingerprints_during_match'] ?? false,
                             'scored_candidates' => $candidateStats['scored_candidates'] ?? count($preselected),
                             'short_hash_top_candidates' => $candidateStats['short_hash_top_candidates'] ?? (int) config('webcatalogue.recognition.short_hash_top_candidates', 20),
@@ -314,6 +321,9 @@ class InternalImageMatchService
                     'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
                     'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
                     'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
+                    'verification_pool_enabled' => $candidateStats['verification_pool_enabled'] ?? (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
+                    'verification_pool_size' => $candidateStats['verification_pool_size'] ?? (int) config('webcatalogue.recognition.verification_pool.size', 120),
+                    'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? 0,
                 ]),
             ]);
 
@@ -350,6 +360,9 @@ class InternalImageMatchService
                 'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
                 'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
                 'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? count($preselected),
+                'verification_pool_enabled' => $candidateStats['verification_pool_enabled'] ?? (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
+                'verification_pool_size' => $candidateStats['verification_pool_size'] ?? (int) config('webcatalogue.recognition.verification_pool.size', 120),
+                'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? 0,
             ]),
         ]);
 
