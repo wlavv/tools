@@ -4309,6 +4309,7 @@ class ComposerStaticInit64ccbef147ca97b75c119d0c2837b798
         'Modules\\PackageTracker\\Services\\Carriers\\MockCarrierClient' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/Carriers/MockCarrierClient.php',
         'Modules\\PackageTracker\\Services\\Carriers\\Support\\AbstractHttpCarrierClient' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/Carriers/Support/AbstractHttpCarrierClient.php',
         'Modules\\PackageTracker\\Services\\Carriers\\Support\\CarrierPayloadReader' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/Carriers/Support/CarrierPayloadReader.php',
+        'Modules\\PackageTracker\\Services\\PackageTrackerLogService' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/PackageTrackerLogService.php',
         'Modules\\PackageTracker\\Services\\StatusNormalizer' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/StatusNormalizer.php',
         'Modules\\PackageTracker\\Services\\TrackingService' => __DIR__ . '/../..' . '/Modules/PackageTracker/Services/TrackingService.php',
         'Modules\\PasswordManager\\Database\\Seeders\\PasswordManagerSeeder' => __DIR__ . '/../..' . '/Modules/PasswordManager/Database/Seeders/PasswordManagerSeeder.php',

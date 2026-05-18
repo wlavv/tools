@@ -3711,6 +3711,7 @@ return array(
     'Modules\\PackageTracker\\Services\\Carriers\\MockCarrierClient' => $baseDir . '/Modules/PackageTracker/Services/Carriers/MockCarrierClient.php',
     'Modules\\PackageTracker\\Services\\Carriers\\Support\\AbstractHttpCarrierClient' => $baseDir . '/Modules/PackageTracker/Services/Carriers/Support/AbstractHttpCarrierClient.php',
     'Modules\\PackageTracker\\Services\\Carriers\\Support\\CarrierPayloadReader' => $baseDir . '/Modules/PackageTracker/Services/Carriers/Support/CarrierPayloadReader.php',
+    'Modules\\PackageTracker\\Services\\PackageTrackerLogService' => $baseDir . '/Modules/PackageTracker/Services/PackageTrackerLogService.php',
     'Modules\\PackageTracker\\Services\\StatusNormalizer' => $baseDir . '/Modules/PackageTracker/Services/StatusNormalizer.php',
     'Modules\\PackageTracker\\Services\\TrackingService' => $baseDir . '/Modules/PackageTracker/Services/TrackingService.php',
     'Modules\\PasswordManager\\Database\\Seeders\\PasswordManagerSeeder' => $baseDir . '/Modules/PasswordManager/Database/Seeders/PasswordManagerSeeder.php',
