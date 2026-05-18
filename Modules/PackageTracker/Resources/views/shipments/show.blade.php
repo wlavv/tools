@@ -20,6 +20,11 @@
                     <dt class="col-5">ETA</dt><dd class="col-7">{{ optional($shipment->estimated_delivery_at)->format('Y-m-d H:i') ?: '-' }}</dd>
                     <dt class="col-5">SLA</dt><dd class="col-7">{{ optional($shipment->sla_due_at)->format('Y-m-d H:i') ?: '-' }}</dd>
                     <dt class="col-5">Public link</dt><dd class="col-7">@if($publicUrl)<a href="{{ $publicUrl }}" target="_blank" rel="noopener">Open</a>@else-@endif</dd>
+                    <dt class="col-5">Last poll</dt><dd class="col-7">{{ optional($shipment->last_polled_at)->format('Y-m-d H:i') ?: '-' }}</dd>
+                    <dt class="col-5">Poll attempts</dt><dd class="col-7">{{ $shipment->poll_attempts }}</dd>
+                    @if(data_get($shipment->metadata, 'last_poll_error'))
+                        <dt class="col-5">Last error</dt><dd class="col-7 text-danger small">{{ data_get($shipment->metadata, 'last_poll_error') }}</dd>
+                    @endif
                 </dl>
             </div>
         </div>

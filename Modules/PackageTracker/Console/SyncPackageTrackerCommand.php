@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Modules\PackageTracker\Jobs\SyncShipmentTrackingJob;
 use Modules\PackageTracker\Models\Shipment;
 use Modules\PackageTracker\Services\TrackingService;
+use Throwable;
 
 class SyncPackageTrackerCommand extends Command
 {
@@ -29,7 +30,12 @@ class SyncPackageTrackerCommand extends Command
 
         foreach ($shipments as $shipment) {
             if ($this->option('sync')) {
-                $trackingService->syncShipment($shipment);
+                try {
+                    $trackingService->syncShipment($shipment);
+                } catch (Throwable $exception) {
+                    $trackingService->markFailedPoll($shipment, $exception);
+                    $this->warn("Shipment {$shipment->id} sync failed: {$exception->getMessage()}");
+                }
             } else {
                 SyncShipmentTrackingJob::dispatch($shipment->id);
             }

@@ -4,10 +4,11 @@ namespace Modules\PackageTracker\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\PackageTracker\Jobs\SyncShipmentTrackingJob;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Models\PackageTrackerClient;
 use Modules\PackageTracker\Models\Shipment;
+use Modules\PackageTracker\Services\TrackingService;
+use Throwable;
 
 class ShipmentController extends Controller
 {
@@ -81,9 +82,16 @@ class ShipmentController extends Controller
         return $this->view('package-tracker::shipments.show', compact('shipment'));
     }
 
-    public function sync(Shipment $shipment)
+    public function sync(Shipment $shipment, TrackingService $trackingService)
     {
-        SyncShipmentTrackingJob::dispatch($shipment->id);
-        return back()->with('success', 'Tracking sync queued.');
+        try {
+            $trackingService->syncShipment($shipment->load('carrier'));
+
+            return back()->with('success', 'Tracking sync executed.');
+        } catch (Throwable $exception) {
+            $trackingService->markFailedPoll($shipment, $exception);
+
+            return back()->with('error', 'Tracking sync failed: ' . $exception->getMessage());
+        }
     }
 }
