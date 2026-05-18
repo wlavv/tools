@@ -30,6 +30,7 @@
             "App\\": "app/",
             "Modules\\ErrorCenter\\": "Modules/ErrorCenter/",
             "Modules\\ErrorCenter\\Database\\Seeders\\": "Modules/ErrorCenter/Database/Seeders/",
+            "Modules\\PackageTracker\\": "Modules/PackageTracker/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         },

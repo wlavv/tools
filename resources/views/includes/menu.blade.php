@@ -26,7 +26,7 @@
 @php
     $menuItemsExtra = [
         ['route' => 'family.index', 'label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child', 'active' => ['family.*']],
-        ['route' => $firstAllowedRoute(['lsg.index', 'multiStore.index', 'catalog-manager.stores.index', 'webcatalogue.index']), 'label' => 'LSG', 'icon' => 'fa-solid fa-building', 'active' => ['lsg.*', 'multiStore.*', 'catalog-manager.stores.*', 'webcatalogue.*']],
+        ['route' => $firstAllowedRoute(['lsg.index', 'multiStore.index', 'catalog-manager.stores.index', 'webcatalogue.index', 'package_tracker.dashboard']), 'label' => 'LSG', 'icon' => 'fa-solid fa-building', 'active' => ['lsg.*', 'multiStore.*', 'catalog-manager.stores.*', 'webcatalogue.*', 'package_tracker.*']],
     ];
 @endphp
 <div id="mobileMenu" class="sidebar-menu">

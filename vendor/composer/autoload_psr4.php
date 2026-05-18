@@ -59,6 +59,7 @@ return array(
     'NunoMaduro\\Collision\\' => array($vendorDir . '/nunomaduro/collision/src'),
     'Nette\\' => array($vendorDir . '/nette/schema/src', $vendorDir . '/nette/utils/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'Modules\\PackageTracker\\' => array($baseDir . '/Modules/PackageTracker'),
     'Modules\\ErrorCenter\\Database\\Seeders\\' => array($baseDir . '/Modules/ErrorCenter/Database/Seeders'),
     'Modules\\ErrorCenter\\' => array($baseDir . '/Modules/ErrorCenter'),
     'Modules\\' => array($baseDir . '/Modules'),

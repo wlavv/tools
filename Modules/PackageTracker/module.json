@@ -1,0 +1,28 @@
+{
+  "name": "PackageTracker",
+  "slug": "package-tracker",
+  "version": "1.0.0",
+  "description": "LSG Logistics Intelligence module for carrier shipment tracking, status normalization, SLA monitoring and operational alerts.",
+  "author": "LSG Labs",
+  "provider": "Modules\\PackageTracker\\Providers\\PackageTrackerServiceProvider",
+  "enabled": true,
+  "category": "operations",
+  "menu": {
+    "title": "Package Tracker",
+    "icon": "fa-solid fa-truck-fast",
+    "route": "package_tracker.dashboard",
+    "permission": "package_tracker_view"
+  },
+  "permissions": [
+    "package_tracker_view",
+    "package_tracker_manage_shipments",
+    "package_tracker_manage_carriers",
+    "package_tracker_manage_settings",
+    "package_tracker_run_sync"
+  ],
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "lsg/package-tracker",
+  "description": "LSG Package Tracker module",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Modules\\PackageTracker\\": ""
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Modules\\PackageTracker\\Providers\\PackageTrackerServiceProvider"
+      ]
+    }
+  }
+}
