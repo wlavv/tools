@@ -5,6 +5,7 @@ namespace Modules\PackageTracker\Services;
 use InvalidArgumentException;
 use Modules\PackageTracker\Models\Carrier;
 use Modules\PackageTracker\Services\Carriers\CarrierClientInterface;
+use Modules\PackageTracker\Services\Carriers\Contracts\CarrierIntegratorInterface;
 use Modules\PackageTracker\Services\Carriers\Discovery\CarrierIntegratorRegistry;
 
 class CarrierClientFactory
@@ -28,6 +29,11 @@ class CarrierClientFactory
         }
 
         $client = app($driver);
+
+        if ($client instanceof CarrierIntegratorInterface) {
+            $driver = $client->clientClass();
+            $client = app($driver);
+        }
 
         if (!$client instanceof CarrierClientInterface) {
             throw new InvalidArgumentException("Carrier driver {$driver} must implement CarrierClientInterface");
