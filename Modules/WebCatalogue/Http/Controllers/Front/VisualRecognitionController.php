@@ -11,6 +11,7 @@ use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
 use Modules\WebCatalogue\Services\Recognition\VisualRecognitionService;
 use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
+use Throwable;
 
 class VisualRecognitionController extends Controller
 {
@@ -97,13 +98,27 @@ class VisualRecognitionController extends Controller
             'identifiers' => $this->cleanDetectedIdentifiers($validated['identifiers'] ?? []),
         ];
 
-        if ($request->hasFile('photo')) {
-            $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
-        } elseif (!empty($validated['photo_data'])) {
-            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
-        } else {
-            return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
+        try {
+            if ($request->hasFile('photo')) {
+                $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
+            } elseif (!empty($validated['photo_data'])) {
+                $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
+            } else {
+                $this->markCaptureFailed($session, 'No image received.');
+
+                return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
+            }
+        } catch (Throwable $exception) {
+            $this->markCaptureFailed($session, $exception->getMessage(), $exception);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Could not store captured image. Please try again.',
+                'status' => 'capture_failed',
+            ], 500);
         }
+
+        $this->markCaptureReceived($session, $capture->id);
 
         return response()->json([
             'ok' => true,
@@ -139,13 +154,27 @@ class VisualRecognitionController extends Controller
             'identifiers' => $this->cleanDetectedIdentifiers($validated['identifiers'] ?? []),
         ];
 
-        if ($request->hasFile('photo')) {
-            $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
-        } elseif (!empty($validated['photo_data'])) {
-            $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
-        } else {
-            return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
+        try {
+            if ($request->hasFile('photo')) {
+                $capture = $service->storeCapture($session, $request->file('photo'), $captureType, $captureMetadata);
+            } elseif (!empty($validated['photo_data'])) {
+                $capture = $service->storeCapture($session, $validated['photo_data'], $captureType, $captureMetadata);
+            } else {
+                $this->markCaptureFailed($session, 'No image received.');
+
+                return response()->json(['ok' => false, 'message' => 'No image received.'], 422);
+            }
+        } catch (Throwable $exception) {
+            $this->markCaptureFailed($session, $exception->getMessage(), $exception);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Could not store captured image. Please try again.',
+                'status' => 'capture_failed',
+            ], 500);
         }
+
+        $this->markCaptureReceived($session, $capture->id);
 
         return response()->json([
             'ok' => true,
@@ -167,7 +196,19 @@ class VisualRecognitionController extends Controller
             ->where('id_store', $store->id)
             ->firstOrFail();
 
-        $result = $matcher->matchSession($session, $store);
+        $this->markMatchingStarted($session);
+
+        try {
+            $result = $matcher->matchSession($session, $store);
+        } catch (Throwable $exception) {
+            $this->markMatchFailed($session, $exception);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Recognition matching failed. Please try again.',
+                'status' => 'match_failed',
+            ], 500);
+        }
 
         return response()->json([
             'ok' => true,
@@ -190,7 +231,19 @@ class VisualRecognitionController extends Controller
             ->whereNull('id_store')
             ->firstOrFail();
 
-        $result = $matcher->matchGlobalSession($session);
+        $this->markMatchingStarted($session);
+
+        try {
+            $result = $matcher->matchGlobalSession($session);
+        } catch (Throwable $exception) {
+            $this->markMatchFailed($session, $exception);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Recognition matching failed. Please try again.',
+                'status' => 'match_failed',
+            ], 500);
+        }
 
         return response()->json([
             'ok' => true,
@@ -363,6 +416,56 @@ class VisualRecognitionController extends Controller
         }
 
         return null;
+    }
+
+    private function markCaptureReceived(VisualRecognitionSession $session, int $captureId): void
+    {
+        $session->update([
+            'status' => 'capture_received',
+            'metadata' => array_merge($session->metadata ?: [], [
+                'last_capture_id' => $captureId,
+                'last_capture_at' => now()->toIso8601String(),
+            ]),
+        ]);
+    }
+
+    private function markCaptureFailed(VisualRecognitionSession $session, string $message, ?Throwable $exception = null): void
+    {
+        $metadata = [
+            'capture_error' => $message,
+            'capture_failed_at' => now()->toIso8601String(),
+        ];
+
+        if ($exception) {
+            $metadata['capture_exception'] = get_class($exception);
+        }
+
+        $session->update([
+            'status' => 'capture_failed',
+            'metadata' => array_merge($session->metadata ?: [], $metadata),
+        ]);
+    }
+
+    private function markMatchingStarted(VisualRecognitionSession $session): void
+    {
+        $session->update([
+            'status' => 'matching',
+            'metadata' => array_merge($session->metadata ?: [], [
+                'matching_started_at' => now()->toIso8601String(),
+            ]),
+        ]);
+    }
+
+    private function markMatchFailed(VisualRecognitionSession $session, Throwable $exception): void
+    {
+        $session->update([
+            'status' => 'match_failed',
+            'metadata' => array_merge($session->metadata ?: [], [
+                'match_error' => $exception->getMessage(),
+                'match_exception' => get_class($exception),
+                'matching_failed_at' => now()->toIso8601String(),
+            ]),
+        ]);
     }
 
     private function cleanDetectedIdentifiers(array $identifiers): array

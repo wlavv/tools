@@ -151,6 +151,21 @@
         if(message) setMessage(message);
     }
 
+    async function readJsonResponse(response, fallbackMessage){
+        let data = null;
+        try{
+            data = await response.json();
+        }catch(e){
+            throw new Error(fallbackMessage + ' HTTP ' + response.status + '.');
+        }
+
+        if(!response.ok || data.ok === false){
+            throw new Error(data.message || fallbackMessage || ('Request failed with HTTP ' + response.status + '.'));
+        }
+
+        return data;
+    }
+
     function updateTorchButton(){
         if(!torchBtn) return;
         torchBtn.classList.toggle('wc-front-btn-primary', torchEnabled);
@@ -672,12 +687,11 @@
         try{
             await ensureSession(true);
             const res = await sendCaptureFrame(1, 1);
-            const captureData = await res.json();
-            if(!captureData.ok) throw new Error(captureData.message || 'Could not capture image.');
+            await readJsonResponse(res, 'Could not capture image.');
 
             setMessage('Searching catalogue...');
             const matchRes = await fetch(routes.match, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken})});
-            const data = await matchRes.json();
+            const data = await readJsonResponse(matchRes, 'Could not complete recognition matching.');
             if(data.result_url){ window.location.href = data.result_url; return; }
             if(data.matched && data.product_url){ window.location.href = data.product_url; return; }
             if(data.suggestions && data.suggestions.length){
@@ -903,7 +917,7 @@
     async function ensureSession(forceNew = false){
         if(sessionToken && !forceNew) return sessionToken;
         const res = await fetch(routes.session, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({device_type:navigator.userAgent})});
-        const data = await res.json();
+        const data = await readJsonResponse(res, 'Could not start recognition session.');
         sessionToken = data.session_token;
         tokenInput.value = sessionToken;
         return sessionToken;
@@ -947,7 +961,7 @@
         const fd = new FormData(form);
         fd.set('session_token', sessionToken);
         const res = await fetch(routes.unmatched, {method:'POST',headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:fd});
-        const data = await res.json();
+        const data = await readJsonResponse(res, 'Could not submit request.');
         if(data.ok){ window.location.href = routes.resultBase + '/' + sessionToken; }
         else{ setMessage(data.message || 'Could not submit request.'); }
     });
