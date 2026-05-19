@@ -9,6 +9,11 @@
         <a href="{{ route('ai_consensus.logs.index', ['run_id' => $run->id]) }}" class="btn btn-outline-secondary">
             <i class="fas fa-list"></i> Logs
         </a>
+        @if($run->final_output)
+            <a href="{{ route('ai_consensus.runs.download', $run) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-download"></i> Download
+            </a>
+        @endif
         <a href="{{ route('ai_consensus.runs.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back
         </a>

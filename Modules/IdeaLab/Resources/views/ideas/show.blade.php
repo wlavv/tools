@@ -21,6 +21,10 @@
         <strong>{{ config('idealab.priorities.' . $idea->priority, $idea->priority) }}</strong>
     </div>
     <div class="idealab-summary-item">
+        <span>Readiness</span>
+        <strong>{{ $idea->readiness_label }}</strong>
+    </div>
+    <div class="idealab-summary-item">
         <span>Score</span>
         <strong>{{ $idea->final_score ?? '-' }}</strong>
     </div>
@@ -38,10 +42,23 @@
     <aside class="idealab-side">
         <div class="card idealab-card mb-3">
             <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action" href="#overview"><i class="fa-solid fa-circle-info me-1"></i> Overview</a>
                 <a class="list-group-item list-group-item-action" href="#ai-consensus"><i class="fa-solid fa-brain me-1"></i> AI Consensus</a>
-                <a class="list-group-item list-group-item-action" href="#actions"><i class="fa-solid fa-sliders me-1"></i> Actions</a>
-                <a class="list-group-item list-group-item-action" href="#history"><i class="fa-solid fa-clock-rotate-left me-1"></i> History</a>
+                <a class="list-group-item list-group-item-action" href="#overview"><i class="fa-solid fa-circle-info me-1"></i> Overview</a>
+                <a class="list-group-item list-group-item-action" href="#history"><i class="fa-solid fa-clock-rotate-left me-1"></i> Project Manager</a>
+            </div>
+        </div>
+
+        <div class="card idealab-card mb-3">
+            <div class="card-header bg-white"><strong>Contexto</strong></div>
+            <div class="card-body">
+                <div class="small text-muted">Categoria</div>
+                <div class="mb-2">{{ $idea->category?->name ?? 'Sem categoria' }}</div>
+                <div class="small text-muted">Origem</div>
+                <div class="mb-2">{{ config('idealab.sources.' . $idea->source, $idea->source) }}</div>
+                <div class="small text-muted">Tags</div>
+                <div class="mb-2">{{ $tagsValue ?: '-' }}</div>
+                <div class="small text-muted">Último AI Run</div>
+                <div>{{ $latestRun?->status ?? '-' }}</div>
             </div>
         </div>
 
@@ -79,13 +96,13 @@
                     <input type="hidden" name="template_key" value="project_conversion_brief">
                     <input type="hidden" name="mode" value="template">
                     <button class="btn btn-outline-primary btn-sm w-100">
-                        <i class="fa-solid fa-diagram-project"></i> Preparar PM
+                        <i class="fa-solid fa-diagram-project"></i> Preparar plano PM
                     </button>
                 </form>
                 <form method="POST" action="{{ route('idealab.convert', $idea) }}">
                     @csrf
                     <button class="btn btn-success btn-sm w-100">
-                        <i class="fa-solid fa-arrow-right"></i> Converter
+                        <i class="fa-solid fa-arrow-right"></i> Criar Project Manager
                     </button>
                 </form>
                 <form method="POST" action="{{ route('idealab.ai.run', $idea) }}">
@@ -101,36 +118,6 @@
     </aside>
 
     <main>
-        <section class="card idealab-card idealab-section mb-3" id="overview">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <strong>Overview</strong>
-                <span class="badge bg-light text-dark border">{{ $idea->category?->name ?? 'Sem categoria' }}</span>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-lg-7">
-                        <h6>Descrição original</h6>
-                        <p class="text-muted mb-3">{!! nl2br(e($idea->description_raw)) !!}</p>
-                        @if($idea->description_refined)
-                            <h6>Descrição refinada</h6>
-                            <p class="mb-0">{!! nl2br(e($idea->description_refined)) !!}</p>
-                        @endif
-                    </div>
-                    <div class="col-lg-5">
-                        <table class="table table-sm mb-0">
-                            <tbody>
-                                <tr><th>Readiness</th><td>{{ $idea->readiness_label }}</td></tr>
-                                <tr><th>Source</th><td>{{ config('idealab.sources.' . $idea->source, $idea->source) }}</td></tr>
-                                <tr><th>Tags</th><td>{{ $tagsValue ?: '-' }}</td></tr>
-                                <tr><th>Último AI Run</th><td>{{ $latestRun?->status ?? '-' }}</td></tr>
-                                <tr><th>Custo total</th><td>${{ number_format($totalCost, 4) }}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="card idealab-card idealab-section mb-3" id="ai-consensus">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <strong>AI Consensus</strong>
@@ -204,6 +191,11 @@
                                         <a href="{{ route('ai_consensus.runs.show', $centralRun) }}" class="btn btn-sm btn-outline-primary mt-2">
                                             <i class="fa-solid fa-up-right-from-square"></i> Abrir no AI Consensus
                                         </a>
+                                        @if($centralRun->final_output)
+                                            <a href="{{ route('ai_consensus.runs.download', $centralRun) }}" class="btn btn-sm btn-outline-secondary mt-2">
+                                                <i class="fa-solid fa-download"></i> Download output
+                                            </a>
+                                        @endif
                                     </div>
                                 @endif
                             @empty
@@ -268,6 +260,21 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="card idealab-card idealab-section mb-3" id="overview">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <strong>Overview</strong>
+                <span class="badge bg-light text-dark border">{{ $idea->category?->name ?? 'Sem categoria' }}</span>
+            </div>
+            <div class="card-body">
+                <h6>Descrição original</h6>
+                <p class="text-muted mb-3">{!! nl2br(e($idea->description_raw)) !!}</p>
+                @if($idea->description_refined)
+                    <h6>Descrição refinada</h6>
+                    <p class="mb-0">{!! nl2br(e($idea->description_refined)) !!}</p>
+                @endif
             </div>
         </section>
 

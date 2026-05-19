@@ -13,10 +13,10 @@
     .idealab-soft { background: #f8fafc; }
     .idealab-score { font-weight: 700; font-size: 1.5rem; }
     .idealab-badge { border-radius: 4px; padding: .35rem .55rem; }
-    .idealab-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 1rem; align-items: start; }
+    .idealab-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 1rem; align-items: start; }
     .idealab-side { position: sticky; top: 1rem; }
     .idealab-side .list-group-item { border-color: var(--idealab-border); }
-    .idealab-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+    .idealab-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
     .idealab-summary-item { border: 1px solid var(--idealab-border); border-radius: 6px; padding: .75rem; background: #fff; }
     .idealab-summary-item span { display: block; color: #64748b; font-size: .75rem; text-transform: uppercase; }
     .idealab-summary-item strong { font-size: 1rem; }
@@ -36,7 +36,8 @@
     .idealab-context-strip i { color: #0d6efd; }
     @media (max-width: 991.98px) {
         .idealab-layout { grid-template-columns: 1fr; }
-        .idealab-side { position: static; }
+        .idealab-side { display: block; }
+        .idealab-side > .card { margin-bottom: .75rem; }
         .idealab-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 </style>

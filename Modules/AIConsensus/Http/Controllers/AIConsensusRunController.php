@@ -3,6 +3,7 @@
 namespace Modules\AIConsensus\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -67,5 +68,30 @@ class AIConsensusRunController extends Controller
         return redirect()
             ->route('ai_consensus.runs.show', $run)
             ->with('success', 'AI Consensus Run processado.');
+    }
+
+    public function download(AIConsensusRun $run): Response
+    {
+        $run->loadMissing(['template', 'outputs']);
+        $output = $run->outputs->last();
+        $format = $output?->format ?: data_get($run->options, 'return_format', 'json');
+        $extension = $format === 'markdown' ? 'md' : ($format === 'text' ? 'txt' : 'json');
+        $content = $output?->content ?: $run->final_output ?: json_encode([
+            'run_id' => $run->id,
+            'status' => $run->status,
+            'error' => $run->error_message,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+
+        $filename = sprintf(
+            'ai-consensus-run-%s-%s.%s',
+            $run->id,
+            str($run->output_type ?: 'output')->slug(),
+            $extension
+        );
+
+        return response($content, 200, [
+            'Content-Type' => $extension === 'json' ? 'application/json; charset=UTF-8' : 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 }
