@@ -370,7 +370,8 @@ class AIConsensusService
 
     public function hasActiveProviderCredential(string $provider): bool
     {
-        return (bool) $this->getProviderCredential($provider);
+        return (bool) $this->getProviderCredential($provider)
+            || filled(config("ai_consensus.providers.{$provider}.api_key"));
     }
 
     public function executeProviderPrompt(string $provider, string $prompt): array
@@ -407,7 +408,29 @@ class AIConsensusService
         $credential = $credential ?: $this->getProviderCredential($provider);
 
         if (!$credential) {
-            throw new \RuntimeException("Provider [$provider] sem credencial ativa na base de dados.");
+            $apiKey = config("ai_consensus.providers.{$provider}.api_key");
+            $baseUrl = config("ai_consensus.providers.{$provider}.api_base");
+            $model = config("ai_consensus.providers.{$provider}.default_model");
+
+            if (blank($apiKey)) {
+                throw new \RuntimeException("Provider [$provider] sem API key ativa no .env/config.");
+            }
+
+            if (blank($baseUrl)) {
+                throw new \RuntimeException("Provider [$provider] sem base URL no .env/config.");
+            }
+
+            if (blank($model)) {
+                throw new \RuntimeException("Provider [$provider] sem modelo por defeito no .env/config.");
+            }
+
+            return [
+                'credential' => null,
+                'api_key' => (string) $apiKey,
+                'base_url' => rtrim((string) $baseUrl, '/'),
+                'model' => (string) $model,
+                'meta' => [],
+            ];
         }
 
         if (blank($credential->api_key)) {

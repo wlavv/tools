@@ -64,6 +64,14 @@
                                     <span>${{ number_format($runCost, 4) }}</span>
                                     <span>{{ $centralRun->created_at?->format('Y-m-d H:i') }}</span>
                                 </div>
+                                @if(in_array($centralRun->status, ['pending', 'failed'], true))
+                                    <form method="POST" action="{{ route('ai_consensus.runs.process', $centralRun) }}" class="mt-2">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-success">
+                                            <i class="fa-solid fa-play"></i> Processar agora
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
 
                             @foreach($centralRun->providerResponses as $providerResponse)
