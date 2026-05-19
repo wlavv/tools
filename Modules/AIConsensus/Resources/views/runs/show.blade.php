@@ -53,7 +53,7 @@
             <div class="card">
                 <div class="card-header">Provider Responses</div>
                 <div class="card-body table-responsive">
-                    <table class="table table-sm">
+                    <table class="table table-sm align-middle">
                         <thead><tr><th>Provider</th><th>Status</th><th>Score</th><th>Cost</th><th>Latency</th></tr></thead>
                         <tbody>
                             @foreach($run->providerResponses as $response)
@@ -64,6 +64,13 @@
                                     <td>${{ number_format((float) ($response->cost_estimate ?? 0), 4) }}</td>
                                     <td>{{ $response->latency_ms ?? '-' }} ms</td>
                                 </tr>
+                                @if($response->error_message || $response->raw_response)
+                                    <tr>
+                                        <td colspan="5">
+                                            <pre class="mb-0" style="white-space: pre-wrap; max-height: 220px; overflow: auto;">{{ $response->error_message ?: $response->raw_response }}</pre>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>
