@@ -400,6 +400,7 @@ class AIConsensusService
     protected function callAnthropic(string $prompt, ?AIProviderCredential $credential): array
     {
         $resolved = $this->resolveProviderConfig('anthropic', $credential);
+        $prompt = $this->sanitizeTextForJson($prompt);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
@@ -433,6 +434,7 @@ class AIConsensusService
     protected function callGemini(string $prompt, ?AIProviderCredential $credential): array
     {
         $resolved = $this->resolveProviderConfig('gemini', $credential);
+        $prompt = $this->sanitizeTextForJson($prompt);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
@@ -460,6 +462,7 @@ class AIConsensusService
     protected function callOpenAI(string $prompt, ?AIProviderCredential $credential): array
     {
         $resolved = $this->resolveProviderConfig('openai', $credential);
+        $prompt = $this->sanitizeTextForJson($prompt);
 
         $response = Http::timeout((int) config('ai_consensus.http.timeout', 180))
             ->connectTimeout((int) config('ai_consensus.http.connect_timeout', 20))
@@ -540,10 +543,10 @@ class AIConsensusService
             $chunks[] = "FICHEIRO: {$file->original_name}\\n"
                 . "MIME: " . ($file->mime_type ?: 'n/a') . "\\n"
                 . "CONTEÚDO EXTRAÍDO:\\n"
-                . $text;
+                . $this->sanitizeTextForJson($text);
         }
 
-        return implode("\\n\\n------------------------------\\n\\n", $chunks);
+        return $this->sanitizeTextForJson(implode("\\n\\n------------------------------\\n\\n", $chunks));
     }
 
     protected function storeUploadedFiles(AIConsensus $run, array $files): void
@@ -602,7 +605,7 @@ class AIConsensusService
         if ($content === false) {
             return '';
         }
-        return trim(mb_convert_encoding($content, 'UTF-8', 'UTF-8'));
+        return $this->sanitizeTextForJson($content);
     }
 
     protected function readDocx(string $path): string
@@ -626,7 +629,7 @@ class AIConsensusService
         }
 
         $text = strip_tags(str_replace(['</w:p>', '</w:tr>'], ["\\n", "\\n"], $xml));
-        return trim(html_entity_decode($text, ENT_QUOTES | ENT_XML1, 'UTF-8'));
+        return $this->sanitizeTextForJson(html_entity_decode($text, ENT_QUOTES | ENT_XML1, 'UTF-8'));
     }
 
     protected function readPdfBestEffort(string $path): string
@@ -644,18 +647,54 @@ class AIConsensusService
         }, $matches[1] ?? []);
 
         $joined = trim(implode(' ', array_filter($texts)));
-        return preg_replace('/\\s+/', ' ', $joined);
+        return $this->sanitizeTextForJson((string) preg_replace('/\\s+/', ' ', $joined));
     }
 
     protected function limitExtract(string $text, int $maxChars = 20000): string
     {
-        $text = trim($text);
+        $text = $this->sanitizeTextForJson($text);
 
         if (mb_strlen($text) <= $maxChars) {
             return $text;
         }
 
         return mb_substr($text, 0, $maxChars) . "\\n\\n[conteúdo truncado]";
+    }
+
+    protected function sanitizeTextForJson(string $text): string
+    {
+        if ($text === '') {
+            return '';
+        }
+
+        $text = str_replace("\0", ' ', $text);
+
+        if (!mb_check_encoding($text, 'UTF-8')) {
+            $converted = @mb_convert_encoding($text, 'UTF-8', 'UTF-8, Windows-1252, ISO-8859-1');
+            if (is_string($converted)) {
+                $text = $converted;
+            }
+        }
+
+        $json = json_encode($text, JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json !== false) {
+            $decoded = json_decode($json, true);
+            if (is_string($decoded)) {
+                $text = $decoded;
+            }
+        }
+
+        $withoutControls = @preg_replace('/[^\P{C}\t\n\r]/u', ' ', $text);
+        if (is_string($withoutControls)) {
+            $text = $withoutControls;
+        }
+
+        $normalizedWhitespace = @preg_replace('/[ \t]+/u', ' ', $text);
+        if (is_string($normalizedWhitespace)) {
+            $text = $normalizedWhitespace;
+        }
+
+        return trim($text);
     }
 
     protected function estimateProviderCost(string $provider, string $model, int $tokensIn, int $tokensOut, array $meta = []): float
