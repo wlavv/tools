@@ -15,11 +15,13 @@ class AIProviderCredential extends Model
         'api_key_encrypted',
         'base_url',
         'default_model',
+        'is_active',
         'enabled',
         'meta',
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'enabled' => 'boolean',
         'meta' => 'array',
     ];
@@ -46,11 +48,11 @@ class AIProviderCredential extends Model
 
     public function getIsActiveAttribute(): bool
     {
-        return (bool) ($this->attributes['enabled'] ?? false);
+        return (bool) ($this->attributes['is_active'] ?? $this->attributes['enabled'] ?? false);
     }
 
     public function setIsActiveAttribute(bool $value): void
     {
-        $this->attributes['enabled'] = $value ? 1 : 0;
+        $this->attributes['is_active'] = $value ? 1 : 0;
     }
 }

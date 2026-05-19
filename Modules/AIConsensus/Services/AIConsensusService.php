@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\AIConsensus\Jobs\ProcessAIConsensusRunJob;
@@ -159,7 +160,7 @@ class AIConsensusService
             $credential->default_model = $data['default_model'];
         }
 
-        $credential->enabled = (bool) ($data['is_active'] ?? $data['is_active'] ?? true);
+        $credential->is_active = (bool) ($data['is_active'] ?? true);
 
         if (!empty($data['api_key'])) {
             $credential->api_key = $data['api_key'];
@@ -362,16 +363,24 @@ class AIConsensusService
 
     protected function getProviderCredential(string $provider): ?AIProviderCredential
     {
-        return AIProviderCredential::query()
-            ->where('provider', $provider)
-            ->where('enabled', true)
-            ->first();
+        $query = AIProviderCredential::query()->where('provider', $provider);
+
+        if (Schema::hasColumn('ai_provider_credentials', 'is_active')) {
+            $query->where('is_active', true);
+        } elseif (Schema::hasColumn('ai_provider_credentials', 'enabled')) {
+            $query->where('enabled', true);
+        }
+
+        return $query->first();
     }
 
     public function hasActiveProviderCredential(string $provider): bool
     {
-        return (bool) $this->getProviderCredential($provider)
-            || filled(config("ai_consensus.providers.{$provider}.api_key"));
+        if (filled(config("ai_consensus.providers.{$provider}.api_key"))) {
+            return true;
+        }
+
+        return (bool) $this->getProviderCredential($provider);
     }
 
     public function executeProviderPrompt(string $provider, string $prompt): array
