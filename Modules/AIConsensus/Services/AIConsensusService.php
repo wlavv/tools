@@ -639,15 +639,223 @@ class AIConsensusService
             return '';
         }
 
-        preg_match_all('/\\(([^()]*(?:\\\\\\\\.[^()]*)*)\\)/s', $content, $matches);
-        $texts = array_map(function ($item) {
-            $item = preg_replace('/\\\\\\\\([nrtbf()\\\\\\\\])/', ' ', $item);
-            $item = preg_replace('/\\\\\\\\\\d{3}/', ' ', $item);
-            return trim($item);
-        }, $matches[1] ?? []);
+        $objects = $this->parsePdfObjects($content);
+        $fontMaps = $this->buildPdfFontUnicodeMaps($objects);
+        $fontResources = $this->extractPdfFontResources($content);
+        $streams = $this->extractPdfStreams($content);
 
-        $joined = trim(implode(' ', array_filter($texts)));
-        return $this->sanitizeTextForJson((string) preg_replace('/\\s+/', ' ', $joined));
+        $texts = [];
+        foreach ($streams as $stream) {
+            if (!str_contains($stream, 'BT') || str_contains($stream, 'beginbfchar')) {
+                continue;
+            }
+
+            $text = $this->extractPdfTextFromContentStream($stream, $fontResources, $fontMaps);
+            if (filled($text)) {
+                $texts[] = $text;
+            }
+        }
+
+        $joined = implode("\n\n", $texts);
+
+        if (blank($joined)) {
+            preg_match_all('/\\(([^()]*(?:\\\\\\\\.[^()]*)*)\\)/s', $content, $matches);
+            $fallback = array_map(function ($item) {
+                $item = preg_replace('/\\\\\\\\([nrtbf()\\\\\\\\])/', ' ', $item);
+                $item = preg_replace('/\\\\\\\\\\d{3}/', ' ', $item);
+                return trim((string) $item);
+            }, $matches[1] ?? []);
+
+            $joined = implode(' ', array_filter($fallback));
+        }
+
+        return $this->sanitizeTextForJson((string) preg_replace('/[ \t]+/', ' ', $joined));
+    }
+
+    protected function parsePdfObjects(string $content): array
+    {
+        preg_match_all('/(\\d+)\\s+0\\s+obj\\s*(.*?)\\s*endobj/s', $content, $matches, PREG_SET_ORDER);
+
+        $objects = [];
+        foreach ($matches as $match) {
+            $objects[(int) $match[1]] = $match[2];
+        }
+
+        return $objects;
+    }
+
+    protected function buildPdfFontUnicodeMaps(array $objects): array
+    {
+        $toUnicodeByFontObject = [];
+        foreach ($objects as $objectNumber => $objectBody) {
+            if (preg_match('/\\/Type\\s*\\/Font\\b.*?\\/ToUnicode\\s+(\\d+)\\s+0\\s+R/s', $objectBody, $match)) {
+                $toUnicodeByFontObject[$objectNumber] = (int) $match[1];
+            }
+        }
+
+        $maps = [];
+        foreach ($toUnicodeByFontObject as $fontObject => $unicodeObject) {
+            $stream = $this->extractPdfStreamFromObject($objects[$unicodeObject] ?? '');
+            if ($stream === '') {
+                continue;
+            }
+
+            $map = [];
+            if (preg_match_all('/<([0-9A-Fa-f]+)>\\s+<([0-9A-Fa-f]+)>/', $stream, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $map[strtoupper($match[1])] = $this->decodePdfUnicodeHex($match[2]);
+                }
+            }
+
+            if (!empty($map)) {
+                $maps[$fontObject] = $map;
+            }
+        }
+
+        return $maps;
+    }
+
+    protected function extractPdfFontResources(string $content): array
+    {
+        preg_match_all('/\\/(F\\d+)\\s+(\\d+)\\s+0\\s+R/', $content, $matches, PREG_SET_ORDER);
+
+        $resources = [];
+        foreach ($matches as $match) {
+            $resources[$match[1]] = (int) $match[2];
+        }
+
+        return $resources;
+    }
+
+    protected function extractPdfStreams(string $content): array
+    {
+        preg_match_all('/<<(.*?)>>\\s*stream\\r?\\n(.*?)\\r?\\nendstream/s', $content, $matches, PREG_SET_ORDER);
+
+        $streams = [];
+        foreach ($matches as $match) {
+            $stream = $match[2];
+            if (str_contains($match[1], 'FlateDecode')) {
+                $decoded = @gzuncompress($stream);
+                if ($decoded === false) {
+                    $decoded = @gzdecode($stream);
+                }
+
+                if ($decoded === false) {
+                    continue;
+                }
+
+                $stream = $decoded;
+            }
+
+            $streams[] = $stream;
+        }
+
+        return $streams;
+    }
+
+    protected function extractPdfStreamFromObject(string $objectBody): string
+    {
+        if (!preg_match('/<<(.*?)>>\\s*stream\\r?\\n(.*?)\\r?\\nendstream/s', $objectBody, $match)) {
+            return '';
+        }
+
+        $stream = $match[2];
+        if (str_contains($match[1], 'FlateDecode')) {
+            $decoded = @gzuncompress($stream);
+            if ($decoded === false) {
+                $decoded = @gzdecode($stream);
+            }
+
+            if ($decoded !== false) {
+                $stream = $decoded;
+            }
+        }
+
+        return $stream;
+    }
+
+    protected function extractPdfTextFromContentStream(string $stream, array $fontResources, array $fontMaps): string
+    {
+        preg_match_all('/\\/(F\\d+)\\s+[0-9.]+\\s+Tf|<([0-9A-Fa-f\\s]+)>\\s*Tj|\\[(.*?)\\]\\s*TJ|\\(([^()]*(?:\\\\.[^()]*)*)\\)\\s*Tj/s', $stream, $matches, PREG_SET_ORDER);
+
+        $currentFontObject = null;
+        $parts = [];
+
+        foreach ($matches as $match) {
+            if (!empty($match[1])) {
+                $currentFontObject = $fontResources[$match[1]] ?? null;
+                continue;
+            }
+
+            if (!empty($match[2])) {
+                $parts[] = $this->decodePdfHexText($match[2], $fontMaps[$currentFontObject] ?? []);
+                continue;
+            }
+
+            if (!empty($match[3])) {
+                preg_match_all('/<([0-9A-Fa-f\\s]+)>/', $match[3], $hexMatches);
+                $line = '';
+                foreach ($hexMatches[1] ?? [] as $hex) {
+                    $line .= $this->decodePdfHexText($hex, $fontMaps[$currentFontObject] ?? []);
+                }
+
+                if ($line !== '') {
+                    $parts[] = $line;
+                }
+                continue;
+            }
+
+            if (!empty($match[4])) {
+                $parts[] = $this->decodePdfLiteralText($match[4]);
+            }
+        }
+
+        return $this->sanitizeTextForJson(implode("\n", array_filter($parts)));
+    }
+
+    protected function decodePdfHexText(string $hex, array $unicodeMap = []): string
+    {
+        $hex = strtoupper(preg_replace('/\\s+/', '', $hex) ?? '');
+        if ($hex === '') {
+            return '';
+        }
+
+        $text = '';
+        foreach (str_split($hex, 2) as $code) {
+            $text .= $unicodeMap[$code] ?? $this->decodePdfUnicodeHex($code);
+        }
+
+        return $text;
+    }
+
+    protected function decodePdfUnicodeHex(string $hex): string
+    {
+        $hex = preg_replace('/\\s+/', '', $hex) ?? '';
+        if ($hex === '') {
+            return '';
+        }
+
+        if (strlen($hex) % 2 !== 0) {
+            $hex = '0' . $hex;
+        }
+
+        $bytes = @hex2bin($hex);
+        if ($bytes === false) {
+            return '';
+        }
+
+        $encoding = strlen($hex) > 2 ? 'UTF-16BE' : 'ISO-8859-1';
+        $text = @mb_convert_encoding($bytes, 'UTF-8', $encoding);
+
+        return is_string($text) ? $text : '';
+    }
+
+    protected function decodePdfLiteralText(string $text): string
+    {
+        $text = preg_replace('/\\\\([nrtbf()\\\\])/', ' ', $text) ?? $text;
+        $text = preg_replace('/\\\\\\d{3}/', ' ', $text) ?? $text;
+
+        return $this->sanitizeTextForJson($text);
     }
 
     protected function limitExtract(string $text, int $maxChars = 20000): string
