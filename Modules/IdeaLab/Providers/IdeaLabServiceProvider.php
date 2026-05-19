@@ -12,11 +12,11 @@ class IdeaLabServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/idealab.php', 'idealab');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/actions.php', 'idealab.actions');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/breadcrumbs.php', 'idealab.breadcrumbs');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/diagnostics.php', 'idealab.diagnostics');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/page_titles.php', 'idealab.page_titles');
-        $this->mergeConfigFrom(__DIR__ . '/../Config/permissions.php', 'idealab.permissions');
+        $this->mergeConfigFrom(__DIR__ . '/../config/actions.php', 'idealab.actions');
+        $this->mergeConfigFrom(__DIR__ . '/../config/breadcrumbs.php', 'idealab.breadcrumbs');
+        $this->mergeConfigFrom(__DIR__ . '/../config/diagnostics.php', 'idealab.diagnostics');
+        $this->mergeConfigFrom(__DIR__ . '/../config/page_titles.php', 'idealab.page_titles');
+        $this->mergeConfigFrom(__DIR__ . '/../config/permissions.php', 'idealab.permissions');
 
         $this->app->singleton(IdeaScoringService::class);
         $this->app->singleton(IdeaLabConsensusGateway::class);
