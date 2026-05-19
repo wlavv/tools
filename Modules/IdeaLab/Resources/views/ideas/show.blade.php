@@ -195,6 +195,14 @@
                                             <a href="{{ route('ai_consensus.runs.download', $centralRun) }}" class="btn btn-sm btn-outline-secondary mt-2">
                                                 <i class="fa-solid fa-download"></i> Download output
                                             </a>
+                                            @if($centralRun->output_type === 'lsg_module_blueprint')
+                                                <form method="POST" action="{{ route('ai_consensus.runs.module_package', $centralRun) }}" class="d-inline">
+                                                    @csrf
+                                                    <button class="btn btn-sm btn-outline-primary mt-2">
+                                                        <i class="fa-solid fa-box-archive"></i> Download pacote módulo
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 @endif

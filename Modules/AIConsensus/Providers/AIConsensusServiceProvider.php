@@ -8,6 +8,7 @@ use Modules\AIConsensus\Services\AIConsensusContextBuilder;
 use Modules\AIConsensus\Services\AIConsensusEngine;
 use Modules\AIConsensus\Services\AIConsensusGateway;
 use Modules\AIConsensus\Services\AIConsensusModuleBlueprintService;
+use Modules\AIConsensus\Services\AIConsensusModulePackageService;
 use Modules\AIConsensus\Services\AIConsensusOutputNormalizer;
 use Modules\AIConsensus\Services\AIConsensusPromptBuilder;
 use Modules\AIConsensus\Services\AIConsensusProviderOrchestrator;
@@ -54,6 +55,7 @@ class AIConsensusServiceProvider extends ServiceProvider
         $this->app->singleton(AIConsensusSchemaValidator::class);
         $this->app->singleton(AIConsensusChatService::class);
         $this->app->singleton(AIConsensusModuleBlueprintService::class);
+        $this->app->singleton(AIConsensusModulePackageService::class);
         $this->app->singleton(AIConsensusScoringService::class);
     }
 

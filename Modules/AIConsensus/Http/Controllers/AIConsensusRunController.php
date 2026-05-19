@@ -12,7 +12,9 @@ use Modules\AIConsensus\Http\Requests\CreateRunRequest;
 use Modules\AIConsensus\Models\AIConsensusRun;
 use Modules\AIConsensus\Models\AIConsensusTemplate;
 use Modules\AIConsensus\Services\AIConsensusGateway;
+use Modules\AIConsensus\Services\AIConsensusModulePackageService;
 use Modules\AIConsensus\Services\AIConsensusRunService;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AIConsensusRunController extends Controller
 {
@@ -93,5 +95,12 @@ class AIConsensusRunController extends Controller
             'Content-Type' => $extension === 'json' ? 'application/json; charset=UTF-8' : 'text/plain; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    public function modulePackage(AIConsensusRun $run, AIConsensusModulePackageService $packageService): BinaryFileResponse
+    {
+        $zipPath = $packageService->buildZip($run);
+
+        return response()->download($zipPath)->deleteFileAfterSend(false);
     }
 }

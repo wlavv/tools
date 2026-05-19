@@ -13,6 +13,14 @@
             <a href="{{ route('ai_consensus.runs.download', $run) }}" class="btn btn-outline-secondary">
                 <i class="fas fa-download"></i> Download
             </a>
+            @if($run->output_type === 'lsg_module_blueprint')
+                <form method="POST" action="{{ route('ai_consensus.runs.module_package', $run) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-outline-primary">
+                        <i class="fas fa-box-archive"></i> Download module package
+                    </button>
+                </form>
+            @endif
         @endif
         <a href="{{ route('ai_consensus.runs.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back

@@ -18,6 +18,7 @@ Route::middleware(config('ai_consensus.middleware', ['web', 'auth']))
     Route::post('/runs', [AIConsensusRunController::class, 'store'])->name('runs.store');
     Route::post('/runs/{run}/process', [AIConsensusRunController::class, 'process'])->name('runs.process');
     Route::get('/runs/{run}/download', [AIConsensusRunController::class, 'download'])->name('runs.download');
+    Route::post('/runs/{run}/module-package', [AIConsensusRunController::class, 'modulePackage'])->name('runs.module_package');
     Route::get('/runs/{run}', [AIConsensusRunController::class, 'show'])->name('runs.show');
 
     Route::get('/templates', [AIConsensusTemplateController::class, 'index'])->name('templates.index');
