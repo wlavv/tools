@@ -137,7 +137,7 @@
             <div class="card-header bg-white"><strong>AI Runs</strong></div>
             <div class="card-body table-responsive">
                 <table class="table table-sm align-middle">
-                    <thead><tr><th>Type</th><th>Status</th><th>Template</th><th>Created</th><th>AI Consensus</th><th>Payload</th></tr></thead>
+                    <thead><tr><th>Type</th><th>Status</th><th>Template</th><th>Created</th><th>AI Consensus</th><th>Payload</th><th>Error</th></tr></thead>
                     <tbody>
                         @forelse($idea->aiRuns as $run)
                             <tr>
@@ -155,9 +155,16 @@
                                     @endif
                                 </td>
                                 <td><code>{{ str($run->prompt_text)->limit(80) }}</code></td>
+                                <td>
+                                    @if($run->error_message)
+                                        <span class="text-danger">{{ str($run->error_message)->limit(120) }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="text-muted">No AI runs yet.</td></tr>
+                            <tr><td colspan="7" class="text-muted">No AI runs yet.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

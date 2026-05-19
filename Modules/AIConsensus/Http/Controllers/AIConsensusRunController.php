@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Modules\AIConsensus\Database\Seeders\AIConsensusCentralSeeder;
 use Modules\AIConsensus\Http\Requests\CreateRunRequest;
 use Modules\AIConsensus\Models\AIConsensusRun;
 use Modules\AIConsensus\Models\AIConsensusTemplate;
@@ -29,6 +30,10 @@ class AIConsensusRunController extends Controller
 
     public function create(): View
     {
+        if (AIConsensusTemplate::query()->count() === 0) {
+            app(AIConsensusCentralSeeder::class)->run();
+        }
+
         return view('ai-consensus::runs.create', [
             'templates' => AIConsensusTemplate::query()->where('is_active', true)->orderBy('template_key')->get(),
             'outputTypes' => config('ai-consensus-output-types', []),

@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Modules\AIConsensus\Database\Seeders\AIConsensusCentralSeeder;
 use Modules\AIConsensus\Models\AIConsensusProvider;
 
 class AIConsensusProviderController extends Controller
 {
     public function index(): View
     {
+        if (AIConsensusProvider::query()->count() === 0) {
+            app(AIConsensusCentralSeeder::class)->run();
+        }
+
         return view('ai-consensus::providers.index', [
             'providers' => AIConsensusProvider::query()->orderBy('priority')->get(),
         ]);
