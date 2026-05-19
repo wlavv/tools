@@ -87,7 +87,7 @@ class AIConsensusProviderOrchestrator
                 throw new \RuntimeException("Provider [$provider] sem credencial ativa.");
             }
 
-            $result = $this->legacyService->executeProviderPrompt($provider, $prompt);
+            $result = $this->legacyService->executeProviderPrompt($provider, $prompt, $run->options ?? []);
             $content = (string) ($result['text'] ?? '');
 
             return AIConsensusProviderResponse::query()->create([

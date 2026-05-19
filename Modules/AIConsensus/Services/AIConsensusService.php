@@ -18,6 +18,8 @@ use ZipArchive;
 
 class AIConsensusService
 {
+    protected array $runtimeOptions = [];
+
     public function getIndexData(array $filters = []): array
     {
         $query = AIConsensus::query()->withCount(['responses', 'files']);
@@ -383,18 +385,23 @@ class AIConsensusService
         return (bool) $this->getProviderCredential($provider);
     }
 
-    public function executeProviderPrompt(string $provider, string $prompt): array
+    public function executeProviderPrompt(string $provider, string $prompt, array $options = []): array
     {
+        $this->runtimeOptions = $options;
         $settings = $this->getProviderCredential($provider);
         $resolved = $this->resolveProviderConfig($provider, $settings);
         $start = microtime(true);
 
-        $result = match ($provider) {
-            'anthropic' => $this->callAnthropic($prompt, $settings),
-            'gemini' => $this->callGemini($prompt, $settings),
-            'openai' => $this->callOpenAI($prompt, $settings),
-            default => throw new \RuntimeException('Provider não suportado: ' . $provider),
-        };
+        try {
+            $result = match ($provider) {
+                'anthropic' => $this->callAnthropic($prompt, $settings),
+                'gemini' => $this->callGemini($prompt, $settings),
+                'openai' => $this->callOpenAI($prompt, $settings),
+                default => throw new \RuntimeException('Provider não suportado: ' . $provider),
+            };
+        } finally {
+            $this->runtimeOptions = [];
+        }
 
         $tokensIn = (int) ($result['tokens_in'] ?? 0);
         $tokensOut = (int) ($result['tokens_out'] ?? 0);
@@ -477,7 +484,7 @@ class AIConsensusService
             ])
             ->post($resolved['base_url'] . '/v1/messages', [
                 'model' => $resolved['model'],
-                'max_tokens' => 4000,
+                'max_tokens' => $this->maxOutputTokens('anthropic'),
                 'messages' => [['role' => 'user', 'content' => $prompt]],
             ]);
 
@@ -508,6 +515,9 @@ class AIConsensusService
                 'contents' => [[
                     'parts' => [['text' => $prompt]],
                 ]],
+                'generationConfig' => [
+                    'maxOutputTokens' => $this->maxOutputTokens('gemini'),
+                ],
             ]);
 
         if (!$response->successful()) {
@@ -536,6 +546,7 @@ class AIConsensusService
             ->post($resolved['base_url'] . '/responses', [
                 'model' => $resolved['model'],
                 'input' => $prompt,
+                'max_output_tokens' => $this->maxOutputTokens('openai'),
             ]);
 
         if (!$response->successful()) {
@@ -989,5 +1000,17 @@ class AIConsensusService
         $cost = (($tokensIn / 1000000) * $inputRate) + (($tokensOut / 1000000) * $outputRate);
 
         return round($cost, 4);
+    }
+
+    protected function maxOutputTokens(string $provider): int
+    {
+        $runtime = (int) data_get($this->runtimeOptions, 'max_output_tokens', 0);
+        if ($runtime > 0) {
+            return $runtime;
+        }
+
+        $configured = (int) config("ai_consensus.providers.{$provider}.max_output_tokens", 0);
+
+        return $configured > 0 ? $configured : 12000;
     }
 }

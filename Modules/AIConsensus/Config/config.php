@@ -35,18 +35,21 @@ return [
             'api_key' => env('ANTHROPIC_API_KEY'),
             'api_base' => env('ANTHROPIC_API_BASE', 'https://api.anthropic.com'),
             'default_model' => env('ANTHROPIC_DEFAULT_MODEL', 'claude-3-5-sonnet-latest'),
+            'max_output_tokens' => (int) env('ANTHROPIC_MAX_OUTPUT_TOKENS', 12000),
         ],
         'gemini' => [
             'label' => 'Gemini',
             'api_key' => env('GEMINI_API_KEY'),
             'api_base' => env('GEMINI_API_BASE', 'https://generativelanguage.googleapis.com'),
             'default_model' => env('GEMINI_DEFAULT_MODEL', 'gemini-2.0-flash'),
+            'max_output_tokens' => (int) env('GEMINI_MAX_OUTPUT_TOKENS', 12000),
         ],
         'openai' => [
             'label' => 'OpenAI',
             'api_key' => env('OPENAI_API_KEY'),
             'api_base' => env('OPENAI_API_BASE', 'https://api.openai.com/v1'),
             'default_model' => env('OPENAI_DEFAULT_MODEL', 'gpt-4o'),
+            'max_output_tokens' => (int) env('OPENAI_MAX_OUTPUT_TOKENS', 16000),
         ],
     ],
 

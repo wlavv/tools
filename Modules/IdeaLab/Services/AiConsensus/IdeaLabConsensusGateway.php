@@ -96,6 +96,7 @@ class IdeaLabConsensusGateway
                         'return_format' => 'json',
                         'store_result' => true,
                         'allow_code_generation' => false,
+                        'max_output_tokens' => 16000,
                         'run_claude' => true,
                         'run_gemini' => true,
                         'run_openai_final' => true,

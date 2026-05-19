@@ -428,6 +428,11 @@ class ProjectCreationFromIdeaService
     protected function uniqueProjectSlug(string $name): string
     {
         $base = Str::slug($name) ?: 'idealab-project';
+
+        if (!Schema::hasColumn('wt_projects', 'slug')) {
+            return $base;
+        }
+
         $slug = $base;
         $index = 2;
 
