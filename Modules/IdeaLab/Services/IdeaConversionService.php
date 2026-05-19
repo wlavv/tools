@@ -21,7 +21,7 @@ class IdeaConversionService
 
         $centralConsensus = $this->resolveCentralConsensusResult($latestAiRun?->response_payload ?? []);
         $latestAiSummary = $latestAiRun?->summary ?: $latestAiRun?->response_text ?: $centralConsensus['final_answer'];
-        $latestAiPayload = $latestAiRun?->response_payload ?? [];
+        $latestAiPayload = $centralConsensus['output'] ?? $latestAiRun?->response_payload ?? [];
 
         return [
             'source' => 'idealab',

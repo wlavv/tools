@@ -15,6 +15,7 @@ class RunAiConsensusRequest extends FormRequest
     {
         return [
             'template_id' => ['nullable', 'exists:idealab_ai_templates,id'],
+            'template_key' => ['nullable', 'string', 'max:120'],
             'message' => ['nullable', 'string'],
             'mode' => ['required', 'in:template,chat'],
         ];

@@ -68,5 +68,18 @@ class IdeaLabDatabaseSeeder extends Seeder
                 'sort_order' => 2,
             ]
         );
+
+        IdeaAiTemplate::query()->updateOrCreate(
+            ['key' => 'module_blueprint'],
+            [
+                'name' => 'LSG Module Blueprint',
+                'entrypoint_type' => 'module_blueprint',
+                'description' => 'Creates the first reviewable LSG module blueprint from an idea.',
+                'system_prompt' => 'You prepare safe, reviewable module blueprints for WebTools Manager / B.O. Custom LSG. Do not generate or apply executable code.',
+                'user_prompt_template' => "Convert this idea into the first version of an LSG module blueprint.\n\nTitle: {{title}}\nRaw description: {{description_raw}}\nRefined description: {{description_refined}}\n\nReturn valid JSON with: module_name, objective, scope, permissions, data_model, migrations, models, controllers, services, routes, views, translations, milestones, tasks, risks, validation_checklist, first_version_plan. Do not generate executable code yet.",
+                'supports_chat' => true,
+                'sort_order' => 3,
+            ]
+        );
     }
 }

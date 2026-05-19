@@ -137,6 +137,7 @@ class IdeaLabConsensusGateway
         return match ($template?->key) {
             'idea_deconstruction' => 'idealab.project_idea_discovery',
             'project_conversion_brief' => 'idealab.project_idea_to_project',
+            'module_blueprint' => 'idealab.project_idea_to_lsg_module',
             default => $template?->key ?: 'idealab.project_idea_discovery',
         };
     }
@@ -145,8 +146,10 @@ class IdeaLabConsensusGateway
     {
         return match ($template?->entrypoint_type) {
             'project_conversion' => 'project_conversion',
+            'module_blueprint' => 'module_blueprint',
             default => match ($template?->key) {
                 'project_conversion_brief' => 'project_conversion',
+                'module_blueprint' => 'module_blueprint',
                 default => 'discovery',
             },
         };
