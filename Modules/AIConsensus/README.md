@@ -1,61 +1,66 @@
-# AIConsensus
+# AI Consensus
 
-Módulo Laravel para agregação de respostas de múltiplos providers de IA.
+Servico central de inteligencia do WebTools Manager / B.O. Custom LSG.
 
-## Objetivo
-Permite:
-- criar um pedido (run) com prompt e ficheiros
-- enviar o prompt para Claude e Gemini
-- consolidar as respostas no OpenAI
-- guardar histórico, anexos, tokens e custo estimado
-- guardar credenciais dos providers de forma encriptada
+O modulo mantem compatibilidade com o fluxo antigo de runs manuais, mas o ponto de entrada recomendado para todos os modulos passa a ser:
 
-## Estrutura resumida
-- `Http/Controllers`: controller do módulo
-- `Http/Requests`: validações
-- `Models`: models do módulo e tabelas relacionadas
-- `Services`: lógica de negócio
-- `Database/Migrations`: migration da tabela de credenciais
-- `Database/Seeders`: seeder inicial
-- `Resources/views`: UI do módulo
-- `Routes/web.php`: rotas
-- `Providers`: service provider do módulo
+```php
+use Modules\AIConsensus\Services\AIConsensusGateway;
 
-## Dependências
-- Sem packages externas de modularização
-- Usa apenas componentes nativos do Laravel
-- Requer tabela já existente:
-  - `ai_runs`
-  - `ai_run_responses`
-  - `ai_files`
-
-## Tabela criada
-- `ai_provider_credentials`
-
-## Rota principal
-- `/ai-consensus`
-
-## Instalação
-1. Copiar a pasta `Modules/AIConsensus` para o projeto
-2. Executar os comandos abaixo
-
-## Comandos
-```bash
-composer dump-autoload
-php artisan optimize:clear
-php artisan modules:list
-php artisan modules:check
-php artisan migrate --path=Modules/AIConsensus/Database/Migrations
-php artisan db:seed --class="Modules\\AIConsensus\\Database\\Seeders\\AIConsensusSeeder" --force
+$run = app(AIConsensusGateway::class)->createRun([
+    'source_module' => 'IdeaLab',
+    'source_type' => 'project_idea',
+    'source_id' => $idea->id,
+    'template_key' => 'idealab.project_idea_to_lsg_module',
+    'output_type' => 'lsg_module_blueprint',
+    'input_payload' => [
+        'title' => $idea->title,
+        'description' => $idea->description,
+        'business_context' => 'WebTools Manager / LSG',
+    ],
+    'options' => [
+        'language' => 'pt',
+        'tone' => 'technical',
+        'consensus_mode' => 'architect_reviewer',
+        'return_format' => 'json',
+        'store_result' => true,
+        'allow_code_generation' => false,
+        'async' => true,
+    ],
+    'requested_by' => auth()->id(),
+]);
 ```
 
-## Storage
-O módulo grava ficheiros em `storage/app/ai-consensus`.
-Não precisa de `storage:link` porque os anexos não são públicos.
+## Fluxo
 
-## Notas importantes
-- As API keys ficam encriptadas com `Crypt`
-- O parsing de PDF é best-effort sem OCR
-- O parsing de DOCX lê o `word/document.xml`
-- O custo estimado pode ser afinado por provider/modelo no `config.php` ou no campo `meta` da tabela `ai_provider_credentials`
-- O processamento está síncrono; numa fase posterior pode ser movido para queue/jobs
+Modulo origem -> `AIConsensusGateway` -> Template Resolver -> Context Builder -> Run Creator -> Provider Orchestrator -> Consensus Engine -> Output Normalizer -> Result Storage.
+
+## Estrutura central
+
+- `Config/`: providers, templates, output types, regras de consensus e standard LSG.
+- `Models/`: runs, templates, providers, messages, outputs, contexts e logs.
+- `Services/`: gateway, resolvers, orquestracao, normalizacao e chat.
+- `Jobs/`: processamento de runs e base para providers/resultados.
+- `Routes/web.php`: UI B.O.
+- `Routes/api.php`: endpoint interno `POST /ai-consensus/api/runs`.
+
+## Setup
+
+```bash
+php artisan migrate --path=Modules/AIConsensus/Database/Migrations --force
+php artisan db:seed --class="Modules\\AIConsensus\\Database\\Seeders\\AIConsensusCentralSeeder" --force
+```
+
+Para IdeaLab:
+
+```bash
+php artisan migrate --path=Modules/IdeaLab/Database/Migrations --force
+```
+
+## Seguranca
+
+- Providers reais ficam inativos por defeito.
+- O provider ativo inicial e `internal_rules_engine`, sem chamadas externas.
+- O modulo guarda prompts, contexto, respostas e logs.
+- Geracao de codigo fica apenas preparada; nada e aplicado automaticamente.
+- Outputs criticos devem ser aprovados por humano antes de alimentar automacoes.

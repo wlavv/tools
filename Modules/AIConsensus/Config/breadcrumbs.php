@@ -13,6 +13,46 @@ return [
         'translate' => true,
     ],
 
+    'ai_consensus.runs.index' => [
+        'label' => 'AI Consensus Runs',
+        'parent' => 'ai_consensus.index',
+    ],
+
+    'ai_consensus.runs.create' => [
+        'label' => 'New AI Consensus Run',
+        'parent' => 'ai_consensus.runs.index',
+    ],
+
+    'ai_consensus.runs.show' => [
+        'label' => 'AI Consensus Run',
+        'parent' => 'ai_consensus.runs.index',
+    ],
+
+    'ai_consensus.runs.store' => [
+        'label' => 'New AI Consensus Run',
+        'parent' => 'ai_consensus.runs.index',
+    ],
+
+    'ai_consensus.templates.index' => [
+        'label' => 'AI Consensus Templates',
+        'parent' => 'ai_consensus.index',
+    ],
+
+    'ai_consensus.templates.edit' => [
+        'label' => 'Edit Template',
+        'parent' => 'ai_consensus.templates.index',
+    ],
+
+    'ai_consensus.providers.index' => [
+        'label' => 'AI Consensus Providers',
+        'parent' => 'ai_consensus.index',
+    ],
+
+    'ai_consensus.logs.index' => [
+        'label' => 'AI Consensus Logs',
+        'parent' => 'ai_consensus.index',
+    ],
+
     'ai_consensus.store' => [
         'label' => 'ai-consensus::breadcrumbs.ai_consensus_new',
         'parent' => 'ai_consensus.index',

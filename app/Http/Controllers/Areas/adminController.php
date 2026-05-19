@@ -14,6 +14,7 @@ class adminController extends Controller{
         $this->addRouteAccess('document-manager.dashboard', 'Document Manager', 'fa-solid fa-folder-tree');
         $this->addRouteAccess('password_manager.index', "PASSWORD'S", 'fa-solid fa-key');
         $this->addRouteAccess('ai_consensus.index', 'Consensus', 'fa-solid fa-star-of-life');
+        $this->addRouteAccess('idealab.index', 'Idea Lab', 'fa-solid fa-lightbulb');
 
         return $this->view('areas/administration/index');
     }

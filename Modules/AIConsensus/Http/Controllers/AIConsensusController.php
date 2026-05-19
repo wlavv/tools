@@ -9,6 +9,9 @@ use Illuminate\View\View;
 use Modules\AIConsensus\Http\Requests\StoreAIConsensusRequest;
 use Modules\AIConsensus\Http\Requests\UpdateAIConsensusRequest;
 use Modules\AIConsensus\Models\AIConsensus;
+use Modules\AIConsensus\Models\AIConsensusProvider;
+use Modules\AIConsensus\Models\AIConsensusRun;
+use Modules\AIConsensus\Models\AIConsensusTemplate;
 use Modules\AIConsensus\Services\AIConsensusService;
 
 class AIConsensusController extends Controller
@@ -21,7 +24,15 @@ class AIConsensusController extends Controller
 
     public function index(Request $request): View
     {
-        return $this->view('ai-consensus::Index', $this->service->getIndexData($request->all()));
+        return $this->view('ai-consensus::dashboard.index', [
+            'stats' => [
+                'runs' => AIConsensusRun::query()->count(),
+                'pending' => AIConsensusRun::query()->whereIn('status', ['pending', 'processing', 'waiting_user_input'])->count(),
+                'templates' => AIConsensusTemplate::query()->where('is_active', true)->count(),
+                'providers' => AIConsensusProvider::query()->where('is_active', true)->count(),
+            ],
+            'recentRuns' => AIConsensusRun::query()->with('template')->latest()->limit(8)->get(),
+        ]);
     }
 
     public function create(): View

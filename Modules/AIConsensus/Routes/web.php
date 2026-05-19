@@ -2,12 +2,30 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\AIConsensus\Http\Controllers\AIConsensusController;
+use Modules\AIConsensus\Http\Controllers\AIConsensusLogController;
+use Modules\AIConsensus\Http\Controllers\AIConsensusProviderController;
+use Modules\AIConsensus\Http\Controllers\AIConsensusRunController;
+use Modules\AIConsensus\Http\Controllers\AIConsensusTemplateController;
 
 Route::middleware(config('ai_consensus.middleware', ['web', 'auth']))
     ->prefix(config('ai_consensus.route_prefix', 'ai-consensus'))
     ->name('ai_consensus.')
     ->group(function () {
     Route::get('/', [AIConsensusController::class, 'index'])->name('index');
+    Route::get('/runs', [AIConsensusRunController::class, 'index'])->name('runs.index');
+    Route::get('/runs/create', [AIConsensusRunController::class, 'create'])->name('runs.create');
+    Route::post('/runs', [AIConsensusRunController::class, 'store'])->name('runs.store');
+    Route::get('/runs/{run}', [AIConsensusRunController::class, 'show'])->name('runs.show');
+
+    Route::get('/templates', [AIConsensusTemplateController::class, 'index'])->name('templates.index');
+    Route::get('/templates/{template}/edit', [AIConsensusTemplateController::class, 'edit'])->name('templates.edit');
+    Route::match(['put', 'patch'], '/templates/{template}', [AIConsensusTemplateController::class, 'update'])->name('templates.update');
+
+    Route::get('/providers', [AIConsensusProviderController::class, 'index'])->name('providers.index');
+    Route::match(['put', 'patch'], '/providers/{provider}', [AIConsensusProviderController::class, 'update'])->name('providers.update');
+
+    Route::get('/logs', [AIConsensusLogController::class, 'index'])->name('logs.index');
+
     Route::get('/create', [AIConsensusController::class, 'create'])->name('create');
     Route::post('/', [AIConsensusController::class, 'store'])->name('store');
     Route::get('/{run}', [AIConsensusController::class, 'show'])->name('show');

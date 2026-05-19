@@ -1,0 +1,48 @@
+{
+  "name": "IdeaLab",
+  "slug": "idea-lab",
+  "alias": "idea-lab",
+  "description": "LSG module to capture, mature, score and convert ideas into Project Manager projects with AI Consensus support.",
+  "version": "1.0.0",
+  "author": "LSG / WebTools Manager",
+  "type": "module",
+  "enabled": true,
+  "priority": 70,
+  "provider": "Modules\\IdeaLab\\Providers\\IdeaLabServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  },
+  "providers": [
+    "Modules\\IdeaLab\\Providers\\IdeaLabServiceProvider"
+  ],
+  "routes": [
+    "routes/web.php",
+    "routes/api.php"
+  ],
+  "config": "config/idealab.php",
+  "permissions": [
+    "permission_idealab_view",
+    "permission_idealab_create",
+    "permission_idealab_edit",
+    "permission_idealab_delete",
+    "permission_idealab_ai_consensus",
+    "permission_idealab_convert_project",
+    "permission_idealab_manage_templates"
+  ],
+  "menu": {
+    "label": "Idea Lab",
+    "icon": "fa-solid fa-lightbulb",
+    "route": "idealab.index",
+    "group": "Innovation",
+    "order": 35
+  },
+  "health": {
+    "migrations": true,
+    "routes": true,
+    "permissions": true,
+    "config": true,
+    "translations": true
+  }
+}

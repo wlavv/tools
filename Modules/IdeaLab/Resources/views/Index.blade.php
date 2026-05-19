@@ -1,0 +1,1 @@
+@extends('idealab::ideas.index')

@@ -1,13 +1,43 @@
 {
   "name": "AIConsensus",
   "slug": "ai-consensus",
-  "description": "Agrega respostas de múltiplos providers de IA e produz uma resposta final consolidada.",
+  "description": "Servico central de AI Consensus para o WebTools Manager / B.O. Custom LSG.",
   "enabled": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "provider": "Modules\\AIConsensus\\Providers\\AIConsensusServiceProvider",
+  "permissions": [
+    "permission_ai_consensus_view",
+    "permission_ai_consensus_create_run",
+    "permission_ai_consensus_chat",
+    "permission_ai_consensus_manage_templates",
+    "permission_ai_consensus_manage_providers",
+    "permission_ai_consensus_view_logs",
+    "permission_ai_consensus_generate_modules",
+    "permission_ai_consensus_approve_outputs",
+    "permission_ai_consensus_delete_runs"
+  ],
   "dependencies": {
     "composer": [],
     "npm": [],
     "internal_modules": []
+  },
+  "routes": [
+    "Routes/web.php",
+    "Routes/api.php"
+  ],
+  "config": "Config/ai-consensus.php",
+  "menu": {
+    "label": "AI Consensus",
+    "icon": "fa-solid fa-brain",
+    "route": "ai_consensus.index",
+    "group": "Administration",
+    "order": 30
+  },
+  "health": {
+    "migrations": true,
+    "routes": true,
+    "permissions": true,
+    "config": true,
+    "translations": true
   }
 }
