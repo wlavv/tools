@@ -13,6 +13,11 @@ return [
         'translate' => true,
     ],
 
+    'ai_consensus.legacy.index' => [
+        'label' => 'Legacy Runs',
+        'parent' => 'ai_consensus.index',
+    ],
+
     'ai_consensus.runs.index' => [
         'label' => 'AI Consensus Runs',
         'parent' => 'ai_consensus.index',

@@ -364,8 +364,42 @@ class AIConsensusService
     {
         return AIProviderCredential::query()
             ->where('provider', $provider)
-            ->where('is_active', true)
+            ->where('enabled', true)
             ->first();
+    }
+
+    public function hasActiveProviderCredential(string $provider): bool
+    {
+        return (bool) $this->getProviderCredential($provider);
+    }
+
+    public function executeProviderPrompt(string $provider, string $prompt): array
+    {
+        $settings = $this->getProviderCredential($provider);
+        $resolved = $this->resolveProviderConfig($provider, $settings);
+        $start = microtime(true);
+
+        $result = match ($provider) {
+            'anthropic' => $this->callAnthropic($prompt, $settings),
+            'gemini' => $this->callGemini($prompt, $settings),
+            'openai' => $this->callOpenAI($prompt, $settings),
+            default => throw new \RuntimeException('Provider não suportado: ' . $provider),
+        };
+
+        $tokensIn = (int) ($result['tokens_in'] ?? 0);
+        $tokensOut = (int) ($result['tokens_out'] ?? 0);
+        $model = (string) ($result['model'] ?? $resolved['model']);
+
+        return [
+            'provider' => $provider,
+            'model' => $model,
+            'text' => $result['text'] ?? '',
+            'tokens_in' => $tokensIn ?: null,
+            'tokens_out' => $tokensOut ?: null,
+            'cost' => $this->estimateProviderCost($provider, $model, $tokensIn, $tokensOut, $settings?->meta ?? []),
+            'latency_ms' => (int) round((microtime(true) - $start) * 1000),
+            'meta' => $result['meta'] ?? [],
+        ];
     }
 
     protected function resolveProviderConfig(string $provider, ?AIProviderCredential $credential = null): array

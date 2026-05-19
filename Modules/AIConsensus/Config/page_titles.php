@@ -2,6 +2,7 @@
 
 return [
     'ai_consensus.index' => 'AI Consensus',
+    'ai_consensus.legacy.index' => 'AI Consensus Legacy Runs',
     'ai_consensus.runs.index' => 'AI Consensus Runs',
     'ai_consensus.runs.create' => 'New AI Consensus Run',
     'ai_consensus.runs.store' => 'New AI Consensus Run',

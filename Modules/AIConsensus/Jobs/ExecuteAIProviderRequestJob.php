@@ -23,7 +23,7 @@ class ExecuteAIProviderRequestJob implements ShouldQueue
 
     public function __construct(public int $runId)
     {
-        $this->onQueue('ai-consensus');
+        $this->onQueue(config('ai_consensus.queue.name', 'ai-consensus'));
     }
 
     public function handle(AIConsensusProviderOrchestrator $orchestrator, AIConsensusRunService $runService): void

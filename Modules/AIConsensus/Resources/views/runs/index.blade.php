@@ -45,6 +45,14 @@
                                 <td>{{ $run->final_score ?? '-' }}</td>
                                 <td>{{ optional($run->created_at)->format('Y-m-d H:i') }}</td>
                                 <td class="text-end">
+                                    @if(in_array($run->status, ['pending', 'failed'], true))
+                                        <form method="POST" action="{{ route('ai_consensus.runs.process', $run) }}" class="d-inline">
+                                            @csrf
+                                            <button class="btn btn-sm btn-outline-success" title="Process">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('ai_consensus.runs.show', $run) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye"></i>
                                     </a>

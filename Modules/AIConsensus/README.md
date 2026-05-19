@@ -51,6 +51,26 @@ php artisan migrate --path=Modules/AIConsensus/Database/Migrations --force
 php artisan db:seed --class="Modules\\AIConsensus\\Database\\Seeders\\AIConsensusCentralSeeder" --force
 ```
 
+## Queue
+
+Runs assincronos usam o mesmo job do AI Consensus legado:
+
+```php
+Modules\AIConsensus\Jobs\ProcessAIConsensusRunJob
+```
+
+Por defeito a queue e `ai-consensus`. Em producao, garantir que o worker escuta essa queue ou definir:
+
+```env
+AI_CONSENSUS_QUEUE=default
+```
+
+Exemplo:
+
+```bash
+php artisan queue:work --queue=ai-consensus,default --tries=3 --timeout=1800
+```
+
 Para IdeaLab:
 
 ```bash

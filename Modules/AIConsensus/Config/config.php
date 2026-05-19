@@ -6,6 +6,10 @@ return [
     'middleware' => ['web', 'auth'],
     'route_prefix' => 'ai-consensus',
 
+    'queue' => [
+        'name' => env('AI_CONSENSUS_QUEUE', 'ai-consensus'),
+    ],
+
     'tables' => [
         'runs' => 'ai_runs',
         'responses' => 'ai_run_responses',

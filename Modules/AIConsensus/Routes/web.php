@@ -12,9 +12,11 @@ Route::middleware(config('ai_consensus.middleware', ['web', 'auth']))
     ->name('ai_consensus.')
     ->group(function () {
     Route::get('/', [AIConsensusController::class, 'index'])->name('index');
+    Route::get('/legacy', [AIConsensusController::class, 'legacy'])->name('legacy.index');
     Route::get('/runs', [AIConsensusRunController::class, 'index'])->name('runs.index');
     Route::get('/runs/create', [AIConsensusRunController::class, 'create'])->name('runs.create');
     Route::post('/runs', [AIConsensusRunController::class, 'store'])->name('runs.store');
+    Route::post('/runs/{run}/process', [AIConsensusRunController::class, 'process'])->name('runs.process');
     Route::get('/runs/{run}', [AIConsensusRunController::class, 'show'])->name('runs.show');
 
     Route::get('/templates', [AIConsensusTemplateController::class, 'index'])->name('templates.index');

@@ -22,7 +22,7 @@ class ProcessAIConsensusRunJob implements ShouldQueue
 
     public function __construct(public int $runId, public bool $central = false)
     {
-        $this->onQueue('ai-consensus');
+        $this->onQueue(config('ai_consensus.queue.name', 'ai-consensus'));
     }
 
     public function handle(AIConsensusService $service, AIConsensusRunService $runService): void

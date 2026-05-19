@@ -10,6 +10,7 @@ use Modules\AIConsensus\Http\Requests\CreateRunRequest;
 use Modules\AIConsensus\Models\AIConsensusRun;
 use Modules\AIConsensus\Models\AIConsensusTemplate;
 use Modules\AIConsensus\Services\AIConsensusGateway;
+use Modules\AIConsensus\Services\AIConsensusRunService;
 
 class AIConsensusRunController extends Controller
 {
@@ -52,5 +53,14 @@ class AIConsensusRunController extends Controller
         return view('ai-consensus::runs.show', [
             'run' => $run->load(['template', 'messages', 'providerResponses.provider', 'outputs', 'logs']),
         ]);
+    }
+
+    public function process(AIConsensusRun $run, AIConsensusRunService $runService): RedirectResponse
+    {
+        $runService->process($run);
+
+        return redirect()
+            ->route('ai_consensus.runs.show', $run)
+            ->with('success', 'AI Consensus Run processado.');
     }
 }
