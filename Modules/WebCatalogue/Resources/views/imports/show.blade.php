@@ -9,8 +9,8 @@
     <h3><i class="{{ $template['icon'] ?? 'fa-solid fa-file-csv' }}"></i> {{ $template['label'] ?? ucfirst($type) }} Import</h3>
     <p class="wc-muted">{{ $template['description'] ?? '' }}</p>
     <div class="wc-actions-row" style="margin-bottom:14px">
-        <a class="wc-action-link" href="{{ route('webcatalogue.imports.template', $type) }}"><i class="fa-solid fa-download"></i> Download CSV Template</a>
-        <a class="wc-action-link" href="{{ route('webcatalogue.imports.index') }}"><i class="fa-solid fa-angle-left"></i> Import Center</a>
+        <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.imports.template', $type) }}"><i class="fa-solid fa-download"></i> Download CSV Template</a>
+        <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.imports.index') }}"><i class="fa-solid fa-angle-left"></i> Import Center</a>
     </div>
     <div class="wc-template-cols" style="margin-bottom:14px">
         <strong>Required:</strong>

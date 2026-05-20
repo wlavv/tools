@@ -19,5 +19,23 @@
     "requires": [],
     "enabled": true,
     "version": "5.6.2",
-    "provider": "Modules\\CatalogManager\\Providers\\CatalogManagerServiceProvider"
+    "provider": "Modules\\CatalogManager\\Providers\\CatalogManagerServiceProvider",
+    "permissions": [
+        "permission_catalog_manager_view",
+        "permission_catalog_manager_manage_products",
+        "permission_catalog_manager_manage_stores",
+        "permission_catalog_manager_manage_settings"
+    ],
+    "menu": {
+        "label": "Catalog Manager",
+        "icon": "fa-solid fa-boxes-stacked",
+        "route": "catalog-manager.dashboard",
+        "group": "Administration",
+        "order": 60
+    },
+    "lsg": {
+        "area": "catalog",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

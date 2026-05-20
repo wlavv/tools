@@ -1,8 +1,24 @@
 {
-  "name": "Calendar",
-  "slug": "calendar",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Calendar module with contexts, categories, events and tablet feed.",
-  "provider": "Modules\\Calendar\\Providers\\CalendarServiceProvider"
+    "name": "Calendar",
+    "slug": "calendar",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Calendar module with contexts, categories, events and tablet feed.",
+    "provider": "Modules\\Calendar\\Providers\\CalendarServiceProvider",
+    "permissions": [
+        "permission_calendar_view",
+        "permission_calendar_manage"
+    ],
+    "menu": {
+        "label": "Calendar",
+        "icon": "fa-solid fa-cube",
+        "route": "calendar.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

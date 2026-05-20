@@ -73,6 +73,8 @@ class ResourceController extends Controller
 
     public function store(Request $request, WebCatalogueStorageService $storage): RedirectResponse
     {
+        $this->validateResourceUpload($request);
+
         $data = $this->cleanWebCatalogueData($request, ['json' => ['metadata'], 'boolean' => ['is_main'], 'default_status' => 'active']);
         $this->handleUpload($request, $data, $storage);
         $item = Resource::create($data);
@@ -88,6 +90,8 @@ class ResourceController extends Controller
 
     public function update(Request $request, Resource $resource, WebCatalogueStorageService $storage): RedirectResponse
     {
+        $this->validateResourceUpload($request);
+
         $data = $this->cleanWebCatalogueData($request, ['json' => ['metadata'], 'boolean' => ['is_main'], 'default_status' => 'active']);
         $this->handleUpload($request, $data, $storage);
         $resource->update($data);
@@ -98,6 +102,18 @@ class ResourceController extends Controller
     {
         $resource->delete();
         return redirect()->route('webcatalogue.resources.index')->with('success', 'Resource deleted.');
+    }
+
+    protected function validateResourceUpload(Request $request): void
+    {
+        $request->validate([
+            'uploaded_file' => [
+                'nullable',
+                'file',
+                'max:51200',
+                'mimetypes:image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,audio/mpeg,model/gltf-binary,model/gltf+json,application/octet-stream,application/json,text/plain',
+            ],
+        ]);
     }
 
     protected function handleUpload(Request $request, array &$data, WebCatalogueStorageService $storage): void

@@ -14,6 +14,8 @@ class DocumentCategory extends Model
     protected $table = 'document_core_categories';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'rules' => 'array',
     ];

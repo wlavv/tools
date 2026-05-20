@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'title' => 'Compliance Center',
+    'run_validation' => 'Run validation',
+    'statuses' => [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'completed' => 'Completed',
+        'failed' => 'Failed',
+        'approved' => 'Approved',
+        'approved_with_warnings' => 'Approved with warnings',
+        'changes_required' => 'Changes required',
+        'rejected' => 'Rejected',
+        'manual_review_required' => 'Manual review',
+        'archived' => 'Archived',
+        'available' => 'Available',
+        'unavailable' => 'Unavailable',
+        'disabled' => 'Disabled',
+        'error' => 'Error',
+        'passed' => 'Passed',
+        'warning' => 'Warning',
+        'skipped' => 'Skipped',
+        'info' => 'Info',
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+        'critical' => 'Critical',
+        'blocker' => 'Blocker',
+    ],
+];

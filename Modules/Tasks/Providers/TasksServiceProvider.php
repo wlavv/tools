@@ -2,7 +2,6 @@
 
 namespace Modules\Tasks\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class TasksServiceProvider extends ServiceProvider
@@ -24,6 +23,6 @@ class TasksServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'tasks');
 
-        Route::middleware(['web'])->group($modulePath . '/Routes/web.php');
+        $this->loadRoutesFrom($modulePath . '/Routes/web.php');
     }
 }

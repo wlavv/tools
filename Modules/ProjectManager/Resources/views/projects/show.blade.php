@@ -4,7 +4,7 @@
 @include('project-manager::partials.styles')
 @php use Illuminate\Support\Str; use Modules\ProjectManager\Services\ProjectManagerSectionRegistry; @endphp
 
-<div class="container-fluid pm-wrap">
+<div class="lsg-content pm-wrap">
     <div class="pm-shell">
         @php $projectLogoUrl = $project->logo ?? ($primaryLogo->public_url ?? null); @endphp
         <div class="pm-wc-project-hero">

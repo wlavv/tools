@@ -2,7 +2,7 @@
 @include('calendar::includes.css')
 
 @section('content')
-<div class="container-fluid px-0">
+<div class="lsg-content px-0">
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">

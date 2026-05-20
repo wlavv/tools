@@ -15,6 +15,8 @@ class Document extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'security_flags' => 'array',
         'metadata' => 'array',

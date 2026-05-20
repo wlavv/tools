@@ -3,15 +3,37 @@
     "alias": "permission-role-manager",
     "slug": "permission-role-manager",
     "description": "Permission and Role Manager for WebTools Manager.",
-    "keywords": ["permissions", "roles", "users", "security", "lsg"],
+    "keywords": [
+        "permissions",
+        "roles",
+        "users",
+        "security",
+        "lsg"
+    ],
     "priority": 0,
     "providers": [
         "Modules\\PermissionRoleManager\\Providers\\PermissionRoleManagerServiceProvider"
     ],
-    "aliases": {},
+    "aliases": [],
     "files": [],
     "requires": [],
     "enabled": true,
     "version": "1.0.0",
-    "provider": "Modules\\PermissionRoleManager\\Providers\\PermissionRoleManagerServiceProvider"
+    "provider": "Modules\\PermissionRoleManager\\Providers\\PermissionRoleManagerServiceProvider",
+    "permissions": [
+        "permission_permission_role_manager_view",
+        "permission_permission_role_manager_manage"
+    ],
+    "menu": {
+        "label": "PermissionRoleManager",
+        "icon": "fa-solid fa-cube",
+        "route": "permission_role_manager.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

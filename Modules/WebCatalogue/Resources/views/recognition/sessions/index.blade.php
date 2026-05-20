@@ -102,7 +102,7 @@
                 </div>
                 <div class="wc-rich-actions">
                     <a class="wc-icon-action" href="{{ route('webcatalogue.recognition.sessions.show', $item) }}" title="Details" aria-label="Details"><i class="fa-solid fa-eye"></i></a>
-                    <form method="post" action="{{ route('webcatalogue.recognition.sessions.destroy', $item) }}" onsubmit="return confirm('Remove this recognition session?')">
+                    <form method="post" action="{{ route('webcatalogue.recognition.sessions.destroy', $item) }}" class="js-webcatalogue-delete-confirm" data-confirm-message="Remove this recognition session?">
                         @csrf
                         @method('DELETE')
                         <button class="wc-icon-action wc-icon-action-danger" type="submit" title="Remove" aria-label="Remove"><i class="fa-solid fa-trash"></i></button>
@@ -117,3 +117,32 @@
 </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-webcatalogue-delete-confirm').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (form.dataset.confirmed === '1') {
+                return;
+            }
+
+            event.preventDefault();
+
+            Swal.fire({
+                title: form.dataset.confirmMessage || 'Confirm action?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

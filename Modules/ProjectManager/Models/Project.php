@@ -8,6 +8,8 @@ class Project extends Model
 {
     protected $table = 'wt_projects';
     protected $guarded = [];
+
+    protected $fillable = [];
     public $timestamps = true;
 
     protected $casts = [

@@ -10,4 +10,6 @@ class CatalogStoreCategoryLang extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
 }

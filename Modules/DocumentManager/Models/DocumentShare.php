@@ -14,6 +14,8 @@ class DocumentShare extends Model
     protected $table = 'document_core_shares';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'permissions' => 'array',
         'can_download' => 'boolean',

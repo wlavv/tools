@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'title' => 'Compliance Center',
+    'run_validation' => 'Correr validação',
+    'statuses' => [
+        'pending' => 'Pendente',
+        'processing' => 'Em processamento',
+        'completed' => 'Concluído',
+        'failed' => 'Falhou',
+        'approved' => 'Aprovado',
+        'approved_with_warnings' => 'Aprovado com avisos',
+        'changes_required' => 'Alterações necessárias',
+        'rejected' => 'Rejeitado',
+        'manual_review_required' => 'Revisão manual',
+        'archived' => 'Arquivado',
+        'available' => 'Disponível',
+        'unavailable' => 'Indisponível',
+        'disabled' => 'Inativo',
+        'error' => 'Erro',
+        'passed' => 'OK',
+        'warning' => 'Aviso',
+        'skipped' => 'Ignorado',
+        'info' => 'Info',
+        'low' => 'Baixo',
+        'medium' => 'Médio',
+        'high' => 'Alto',
+        'critical' => 'Crítico',
+        'blocker' => 'Bloqueador',
+    ],
+];

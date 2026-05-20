@@ -1,0 +1,27 @@
+{
+    "name": "ModuleHealthBridge",
+    "slug": "module-health-bridge",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Adapter between Module Health and the LSG Module Compliance validator contract.",
+    "provider": "Modules\\ModuleHealthBridge\\Providers\\ModuleHealthBridgeServiceProvider",
+    "dependencies": [
+        "ModuleComplianceCore"
+    ],
+    "permissions": [
+        "permission_module_health_bridge_view",
+        "permission_module_health_bridge_run"
+    ],
+    "menu": {
+        "enabled": true,
+        "parent": "compliance",
+        "label": "Module Health Bridge",
+        "route": "module-health-bridge.index",
+        "icon": "fa-solid fa-heart-pulse"
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
+}

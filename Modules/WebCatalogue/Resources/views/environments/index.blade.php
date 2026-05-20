@@ -15,7 +15,7 @@
                 <div class="wc-rich-description">{{ $item->environment_type ?? '3D scene' }} · {{ $item->background_type ?? 'background' }} · {{ $item->lighting_preset ?? 'standard light' }}</div>
                 <div class="wc-rich-meta"><span class="wc-rich-metric"><i class="fa-solid fa-store"></i>{{ $item->store->name ?? 'No store' }}</span><span class="wc-rich-metric"><i class="fa-solid fa-camera"></i>{{ $item->camera_preset ?: 'No camera preset' }}</span><span class="wc-rich-metric"><i class="fa-solid fa-lightbulb"></i>{{ $item->lighting_preset ?: 'No lighting preset' }}</span></div>
             </div>
-            <div class="wc-rich-actions"><a class="wc-action-link" href="{{ route('webcatalogue.environments.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a><a class="wc-action-link" href="{{ route('webcatalogue.environments.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
+            <div class="wc-rich-actions"><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.environments.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.environments.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
         </div>
     @empty
         <div class="wc-list-empty"><i class="fa-solid fa-vr-cardboard"></i><div><strong>No environments yet.</strong><br><span>Create a 3D/VR environment for product presentation.</span></div></div>

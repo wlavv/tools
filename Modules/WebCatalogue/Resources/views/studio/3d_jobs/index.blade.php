@@ -57,8 +57,8 @@
             <span class="{{ ($item->arResource || $item->vrResource) ? 'is-done' : '' }}"><i class="fa-solid fa-vr-cardboard"></i></span>
         </div>
         <div class="wc-studio-card-actions">
-            <a class="wc-action-link" href="{{ route('webcatalogue.studio.3d_jobs.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a>
-            <a class="wc-action-link" href="{{ route('webcatalogue.studio.3d_jobs.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a>
+            <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.studio.3d_jobs.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a>
+            <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.studio.3d_jobs.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a>
         </div>
     </article>
 @empty

@@ -8,4 +8,6 @@ class DocumentDocumentTag extends Model
 {
     protected $table = 'document_core_document_tags';
     protected $guarded = [];
+
+    protected $fillable = [];
 }

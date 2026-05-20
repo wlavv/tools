@@ -14,6 +14,8 @@ class DocumentFolder extends Model
     protected $table = 'document_core_folders';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

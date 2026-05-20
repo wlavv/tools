@@ -11,6 +11,8 @@ class StreamDeckAccessLog extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'payload_snapshot' => 'array',
         'response' => 'array',

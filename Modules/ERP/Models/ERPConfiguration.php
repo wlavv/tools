@@ -10,6 +10,8 @@ class ERPConfiguration extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'value' => 'array',
         'is_public' => 'boolean',

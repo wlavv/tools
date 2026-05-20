@@ -12,6 +12,8 @@ class DocumentDownloadLog extends Model
     protected $table = 'document_logs_downloads';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
     ];

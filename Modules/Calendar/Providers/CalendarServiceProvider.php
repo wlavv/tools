@@ -2,7 +2,6 @@
 
 namespace Modules\Calendar\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class CalendarServiceProvider extends ServiceProvider
@@ -24,7 +23,6 @@ class CalendarServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'calendar');
 
-        Route::middleware(['web', 'auth'])
-            ->group($modulePath . '/Routes/web.php');
+        $this->loadRoutesFrom($modulePath . '/Routes/web.php');
     }
 }

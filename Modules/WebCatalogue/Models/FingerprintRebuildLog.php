@@ -10,6 +10,8 @@ class FingerprintRebuildLog extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'started_at' => 'datetime',
         'finished_at' => 'datetime',

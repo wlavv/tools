@@ -109,7 +109,6 @@ class mtg_sets extends Model
 
         } while ($url);
          
-        dd($allCards);
         return $allCards;
     }
 

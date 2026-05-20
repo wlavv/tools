@@ -1,0 +1,61 @@
+{
+    "name": "ModuleComplianceCenter",
+    "slug": "module-compliance-center",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Central compliance dashboard and orchestrator for LSG module validators.",
+    "provider": "Modules\\ModuleComplianceCenter\\Providers\\ModuleComplianceCenterServiceProvider",
+    "permissions": [
+        "permission_module_compliance_center_view",
+        "permission_module_compliance_center_run",
+        "permission_module_compliance_center_view_modules",
+        "permission_module_compliance_center_view_validators",
+        "permission_module_compliance_center_view_reports",
+        "permission_module_compliance_center_approve",
+        "permission_module_compliance_center_reject",
+        "permission_module_compliance_center_request_changes",
+        "permission_module_compliance_center_send_to_ai",
+        "permission_module_compliance_center_create_project_tasks",
+        "permission_module_compliance_center_delete_runs",
+        "permission_module_compliance_center_manage_settings"
+    ],
+    "menu": {
+        "area": "admin",
+        "label": "Compliance Center",
+        "icon": "fa-solid fa-shield-halved",
+        "route": "module_compliance_center.dashboard",
+        "permission": "permission_module_compliance_center_view"
+    },
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": [
+            "module-compliance-core"
+        ]
+    },
+    "optional_dependencies": [
+        "module-structure-validator",
+        "module-design-validator",
+        "module-security-validator",
+        "module-integration-validator",
+        "module-health-bridge",
+        "module-health",
+        "ai-consensus",
+        "project-manager"
+    ],
+    "lsg": {
+        "type": "module",
+        "area": "compliance",
+        "standard": "lsg_module_standard",
+        "compatible_with": [
+            "ModuleComplianceCore",
+            "ModuleStructureValidator",
+            "ModuleDesignValidator",
+            "ModuleSecurityValidator",
+            "ModuleIntegrationValidator",
+            "ModuleHealthBridge",
+            "AIConsensus",
+            "ProjectManager"
+        ]
+    }
+}

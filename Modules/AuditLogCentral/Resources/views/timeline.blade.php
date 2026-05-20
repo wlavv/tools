@@ -2,7 +2,7 @@
 
 @section('content')
 @include('audit-log-central::partials.styles')
-<div class="audit-wrap container-fluid py-3">
+<div class="audit-wrap lsg-content py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div><h1 class="h3 mb-1">Entity Timeline</h1><div class="audit-muted">{{ $entityType }} #{{ $entityId }}</div></div>
         <a href="{{ route('audit_log_central.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i> Logs</a>

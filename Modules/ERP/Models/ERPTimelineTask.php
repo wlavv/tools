@@ -10,6 +10,8 @@ class ERPTimelineTask extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'conditions' => 'array',
         'is_public' => 'boolean',

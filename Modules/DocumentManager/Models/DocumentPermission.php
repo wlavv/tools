@@ -14,6 +14,8 @@ class DocumentPermission extends Model
     protected $table = 'document_core_permissions';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'conditions' => 'array',
         'expires_at' => 'datetime',

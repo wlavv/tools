@@ -3,7 +3,7 @@
 @section('content')
 @include('integration-health::partials.styles')
 @php($isEdit = $service->exists)
-<div class="container-fluid py-3">
+<div class="lsg-content py-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div><h1 class="mb-1">{{ $isEdit ? 'Edit Integration' : 'New Integration' }}</h1><div class="text-muted">Configuração base do serviço monitorizado.</div></div>
         <a class="ih-btn ih-btn-primary" href="{{ route('integration_health.integrations.index') }}"><i class="fa-solid fa-angle-left"></i> Back</a>

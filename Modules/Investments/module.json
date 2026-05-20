@@ -1,13 +1,29 @@
 {
-  "name": "Investments",
-  "slug": "investments",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Module for broker accounts, assets, positions, stop levels, and broker sync workflows.",
-  "provider": "Modules\\Investments\\Providers\\InvestmentsServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+    "name": "Investments",
+    "slug": "investments",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Module for broker accounts, assets, positions, stop levels, and broker sync workflows.",
+    "provider": "Modules\\Investments\\Providers\\InvestmentsServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    },
+    "permissions": [
+        "permission_investments_view",
+        "permission_investments_manage"
+    ],
+    "menu": {
+        "label": "Investments",
+        "icon": "fa-solid fa-cube",
+        "route": "investments.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

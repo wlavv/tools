@@ -9,6 +9,22 @@
         "name": "Budget",
         "plural": "Budgets",
         "menu": "Budget",
-        "description": "Gestão de orçamento"
+        "description": "Gest\u00e3o de or\u00e7amento"
+    },
+    "permissions": [
+        "permission_budget_view",
+        "permission_budget_manage"
+    ],
+    "menu": {
+        "label": "Budget Manager",
+        "icon": "fa-solid fa-cube",
+        "route": "budget.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
     }
 }

@@ -14,6 +14,8 @@ class DocumentRelation extends Model
     protected $table = 'document_core_relations';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

@@ -1,0 +1,722 @@
+{
+    "summary": {
+        "module_name": "ModuleCompliance",
+        "display_name": "Module Compliance Center",
+        "objetivo": "Estabelecer uma camada central de controlo de qualidade no WebTools Manager \/ B.O. Custom LSG, orquestrando validações automáticas (estrutural, visual, técnica e de integração) sobre módulos LSG gerados, desenvolvidos ou importados, assegurando que cumprem os standards do ecossistema antes de serem promovidos para produção.",
+        "abrangencia": {
+            "descricao": "O módulo atua como orquestrador central de validações, gerindo normas, tópicos de validação, execuções (runs), scoring, relatórios finais e comunicação com sistemas nucleares (IdeaLab, AI Consensus, Module Health, Project Manager). Integra-se com validadores especializados e visa automatizar o fluxo de aceitação de novos módulos.",
+            "principais_funcionalidades": [
+                "Gestão de standards de conformidade.",
+                "Gestão granular de tópicos de validação e severidade.",
+                "Execução de runs de validação, via UI ou API.",
+                "Integração via gateway com validadores interna e externamente.",
+                "Cálculo automático de scores e status finais.",
+                "Geração de relatórios detalhados e sumarizados.",
+                "Integração direta com AI Consensus para sugestões\/parecer técnico.",
+                "Criação automática de tarefas no Project Manager.",
+                "UI com dashboard, histórico, standards, tópicos, relatórios e navegação eficiente."
+            ]
+        }
+    },
+    "module_json": {
+        "name": "Module Compliance Center",
+        "slug": "module-compliance",
+        "version": "1.0.0",
+        "description": "Módulo central para validação de conformidade de módulos LSG (estrutura, UI, técnica e integração).",
+        "keywords": [
+            "laravel",
+            "module",
+            "compliance",
+            "validation",
+            "lsg",
+            "quality-control"
+        ],
+        "active": 1,
+        "order": 999,
+        "providers": [
+            "Modules\\ModuleCompliance\\Providers\\ModuleComplianceServiceProvider"
+        ],
+        "aliases": [],
+        "files": [],
+        "requires": []
+    },
+    "permissions": [
+        {
+            "name": "permission_module_compliance_view",
+            "description": "Visualizar dashboard e históricos de runs."
+        },
+        {
+            "name": "permission_module_compliance_run",
+            "description": "Executar novas validações de conformidade."
+        },
+        {
+            "name": "permission_module_compliance_manage_standards",
+            "description": "Gerir standards de compliance."
+        },
+        {
+            "name": "permission_module_compliance_manage_topics",
+            "description": "Gerir tópicos de validação."
+        },
+        {
+            "name": "permission_module_compliance_view_reports",
+            "description": "Consultar relatórios detalhados."
+        },
+        {
+            "name": "permission_module_compliance_approve",
+            "description": "Aprovar módulos após validação."
+        },
+        {
+            "name": "permission_module_compliance_request_changes",
+            "description": "Solicitar alterações com base nos relatórios."
+        },
+        {
+            "name": "permission_module_compliance_send_to_ai",
+            "description": "Submeter resultados à AI Consensus."
+        },
+        {
+            "name": "permission_module_compliance_create_project_tasks",
+            "description": "Criar tarefas no Project Manager automaticamente."
+        },
+        {
+            "name": "permission_module_compliance_delete_runs",
+            "description": "Eliminar runs históricos."
+        }
+    ],
+    "data_model": {
+        "tables": [
+            {
+                "name": "module_compliance_standards",
+                "description": "Normas\/standards de conformidade definidos.",
+                "fields": [
+                    {
+                        "name": "id",
+                        "type": "bigIncrements"
+                    },
+                    {
+                        "name": "key",
+                        "type": "string",
+                        "unique": true
+                    },
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "description",
+                        "type": "text",
+                        "nullable": true
+                    },
+                    {
+                        "name": "version",
+                        "type": "string",
+                        "default": "1.0"
+                    },
+                    {
+                        "name": "is_active",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    {
+                        "name": "created_by",
+                        "type": "foreignId",
+                        "nullable": true,
+                        "references": "users"
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamps"
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamps"
+                    }
+                ]
+            },
+            {
+                "name": "module_compliance_topics",
+                "description": "Tópicos detalhados de validação.",
+                "fields": [
+                    {
+                        "name": "id",
+                        "type": "bigIncrements"
+                    },
+                    {
+                        "name": "standard_id",
+                        "type": "foreignId",
+                        "references": "module_compliance_standards"
+                    },
+                    {
+                        "name": "area",
+                        "type": "string"
+                    },
+                    {
+                        "name": "code",
+                        "type": "string"
+                    },
+                    {
+                        "name": "title",
+                        "type": "string"
+                    },
+                    {
+                        "name": "description",
+                        "type": "text",
+                        "nullable": true
+                    },
+                    {
+                        "name": "severity",
+                        "type": "enum",
+                        "options": [
+                            "info",
+                            "low",
+                            "medium",
+                            "high",
+                            "critical",
+                            "blocker"
+                        ],
+                        "default": "medium"
+                    },
+                    {
+                        "name": "is_required",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    {
+                        "name": "validation_type",
+                        "type": "string"
+                    },
+                    {
+                        "name": "validator_class",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    {
+                        "name": "expected_value",
+                        "type": "json",
+                        "nullable": true
+                    },
+                    {
+                        "name": "auto_fix_available",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    {
+                        "name": "is_active",
+                        "type": "boolean",
+                        "default": true
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamps"
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamps"
+                    }
+                ]
+            },
+            {
+                "name": "module_compliance_runs",
+                "description": "Registo das execuções de validação.",
+                "fields": [
+                    {
+                        "name": "id",
+                        "type": "bigIncrements"
+                    },
+                    {
+                        "name": "uuid",
+                        "type": "uuid",
+                        "unique": true
+                    },
+                    {
+                        "name": "module_name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "module_path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "source_type",
+                        "type": "string"
+                    },
+                    {
+                        "name": "source_id",
+                        "type": "unsignedBigInteger",
+                        "nullable": true
+                    },
+                    {
+                        "name": "status",
+                        "type": "enum",
+                        "options": [
+                            "pending",
+                            "processing",
+                            "completed",
+                            "failed",
+                            "changes_required",
+                            "approved",
+                            "rejected",
+                            "archived"
+                        ],
+                        "default": "pending"
+                    },
+                    {
+                        "name": "structure_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "design_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "health_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "security_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "integration_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "final_score",
+                        "type": "integer",
+                        "nullable": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "final_status",
+                        "type": "enum",
+                        "options": [
+                            "approved",
+                            "approved_with_warnings",
+                            "changes_required",
+                            "rejected",
+                            "manual_review_required",
+                            "pending"
+                        ],
+                        "default": "pending"
+                    },
+                    {
+                        "name": "started_at",
+                        "type": "datetime",
+                        "nullable": true
+                    },
+                    {
+                        "name": "finished_at",
+                        "type": "datetime",
+                        "nullable": true
+                    },
+                    {
+                        "name": "requested_by",
+                        "type": "foreignId",
+                        "references": "users",
+                        "nullable": true
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamps"
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamps"
+                    }
+                ]
+            },
+            {
+                "name": "module_compliance_run_results",
+                "description": "Resultados detalhados por run\/tópico.",
+                "fields": [
+                    {
+                        "name": "id",
+                        "type": "bigIncrements"
+                    },
+                    {
+                        "name": "run_id",
+                        "type": "foreignId",
+                        "references": "module_compliance_runs"
+                    },
+                    {
+                        "name": "topic_id",
+                        "type": "foreignId",
+                        "nullable": true,
+                        "references": "module_compliance_topics"
+                    },
+                    {
+                        "name": "validator",
+                        "type": "string"
+                    },
+                    {
+                        "name": "area",
+                        "type": "string"
+                    },
+                    {
+                        "name": "code",
+                        "type": "string"
+                    },
+                    {
+                        "name": "status",
+                        "type": "enum",
+                        "options": [
+                            "passed",
+                            "failed",
+                            "warning",
+                            "skipped",
+                            "manual_review_required"
+                        ],
+                        "default": "passed"
+                    },
+                    {
+                        "name": "severity",
+                        "type": "enum",
+                        "options": [
+                            "info",
+                            "low",
+                            "medium",
+                            "high",
+                            "critical",
+                            "blocker"
+                        ],
+                        "default": "medium"
+                    },
+                    {
+                        "name": "title",
+                        "type": "string"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "nullable": true
+                    },
+                    {
+                        "name": "file_path",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    {
+                        "name": "line_number",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    {
+                        "name": "expected_value",
+                        "type": "json",
+                        "nullable": true
+                    },
+                    {
+                        "name": "actual_value",
+                        "type": "json",
+                        "nullable": true
+                    },
+                    {
+                        "name": "recommendation",
+                        "type": "text",
+                        "nullable": true
+                    },
+                    {
+                        "name": "auto_fix_available",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamps"
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamps"
+                    }
+                ]
+            },
+            {
+                "name": "module_compliance_reports",
+                "description": "Relatórios finais por run.",
+                "fields": [
+                    {
+                        "name": "id",
+                        "type": "bigIncrements"
+                    },
+                    {
+                        "name": "run_id",
+                        "type": "foreignId",
+                        "unique": true,
+                        "references": "module_compliance_runs"
+                    },
+                    {
+                        "name": "title",
+                        "type": "string"
+                    },
+                    {
+                        "name": "summary",
+                        "type": "text",
+                        "nullable": true
+                    },
+                    {
+                        "name": "report_payload",
+                        "type": "json"
+                    },
+                    {
+                        "name": "recommendations",
+                        "type": "json",
+                        "nullable": true
+                    },
+                    {
+                        "name": "ai_consensus_run_id",
+                        "type": "unsignedBigInteger",
+                        "nullable": true
+                    },
+                    {
+                        "name": "approved_by",
+                        "type": "foreignId",
+                        "nullable": true,
+                        "references": "users"
+                    },
+                    {
+                        "name": "approved_at",
+                        "type": "datetime",
+                        "nullable": true
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamps"
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamps"
+                    }
+                ]
+            }
+        ]
+    },
+    "migrations": [
+        "2023_01_01_000000_create_module_compliance_standards_table.php",
+        "2023_01_01_000001_create_module_compliance_topics_table.php",
+        "2023_01_01_000002_create_module_compliance_runs_table.php",
+        "2023_01_01_000003_create_module_compliance_run_results_table.php",
+        "2023_01_01_000004_create_module_compliance_reports_table.php"
+    ],
+    "models": [
+        "Modules\\ModuleCompliance\\Entities\\ComplianceStandard",
+        "Modules\\ModuleCompliance\\Entities\\ComplianceTopic",
+        "Modules\\ModuleCompliance\\Entities\\ComplianceRun",
+        "Modules\\ModuleCompliance\\Entities\\ComplianceRunResult",
+        "Modules\\ModuleCompliance\\Entities\\ComplianceReport"
+    ],
+    "controllers": [
+        "Modules\\ModuleCompliance\\Http\\Controllers\\ModuleComplianceController",
+        "Modules\\ModuleCompliance\\Http\\Controllers\\ComplianceRunController",
+        "Modules\\ModuleCompliance\\Http\\Controllers\\ComplianceStandardController",
+        "Modules\\ModuleCompliance\\Http\\Controllers\\ComplianceTopicController",
+        "Modules\\ModuleCompliance\\Http\\Controllers\\ComplianceReportController"
+    ],
+    "services": [
+        "Modules\\ModuleCompliance\\Services\\ModuleComplianceGateway",
+        "Modules\\ModuleCompliance\\Services\\ComplianceRunService",
+        "Modules\\ModuleCompliance\\Services\\StructureValidatorService",
+        "Modules\\ModuleCompliance\\Services\\DesignValidatorService",
+        "Modules\\ModuleCompliance\\Services\\HealthBridgeService",
+        "Modules\\ModuleCompliance\\Services\\SecurityValidatorService",
+        "Modules\\ModuleCompliance\\Services\\IntegrationValidatorService",
+        "Modules\\ModuleCompliance\\Services\\ComplianceScoringService",
+        "Modules\\ModuleCompliance\\Services\\ComplianceReportService",
+        "Modules\\ModuleCompliance\\Services\\AIConsensusComplianceAdvisor"
+    ],
+    "routes": {
+        "web": [
+            "\/module-compliance",
+            "\/module-compliance\/runs",
+            "\/module-compliance\/runs\/{run}\/report",
+            "\/module-compliance\/standards",
+            "\/module-compliance\/topics",
+            "\/module-compliance\/modules\/{module}\/history",
+            "\/module-compliance\/run\/{module}"
+        ],
+        "api": [
+            "\/api\/module-compliance\/run",
+            "\/api\/module-compliance\/run\/{uuid}\/status",
+            "\/api\/module-compliance\/run\/{uuid}\/results"
+        ]
+    },
+    "views": [
+        "modulecompliance::dashboard",
+        "modulecompliance::runs.index",
+        "modulecompliance::runs.show",
+        "modulecompliance::standards.index",
+        "modulecompliance::standards.create",
+        "modulecompliance::standards.edit",
+        "modulecompliance::topics.index",
+        "modulecompliance::topics.create",
+        "modulecompliance::topics.edit",
+        "modulecompliance::reports.show",
+        "modulecompliance::partials.run_status_badge",
+        "modulecompliance::partials.validation_result_card",
+        "modulecompliance::partials.compliance_score_card",
+        "modulecompliance::partials.action_buttons"
+    ],
+    "translations": [
+        "lang\/pt\/module-compliance.php",
+        "lang\/en\/module-compliance.php"
+    ],
+    "config": [
+        "Config\/module-compliance.php",
+        "Config\/standards.php",
+        "Config\/validators.php",
+        "Config\/severity.php"
+    ],
+    "validation_checklist": {
+        "structure": [
+            "module.json existe e é JSON válido.",
+            "Campos obrigatórios: name, slug, version, provider, permissions.",
+            "ServiceProvider existe e carrega routes, views, migrations, translations.",
+            "routes\/web.php existe.",
+            "routes\/api.php existe se aplicável.",
+            "Config presente.",
+            "Database\/Migrations se há persistência.",
+            "Models se há tabelas próprias.",
+            "Controllers se há routes.",
+            "Services presentes.",
+            "Views presentes.",
+            "lang\/pt e lang\/en existem.",
+            "Permissões prefixo permission_*.",
+            "Namespaces corretos.",
+            "Migrations e índices seguros.",
+            "Sem ficheiros críticos fora da estrutura."
+        ],
+        "design": [
+            "Views usam layout base LSG.",
+            "Breadcrumbs e títulos presentes.",
+            "Listas com DataTables.",
+            "Confirmações com SweetAlerts.",
+            "Botões com Font Awesome conforme convenção.",
+            "Cards e empty states.",
+            "Uploads com Dropzone, se aplicável.",
+            "Responsividade mínima.",
+            "Sem estilos inline excessivos e coerência visual geral."
+        ],
+        "health": [
+            "Chamar\/implementar bridge com Module Health.",
+            "Sem routes duplicadas.",
+            "Sem conflitos de providers\/comandos.",
+            "Dependências válidas.",
+            "Tabelas e migrations ok.",
+            "Providers, jobs, comandos funcionais."
+        ],
+        "security": [
+            "Sem escrita no .env.",
+            "Sem execução de shell do AI.",
+            "Sem escrita fora da pasta.",
+            "Sem alterações no core injustificadas.",
+            "Ações críticas requerem permissões.",
+            "Outputs AI nunca aplicados automaticamente."
+        ],
+        "integration": [
+            "Permissões registáveis.",
+            "Integração no menu possível.",
+            "Traduções pt\/en presentes.",
+            "Visibilidade no Module Health.",
+            "Geração de relatório para Project Manager.",
+            "Capaz de receber sugestões do AI Consensus."
+        ]
+    },
+    "risks": [
+        {
+            "name": "Complexidade de Integração",
+            "description": "Integração profunda com múltiplos módulos (Health, AI Consensus, PM, IdeaLab, Generator) pode atrasar ou complicar a evolução. Interfaces\/bridges devem ser estáveis.",
+            "level": "Alta"
+        },
+        {
+            "name": "Falsos Positivos\/Negativos",
+            "description": "Validações automáticas podem falhar em captar nuances ou gerar alertas irrelevantes. Será necessária afinação periódica e revisão manual.",
+            "level": "Média"
+        },
+        {
+            "name": "Desempenho",
+            "description": "Validações podem ser pesadas em módulos grandes ou submeter o servidor a alta carga. Será fundamental usar cache e limitar simultaneidade.",
+            "level": "Média"
+        },
+        {
+            "name": "Manutenção de Standards",
+            "description": "Nova versão dos standards pode invalidar módulos antigos; é necessária gestão de compatibilidade e alertas de migração.",
+            "level": "Baixa"
+        },
+        {
+            "name": "Segurança",
+            "description": "O módulo nunca deve executar, compilar ou modificar código de terceiros durante validação. Toda interação AI deve ser audítável.",
+            "level": "Alta"
+        },
+        {
+            "name": "Compatibilidade Retroativa",
+            "description": "Antigos módulos podem falhar sem evolução dos standards. Gerir versões e modo-lax será importante.",
+            "level": "Baixa"
+        }
+    ],
+    "milestones": [
+        {
+            "name": "Fase 1: Core & Validação Estrutural MVP",
+            "priority": "Alta",
+            "descricao": "Estrutura do módulo, DB, serviços-chave, validadores mínima para structural e design, UI inicial com DataTables, scoring básico, relatórios simplificados, permissões essenciais, tradução base."
+        },
+        {
+            "name": "Fase 2: Validações Avançadas & Integração",
+            "priority": "Média",
+            "descricao": "Bridge para Module Health, integração AI Consensus, CRUD standards e tópicos, scoring avançado, relatorios completos, UI de gestão standards\/tópicos."
+        },
+        {
+            "name": "Fase 3: Automação & Análise Profunda",
+            "priority": "Média",
+            "descricao": "Automação de tarefas no PM, sugestões\/fixes automáticos, relatórios comparativos\/histórico, UI detalhada."
+        },
+        {
+            "name": "Fase 4: Integração Pipeline Total",
+            "priority": "Baixa",
+            "descricao": "Integração profunda IdeaLab, Module Generator, toda pipeline automatizada e otimizada para escalabilidade."
+        }
+    ],
+    "first_version_plan": {
+        "scope": "Fase 1 MVP",
+        "descricao": "Foco na criação da estrutura, models, migrations, Gateway, RunService, validadores básicos, UI essencial (dashboard, lista de runs, detalhe simples), permissões mínimas e traduções principais.",
+        "entregaveis_chave": [
+            "Estrutura base do módulo e ServiceProvider.",
+            "Migrations e models para standards, tópicos, runs, run_results, reports.",
+            "Gateway funcional com método run.",
+            "RunService básico.",
+            "StructureValidatorService (checa module.json, arquivos essenciais).",
+            "DesignValidatorService (layout, breadcrumbs).",
+            "Scoring e relatório textual básico.",
+            "UI: dashboard, lista runs, detalhe run (DataTables, SweetAlert, Font Awesome).",
+            "Config e traduções pt\/en.",
+            "Permissões de visualizar e executar runs."
+        ],
+        "complexidade": "Complexidade controlada para MVP, priorizando estrutura estável e extensão futura. Integrações externas postergadas para Fase 2.",
+        "pronto_para_project_manager": true
+    },
+    "next_actions": [
+        "Criar diretórios\/conteúdos do \/Modules\/ModuleCompliance.",
+        "Desenvolver migrations segundo modelo de dados.",
+        "Implementar Models Eloquent.",
+        "Implementar Gateway skeleton (run interface pública).",
+        "Implementar RunService e validadores base.",
+        "Criar views iniciais (dashboard, runs).",
+        "Definir web.php e controllers principais.",
+        "Configurar permissões, travas e tradução base.",
+        "Documentar primeiras dependências para Fase 2 (Bridge Health, AI Consensus)."
+    ],
+    "recomendacoes": [
+        "Validar integridade do modelo incrementalmente; nunca executar validador automatizado sem sandbox previa.",
+        "Priorizar extensibilidade dos validadores (fáceis de atualizar, parametrizar ou trocar por análise humana).",
+        "Rastrear todas as interações e outputs, garantindo segurança, auditabilidade e rollback fácil.",
+        "Envolver revisão manual dos standards antes de automatizar alterações críticas.",
+        "Considerar feature flag para standards mais recentes ou modos de permissividade para módulos legados em ambientes de staging."
+    ]
+}

@@ -3,15 +3,39 @@
     "alias": "erp",
     "slug": "erp",
     "description": "ERP module for WebTools Manager, evolved from OMS with LSG timeline workflow style.",
-    "keywords": ["erp", "oms", "orders", "suppliers", "procurement", "receptions", "timeline"],
+    "keywords": [
+        "erp",
+        "oms",
+        "orders",
+        "suppliers",
+        "procurement",
+        "receptions",
+        "timeline"
+    ],
     "priority": 10,
     "providers": [
         "Modules\\ERP\\Providers\\ERPServiceProvider"
     ],
-    "aliases": {},
+    "aliases": [],
     "files": [],
     "requires": [],
     "enabled": true,
     "version": "1.0.1",
-    "provider": "Modules\\ERP\\Providers\\ERPServiceProvider"
+    "provider": "Modules\\ERP\\Providers\\ERPServiceProvider",
+    "permissions": [
+        "permission_erp_view",
+        "permission_erp_manage"
+    ],
+    "menu": {
+        "label": "ERP",
+        "icon": "fa-solid fa-cube",
+        "route": "erp.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

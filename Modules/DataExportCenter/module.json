@@ -1,22 +1,49 @@
 {
-  "name": "DataExportCenter",
-  "alias": "data-export-center",
-  "slug": "data-export-center",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Dependency-aware data export, safe SELECT query export and report templating center for Laravel modules.",
-  "provider": "Modules\\DataExportCenter\\Providers\\DataExportCenterServiceProvider",
-  "keywords": ["export", "report", "csv", "query", "dependencies", "modules"],
-  "priority": 0,
-  "providers": [
-    "Modules\\DataExportCenter\\Providers\\DataExportCenterServiceProvider"
-  ],
-  "aliases": {},
-  "files": [],
-  "requires": ["DataImportWizard"],
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": ["data-import-wizard"]
-  }
+    "name": "DataExportCenter",
+    "alias": "data-export-center",
+    "slug": "data-export-center",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "Dependency-aware data export, safe SELECT query export and report templating center for Laravel modules.",
+    "provider": "Modules\\DataExportCenter\\Providers\\DataExportCenterServiceProvider",
+    "keywords": [
+        "export",
+        "report",
+        "csv",
+        "query",
+        "dependencies",
+        "modules"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\DataExportCenter\\Providers\\DataExportCenterServiceProvider"
+    ],
+    "aliases": [],
+    "files": [],
+    "requires": [
+        "DataImportWizard"
+    ],
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": [
+            "data-import-wizard"
+        ]
+    },
+    "permissions": [
+        "permission_data_export_center_view",
+        "permission_data_export_center_manage"
+    ],
+    "menu": {
+        "label": "DataExportCenter",
+        "icon": "fa-solid fa-cube",
+        "route": "data_export_center.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

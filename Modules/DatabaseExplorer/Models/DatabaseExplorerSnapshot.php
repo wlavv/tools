@@ -10,6 +10,8 @@ class DatabaseExplorerSnapshot extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'schema_count' => 'integer',
         'table_count' => 'integer',

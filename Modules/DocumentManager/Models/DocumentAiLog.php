@@ -12,6 +12,8 @@ class DocumentAiLog extends Model
     protected $table = 'document_logs_ai';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
     ];

@@ -23,7 +23,7 @@
     ];
 @endphp
 
-<div class="container-fluid px-0">
+<div class="lsg-content px-0">
     <div class="row g-3">
 
         <div class="col-12">

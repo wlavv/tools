@@ -10,6 +10,8 @@ class CatalogAiGeneration extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = ['input_payload' => 'array', 'output_payload' => 'array', 'applied' => 'boolean', 'applied_at' => 'datetime'];
 
 }

@@ -12,6 +12,8 @@ class DocumentActivityLog extends Model
     protected $table = 'document_logs_activity';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'payload' => 'array',
     ];

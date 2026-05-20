@@ -4,5 +4,21 @@
     "enabled": true,
     "version": "1.0.0",
     "description": "Job queue monitoring module for reviewing queued, running and failed work.",
-    "provider": "Modules\\JobQueueMonitor\\Providers\\JobQueueMonitorServiceProvider"
+    "provider": "Modules\\JobQueueMonitor\\Providers\\JobQueueMonitorServiceProvider",
+    "permissions": [
+        "permission_job_queue_monitor_view",
+        "permission_job_queue_monitor_manage"
+    ],
+    "menu": {
+        "label": "JobQueueMonitor",
+        "icon": "fa-solid fa-cube",
+        "route": "job_queue_monitor.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

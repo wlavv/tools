@@ -8,4 +8,6 @@ class DocumentMetadata extends Model
 {
     protected $table = 'document_core_metadata';
     protected $guarded = [];
+
+    protected $fillable = [];
 }

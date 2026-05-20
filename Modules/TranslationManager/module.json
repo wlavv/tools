@@ -1,8 +1,24 @@
 {
-  "name": "TranslationManager",
-  "slug": "translation-manager",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "LSG module translation manager with custom override files and coverage audit.",
-  "provider": "Modules\\TranslationManager\\Providers\\TranslationManagerServiceProvider"
+    "name": "TranslationManager",
+    "slug": "translation-manager",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "LSG module translation manager with custom override files and coverage audit.",
+    "provider": "Modules\\TranslationManager\\Providers\\TranslationManagerServiceProvider",
+    "permissions": [
+        "permission_translation_manager_view",
+        "permission_translation_manager_manage"
+    ],
+    "menu": {
+        "label": "TranslationManager",
+        "icon": "fa-solid fa-cube",
+        "route": "translation_manager.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

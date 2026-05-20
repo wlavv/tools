@@ -28,6 +28,7 @@ class EnvironmentManagerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'environment-manager');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'environment-manager');
+        $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
     }
 
     /**

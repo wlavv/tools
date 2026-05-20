@@ -16,7 +16,7 @@
                 <div class="wc-rich-description">{{ $item->font_family ?: 'No font defined' }} · {{ $item->button_style ?: 'Default buttons' }} · {{ $item->card_style ?: 'Default cards' }}</div>
                 <div class="wc-rich-meta"><span class="wc-rich-metric"><i class="fa-solid fa-store"></i>{{ $item->store->name ?? 'No store' }}</span><span class="wc-rich-metric"><i class="fa-solid fa-fill-drip"></i>{{ $item->primary_color ?: 'No primary color' }}</span><span class="wc-rich-metric"><i class="fa-solid fa-circle-half-stroke"></i>{{ $item->accent_color ?: 'No accent color' }}</span></div>
             </div>
-            <div class="wc-rich-actions"><a class="wc-action-link" href="{{ route('webcatalogue.themes.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a><a class="wc-action-link" href="{{ route('webcatalogue.themes.edit', array_filter(['theme' => $item, 'return_to' => $returnTo])) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
+            <div class="wc-rich-actions"><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.themes.show', $item) }}"><i class="fa-solid fa-eye"></i> View</a><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.themes.edit', array_filter(['theme' => $item, 'return_to' => $returnTo])) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
         </div>
     @empty
         <div class="wc-list-empty"><i class="fa-solid fa-palette"></i><div><strong>No themes yet.</strong><br><span>Create visual presets for each store.</span></div></div>

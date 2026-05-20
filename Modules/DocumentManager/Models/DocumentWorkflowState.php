@@ -12,6 +12,8 @@ class DocumentWorkflowState extends Model
     protected $table = 'document_workflow_states';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
     ];

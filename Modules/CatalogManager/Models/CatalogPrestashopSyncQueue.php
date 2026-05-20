@@ -10,6 +10,8 @@ class CatalogPrestashopSyncQueue extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = ['payload' => 'array', 'processed_at' => 'datetime'];
 
 }

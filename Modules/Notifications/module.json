@@ -1,8 +1,24 @@
 {
-  "name": "Notifications",
-  "slug": "notifications",
-  "enabled": true,
-  "version": "4.0.0",
-  "description": "Central notification system with internal inbox, testing console and multi-channel delivery.",
-  "provider": "Modules\\Notifications\\Providers\\NotificationServiceProvider"
+    "name": "Notifications",
+    "slug": "notifications",
+    "enabled": true,
+    "version": "4.0.0",
+    "description": "Central notification system with internal inbox, testing console and multi-channel delivery.",
+    "provider": "Modules\\Notifications\\Providers\\NotificationServiceProvider",
+    "permissions": [
+        "permission_notifications_view",
+        "permission_notifications_manage"
+    ],
+    "menu": {
+        "label": "Notifications",
+        "icon": "fa-solid fa-cube",
+        "route": "notifications.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

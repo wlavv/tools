@@ -17,5 +17,21 @@
     "providers": [
         "Modules\\ErrorCenter\\Providers\\ErrorCenterServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "permissions": [
+        "permission_error_center_view",
+        "permission_error_center_manage"
+    ],
+    "menu": {
+        "label": "ErrorCenter",
+        "icon": "fa-solid fa-cube",
+        "route": "error_center.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

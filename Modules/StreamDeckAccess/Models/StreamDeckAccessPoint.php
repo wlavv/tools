@@ -16,6 +16,8 @@ class StreamDeckAccessPoint extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'enabled' => 'boolean',
         'payload' => 'array',

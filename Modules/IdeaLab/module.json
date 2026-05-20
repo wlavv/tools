@@ -44,5 +44,16 @@
     "permissions": true,
     "config": true,
     "translations": true
+  },
+  "lsg": {
+    "type": "module",
+    "area": "innovation",
+    "standard": "lsg_module_standard",
+    "compatible_with": [
+      "AIConsensus",
+      "ProjectManager",
+      "ModuleComplianceCenter",
+      "ModuleHealth"
+    ]
   }
 }

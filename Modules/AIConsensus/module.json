@@ -39,5 +39,10 @@
     "permissions": true,
     "config": true,
     "translations": true
+  },
+  "lsg": {
+    "area": "ai",
+    "type": "structural_module",
+    "managed_by": "module-compliance-center"
   }
 }

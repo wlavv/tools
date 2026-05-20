@@ -2,7 +2,7 @@
 @include('calendar::includes.css')
 
 @section('content')
-<div class="container-fluid px-0">
+<div class="lsg-content px-0">
     <div class="card calendar-card mb-3">
         <div class="card-body p-3 p-md-4">
             <h3 class="mb-1">Calendar Categories</h3>

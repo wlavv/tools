@@ -51,6 +51,15 @@ class IdeaAiConsensusController extends Controller
     protected function ensureTemplate(string $key): ?IdeaAiTemplate
     {
         $templates = [
+            'idea_deconstruction' => [
+                'name' => 'Idea Deconstruction',
+                'entrypoint_type' => 'idea_discussion',
+                'description' => 'Discusses, deconstructs and improves an IdeaLab idea before module planning.',
+                'system_prompt' => 'You are an LSG product and architecture reviewer. Deconstruct the idea, identify gaps, risks, assumptions and the smallest coherent module path.',
+                'user_prompt_template' => "Analyze this idea for WebTools Manager / B.O. Custom LSG.\n\nTitle: {{title}}\nRaw description: {{description_raw}}\nRefined description: {{description_refined}}\n\nReturn valid JSON with: problem, target_users, value, assumptions, risks, open_questions, suggested_refinement, module_candidate, workflow_fit, next_questions.",
+                'supports_chat' => true,
+                'sort_order' => 1,
+            ],
             'project_conversion_brief' => [
                 'name' => 'Project Conversion Brief',
                 'entrypoint_type' => 'project_conversion',
@@ -68,6 +77,15 @@ class IdeaAiConsensusController extends Controller
                 'user_prompt_template' => "Convert this idea into the first version of an LSG module blueprint.\n\nTitle: {{title}}\nRaw description: {{description_raw}}\nRefined description: {{description_refined}}\n\nReturn valid JSON with: module_name, objective, scope, permissions, data_model, migrations, models, controllers, services, routes, views, translations, milestones, tasks, risks, validation_checklist, first_version_plan. Do not generate executable code yet.",
                 'supports_chat' => true,
                 'sort_order' => 3,
+            ],
+            'module_refinement' => [
+                'name' => 'LSG Module Refinement',
+                'entrypoint_type' => 'module_blueprint',
+                'description' => 'Refines an LSG module blueprint using Compliance Center findings.',
+                'system_prompt' => 'You refine LSG module blueprints based on validation findings. Keep the module in sandbox until every critical issue is resolved.',
+                'user_prompt_template' => "Refine this LSG module blueprint using the latest validation issues.\n\nTitle: {{title}}\nRaw description: {{description_raw}}\nRefined description: {{description_refined}}\n\nUser feedback and validation issues are included in the conversation history. Return valid JSON with: changes_required, updated_blueprint, fixes_by_validator, acceptance_criteria, next_validation_plan.",
+                'supports_chat' => true,
+                'sort_order' => 4,
             ],
         ];
 

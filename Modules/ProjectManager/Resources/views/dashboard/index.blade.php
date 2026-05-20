@@ -112,7 +112,7 @@
     @media(max-width:680px){.pm-entry-top,.pm-charts-row{grid-template-columns:1fr}}
 </style>
 
-<div class="container-fluid pm-wrap">
+<div class="lsg-content pm-wrap">
     <div class="pm-shell">
         @if(session('success'))
             <div class="pm-alert">{{ session('success') }}</div>

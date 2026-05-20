@@ -4,5 +4,21 @@
     "enabled": true,
     "version": "1.0.0",
     "description": "Centralized audit log module for tracking application changes and events.",
-    "provider": "Modules\\AuditLogCentral\\Providers\\AuditLogCentralServiceProvider"
+    "provider": "Modules\\AuditLogCentral\\Providers\\AuditLogCentralServiceProvider",
+    "permissions": [
+        "permission_audit_log_central_view",
+        "permission_audit_log_central_manage"
+    ],
+    "menu": {
+        "label": "AuditLogCentral",
+        "icon": "fa-solid fa-cube",
+        "route": "audit_log_central.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

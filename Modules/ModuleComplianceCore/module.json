@@ -1,0 +1,25 @@
+{
+    "name": "Module Compliance Core",
+    "slug": "module-compliance-core",
+    "version": "1.0.0",
+    "description": "Shared contracts, DTOs, enums and helpers for LSG module compliance validators.",
+    "provider": "Modules\\ModuleComplianceCore\\Providers\\ModuleComplianceCoreServiceProvider",
+    "enabled": true,
+    "type": "core",
+    "permissions": [
+        "permission_module_compliance_core_view"
+    ],
+    "dependencies": [],
+    "menu": {
+        "label": "Module Compliance Core",
+        "icon": "fa-solid fa-cube",
+        "route": "module_compliance_core.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
+}

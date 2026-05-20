@@ -1,0 +1,65 @@
+{
+  "name": "ModuleCompliance",
+  "slug": "module-compliance",
+  "alias": "module-compliance",
+  "description": "Central compliance validation module for LSG modules generated, imported or promoted inside WebTools Manager.",
+  "enabled": true,
+  "version": "0.1.0",
+  "provider": "Modules\\IdeaLabComplianceCenterModule\\Providers\\IdeaLabComplianceCenterModuleServiceProvider",
+  "providers": [
+    "Modules\\IdeaLabComplianceCenterModule\\Providers\\IdeaLabComplianceCenterModuleServiceProvider"
+  ],
+  "permissions": [
+    "permission_module_compliance_view",
+    "permission_module_compliance_run",
+    "permission_module_compliance_manage_standards",
+    "permission_module_compliance_manage_topics",
+    "permission_module_compliance_view_reports",
+    "permission_module_compliance_approve",
+    "permission_module_compliance_request_changes",
+    "permission_module_compliance_send_to_ai",
+    "permission_module_compliance_create_project_tasks",
+    "permission_module_compliance_delete_runs"
+  ],
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": [
+      "module-health",
+      "ai-consensus",
+      "project-manager",
+      "idea-lab"
+    ]
+  },
+  "routes": [
+    "Routes/web.php",
+    "Routes/api.php"
+  ],
+  "config": "Config/config.php",
+  "menu": {
+    "label": "Module Compliance",
+    "icon": "fa-solid fa-shield-halved",
+    "route": "module-compliance.index",
+    "group": "Administration",
+    "order": 34
+  },
+  "health": {
+    "migrations": false,
+    "routes": true,
+    "permissions": true,
+    "config": true,
+    "translations": true
+  },
+  "lsg": {
+    "type": "module",
+    "area": "compliance",
+    "standard": "lsg_module_standard",
+    "compatible_with": [
+      "ModuleComplianceCore",
+      "ModuleComplianceCenter",
+      "ModuleHealth",
+      "AIConsensus",
+      "ProjectManager"
+    ]
+  }
+}

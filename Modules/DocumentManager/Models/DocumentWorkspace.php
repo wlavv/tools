@@ -14,6 +14,8 @@ class DocumentWorkspace extends Model
     protected $table = 'document_core_workspaces';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'rules' => 'array',
         'automation_config' => 'array',

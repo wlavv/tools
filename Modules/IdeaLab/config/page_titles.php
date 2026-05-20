@@ -2,6 +2,7 @@
 
 return [
     'idealab.index' => 'Idea Lab',
+    'idealab.workflow.index' => 'IdeaLab Tool Workflow',
     'idealab.create' => 'New Idea',
     'idealab.show' => 'Idea Details',
     'idealab.edit' => 'Edit Idea',

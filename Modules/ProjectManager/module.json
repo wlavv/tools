@@ -1,13 +1,29 @@
 {
-  "name": "ProjectManager",
-  "slug": "project-manager",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Módulo para gestão operacional de projetos de desenvolvimento, tarefas, roadmap, produtividade, identidade visual e documentação técnica.",
-  "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+    "name": "ProjectManager",
+    "slug": "project-manager",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "M\u00f3dulo para gest\u00e3o operacional de projetos de desenvolvimento, tarefas, roadmap, produtividade, identidade visual e documenta\u00e7\u00e3o t\u00e9cnica.",
+    "provider": "Modules\\ProjectManager\\Providers\\ProjectManagerServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    },
+    "permissions": [
+        "permission_project_manager_view",
+        "permission_project_manager_manage"
+    ],
+    "menu": {
+        "label": "ProjectManager",
+        "icon": "fa-solid fa-cube",
+        "route": "project_manager.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

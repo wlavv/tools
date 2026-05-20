@@ -26,7 +26,7 @@
     }
 @endphp
 
-<div class="container-fluid pm-wrap">
+<div class="lsg-content pm-wrap">
     <div class="pm-shell">
         <div class="pm-page-intro">
             <div>

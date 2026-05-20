@@ -12,6 +12,8 @@ class DocumentSummary extends Model
     protected $table = 'document_ai_summaries';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'keywords' => 'array',
         'entities' => 'array',

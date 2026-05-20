@@ -10,4 +10,6 @@ class CatalogProductSupplier extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
 }

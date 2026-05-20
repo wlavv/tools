@@ -10,6 +10,8 @@ class ERPAuditEvent extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'old_values' => 'array',
         'new_values' => 'array',

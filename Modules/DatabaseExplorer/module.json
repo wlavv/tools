@@ -1,13 +1,29 @@
 {
-  "name": "DatabaseExplorer",
-  "slug": "database-explorer",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Módulo metadata-only para análise da estrutura, estatísticas técnicas e health da base de dados.",
-  "provider": "Modules\\DatabaseExplorer\\Providers\\DatabaseExplorerServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+    "name": "DatabaseExplorer",
+    "slug": "database-explorer",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "M\u00f3dulo metadata-only para an\u00e1lise da estrutura, estat\u00edsticas t\u00e9cnicas e health da base de dados.",
+    "provider": "Modules\\DatabaseExplorer\\Providers\\DatabaseExplorerServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    },
+    "permissions": [
+        "permission_database_explorer_view",
+        "permission_database_explorer_manage"
+    ],
+    "menu": {
+        "label": "DatabaseExplorer",
+        "icon": "fa-solid fa-cube",
+        "route": "database_explorer.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

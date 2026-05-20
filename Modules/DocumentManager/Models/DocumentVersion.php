@@ -14,6 +14,8 @@ class DocumentVersion extends Model
     protected $table = 'document_core_versions';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'processing_trace' => 'array',
         'metadata' => 'array',

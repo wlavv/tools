@@ -8,6 +8,8 @@ class UnmatchedProductLead extends Model
 {
     protected $table = 'wc_unmatched_product_leads';
     protected $guarded = [];
+
+    protected $fillable = [];
     protected $casts = ['metadata' => 'array'];
 
     public function session(){ return $this->belongsTo(VisualRecognitionSession::class, 'id_session'); }

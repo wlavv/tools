@@ -14,6 +14,8 @@ class CatalogStoreCategory extends Model implements ImportableContract
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     public static function importKey(): string
     {
         return 'catalog_store_category';

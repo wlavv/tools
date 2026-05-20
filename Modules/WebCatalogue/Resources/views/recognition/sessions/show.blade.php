@@ -173,12 +173,12 @@
                             <p><span class="wc-badge">{{ $match->status }}</span></p>
                             @if($match->product)
                                 <div class="wc-actions-row">
-                                    <a class="wc-action-link" href="{{ route('webcatalogue.products.show', $match->product) }}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open product</a>
+                                    <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.products.show', $match->product) }}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open product</a>
                                     <form method="post" action="{{ route('webcatalogue.recognition.sessions.associate_product', $item) }}">
                                         @csrf
                                         <input type="hidden" name="id_product" value="{{ $match->product->id }}">
                                         <input type="hidden" name="match_id" value="{{ $match->id }}">
-                                        <button class="wc-action-link" type="submit"><i class="fa-solid fa-check"></i> Confirm</button>
+                                        <button class="wc-action-link btn-outline-primary" type="submit"><i class="fa-solid fa-check"></i> Confirm</button>
                                     </form>
                                 </div>
                             @endif
@@ -195,7 +195,7 @@
                 <div class="wc-section-head"><div><h3>Unmatched lead</h3></div></div>
                 <p><strong>Brand:</strong> {{ $item->lead->brand ?: '-' }}</p>
                 <p><strong>Model:</strong> {{ $item->lead->model ?: '-' }}</p>
-                <a class="wc-action-link" href="{{ route('webcatalogue.recognition.leads.show', $item->lead) }}"><i class="fa-solid fa-bullseye"></i> Open lead</a>
+                <a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.recognition.leads.show', $item->lead) }}"><i class="fa-solid fa-bullseye"></i> Open lead</a>
             </div>
         @endif
     </div>

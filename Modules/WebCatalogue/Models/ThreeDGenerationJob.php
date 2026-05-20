@@ -9,6 +9,8 @@ class ThreeDGenerationJob extends Model
     protected $table = 'wc_3d_generation_jobs';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'source_resource_ids' => 'array',
         'metadata' => 'array',

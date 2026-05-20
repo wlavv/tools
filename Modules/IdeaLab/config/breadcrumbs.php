@@ -13,6 +13,12 @@ return [
         'translate' => true,
     ],
 
+    'idealab.workflow.index' => [
+        'label' => 'idealab::page_titles.idealab.workflow.index',
+        'parent' => 'idealab.index',
+        'translate' => true,
+    ],
+
     'idealab.show' => [
         'label' => 'idealab::page_titles.idealab.show',
         'parent' => 'idealab.index',

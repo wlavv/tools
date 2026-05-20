@@ -11,6 +11,15 @@
     $tagsValue = $idea->tags->pluck('name')->implode(', ');
 @endphp
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ route('idealab.index') }}" class="btn btn-outline-primary">
+        <i class="fa-solid fa-angle-left"></i> Back
+    </a>
+    <a href="{{ route('idealab.edit', $idea) }}" class="btn btn-outline-warning">
+        <i class="fa-solid fa-pencil"></i> Edit
+    </a>
+</div>
+
 <div class="idealab-summary">
     <div class="idealab-summary-item">
         <span>Status</span>
@@ -42,6 +51,7 @@
     <aside class="idealab-side">
         <div class="card idealab-card mb-3">
             <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action" href="#tool-workflow"><i class="fa-solid fa-route me-1"></i> Workflow</a>
                 <a class="list-group-item list-group-item-action" href="#ai-consensus"><i class="fa-solid fa-brain me-1"></i> AI Consensus</a>
                 <a class="list-group-item list-group-item-action" href="#overview"><i class="fa-solid fa-circle-info me-1"></i> Overview</a>
                 <a class="list-group-item list-group-item-action" href="#history"><i class="fa-solid fa-clock-rotate-left me-1"></i> Project Manager</a>
@@ -118,6 +128,8 @@
     </aside>
 
     <main>
+        @include('idealab::ideas.partials.tool-workflow', ['idea' => $idea, 'toolWorkflow' => $toolWorkflow])
+
         <section class="card idealab-card idealab-section mb-3" id="ai-consensus">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <strong>AI Consensus</strong>

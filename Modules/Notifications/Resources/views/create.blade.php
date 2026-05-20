@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid notifications-page lsg-notifications-page">
+<div class="lsg-content notifications-page lsg-notifications-page">
     @if($errors->any())
         <div class="alert alert-danger border-0 shadow-sm mb-3">
             <div class="fw-semibold mb-1">

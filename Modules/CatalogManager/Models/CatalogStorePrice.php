@@ -10,4 +10,6 @@ class CatalogStorePrice extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
 }

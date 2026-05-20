@@ -1,0 +1,29 @@
+{
+    "name": "Module Structure Validator",
+    "slug": "module-structure-validator",
+    "version": "1.0.0",
+    "description": "Validates LSG module folder structure, manifest, providers, routes, translations, views, services, permissions and migration naming safety.",
+    "provider": "Modules\\ModuleStructureValidator\\Providers\\ModuleStructureValidatorServiceProvider",
+    "enabled": true,
+    "type": "validator",
+    "permissions": [
+        "permission_module_structure_validator_view",
+        "permission_module_structure_validator_run",
+        "permission_module_structure_validator_view_reports"
+    ],
+    "dependencies": [
+        "module-compliance-core"
+    ],
+    "menu": {
+        "label": "Module Structure Validator",
+        "icon": "fa-solid fa-cube",
+        "route": "module_structure_validator.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
+}

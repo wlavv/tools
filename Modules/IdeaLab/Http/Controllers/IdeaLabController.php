@@ -11,6 +11,7 @@ use Modules\IdeaLab\Models\Idea;
 use Modules\IdeaLab\Models\IdeaCategory;
 use Modules\IdeaLab\Models\IdeaTag;
 use Modules\IdeaLab\Services\IdeaScoringService;
+use Modules\IdeaLab\Services\IdeaToolWorkflowService;
 
 class IdeaLabController extends Controller
 {
@@ -48,7 +49,7 @@ class IdeaLabController extends Controller
         return redirect()->route('idealab.show', $idea)->with('success', __('idealab::idealab.idea_created'));
     }
 
-    public function show(Idea $idea)
+    public function show(Idea $idea, IdeaToolWorkflowService $workflow)
     {
         $this->setPageTitle($idea->title);
         $idea->load([
@@ -64,7 +65,9 @@ class IdeaLabController extends Controller
             'activityLogs',
         ]);
 
-        return $this->view('idealab::ideas.show', compact('idea'));
+        $toolWorkflow = $workflow->snapshot($idea);
+
+        return $this->view('idealab::ideas.show', compact('idea', 'toolWorkflow'));
     }
 
     public function edit(Idea $idea)

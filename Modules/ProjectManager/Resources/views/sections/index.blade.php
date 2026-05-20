@@ -8,7 +8,7 @@
     $tabActive = in_array($section, ['tasks','roadmap-items'], true) ? $section : 'details';
 @endphp
 
-<div class="container-fluid pm-wrap">
+<div class="lsg-content pm-wrap">
     <div class="pm-shell">
         @include('project-manager::partials.project-tabs', ['activeTab' => $tabActive])
 

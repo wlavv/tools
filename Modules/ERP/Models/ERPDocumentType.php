@@ -10,6 +10,8 @@ class ERPDocumentType extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
 
         'is_public' => 'boolean',

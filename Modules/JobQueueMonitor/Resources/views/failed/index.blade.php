@@ -2,7 +2,7 @@
 
 @section('content')
 @include('job-queue-monitor::partials.styles')
-<div class="container-fluid jqm-wrap">
+<div class="lsg-content jqm-wrap">
     <div class="card jqm-card"><div class="card-body">
         <h5 class="mb-3"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Jobs falhados por resolver</h5>
         <div class="table-responsive">

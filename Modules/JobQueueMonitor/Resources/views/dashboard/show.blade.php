@@ -2,7 +2,7 @@
 
 @section('content')
 @include('job-queue-monitor::partials.styles')
-<div class="container-fluid jqm-wrap">
+<div class="lsg-content jqm-wrap">
     <div class="row">
         <div class="col-lg-4 mb-3">
             <div class="card jqm-card"><div class="card-body">

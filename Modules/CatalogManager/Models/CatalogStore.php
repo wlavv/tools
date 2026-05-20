@@ -14,6 +14,8 @@ class CatalogStore extends Model implements ImportableContract
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = ['settings' => 'array'];
 
     public static function importKey(): string

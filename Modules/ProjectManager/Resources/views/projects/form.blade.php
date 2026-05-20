@@ -3,7 +3,7 @@
 @section('content')
 @include('project-manager::partials.styles')
 
-<div class="container-fluid pm-wrap">
+<div class="lsg-content pm-wrap">
     <div class="pm-shell">
         @if($errors->any())
             <div class="alert alert-danger mb-0">

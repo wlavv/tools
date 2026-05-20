@@ -28,6 +28,7 @@ class MtgServiceProvider extends ServiceProvider
         $this->loadRoutesFrom($modulePath . '/Routes/web.php');
         $this->loadViewsFrom($modulePath . '/Resources/views', 'mtg');
         $this->loadTranslationsFrom($modulePath . '/Resources/lang', 'mtg');
+        $this->loadMigrationsFrom($modulePath . '/Database/Migrations');
 
         if ($this->app->runningInConsole()) {
             $this->commands([

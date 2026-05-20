@@ -19,5 +19,6 @@ class ConfigInspectorServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/web.php');
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'config-inspector');
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'config-inspector');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Modules\IdeaLab\Services\AiConsensus\IdeaLabConsensusGateway;
 use Modules\IdeaLab\Services\IdeaConversionService;
 use Modules\IdeaLab\Services\IdeaScoringService;
+use Modules\IdeaLab\Services\IdeaToolWorkflowService;
 
 class IdeaLabServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,7 @@ class IdeaLabServiceProvider extends ServiceProvider
         $this->app->singleton(IdeaScoringService::class);
         $this->app->singleton(IdeaLabConsensusGateway::class);
         $this->app->singleton(IdeaConversionService::class);
+        $this->app->singleton(IdeaToolWorkflowService::class);
     }
 
     public function boot(): void

@@ -26,7 +26,7 @@
                     @if($item->ends_at)<span class="wc-badge">Until {{ $item->ends_at->format('Y-m-d') }}</span>@endif
                 </div>
             </div>
-            <div class="wc-actions-row"><a class="wc-action-link" href="{{ route('webcatalogue.promotions.show', $item) }}"><i class="fa-solid fa-eye"></i> Open</a><a class="wc-action-link" href="{{ route('webcatalogue.promotions.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
+            <div class="wc-actions-row"><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.promotions.show', $item) }}"><i class="fa-solid fa-eye"></i> Open</a><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.promotions.edit', $item) }}"><i class="fa-solid fa-pencil"></i> Edit</a></div>
         </div>
     @empty
         <div class="wc-empty-state"><i class="fa-solid fa-bullhorn"></i><span>No promotions yet. Create them from a product or from this area.</span></div>

@@ -45,9 +45,9 @@
                         <span>{{ $model->filename ?? basename(parse_url($modelUrl, PHP_URL_PATH) ?: 'model.glb') }}</span>
                     </div>
                     <div class="wc-viewer-actions">
-                        <button type="button" class="wc-action-link" data-wc-model-reset><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        <button type="button" class="wc-action-link" data-wc-model-fullscreen><i class="fa-solid fa-expand"></i> Fullscreen</button>
-                        @if($modelUrl)<a class="wc-action-link" href="{{ $modelUrl }}" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> Open GLB</a>@endif
+                        <button type="button" class="wc-action-link btn-outline-primary" data-wc-model-reset><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        <button type="button" class="wc-action-link btn-outline-primary" data-wc-model-fullscreen><i class="fa-solid fa-expand"></i> Fullscreen</button>
+                        @if($modelUrl)<a class="wc-action-link btn-outline-primary" href="{{ $modelUrl }}" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> Open GLB</a>@endif
                     </div>
                 </div>
 

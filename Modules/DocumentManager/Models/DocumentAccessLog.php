@@ -12,6 +12,8 @@ class DocumentAccessLog extends Model
     protected $table = 'document_logs_access';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
     ];

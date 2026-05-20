@@ -11,6 +11,8 @@ class ERPWorkflow extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'conditions' => 'array',
         'requires_confirmation' => 'boolean',

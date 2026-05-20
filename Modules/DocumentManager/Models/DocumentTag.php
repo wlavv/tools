@@ -14,6 +14,8 @@ class DocumentTag extends Model
     protected $table = 'document_core_tags';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

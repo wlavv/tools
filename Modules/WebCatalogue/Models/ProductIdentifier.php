@@ -10,6 +10,8 @@ class ProductIdentifier extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

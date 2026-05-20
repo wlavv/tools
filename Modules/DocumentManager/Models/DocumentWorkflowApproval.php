@@ -14,6 +14,8 @@ class DocumentWorkflowApproval extends Model
     protected $table = 'document_workflow_approvals';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
         'due_at' => 'datetime',

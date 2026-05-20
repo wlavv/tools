@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid notifications-page lsg-notifications-page">
+<div class="lsg-content notifications-page lsg-notifications-page">
 
     <div class="row g-3">
         <div class="col-lg-8">

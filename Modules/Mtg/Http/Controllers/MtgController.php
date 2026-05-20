@@ -84,7 +84,7 @@ class MtgController extends Controller
         ]);
     }
 
-    public function generateDescription(int $id): void
+    public function generateDescription(int $id): string
     {
         $card = mtg_cards::where('id', $id)->first();
 
@@ -112,7 +112,7 @@ class MtgController extends Controller
         $cardData = json_decode($cardJson, true);
         $description = $cardData ? self::gerarDescricaoCartaMTG($cardData) : '';
 
-        dd($description);
+        return $description;
     }
 
     public static function extractAbilities(array $cardData): array

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid notifications-page lsg-notifications-page">
+<div class="lsg-content notifications-page lsg-notifications-page">
     @if(session('success'))
         <div class="alert alert-success border-0 shadow-sm mb-3">
             <i class="fa-solid fa-circle-check me-1"></i>{{ session('success') }}

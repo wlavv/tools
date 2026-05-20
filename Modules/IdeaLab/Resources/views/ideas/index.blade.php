@@ -3,9 +3,18 @@
 @section('idealab-content')
 @include('idealab::partials.alerts')
 
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ route('idealab.templates.index') }}" class="btn btn-outline-primary me-2">
+        <i class="fa-solid fa-cog"></i> Settings
+    </a>
+    <a href="{{ route('idealab.create') }}" class="btn btn-outline-success">
+        <i class="fa-solid fa-plus"></i> New Idea
+    </a>
+</div>
+
 <div class="card idealab-card">
     <div class="card-body table-responsive">
-        <table class="table table-hover align-middle" id="idealab-table">
+        <table class="table table-hover align-middle lsg-datatable" id="idealab-table">
             <thead>
                 <tr>
                     <th>Idea</th>
@@ -19,7 +28,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($ideas as $idea)
+                @forelse($ideas as $idea)
                     <tr>
                         <td>
                             <strong>{{ $idea->title }}</strong><br>
@@ -34,12 +43,52 @@
                         <td class="text-end text-nowrap">
                             <a href="{{ route('idealab.show', $idea) }}" class="btn btn-sm btn-outline-primary" title="Show"><i class="fa-solid fa-eye"></i></a>
                             <a href="{{ route('idealab.edit', $idea) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fa-solid fa-pencil"></i></a>
+                            <form method="POST" action="{{ route('idealab.destroy', $idea) }}" class="d-inline js-idealab-delete">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fa-solid fa-inbox me-1"></i> No ideas found.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
         {{ $ideas->links() }}
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-idealab-delete').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (form.dataset.confirmed === '1' || typeof Swal === 'undefined') {
+                return;
+            }
+
+            event.preventDefault();
+            Swal.fire({
+                title: 'Delete idea?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

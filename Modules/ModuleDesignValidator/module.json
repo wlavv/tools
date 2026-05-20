@@ -1,0 +1,33 @@
+{
+  "name": "Module Design Validator",
+  "slug": "module-design-validator",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "Validates LSG BO visual and UX conventions in module Blade views.",
+  "provider": "Modules\\ModuleDesignValidator\\Providers\\ModuleDesignValidatorServiceProvider",
+  "permissions": [
+    "permission_module_design_validator_view",
+    "permission_module_design_validator_run"
+  ],
+  "menu": {
+    "enabled": true,
+    "label": "Design Validator",
+    "route": "module-design-validator.index",
+    "icon": "fa-solid fa-paint-brush",
+    "parent": "Module Compliance",
+    "order": 30
+  },
+  "dependencies": [
+    "module-compliance-core"
+  ],
+  "lsg": {
+    "type": "validator",
+    "area": "design",
+    "standard": "lsg_module_standard",
+    "compatible_with": [
+      "ModuleComplianceCore",
+      "ModuleComplianceCenter",
+      "ModuleHealth"
+    ]
+  }
+}

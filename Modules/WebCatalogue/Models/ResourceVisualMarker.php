@@ -10,6 +10,8 @@ class ResourceVisualMarker extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'keypoints_json' => 'array',
         'descriptors_json' => 'array',

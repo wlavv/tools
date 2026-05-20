@@ -1,11 +1,32 @@
 {
-  "name": "SystemTools",
-  "alias": "system-tools",
-  "slug": "system-tools",
-  "description": "Ferramentas de manutenção e diagnóstico do sistema.",
-  "keywords": ["system", "maintenance", "artisan", "diagnostics"],
-  "priority": 0,
-  "provider": "Modules\\SystemTools\\Providers\\SystemToolsServiceProvider",
-  "enabled": true,
-  "version": "1.0"
+    "name": "SystemTools",
+    "alias": "system-tools",
+    "slug": "system-tools",
+    "description": "Ferramentas de manuten\u00e7\u00e3o e diagn\u00f3stico do sistema.",
+    "keywords": [
+        "system",
+        "maintenance",
+        "artisan",
+        "diagnostics"
+    ],
+    "priority": 0,
+    "provider": "Modules\\SystemTools\\Providers\\SystemToolsServiceProvider",
+    "enabled": true,
+    "version": "1.0",
+    "permissions": [
+        "permission_system_tools_view",
+        "permission_system_tools_manage"
+    ],
+    "menu": {
+        "label": "SystemTools",
+        "icon": "fa-solid fa-cube",
+        "route": "system_tools.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

@@ -10,6 +10,8 @@ class SessionLog extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'payload' => 'array',
     ];

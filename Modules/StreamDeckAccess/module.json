@@ -1,13 +1,29 @@
 {
-  "name": "StreamDeckAccess",
-  "slug": "streamdeck-access",
-  "enabled": true,
-  "version": "1.0.0",
-  "description": "Módulo para criação de access points externos seguros para Stream Deck, atalhos de B.O. e tarefas em background.",
-  "provider": "Modules\\StreamDeckAccess\\Providers\\StreamDeckAccessServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+    "name": "StreamDeckAccess",
+    "slug": "streamdeck-access",
+    "enabled": true,
+    "version": "1.0.0",
+    "description": "M\u00f3dulo para cria\u00e7\u00e3o de access points externos seguros para Stream Deck, atalhos de B.O. e tarefas em background.",
+    "provider": "Modules\\StreamDeckAccess\\Providers\\StreamDeckAccessServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    },
+    "permissions": [
+        "permission_streamdeck_access_view",
+        "permission_streamdeck_access_manage"
+    ],
+    "menu": {
+        "label": "StreamDeckAccess",
+        "icon": "fa-solid fa-cube",
+        "route": "streamdeck_access.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

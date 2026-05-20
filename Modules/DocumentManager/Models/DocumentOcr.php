@@ -12,6 +12,8 @@ class DocumentOcr extends Model
     protected $table = 'document_ai_ocr';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'structured_blocks' => 'array',
         'raw_response' => 'array',

@@ -14,6 +14,8 @@ class DocumentWorkflowTask extends Model
     protected $table = 'document_workflow_tasks';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'context' => 'array',
         'due_at' => 'datetime',

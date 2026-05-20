@@ -10,6 +10,8 @@ class CatalogueProduct extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
         'raw_payload' => 'array',

@@ -12,6 +12,8 @@ class DocumentEmbedding extends Model
     protected $table = 'document_ai_embeddings';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

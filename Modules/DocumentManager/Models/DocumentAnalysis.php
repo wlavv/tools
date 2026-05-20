@@ -12,6 +12,8 @@ class DocumentAnalysis extends Model
     protected $table = 'document_ai_analysis';
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'classification' => 'array',
         'risk_flags' => 'array',

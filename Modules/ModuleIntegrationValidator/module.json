@@ -1,0 +1,35 @@
+{
+  "name": "ModuleIntegrationValidator",
+  "slug": "module-integration-validator",
+  "enabled": true,
+  "version": "1.0.0",
+  "description": "LSG module integration validator. Checks whether a module integrates correctly with the WebTools Manager / B.O. ecosystem.",
+  "provider": "Modules\\ModuleIntegrationValidator\\Providers\\ModuleIntegrationValidatorServiceProvider",
+  "dependencies": [
+    "ModuleComplianceCore"
+  ],
+  "permissions": [
+    "permission_module_integration_validator_view",
+    "permission_module_integration_validator_run",
+    "permission_module_integration_validator_configure"
+  ],
+  "menu": {
+    "enabled": true,
+    "label": "Integration Validator",
+    "route": "module-integration-validator.index",
+    "icon": "fa-solid fa-plug",
+    "parent": "Module Compliance",
+    "order": 40
+  },
+  "author": "LSG",
+  "lsg": {
+    "type": "validator",
+    "area": "integration",
+    "standard": "lsg_module_standard",
+    "compatible_with": [
+      "ModuleComplianceCore",
+      "ModuleComplianceCenter",
+      "ModuleHealth"
+    ]
+  }
+}

@@ -11,17 +11,35 @@ return [
                 'label' => 'New Idea',
                 'route' => 'idealab.create',
                 'icon' => 'fa-solid fa-plus',
+                'class' => 'btn btn-outline-success',
             ],
             'templates' => [
                 'label' => 'AI Templates',
                 'route' => 'idealab.templates.index',
                 'icon' => 'fa-solid fa-cog',
+                'class' => 'btn btn-outline-primary',
+            ],
+            'workflow' => [
+                'label' => 'Workflow',
+                'route' => 'idealab.workflow.index',
+                'icon' => 'fa-solid fa-route',
+                'class' => 'btn btn-outline-primary',
             ],
         ],
 
         'idealab.create' => [
             'back' => 'idealab.index',
             'save' => true,
+        ],
+
+        'idealab.workflow.index' => [
+            'back' => 'idealab.index',
+            'new' => [
+                'label' => 'New Idea',
+                'route' => 'idealab.create',
+                'icon' => 'fa-solid fa-plus',
+                'class' => 'btn btn-outline-success',
+            ],
         ],
 
         'idealab.show' => [
@@ -49,6 +67,7 @@ return [
                 'label' => 'New Template',
                 'route' => 'idealab.templates.create',
                 'icon' => 'fa-solid fa-plus',
+                'class' => 'btn btn-outline-success',
             ],
         ],
 

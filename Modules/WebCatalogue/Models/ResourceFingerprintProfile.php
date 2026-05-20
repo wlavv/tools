@@ -10,6 +10,8 @@ class ResourceFingerprintProfile extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'profile_json' => 'array',
     ];

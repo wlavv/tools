@@ -1,13 +1,29 @@
 {
-  "name": "Mtg",
-  "description": "Magic the Gathering catalogue and card lookup module.",
-  "slug": "mtg",
-  "enabled": true,
-  "version": "1.0",
-  "provider": "Modules\\Mtg\\Providers\\MtgServiceProvider",
-  "dependencies": {
-    "composer": [],
-    "npm": [],
-    "internal_modules": []
-  }
+    "name": "Mtg",
+    "description": "Magic the Gathering catalogue and card lookup module.",
+    "slug": "mtg",
+    "enabled": true,
+    "version": "1.0",
+    "provider": "Modules\\Mtg\\Providers\\MtgServiceProvider",
+    "dependencies": {
+        "composer": [],
+        "npm": [],
+        "internal_modules": []
+    },
+    "permissions": [
+        "permission_mtg_view",
+        "permission_mtg_manage"
+    ],
+    "menu": {
+        "label": "Mtg",
+        "icon": "fa-solid fa-cube",
+        "route": "mtg.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

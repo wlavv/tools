@@ -25,7 +25,7 @@
                     <span class="wc-badge">{{ $item->status ?? 'active' }}</span>
                 </div>
             </div>
-            <div class="wc-actions-row"><a class="wc-action-link" href="{{ route('webcatalogue.pricing.show', $item) }}"><i class="fa-solid fa-eye"></i> Open</a>@if($item->product)<a class="wc-action-link" href="{{ route('webcatalogue.products.edit', $item->product) }}#commercial-pricing"><i class="fa-solid fa-box-open"></i> Product</a>@endif</div>
+            <div class="wc-actions-row"><a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.pricing.show', $item) }}"><i class="fa-solid fa-eye"></i> Open</a>@if($item->product)<a class="wc-action-link btn-outline-primary" href="{{ route('webcatalogue.products.edit', $item->product) }}#commercial-pricing"><i class="fa-solid fa-box-open"></i> Product</a>@endif</div>
         </div>
     @empty
         <div class="wc-empty-state"><i class="fa-solid fa-tag"></i><span>No price rules yet. Create them from product forms or import CSV pricing.</span></div>

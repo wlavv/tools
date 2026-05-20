@@ -5,6 +5,25 @@
     "version": "2.27.2-focus-system",
     "description": "WebCatalogue MVP polish: BO live preview, theme presets, frontend image fallbacks and UX/design finishing touches.",
     "provider": "Modules\\WebCatalogue\\Providers\\WebCatalogueServiceProvider",
+    "permissions": [
+        "permission_webcatalogue_view",
+        "permission_webcatalogue_manage_catalogues",
+        "permission_webcatalogue_manage_products",
+        "permission_webcatalogue_manage_imports",
+        "permission_webcatalogue_manage_settings"
+    ],
+    "menu": {
+        "label": "WebCatalogue",
+        "icon": "fa-solid fa-store",
+        "route": "webcatalogue.index",
+        "group": "Administration",
+        "order": 70
+    },
+    "lsg": {
+        "area": "catalogue",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    },
     "dependencies": {
         "composer": [],
         "npm": [],

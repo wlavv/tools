@@ -9,6 +9,8 @@ class VisualRecognitionCapture extends Model
 {
     protected $table = 'wc_visual_recognition_captures';
     protected $guarded = [];
+
+    protected $fillable = [];
     protected $casts = ['metadata' => 'array'];
 
     public function session(){ return $this->belongsTo(VisualRecognitionSession::class, 'id_session'); }

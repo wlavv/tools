@@ -23,5 +23,6 @@ class TranslationManagerServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'translation-manager');
         $this->loadModuleTranslationsWithOverrides(__DIR__ . '/../Resources/lang', 'translation-manager');
         $this->loadTranslationsFrom(resource_path('lang'), 'app');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 }

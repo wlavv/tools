@@ -1,8 +1,24 @@
 {
-  "name": "Tasks",
-  "slug": "tasks",
-  "enabled": true,
-  "version": "2.0.0",
-  "description": "Family tasks management module with members, task CRUD, daily execution and monthly dashboard.",
-  "provider": "Modules\\Tasks\\Providers\\TasksServiceProvider"
+    "name": "Tasks",
+    "slug": "tasks",
+    "enabled": true,
+    "version": "2.0.0",
+    "description": "Family tasks management module with members, task CRUD, daily execution and monthly dashboard.",
+    "provider": "Modules\\Tasks\\Providers\\TasksServiceProvider",
+    "permissions": [
+        "permission_tasks_view",
+        "permission_tasks_manage"
+    ],
+    "menu": {
+        "label": "Tasks",
+        "icon": "fa-solid fa-cube",
+        "route": "tasks.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

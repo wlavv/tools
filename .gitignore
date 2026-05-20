@@ -21,3 +21,4 @@ yarn-error.log
 /scripts
 /venv
 #/Modules
+/Modules/_sandbox/

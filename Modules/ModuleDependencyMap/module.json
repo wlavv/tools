@@ -16,5 +16,21 @@
     "providers": [
         "Modules\\ModuleDependencyMap\\Providers\\ModuleDependencyMapServiceProvider"
     ],
-    "files": []
+    "files": [],
+    "permissions": [
+        "permission_module_dependency_map_view",
+        "permission_module_dependency_map_manage"
+    ],
+    "menu": {
+        "label": "ModuleDependencyMap",
+        "icon": "fa-solid fa-cube",
+        "route": "module_dependency_map.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

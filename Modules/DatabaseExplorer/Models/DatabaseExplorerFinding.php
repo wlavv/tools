@@ -10,6 +10,8 @@ class DatabaseExplorerFinding extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'metadata' => 'array',
     ];

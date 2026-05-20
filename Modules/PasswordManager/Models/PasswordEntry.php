@@ -10,6 +10,8 @@ class PasswordEntry extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'is_favorite' => 'boolean',
         'last_used_at' => 'datetime',

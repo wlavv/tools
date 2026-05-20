@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Calendar\Http\Controllers\CalendarController;
 
-Route::prefix('hr/calendar')->name('calendar.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('hr/calendar')->name('calendar.')->group(function () {
     Route::get('/', [CalendarController::class, 'index'])->name('index');
     Route::get('/tablet/{context?}', [CalendarController::class, 'tablet'])->name('tablet');
     Route::get('/feed/{context?}', [CalendarController::class, 'feed'])->name('feed');

@@ -10,6 +10,8 @@ class ResourceFingerprint extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'vector_json' => 'array',
         'metadata' => 'array',

@@ -10,6 +10,8 @@ class DatabaseExplorerTableSnapshot extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'estimated_rows' => 'integer',
         'total_size_bytes' => 'integer',

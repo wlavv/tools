@@ -8,6 +8,8 @@ class VisualRecognitionSession extends Model
 {
     protected $table = 'wc_visual_recognition_sessions';
     protected $guarded = [];
+
+    protected $fillable = [];
     protected $casts = [
         'metadata' => 'array',
         'matched_at' => 'datetime',

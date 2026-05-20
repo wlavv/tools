@@ -1,8 +1,24 @@
 {
-  "name": "SystemLogs",
-  "description": "Module for creating, storing, and viewing system logs from the backoffice.",
-  "slug": "system-logs",
-  "enabled": true,
-  "version": "1.0",
-  "provider": "Modules\\SystemLogs\\Providers\\SystemLogsServiceProvider"
+    "name": "SystemLogs",
+    "description": "Module for creating, storing, and viewing system logs from the backoffice.",
+    "slug": "system-logs",
+    "enabled": true,
+    "version": "1.0",
+    "provider": "Modules\\SystemLogs\\Providers\\SystemLogsServiceProvider",
+    "permissions": [
+        "permission_system_logs_view",
+        "permission_system_logs_manage"
+    ],
+    "menu": {
+        "label": "SystemLogs",
+        "icon": "fa-solid fa-cube",
+        "route": "system_logs.index",
+        "group": "Modules",
+        "order": 100
+    },
+    "lsg": {
+        "area": "modules",
+        "type": "structural_module",
+        "managed_by": "module-compliance-center"
+    }
 }

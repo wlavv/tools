@@ -10,6 +10,8 @@ class ERPDashboardWidget extends Model
 
     protected $guarded = [];
 
+    protected $fillable = [];
+
     protected $casts = [
         'settings' => 'array',
         'is_public' => 'boolean',

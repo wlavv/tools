@@ -2,7 +2,7 @@
 @include('tasks::includes.css')
 
 @section('content')
-<div class="container-fluid px-0">
+<div class="lsg-content px-0">
     <div class="card mb-3">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
