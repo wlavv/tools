@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 class RoutePermissionAccessService
 {
     private array $permissionExists = [];
+    private array $userIsRouteAccessAdmin = [];
     private array $userPermissions = [];
 
     public function canAccessRouteName(?int $userId, string $routeName): bool
@@ -56,7 +57,34 @@ class RoutePermissionAccessService
             return true;
         }
 
+        if ($this->userIsRouteAccessAdmin($userId)) {
+            return true;
+        }
+
         return in_array($permissionKey, $this->permissionsForUser($userId), true);
+    }
+
+    private function userIsRouteAccessAdmin(int $userId): bool
+    {
+        if (array_key_exists($userId, $this->userIsRouteAccessAdmin)) {
+            return $this->userIsRouteAccessAdmin[$userId];
+        }
+
+        try {
+            if (!Schema::hasTable('permission_roles') || !Schema::hasTable('permission_user_role')) {
+                return $this->userIsRouteAccessAdmin[$userId] = false;
+            }
+
+            return $this->userIsRouteAccessAdmin[$userId] = DB::table('permission_roles')
+                ->join('permission_user_role', 'permission_roles.id', '=', 'permission_user_role.permission_role_id')
+                ->where('permission_user_role.user_id', $userId)
+                ->whereIn('permission_roles.slug', ['super-admin', 'admin'])
+                ->where('permission_roles.is_active', true)
+                ->whereNull('permission_roles.deleted_at')
+                ->exists();
+        } catch (\Throwable) {
+            return $this->userIsRouteAccessAdmin[$userId] = false;
+        }
     }
 
     private function routePermissionExists(string $permissionKey): bool
@@ -97,7 +125,19 @@ class RoutePermissionAccessService
             ->whereNull('permission_permissions.deleted_at')
             ->pluck('permission_permissions.key');
 
+        $directPermissions = collect();
+
+        if (Schema::hasTable('permission_user_permission')) {
+            $directPermissions = DB::table('permission_permissions')
+                ->join('permission_user_permission', 'permission_permissions.id', '=', 'permission_user_permission.permission_permission_id')
+                ->where('permission_user_permission.user_id', $userId)
+                ->where('permission_permissions.is_active', true)
+                ->whereNull('permission_permissions.deleted_at')
+                ->pluck('permission_permissions.key');
+        }
+
         return $this->userPermissions[$userId] = $rolePermissions
+            ->merge($directPermissions)
             ->unique()
             ->values()
             ->all();

@@ -31,11 +31,27 @@ class EffectivePermissionService
             }
         }
 
+        $directPermissions = PermissionPermission::query()
+            ->join('permission_user_permission', 'permission_permissions.id', '=', 'permission_user_permission.permission_permission_id')
+            ->where('permission_user_permission.user_id', $userId)
+            ->where('permission_permissions.is_active', true)
+            ->whereNull('permission_permissions.deleted_at')
+            ->select('permission_permissions.*')
+            ->get();
+
+        foreach ($directPermissions as $permission) {
+            $effective[$permission->key] = $effective[$permission->key] ?? [
+                'permission' => $permission,
+                'sources' => [],
+            ];
+            $effective[$permission->key]['sources'][] = 'Direct user permission';
+        }
+
         ksort($effective);
 
         return [
             'roles' => $roles,
-            'direct_permissions' => collect(),
+            'direct_permissions' => $directPermissions,
             'effective' => $effective,
         ];
     }
