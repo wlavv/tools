@@ -270,14 +270,23 @@
     justify-content:center;
     gap:4px;
     max-width:calc(100% - 10px);
+    line-height:0;
     pointer-events:none;
 }
 
 .fp-day-dot{
     width:12px;
     height:12px;
+    min-width:12px;
+    min-height:12px;
+    max-width:12px;
+    max-height:12px;
+    flex:0 0 12px;
+    aspect-ratio:1 / 1;
     border-radius:50%;
     display:block;
+    box-sizing:border-box;
+    line-height:0;
     box-shadow:0 0 0 1px rgba(255,255,255,.72);
 }
 
@@ -1124,6 +1133,10 @@
     .fp-day-dot{
         width:7px;
         height:7px;
+        min-width:7px;
+        min-height:7px;
+        max-width:7px;
+        max-height:7px;
         flex-basis:7px;
     }
 }
@@ -1138,7 +1151,11 @@
     .fp-day-dot{
         width:10px;
         height:10px;
-        flex-basis:7px;
+        min-width:10px;
+        min-height:10px;
+        max-width:10px;
+        max-height:10px;
+        flex-basis:10px;
     }
 }
 
