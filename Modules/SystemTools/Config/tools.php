@@ -144,6 +144,17 @@ return [
         'external' => false,
         'requires_confirmation' => true,
     ],
+    'composer_dump_autoload' => [
+        'section' => 'diagnostics',
+        'label' => 'Composer Dump Autoload',
+        'description' => 'Recria o autoload do Composer quando o binario estiver disponivel no servidor.',
+        'icon' => 'fa-brands fa-php',
+        'type' => 'custom',
+        'handler' => 'composer_dump_autoload',
+        'risk' => 'medium',
+        'external' => false,
+        'requires_confirmation' => true,
+    ],
     'diagnostics_info' => [
         'section' => 'diagnostics',
         'label' => 'System Info',

@@ -40,11 +40,11 @@ $registerTasksRoutes = function (bool $named = false): void {
     $name(Route::post('/tablet/events', [TasksController::class, 'tabletStoreEvent']), 'tablet.event.store');
 };
 
-Route::prefix(config('tasks.route_prefix', 'family/tasks'))->name('tasks.')->middleware(['auth'])->group(fn () => $registerTasksRoutes(true));
-Route::prefix('tasks')->middleware(['auth'])->group(fn () => $registerTasksRoutes(false));
-Route::prefix('hr/tasks')->middleware(['auth'])->group(fn () => $registerTasksRoutes(false));
+Route::prefix(config('tasks.route_prefix', 'family/tasks'))->name('tasks.')->middleware(config('tasks.middleware', ['web', 'auth']))->group(fn () => $registerTasksRoutes(true));
+Route::prefix('tasks')->middleware(config('tasks.middleware', ['web', 'auth']))->group(fn () => $registerTasksRoutes(false));
+Route::prefix('hr/tasks')->middleware(config('tasks.middleware', ['web', 'auth']))->group(fn () => $registerTasksRoutes(false));
 
-Route::prefix('hub')->group(function () {
+Route::prefix('hub')->middleware(['web'])->group(function () {
     Route::get('/tablet',                       [TasksController::class, 'tabletPublic'])->name('tasks.tablet.public');
     Route::get('/assets/member/{slug}',         [TasksController::class, 'tabletMemberAsset'])->where('slug', '.*')->name('tasks.tablet.asset.member');
     Route::get('/assets/weather/{file}',        [TasksController::class, 'tabletWeatherAsset'])->where('file', '.*')->name('tasks.tablet.asset.weather');
