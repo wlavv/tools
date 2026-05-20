@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Tasks\Http\Controllers\TasksController;
 
-Route::prefix('hr/tasks')->name('tasks.')->middleware(['auth'])->group(function () {
+Route::prefix('tasks')->name('tasks.')->middleware(['auth'])->group(function () {
     Route::get('/',                             [TasksController::class, 'index'])->name('index');
     Route::get('/dashboard/{year?}/{month?}',   [TasksController::class, 'dashboard'])->name('dashboard');
     Route::post('/update',                      [TasksController::class, 'updateDone'])->name('updateDone');
