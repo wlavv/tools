@@ -211,17 +211,20 @@ window.familyPlanner = (function () {
     }
 
     async function submitTaskState(taskId, taskDate, responseState) {
+        const csrfToken = getCsrfToken();
         const payload = {
             id: taskId,
             done: responseState,
             date: taskDate,
+            _token: csrfToken,
         };
 
         const response = await fetch(getTaskToggleRoute(), {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-CSRF-TOKEN': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json',
             },
