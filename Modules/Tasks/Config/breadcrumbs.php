@@ -3,7 +3,7 @@
 return [
     'tasks.index' => [
         'label' => 'Tasks',
-        'parent' => 'hr.index',
+        'parent' => 'family.index',
         'translate' => false,
     ],
 
