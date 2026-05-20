@@ -14,6 +14,7 @@ use Modules\ModuleComplianceCenter\Models\ComplianceRun;
 use Modules\ModuleComplianceCenter\Services\AIConsensusComplianceBridge;
 use Modules\ModuleComplianceCenter\Services\ComplianceApprovalService;
 use Modules\ModuleComplianceCenter\Services\ComplianceModuleDiscoveryService;
+use Modules\ModuleComplianceCenter\Services\ComplianceRunMaintenanceService;
 use Modules\ModuleComplianceCenter\Services\ComplianceValidatorRegistry;
 use Modules\ModuleComplianceCenter\Services\ModuleComplianceCenterGateway;
 use Modules\ModuleComplianceCenter\Services\ProjectManagerComplianceBridge;
@@ -31,11 +32,34 @@ class ComplianceRunController extends Controller
 
         $this->prepareCompliancePage('Compliance Runs', ['Runs'], [
             $this->actionLink('new', 'New', 'fa-solid fa-plus', 'module_compliance_center.runs.create'),
+            [
+                'key' => 'rerun-all',
+                'label' => 'Clean & rerun all',
+                'icon' => 'fa-solid fa-rotate',
+                'url' => route('module_compliance_center.runs.rerun_all'),
+                'type' => 'form',
+                'method' => 'POST',
+                'confirm' => 'Archive old compliance runs and create a new run for every active module?',
+            ],
         ]);
 
         return view('module-compliance-center::runs.index', [
             'runs' => $runs,
         ]);
+    }
+
+    public function rerunAll(ComplianceRunMaintenanceService $maintenance): RedirectResponse
+    {
+        $result = $maintenance->archiveOldAndRunAll(optional(request()->user())->id);
+
+        return redirect()
+            ->route('module_compliance_center.runs.index')
+            ->with('success', sprintf(
+                'Archived %d old run(s) and created %d new run(s) for %d active module(s).',
+                $result['archived'],
+                $result['created'],
+                $result['modules']
+            ));
     }
 
     public function create(ComplianceValidatorRegistry $registry, ComplianceModuleDiscoveryService $discovery)

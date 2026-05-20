@@ -4,7 +4,7 @@ return [
     'name' => 'Tasks',
     'slug' => 'tasks',
     'layout' => 'layouts.app',
-    'route_prefix' => 'hr/tasks',
+    'route_prefix' => 'family/tasks',
     'route_name' => 'tasks.',
     'middleware' => ['web', 'auth'],
     'pagination' => 25,

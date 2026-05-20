@@ -26,6 +26,7 @@ Route::middleware(['web', 'auth'])
         Route::post('runs/{run}/request-changes', [ComplianceRunController::class, 'requestChanges'])->name('runs.request_changes');
         Route::post('runs/{run}/send-to-ai', [ComplianceRunController::class, 'sendToAI'])->name('runs.send_to_ai');
         Route::post('runs/{run}/create-project-tasks', [ComplianceRunController::class, 'createProjectTasks'])->name('runs.create_project_tasks');
+        Route::post('runs/rerun-all', [ComplianceRunController::class, 'rerunAll'])->name('runs.rerun_all');
         Route::resource('runs', ComplianceRunController::class)->only(['index', 'create', 'store', 'show']);
 
         Route::get('runs/{run}/report', [ComplianceReportController::class, 'show'])->name('reports.show');

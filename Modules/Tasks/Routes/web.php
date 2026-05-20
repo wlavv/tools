@@ -3,7 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Tasks\Http\Controllers\TasksController;
 
-Route::prefix('tasks')->name('tasks.')->middleware(['auth'])->group(function () {
+$redirectLegacyTasksRoute = function (?string $path = null) {
+    $target = '/' . trim(config('tasks.route_prefix', 'family/tasks'), '/');
+
+    if ($path) {
+        $target .= '/' . ltrim($path, '/');
+    }
+
+    if ($query = request()->getQueryString()) {
+        $target .= '?' . $query;
+    }
+
+    return response('', 302)->header('Location', $target);
+};
+
+Route::get('tasks/{path?}', $redirectLegacyTasksRoute)->where('path', '.*');
+Route::get('hr/tasks/{path?}', $redirectLegacyTasksRoute)->where('path', '.*');
+
+Route::prefix(config('tasks.route_prefix', 'family/tasks'))->name('tasks.')->middleware(['auth'])->group(function () {
     Route::get('/',                             [TasksController::class, 'index'])->name('index');
     Route::get('/dashboard/{year?}/{month?}',   [TasksController::class, 'dashboard'])->name('dashboard');
     Route::post('/update',                      [TasksController::class, 'updateDone'])->name('updateDone');

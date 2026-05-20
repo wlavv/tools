@@ -20,6 +20,15 @@ class ModuleComplianceCenterController extends Controller
         $registry->sync();
         $this->prepareCompliancePage(__('module-compliance-center::module-compliance-center.title'), [], [
             $this->actionLink('new', 'Run validation', 'fa-solid fa-plus', 'module_compliance_center.runs.create'),
+            [
+                'key' => 'rerun-all',
+                'label' => 'Clean & rerun all',
+                'icon' => 'fa-solid fa-rotate',
+                'url' => route('module_compliance_center.runs.rerun_all'),
+                'type' => 'form',
+                'method' => 'POST',
+                'confirm' => 'Archive old compliance runs and create a new run for every active module?',
+            ],
         ]);
 
         return view('module-compliance-center::dashboard', [

@@ -20,7 +20,7 @@ function triggerTasksDateModal(){
         cancelButtonText: 'Cancelar',
         preConfirm: () => ({ mes: document.getElementById('swal-mes').value, ano: document.getElementById('swal-ano').value })
     }).then((result) => {
-        if (result.isConfirmed) window.location.href = '{{ url('/hr/tasks/calendar') }}/' + result.value.ano + '/' + result.value.mes;
+        if (result.isConfirmed) window.location.href = '{{ '/' . trim(config('tasks.route_prefix', 'family/tasks'), '/') . '/calendar' }}/' + result.value.ano + '/' + result.value.mes;
     });
 }
 async function saveTaskState(button, taskId, doneState, targetDate = null){
