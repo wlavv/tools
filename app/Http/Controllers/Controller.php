@@ -191,7 +191,7 @@ class Controller extends BaseController
             return;
         }
 
-        $this->addAccess(route($routeName, $params), $name, $icon, $image);
+        $this->addAccess(route($routeName, $params, false), $name, $icon, $image);
     }
 
     protected function resetAccessList(): void
