@@ -35,6 +35,51 @@ return [
         ],
     ],
 
+    'library' => [
+        'label' => 'Library Module',
+        'description' => 'Profile for shared service/contract modules without BO pages.',
+        'required' => [
+            'module_json',
+            'service_provider',
+        ],
+        'recommended' => [],
+        'optional' => [
+            'config',
+            'permissions',
+            'translations',
+            'documentation',
+            'models',
+            'migrations',
+            'seeders',
+            'jobs',
+            'tests',
+        ],
+    ],
+
+    'validator' => [
+        'label' => 'Validator Module',
+        'description' => 'Profile for compliance validators and bridge modules with a small UI surface.',
+        'required' => [
+            'module_json',
+            'service_provider',
+            'web_routes',
+            'controllers',
+            'views',
+            'config',
+            'translations',
+        ],
+        'recommended' => [],
+        'optional' => [
+            'permissions',
+            'page_titles',
+            'breadcrumbs',
+            'actions',
+            'diagnostics',
+            'seeders',
+            'tests',
+        ],
+    ],
+
     'operational' => [
         'label' => 'Operational Module',
         'description' => 'Profile for modules that control operational business workflows.',

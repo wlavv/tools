@@ -3,6 +3,7 @@
     "slug": "module-health-bridge",
     "enabled": true,
     "version": "1.0.0",
+    "health_profile": "validator",
     "description": "Adapter between Module Health and the LSG Module Compliance validator contract.",
     "provider": "Modules\\ModuleHealthBridge\\Providers\\ModuleHealthBridgeServiceProvider",
     "dependencies": [

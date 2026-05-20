@@ -243,6 +243,10 @@ class ModuleHealthBridgeService implements ModuleValidatorInterface
 
     protected function callHealthService(object $service, string $method, ModuleValidationContext $context): mixed
     {
+        if ($method === 'latestOrRun' && method_exists($service, 'run')) {
+            return $service->run();
+        }
+
         $payload = [
             'module_name' => $context->moduleName,
             'module_path' => $context->modulePath,

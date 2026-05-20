@@ -18,11 +18,11 @@
         .settings-focus-card.warning{--focus-color:#d97706}
         .settings-focus-card.critical{--focus-color:#dc2626}
         body.theme-dark .settings-focus-card,
-        body[data-theme="dark"] .settings-focus-card{background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(30,41,59,.86));border-color:rgba(148,163,184,.22);color:#f8fafc}
+        body[data-theme="dark"] .settings-focus-card{background:linear-gradient(135deg,var(--bg-panel-soft),var(--bg-panel));border-color:var(--border-soft);color:var(--text-primary)}
         body.theme-dark .settings-focus-card:hover,
         body[data-theme="dark"] .settings-focus-card:hover{color:#f8fafc}
         body.theme-dark .settings-focus-card__description,
-        body[data-theme="dark"] .settings-focus-card__description{color:#94a3b8}
+        body[data-theme="dark"] .settings-focus-card__description{color:var(--text-muted)}
     </style>
 
     @if(!empty($focusCards))

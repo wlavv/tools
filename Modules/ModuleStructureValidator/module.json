@@ -2,6 +2,7 @@
     "name": "Module Structure Validator",
     "slug": "module-structure-validator",
     "version": "1.0.0",
+    "health_profile": "validator",
     "description": "Validates LSG module folder structure, manifest, providers, routes, translations, views, services, permissions and migration naming safety.",
     "provider": "Modules\\ModuleStructureValidator\\Providers\\ModuleStructureValidatorServiceProvider",
     "enabled": true,

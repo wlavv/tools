@@ -17,8 +17,8 @@
     .idealab-side { position: sticky; top: 1rem; }
     .idealab-side .list-group-item { border-color: var(--idealab-border); }
     .idealab-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
-    .idealab-summary-item { border: 1px solid var(--idealab-border); border-radius: 6px; padding: .75rem; background: #fff; }
-    .idealab-summary-item span { display: block; color: #64748b; font-size: .75rem; text-transform: uppercase; }
+    .idealab-summary-item { border: 1px solid var(--idealab-border); border-radius: 6px; padding: .75rem; background: var(--bg-card-2, var(--card-bg, var(--bg-card, #2f3a48))); color: var(--text-primary, #f0f4f9); }
+    .idealab-summary-item span { display: block; color: var(--text-muted, #9aa7b8); font-size: .75rem; text-transform: uppercase; }
     .idealab-summary-item strong { font-size: 1rem; }
     .idealab-section { scroll-margin-top: 1rem; }
     .idealab-chat-box { max-height: 560px; overflow-y: auto; background: #f8fafc; border: 1px solid var(--idealab-border); border-radius: 6px; padding: .75rem; }
@@ -41,7 +41,7 @@
     .idealab-workflow-step.is-done span { background: #198754; color: #fff; }
     .idealab-workflow-step strong { display: block; margin-top: .45rem; font-size: .85rem; }
     .idealab-workflow-step small { display: block; color: #64748b; margin-top: .25rem; }
-    .idealab-issue-list { border: 1px solid rgba(220,53,69,.2); border-radius: 6px; background: #fff8f8; }
+    .idealab-issue-list { border: 1px solid var(--lsg-bo-btn-danger-border, rgba(248, 113, 113, .78)); border-radius: 6px; background: var(--bg-card-2, var(--card-bg, var(--bg-card, #2f3a48))); color: var(--text-primary, #f0f4f9); }
     .idealab-issue-row { padding: .65rem .75rem; border-bottom: 1px solid rgba(220,53,69,.12); }
     .idealab-issue-row:last-child { border-bottom: 0; }
     @media (max-width: 991.98px) {

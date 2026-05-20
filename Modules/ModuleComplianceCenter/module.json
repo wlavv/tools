@@ -3,6 +3,7 @@
     "slug": "module-compliance-center",
     "enabled": true,
     "version": "1.0.0",
+    "health_profile": "validator",
     "description": "Central compliance dashboard and orchestrator for LSG module validators.",
     "provider": "Modules\\ModuleComplianceCenter\\Providers\\ModuleComplianceCenterServiceProvider",
     "permissions": [

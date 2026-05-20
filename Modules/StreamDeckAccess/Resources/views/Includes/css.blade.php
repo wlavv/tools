@@ -1,5 +1,5 @@
 <style>
-:root{
+.streamdeck-access-shell{
     --sda-bg:#f8fafc;
     --sda-card:#ffffff;
     --sda-border:#e2e8f0;

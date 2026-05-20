@@ -186,7 +186,11 @@
                                                     <span>${{ number_format((float) ($providerResponse->cost_estimate ?? 0), 4) }}</span>
                                                     <span>{{ $providerResponse->latency_ms ?? '-' }} ms</span>
                                                 </div>
-                                                <pre>{{ $providerResponse->raw_response ?: $providerResponse->error_message }}</pre>
+                                                @include('ai-consensus::partials.structured-output', [
+                                                    'content' => $providerResponse->raw_response ?: $providerResponse->error_message,
+                                                    'payload' => $providerResponse->normalized_response,
+                                                    'compact' => true,
+                                                ])
                                             </div>
                                         @endforeach
                                     </details>
@@ -199,7 +203,12 @@
                                             <span>cost ${{ number_format($runCost, 4) }}</span>
                                             @if($centralRun->final_score)<span>score {{ $centralRun->final_score }}</span>@endif
                                         </div>
-                                        <pre>{{ $finalContent ?: $centralRun->error_message ?: 'Run ainda sem resposta consolidada.' }}</pre>
+                                        @include('ai-consensus::partials.structured-output', [
+                                            'content' => $finalContent ?: $centralRun->error_message ?: 'Run ainda sem resposta consolidada.',
+                                            'payload' => $output?->json_payload,
+                                            'title' => 'Resumo estruturado',
+                                            'compact' => true,
+                                        ])
                                         <a href="{{ route('ai_consensus.runs.show', $centralRun) }}" class="btn btn-sm btn-outline-primary mt-2">
                                             <i class="fa-solid fa-up-right-from-square"></i> Abrir no AI Consensus
                                         </a>

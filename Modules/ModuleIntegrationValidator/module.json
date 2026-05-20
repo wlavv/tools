@@ -3,6 +3,7 @@
   "slug": "module-integration-validator",
   "enabled": true,
   "version": "1.0.0",
+  "health_profile": "validator",
   "description": "LSG module integration validator. Checks whether a module integrates correctly with the WebTools Manager / B.O. ecosystem.",
   "provider": "Modules\\ModuleIntegrationValidator\\Providers\\ModuleIntegrationValidatorServiceProvider",
   "dependencies": [

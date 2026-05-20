@@ -6,6 +6,7 @@
     "provider": "Modules\\ModuleComplianceCore\\Providers\\ModuleComplianceCoreServiceProvider",
     "enabled": true,
     "type": "core",
+    "health_profile": "library",
     "permissions": [
         "permission_module_compliance_core_view"
     ],

@@ -134,6 +134,9 @@ class ModuleDesignValidatorService implements ModuleValidatorInterface
         $findings[] = $this->checkEmptyState($combinedContent, $modulePath);
         $findings[] = $this->checkResponsivePatterns($combinedContent, $modulePath);
         $findings = array_merge($findings, $this->checkForbiddenViewClasses($allContent));
+        $findings = array_merge($findings, $this->checkThemeContract($allContent));
+        $findings = array_merge($findings, $this->checkTokenizedThemeColors($allContent));
+        $findings = array_merge($findings, $this->checkColorContrast($allContent));
         $findings[] = $this->checkDropzoneForUploads($combinedContent, $modulePath);
         $findings = array_merge($findings, $this->checkButtonConventions($combinedModuleContent, $modulePath));
         $findings = array_merge($findings, $this->checkInlineStyles($allContent));
@@ -153,6 +156,10 @@ class ModuleDesignValidatorService implements ModuleValidatorInterface
             $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path));
             foreach ($iterator as $file) {
                 if ($file->isFile() && str_ends_with($file->getFilename(), '.blade.php')) {
+                    if ($this->isExcludedViewPath($file->getPathname())) {
+                        continue;
+                    }
+
                     $files[strtolower($file->getPathname())] = $file->getPathname();
                 }
             }
@@ -162,6 +169,19 @@ class ModuleDesignValidatorService implements ModuleValidatorInterface
         sort($files);
 
         return $files;
+    }
+
+    protected function isExcludedViewPath(string $path): bool
+    {
+        $normalized = strtolower(str_replace('\\', '/', $path));
+
+        foreach (config('module-design-validator.excluded_view_path_fragments', []) as $fragment) {
+            if (is_string($fragment) && $fragment !== '' && str_contains($normalized, strtolower($fragment))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function discoverModulePhpFiles(string $modulePath): array
@@ -651,6 +671,403 @@ class ModuleDesignValidatorService implements ModuleValidatorInterface
             }
 
             if (preg_match('/class\s*=\s*([\"\\\'])(?:(?!\1).)*\b' . preg_quote($token, '/') . '\b(?:(?!\1).)*\1/is', $content)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function checkThemeContract(array $contents): array
+    {
+        $findings = [];
+        $config = config('module-design-validator.theme_contract', []);
+
+        foreach ($contents as $file => $content) {
+            $issues = [];
+
+            foreach ($this->extractStyleBlocks($content) as $styleBlock) {
+                foreach ($this->extractCssRules($styleBlock) as $rule) {
+                    $hasGlobalThemeSelector = $this->hasForbiddenThemeSelector($rule['selector'], $config['forbidden_selectors'] ?? []);
+                    $body = $rule['body'];
+
+                    if ($hasGlobalThemeSelector) {
+                        $issues[] = 'Global selector override: ' . trim($rule['selector']);
+                    }
+
+                    if ($hasGlobalThemeSelector) {
+                        if (preg_match_all('/(--[A-Za-z0-9_-]+)\s*:/', $body, $matches)) {
+                            foreach (array_unique($matches[1]) as $variable) {
+                                if (! $this->isAllowedCssVariable($variable, $config['allowed_css_variables'] ?? [])
+                                    && $this->matchesPrefix($variable, $config['forbidden_css_variables'] ?? [])) {
+                                    $issues[] = 'Forbidden global theme variable override: ' . $variable;
+                                }
+                            }
+                        }
+
+                        foreach ($config['forbidden_properties'] ?? [] as $property) {
+                            if ($this->extractCssDeclaration($body, (string) $property) !== null) {
+                                $issues[] = 'Global styling property override: ' . trim($rule['selector']) . ' {' . $property . '}';
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (empty($issues)) {
+                $findings[] = ModuleValidationFinding::passed(
+                    'DESIGN_THEME_CONTRACT_OK_' . $this->codeFromPath($file),
+                    'No theme override detected',
+                    'The view does not appear to override global light/dark color or styling tokens.',
+                    $file
+                );
+                continue;
+            }
+
+            $findings[] = ModuleValidationFinding::warning(
+                'DESIGN_THEME_OVERRIDE_' . $this->codeFromPath($file),
+                'Module overrides global theme styling',
+                implode(' | ', array_values(array_unique(array_slice($issues, 0, 8)))),
+                $this->severity('theme_override'),
+                $file,
+                'Do not override global B.O. colors, body/html/:root selectors or Bootstrap/LSG theme variables inside modules. Use local module-scoped classes and theme tokens.'
+            );
+        }
+
+        return $findings;
+    }
+
+    protected function checkTokenizedThemeColors(array $contents): array
+    {
+        $findings = [];
+        $config = config('module-design-validator.theme_contract', []);
+        $properties = $config['tokenized_color_properties'] ?? [];
+
+        foreach ($contents as $file => $content) {
+            $issues = [];
+
+            foreach ($this->extractStyleBlocks($content) as $styleBlock) {
+                foreach ($this->extractCssRules($styleBlock) as $rule) {
+                    if (! $this->requiresTokenizedColors($rule['selector'], $config)) {
+                        continue;
+                    }
+
+                    foreach ($properties as $property) {
+                        $value = $this->extractCssDeclaration($rule['body'], (string) $property);
+
+                        if ($value === null || ! $this->hasHardcodedCssColor($value)) {
+                            continue;
+                        }
+
+                        $issues[] = trim($rule['selector']) . ' {' . $property . ': ' . trim($value) . '}';
+                    }
+                }
+            }
+
+            if (empty($issues)) {
+                $findings[] = ModuleValidationFinding::passed(
+                    'DESIGN_TOKENIZED_THEME_COLORS_OK_' . $this->codeFromPath($file),
+                    'Theme color tokens respected',
+                    'No hardcoded color rules were detected in panel/card/action style selectors.',
+                    $file
+                );
+                continue;
+            }
+
+            $findings[] = ModuleValidationFinding::warning(
+                'DESIGN_HARDCODED_THEME_COLORS_' . $this->codeFromPath($file),
+                'Hardcoded theme colors detected',
+                'Panel/card/action styles define explicit colors instead of B.O. theme tokens: ' . implode(' | ', array_values(array_unique(array_slice($issues, 0, 8)))),
+                $this->severity('hardcoded_theme_color'),
+                $file,
+                'Use B.O. theme tokens such as --card-bg, --border-soft, --text-primary, --text-muted and --lsg-bo-btn-* so light/dark modes remain consistent.'
+            );
+        }
+
+        return $findings;
+    }
+
+    protected function checkColorContrast(array $contents): array
+    {
+        $findings = [];
+        $minimum = (float) config('module-design-validator.theme_contract.min_contrast_ratio', 4.5);
+
+        foreach ($contents as $file => $content) {
+            $issues = [];
+            foreach ($this->extractStyleBlocks($content) as $styleBlock) {
+                foreach ($this->extractCssRules($styleBlock) as $rule) {
+                    if ($this->isContrastIgnoredSelector($rule['selector'])) {
+                        continue;
+                    }
+
+                    $foreground = $this->extractCssColor($rule['body'], 'color');
+                    $background = $this->extractCssColor($rule['body'], 'background-color')
+                        ?? $this->extractCssColor($rule['body'], 'background');
+
+                    if (! $foreground || ! $background) {
+                        continue;
+                    }
+
+                    $ratio = $this->contrastRatio($foreground, $background);
+                    if ($ratio !== null && $ratio < $minimum) {
+                        $issues[] = trim($rule['selector']) . ' ratio ' . number_format($ratio, 2);
+                    }
+                }
+            }
+
+            foreach ($this->extractInlineStyleAttributes($content) as $inlineStyle) {
+                $foreground = $this->extractCssColor($inlineStyle, 'color');
+                $background = $this->extractCssColor($inlineStyle, 'background-color')
+                    ?? $this->extractCssColor($inlineStyle, 'background');
+
+                if (! $foreground || ! $background) {
+                    continue;
+                }
+
+                $ratio = $this->contrastRatio($foreground, $background);
+                if ($ratio !== null && $ratio < $minimum) {
+                    $issues[] = 'inline style ratio ' . number_format($ratio, 2);
+                }
+            }
+
+            if (empty($issues)) {
+                $findings[] = ModuleValidationFinding::passed(
+                    'DESIGN_COLOR_CONTRAST_OK_' . $this->codeFromPath($file),
+                    'No explicit contrast issue detected',
+                    'No low-contrast explicit color/background pair was detected in view styles.',
+                    $file
+                );
+                continue;
+            }
+
+            $findings[] = ModuleValidationFinding::warning(
+                'DESIGN_COLOR_CONTRAST_LOW_' . $this->codeFromPath($file),
+                'Potential low color contrast',
+                'Explicit color/background pairs are below WCAG AA contrast ratio ' . $minimum . ': ' . implode(' | ', array_slice($issues, 0, 8)),
+                $this->severity('contrast_issue'),
+                $file,
+                'Use B.O. theme tokens or Bootstrap semantic classes so contrast remains correct in both light and dark modes.'
+            );
+        }
+
+        return $findings;
+    }
+
+    protected function extractStyleBlocks(string $content): array
+    {
+        if (! preg_match_all('/<style\b[^>]*>(.*?)<\/style>/is', $content, $matches)) {
+            return [];
+        }
+
+        return $matches[1];
+    }
+
+    protected function extractCssRules(string $css): array
+    {
+        $rules = [];
+        if (! preg_match_all('/([^{}@]+)\{([^{}]+)\}/', $css, $matches, PREG_SET_ORDER)) {
+            return [];
+        }
+
+        foreach ($matches as $match) {
+            $rules[] = [
+                'selector' => trim($match[1]),
+                'body' => trim($match[2]),
+            ];
+        }
+
+        return $rules;
+    }
+
+    protected function extractInlineStyleAttributes(string $content): array
+    {
+        if (! preg_match_all('/style\s*=\s*(["\'])(.*?)\1/is', $content, $matches)) {
+            return [];
+        }
+
+        return $matches[2];
+    }
+
+    protected function extractCssColor(string $css, string $property): ?array
+    {
+        $value = $this->extractCssDeclaration($css, $property);
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim(preg_replace('/!important/i', '', $value) ?? $value);
+
+        if (preg_match('/#([0-9a-f]{3}|[0-9a-f]{6})\b/i', $value, $hex)) {
+            return $this->hexToRgb($hex[1]);
+        }
+
+        if (preg_match('/rgba?\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([0-9.]+))?/i', $value, $rgb)) {
+            if (isset($rgb[4]) && is_numeric($rgb[4]) && (float) $rgb[4] < 1) {
+                return null;
+            }
+
+            return [
+                max(0, min(255, (int) $rgb[1])),
+                max(0, min(255, (int) $rgb[2])),
+                max(0, min(255, (int) $rgb[3])),
+            ];
+        }
+
+        return null;
+    }
+
+    protected function extractCssDeclaration(string $css, string $property): ?string
+    {
+        $declarations = preg_split('/;/', $css) ?: [];
+
+        foreach ($declarations as $declaration) {
+            if (! str_contains($declaration, ':')) {
+                continue;
+            }
+
+            [$name, $value] = array_map('trim', explode(':', $declaration, 2));
+            if (strcasecmp($name, $property) === 0) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    protected function hasForbiddenThemeSelector(string $selector, array $forbiddenSelectors): bool
+    {
+        $parts = preg_split('/,/', $selector) ?: [];
+
+        foreach ($parts as $part) {
+            $part = strtolower(trim($part));
+            if ($part === '') {
+                continue;
+            }
+
+            foreach ($forbiddenSelectors as $forbiddenSelector) {
+                $forbidden = strtolower(trim((string) $forbiddenSelector));
+                if ($forbidden === '') {
+                    continue;
+                }
+
+                if (in_array($forbidden, ['body', 'html', ':root'], true)) {
+                    if ($part === $forbidden || str_starts_with($part, $forbidden . ':')) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if (str_starts_with($forbidden, '[')) {
+                    if ($part === $forbidden || preg_match('/^' . preg_quote($forbidden, '/') . '\s*$/', $part)) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if (str_starts_with($forbidden, '.')) {
+                    if (preg_match('/(^|[\s>+~])' . preg_quote($forbidden, '/') . '(\b|[\.#:\[])/', $part)) {
+                        return true;
+                    }
+                    continue;
+                }
+
+                if ($part === $forbidden || str_starts_with($part, $forbidden . ' ')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    protected function isContrastIgnoredSelector(string $selector): bool
+    {
+        $selector = strtolower($selector);
+        foreach (config('module-design-validator.theme_contract.contrast_ignored_selector_fragments', []) as $fragment) {
+            if (is_string($fragment) && $fragment !== '' && str_contains($selector, strtolower($fragment))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function requiresTokenizedColors(string $selector, array $config): bool
+    {
+        $selector = strtolower($selector);
+
+        foreach ($config['tokenized_color_ignored_selector_fragments'] ?? [] as $fragment) {
+            if (is_string($fragment) && $fragment !== '' && str_contains($selector, strtolower($fragment))) {
+                return false;
+            }
+        }
+
+        foreach ($config['tokenized_color_required_selector_fragments'] ?? [] as $fragment) {
+            if (is_string($fragment) && $fragment !== '' && str_contains($selector, strtolower($fragment))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function hasHardcodedCssColor(string $value): bool
+    {
+        $value = trim(preg_replace('/!important/i', '', $value) ?? $value);
+
+        if (str_contains($value, 'var(') || str_contains($value, 'currentColor')) {
+            return false;
+        }
+
+        return (bool) preg_match('/#(?:[0-9a-f]{3}|[0-9a-f]{6})\b|rgba?\s*\(/i', $value);
+    }
+
+    protected function hexToRgb(string $hex): array
+    {
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    protected function contrastRatio(array $foreground, array $background): ?float
+    {
+        if (count($foreground) !== 3 || count($background) !== 3) {
+            return null;
+        }
+
+        $l1 = $this->relativeLuminance($foreground);
+        $l2 = $this->relativeLuminance($background);
+
+        return (max($l1, $l2) + 0.05) / (min($l1, $l2) + 0.05);
+    }
+
+    protected function relativeLuminance(array $rgb): float
+    {
+        $channels = array_map(function ($value) {
+            $value = max(0, min(255, (int) $value)) / 255;
+            return $value <= 0.03928
+                ? $value / 12.92
+                : (($value + 0.055) / 1.055) ** 2.4;
+        }, $rgb);
+
+        return 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+    }
+
+    protected function isAllowedCssVariable(string $variable, array $allowedPrefixes): bool
+    {
+        return $this->matchesPrefix($variable, $allowedPrefixes);
+    }
+
+    protected function matchesPrefix(string $value, array $prefixes): bool
+    {
+        foreach ($prefixes as $prefix) {
+            if (is_string($prefix) && $prefix !== '' && str_starts_with($value, $prefix)) {
                 return true;
             }
         }

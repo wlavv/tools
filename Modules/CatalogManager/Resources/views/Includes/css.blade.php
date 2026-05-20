@@ -505,7 +505,7 @@ html[data-theme="light"] .catalog-lsg-shell {
 
 .catalog-store-ribbon__main small,
 .catalog-store-ribbon__metrics small {
-    color: #64748b;
+    color: #334155;
     font-size: 11px;
     font-weight: 750;
 }
@@ -524,7 +524,7 @@ html[data-theme="light"] .catalog-lsg-shell {
     justify-content: center;
     border-radius: 5px;
     background: #f1f5f9;
-    color: #64748b;
+    color: #334155;
     font-size: 13px;
     font-weight: 950;
 }
@@ -824,7 +824,7 @@ html[data-theme="light"] .catalog-lsg-shell {
     padding: 4px 7px;
     border-radius: 5px;
     background: #f1f5f9;
-    color: #64748b;
+    color: #334155;
     font-size: 11px;
     font-weight: 850;
     text-transform: uppercase;

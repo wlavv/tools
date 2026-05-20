@@ -12,17 +12,17 @@
     --lsg-input-placeholder-dark: #94a3b8;
     --lsg-input-placeholder-light: #64748b;
 
-    --lsg-alert-success-bg-dark: rgba(34,197,94,.15);
-    --lsg-alert-success-text-dark: #bbf7d0;
+    --lsg-alert-success-bg-dark: #14532d;
+    --lsg-alert-success-text-dark: #dcfce7;
 
-    --lsg-alert-danger-bg-dark: rgba(239,68,68,.15);
-    --lsg-alert-danger-text-dark: #fecaca;
+    --lsg-alert-danger-bg-dark: #7f1d1d;
+    --lsg-alert-danger-text-dark: #fee2e2;
 
-    --lsg-alert-warning-bg-dark: rgba(245,158,11,.15);
-    --lsg-alert-warning-text-dark: #fde68a;
+    --lsg-alert-warning-bg-dark: #78350f;
+    --lsg-alert-warning-text-dark: #fef3c7;
 
-    --lsg-alert-info-bg-dark: rgba(59,130,246,.15);
-    --lsg-alert-info-text-dark: #bfdbfe;
+    --lsg-alert-info-bg-dark: #1e3a8a;
+    --lsg-alert-info-text-dark: #dbeafe;
 
     --lsg-alert-success-bg-light: #dcfce7;
     --lsg-alert-success-text-light: #14532d;
@@ -201,6 +201,6 @@ body[data-theme="light"] .alert-info {
 
 /* selected item */
 .select2-container--default .select2-results__option[aria-selected="true"] {
-    background: rgba(212,160,23,.16) !important;
-    color: #f8fafc !important;
+    background: #7b5a20 !important;
+    color: #fff7ed !important;
 }

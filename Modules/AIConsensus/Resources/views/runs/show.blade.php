@@ -57,7 +57,11 @@
     <div class="card mb-3">
         <div class="card-header">Final Output</div>
         <div class="card-body">
-            <pre class="mb-0" style="white-space: pre-wrap;">{{ $run->final_output ?: $run->error_message ?: 'Sem output ainda.' }}</pre>
+            @include('ai-consensus::partials.structured-output', [
+                'content' => $run->final_output ?: $run->error_message ?: '',
+                'payload' => $run->outputs->last()?->json_payload,
+                'title' => 'Resposta consolidada',
+            ])
         </div>
     </div>
 
@@ -80,7 +84,11 @@
                                 @if($response->error_message || $response->raw_response)
                                     <tr>
                                         <td colspan="5">
-                                            <pre class="mb-0" style="white-space: pre-wrap; max-height: 220px; overflow: auto;">{{ $response->error_message ?: $response->raw_response }}</pre>
+                                            @include('ai-consensus::partials.structured-output', [
+                                                'content' => $response->error_message ?: $response->raw_response,
+                                                'payload' => $response->normalized_response,
+                                                'compact' => true,
+                                            ])
                                         </td>
                                     </tr>
                                 @endif

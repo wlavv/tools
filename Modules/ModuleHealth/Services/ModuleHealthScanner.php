@@ -11,8 +11,6 @@ class ModuleHealthScanner
     public function scanAll(?string $profileKey = null): array
     {
         $modulesPath = config('module-health.modules_path', base_path('Modules'));
-        $profileKey = $profileKey ?: config('module-health.default_profile', 'structural');
-
         if (! File::isDirectory($modulesPath)) {
             return [];
         }

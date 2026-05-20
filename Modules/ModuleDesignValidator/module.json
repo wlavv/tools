@@ -3,6 +3,7 @@
   "slug": "module-design-validator",
   "enabled": true,
   "version": "1.0.0",
+  "health_profile": "validator",
   "description": "Validates LSG BO visual and UX conventions in module Blade views.",
   "provider": "Modules\\ModuleDesignValidator\\Providers\\ModuleDesignValidatorServiceProvider",
   "permissions": [

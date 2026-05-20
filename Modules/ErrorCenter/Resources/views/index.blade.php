@@ -9,7 +9,7 @@
 
 @section('content')
 <style>
-        :root { color-scheme: light; --bg: #f6f7fb; --card: #fff; --border: #e5e7eb; --text: #111827; --muted: #6b7280; --danger: #b91c1c; --warn: #92400e; --ok: #166534; --brand: #1f2937; }
+        .wrap { color-scheme: light; --bg: #f6f7fb; --card: #fff; --border: #e5e7eb; --text: #111827; --muted: #6b7280; --danger: #b91c1c; --warn: #92400e; --ok: #166534; --brand: #1f2937; }
         .wrap { color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .wrap { width: 100%; max-width: none; margin: 0; padding: 0; }
         .header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px; }

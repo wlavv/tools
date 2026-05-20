@@ -5,6 +5,7 @@
   "description": "Central compliance validation module for LSG modules generated, imported or promoted inside WebTools Manager.",
   "enabled": true,
   "version": "0.1.0",
+  "health_profile": "validator",
   "provider": "Modules\\IdeaLabComplianceCenterModule\\Providers\\IdeaLabComplianceCenterModuleServiceProvider",
   "providers": [
     "Modules\\IdeaLabComplianceCenterModule\\Providers\\IdeaLabComplianceCenterModuleServiceProvider"

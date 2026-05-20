@@ -120,11 +120,11 @@
         }
 
         .app-shell {
-            --lsg-final-btn-bg: var(--lsg-bo-btn-bg, rgba(255, 255, 255, .045));
-            --lsg-final-btn-bg-hover: var(--lsg-bo-btn-bg-hover, rgba(255, 255, 255, .075));
+            --lsg-final-btn-bg: var(--lsg-bo-btn-bg, #405061);
+            --lsg-final-btn-bg-hover: var(--lsg-bo-btn-bg-hover, #536579);
             --lsg-final-btn-border: var(--lsg-bo-btn-border, var(--border-soft, rgba(255, 255, 255, .12)));
             --lsg-final-btn-border-hover: var(--lsg-bo-btn-border-hover, rgba(142, 164, 255, .38));
-            --lsg-final-btn-text: var(--lsg-bo-btn-text, var(--text-primary, #f0f4f9));
+            --lsg-final-btn-text: var(--lsg-bo-btn-text, #f8fafc);
             --lsg-final-btn-shadow: var(--lsg-bo-btn-shadow, 0 8px 18px rgba(0, 0, 0, .12));
         }
 
@@ -196,7 +196,7 @@
             .pm-btn--primary,
             .wc-btn--primary
         ):not(.btn-close) {
-            background: var(--lsg-bo-btn-primary-bg, rgba(37, 99, 235, .24)) !important;
+            background: var(--lsg-bo-btn-primary-bg, #1d4ed8) !important;
             border-color: var(--lsg-bo-btn-primary-border, rgba(96, 165, 250, .76)) !important;
             color: var(--lsg-bo-btn-primary-text, #eff6ff) !important;
         }
@@ -210,9 +210,9 @@
             .password-manager-btn-primary,
             .task-toggle-btn.is-success.active
         ):not(.btn-close) {
-            background: var(--lsg-bo-btn-success-bg, rgba(22, 163, 74, .24)) !important;
+            background: var(--lsg-bo-btn-success-bg, #166534) !important;
             border-color: var(--lsg-bo-btn-success-border, rgba(74, 222, 128, .72)) !important;
-            color: var(--lsg-bo-btn-success-text, #dcfce7) !important;
+            color: var(--lsg-bo-btn-success-text, #f0fdf4) !important;
         }
 
         .app-shell :is(
@@ -222,9 +222,9 @@
             .pm-btn--warning,
             .wc-btn--warning
         ):not(.btn-close) {
-            background: var(--lsg-bo-btn-warning-bg, rgba(245, 158, 11, .24)) !important;
+            background: var(--lsg-bo-btn-warning-bg, #92400e) !important;
             border-color: var(--lsg-bo-btn-warning-border, rgba(251, 191, 36, .72)) !important;
-            color: var(--lsg-bo-btn-warning-text, #fef3c7) !important;
+            color: var(--lsg-bo-btn-warning-text, #fffbeb) !important;
         }
 
         .app-shell :is(
@@ -235,9 +235,9 @@
             .wc-btn--danger,
             .task-toggle-btn.is-danger.active
         ):not(.btn-close) {
-            background: var(--lsg-bo-btn-danger-bg, rgba(220, 38, 38, .24)) !important;
+            background: var(--lsg-bo-btn-danger-bg, #991b1b) !important;
             border-color: var(--lsg-bo-btn-danger-border, rgba(248, 113, 113, .72)) !important;
-            color: var(--lsg-bo-btn-danger-text, #fee2e2) !important;
+            color: var(--lsg-bo-btn-danger-text, #fff1f2) !important;
         }
 
         .app-shell :is(.btn i, .lsg-action-btn i, .pm-btn i, .password-manager-btn i, .wc-btn i, .task-toggle-btn i) {

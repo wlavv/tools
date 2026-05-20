@@ -1,5 +1,5 @@
 <style>
-:root{
+.family-planner-tablet{
     --fp-bg-1:#eef2f6;
     --fp-bg-2:#e7ecf2;
     --fp-text:#27313d;
@@ -19,7 +19,7 @@
 
 *{box-sizing:border-box}
 
-html,body{
+.family-planner-tablet{
     margin:0;
     width:100%;
     height:100%;
@@ -711,7 +711,7 @@ html,body{
 }
 
 @media (orientation: portrait) and (min-width: 768px) and (max-width: 1180px){
-    html,body,.family-planner-tablet{
+    .family-planner-tablet{
         overflow:hidden;
     }
 
@@ -890,7 +890,7 @@ html,body{
 }
 
 @media (max-width: 767.98px){
-    html,body,.family-planner-tablet,.fp-app{
+    .family-planner-tablet,.fp-app{
         height:auto;
         min-height:100%;
         overflow:auto;

@@ -145,7 +145,7 @@
                     </tr>
                 
                     <tr class="{{$slug}}_totals_Content {{$slug}}_Content" style="display: none;">
-                        <td colspan="5" style="padding-top: 10px;background-color: #FFF;color: #FFF;"></td>
+                        <td colspan="5" style="padding-top: 10px;background-color: #FFF;"></td>
                     </tr>
                 
                     <tr class="{{$slug}}_totals_Content {{$slug}}_Content" style="display: none;">

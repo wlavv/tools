@@ -3,6 +3,7 @@
   "slug": "module-security-validator",
   "enabled": true,
   "version": "1.0.0",
+  "health_profile": "validator",
   "description": "LSG validator for module security risks: unsafe filesystem writes, shell execution, unprotected routes, uploads, path traversal and core modifications.",
   "provider": "Modules\\ModuleSecurityValidator\\Providers\\ModuleSecurityValidatorServiceProvider",
   "dependencies": [
