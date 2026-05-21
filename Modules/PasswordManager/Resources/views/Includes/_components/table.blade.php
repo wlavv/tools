@@ -7,13 +7,13 @@
         <table class="password-manager-table password-manager-table--lean lsg-datatable">
             <thead>
                 <tr>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>URL</th>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>Last used</th>
-                    <th class="text-center" style="width: 110px;">Actions</th>
+                    <th class="pm-col-title">Title</th>
+                    <th class="pm-col-category">Category</th>
+                    <th class="pm-col-url">URL</th>
+                    <th class="pm-col-username">Username</th>
+                    <th class="pm-col-password">Pass</th>
+                    <th class="pm-col-date">Used</th>
+                    <th class="text-center" style="width: 76px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,6 @@
                                 title="Copy password"
                             >
                                 <i class="fa-solid fa-copy"></i>
-                                <span>••••••••</span>
                             </button>
                         </td>
                         <td>{{ $entry->last_used_at ? $entry->last_used_at->format('d/m/Y H:i') : '—' }}</td>

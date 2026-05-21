@@ -5,13 +5,24 @@
     $buttonLabel = $buttonLabel ?? 'Documento';
     $contextWorkspace = $workspace ?? $defaultWorkspace ?? null;
     $contextFolder = $folder ?? $defaultFolder ?? null;
+    $sourceCandidate = $sourceModule ?? $contextWorkspace ?? 'document-manager';
+    $quickUploadSourceModule = is_object($sourceCandidate)
+        ? ($sourceCandidate->slug ?? $sourceCandidate->name ?? 'document-manager')
+        : (is_array($sourceCandidate) ? ($sourceCandidate['slug'] ?? $sourceCandidate['name'] ?? 'document-manager') : $sourceCandidate);
 
     if (!isset($workspaces) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
         $workspaces = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_workspaces', fn ($query) => $query->where('is_active', true)->orderBy('name'));
     }
 
-    if (!isset($categories) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
-        $categories = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_categories', fn ($query) => $query->orderBy('name'));
+    $hasDocumentCategories = isset($categories)
+        && collect($categories)->contains(fn ($category) => is_object($category) && isset($category->id, $category->name));
+
+    if ($hasDocumentCategories) {
+        $documentCategories = collect($categories);
+    } elseif (class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {
+        $documentCategories = \Modules\DocumentManager\Support\DocumentTable::safeGet('document_core_categories', fn ($query) => $query->orderBy('name'));
+    } else {
+        $documentCategories = collect();
     }
 
     if (!isset($folders) && class_exists(\Modules\DocumentManager\Support\DocumentTable::class)) {

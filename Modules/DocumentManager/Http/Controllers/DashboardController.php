@@ -25,7 +25,7 @@ class DashboardController extends BaseDocumentController
 
             return view('documentmanager::dashboard.index', [
                 'stats' => $stats,
-                'latestDocuments' => $documents->latest(10),
+                'latestDocuments' => $documents->latest(20),
                 'panels' => $panels->resolve(),
                 'missingTables' => DocumentTable::missingTables(),
                 'workspaces' => DocumentTable::safeGet('document_core_workspaces', fn ($query) => $query->orderBy('name')),

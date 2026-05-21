@@ -12,6 +12,7 @@ Route::middleware(config('project-manager.middleware', ['web', 'auth']))
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/operations', [DashboardController::class, 'operations'])->name('operations');
         Route::get('/productivity', [DashboardController::class, 'productivity'])->name('productivity');
         Route::post('/tasks/{task}/panel', [DashboardController::class, 'moveGlobalTaskPanel'])->whereNumber('task')->name('tasks.panel');
         Route::post('/tasks/{task}/priority-matrix', [DashboardController::class, 'updateGlobalTaskMatrix'])->whereNumber('task')->name('tasks.priority_matrix');

@@ -11,6 +11,7 @@ use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
 use Modules\WebCatalogue\Services\Recognition\VisualRecognitionService;
 use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
+use Modules\WebCatalogue\Services\Recognition\RecognitionPipelineService;
 use Throwable;
 
 class VisualRecognitionController extends Controller
@@ -40,11 +41,18 @@ class VisualRecognitionController extends Controller
     public function session(Request $request, string $store_slug, VisualRecognitionService $service): JsonResponse
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
+        $validated = $request->validate([
+            'device_type' => ['nullable', 'string', 'max:60'],
+            'expected_product_id' => ['nullable', 'integer'],
+            'expected_card_id' => ['nullable', 'string', 'max:120'],
+            'scenario_label' => ['nullable', 'string', 'max:80'],
+        ]);
 
         $session = $service->createSession($store, [
-            'device_type' => $request->input('device_type'),
+            'device_type' => $validated['device_type'] ?? null,
             'user_agent' => $request->userAgent(),
             'ip_address' => $request->ip(),
+            'ground_truth' => $this->groundTruthPayload($validated),
         ]);
 
         return response()->json([
@@ -56,10 +64,18 @@ class VisualRecognitionController extends Controller
 
     public function globalSession(Request $request, VisualRecognitionService $service): JsonResponse
     {
+        $validated = $request->validate([
+            'device_type' => ['nullable', 'string', 'max:60'],
+            'expected_product_id' => ['nullable', 'integer'],
+            'expected_card_id' => ['nullable', 'string', 'max:120'],
+            'scenario_label' => ['nullable', 'string', 'max:80'],
+        ]);
+
         $session = $service->createSession(null, [
-            'device_type' => $request->input('device_type'),
+            'device_type' => $validated['device_type'] ?? null,
             'user_agent' => $request->userAgent(),
             'ip_address' => $request->ip(),
+            'ground_truth' => $this->groundTruthPayload($validated),
         ]);
 
         return response()->json([
@@ -183,7 +199,7 @@ class VisualRecognitionController extends Controller
         ]);
     }
 
-    public function match(Request $request, string $store_slug, InternalImageMatchService $matcher): JsonResponse
+    public function match(Request $request, string $store_slug, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline): JsonResponse
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
 
@@ -199,7 +215,9 @@ class VisualRecognitionController extends Controller
         $this->markMatchingStarted($session);
 
         try {
-            $result = $matcher->matchSession($session, $store);
+            $result = (bool) config('webcatalogue.recognition.pipeline_v2.enabled', true)
+                ? $pipeline->matchSession($session, $store)
+                : $matcher->matchSession($session, $store);
         } catch (Throwable $exception) {
             $this->markMatchFailed($session, $exception);
 
@@ -217,10 +235,11 @@ class VisualRecognitionController extends Controller
             'suggestions' => $result['suggestions'] ?? [],
             'message' => $result['message'] ?? 'Recognition completed.',
             'product_url' => $result['auto_match']['product_url'] ?? null,
+            'pipeline_v2' => $result['pipeline_v2'] ?? null,
         ]);
     }
 
-    public function globalMatch(Request $request, InternalImageMatchService $matcher): JsonResponse
+    public function globalMatch(Request $request, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline): JsonResponse
     {
         $validated = $request->validate([
             'session_token' => ['required', 'string'],
@@ -234,7 +253,9 @@ class VisualRecognitionController extends Controller
         $this->markMatchingStarted($session);
 
         try {
-            $result = $matcher->matchGlobalSession($session);
+            $result = (bool) config('webcatalogue.recognition.pipeline_v2.enabled', true)
+                ? $pipeline->matchSession($session, null)
+                : $matcher->matchGlobalSession($session);
         } catch (Throwable $exception) {
             $this->markMatchFailed($session, $exception);
 
@@ -253,6 +274,7 @@ class VisualRecognitionController extends Controller
             'message' => $result['message'] ?? 'Recognition completed.',
             'product_url' => null,
             'result_url' => route('webcatalogue.front.scan.global.result', $session->session_token),
+            'pipeline_v2' => $result['pipeline_v2'] ?? null,
         ]);
     }
 
@@ -489,5 +511,18 @@ class VisualRecognitionController extends Controller
         }
 
         return array_slice($clean, 0, 8);
+    }
+
+    private function groundTruthPayload(array $validated): ?array
+    {
+        if (empty($validated['expected_product_id']) && empty($validated['expected_card_id']) && empty($validated['scenario_label'])) {
+            return null;
+        }
+
+        return [
+            'expected_product_id' => !empty($validated['expected_product_id']) ? (int) $validated['expected_product_id'] : null,
+            'expected_card_id' => $validated['expected_card_id'] ?? null,
+            'scenario_label' => $validated['scenario_label'] ?? null,
+        ];
     }
 }

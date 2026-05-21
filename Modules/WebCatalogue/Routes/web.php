@@ -69,6 +69,8 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
 
         Route::prefix('recognition')->name('recognition.')->group(function () {
             Route::get('/', [RecognitionDashboardController::class, 'index'])->name('index');
+            Route::get('/pipeline', [RecognitionDashboardController::class, 'pipeline'])->name('pipeline.index');
+            Route::get('/pipeline/summary', [RecognitionDashboardController::class, 'pipelineSummary'])->name('pipeline.summary');
             Route::get('/sessions', [RecognitionSessionController::class, 'index'])->name('sessions.index');
             Route::get('/sessions/{session}', [RecognitionSessionController::class, 'show'])->name('sessions.show');
             Route::delete('/sessions/{session}', [RecognitionSessionController::class, 'destroy'])->name('sessions.destroy');

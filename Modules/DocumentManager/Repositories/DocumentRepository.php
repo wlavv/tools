@@ -22,6 +22,7 @@ class DocumentRepository
                 'd.workflow_state',
                 'd.mime_type',
                 'd.size_bytes',
+                'd.has_file',
                 'd.has_ocr',
                 'd.has_preview',
                 'd.has_embeddings',

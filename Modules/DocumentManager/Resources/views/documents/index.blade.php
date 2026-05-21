@@ -1,25 +1,6 @@
 @extends('documentmanager::layouts.module')
 
 @section('documentmanager-content')
-    <div class="dms-toolbar">
-        <form method="GET" class="dms-filter-form">
-            <input type="text" name="q" value="{{ request('q') }}" placeholder="Pesquisar por titulo, OCR, checksum ou metadata">
-            <select name="workspace_id">
-                <option value="">Todos os workspaces</option>
-                @foreach($workspaces as $workspace)
-                    <option value="{{ $workspace->id }}" @selected((string) request('workspace_id') === (string) $workspace->id)>{{ $workspace->name }}</option>
-                @endforeach
-            </select>
-            <select name="status">
-                <option value="">Todos os estados</option>
-                @foreach(['draft', 'approved', 'archived', 'locked'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                @endforeach
-            </select>
-            <button class="btn btn-outline-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-        </form>
-    </div>
-
     @if(!empty($missingTables))
         <div class="dms-alert dms-alert--warning">Explorer em safe mode porque existem tabelas em falta.</div>
     @endif

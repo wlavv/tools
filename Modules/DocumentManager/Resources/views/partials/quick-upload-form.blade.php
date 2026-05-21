@@ -1,6 +1,6 @@
 <form method="POST" action="{{ route('document-manager.documents.store') }}" enctype="multipart/form-data" class="dms-quick-upload">
     @csrf
-    <input type="hidden" name="source_module" value="{{ $sourceModule ?? $contextWorkspace ?? 'document-manager' }}">
+    <input type="hidden" name="source_module" value="{{ $quickUploadSourceModule ?? 'document-manager' }}">
 
     <div class="dms-quick-upload__layout">
         <div class="dms-quick-upload__fields">
@@ -34,7 +34,7 @@
                     <label>Categoria</label>
                     <select name="category_id">
                         <option value="">Sem categoria</option>
-                        @foreach(($categories ?? collect()) as $category)
+                        @foreach(($documentCategories ?? collect()) as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>

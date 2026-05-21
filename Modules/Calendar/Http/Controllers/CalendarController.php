@@ -12,6 +12,8 @@ use Modules\Calendar\Models\CalendarEvent;
 
 class CalendarController extends Controller
 {
+    protected bool $hasPageActions = false;
+
     public function __construct()
     {
         parent::__construct();
@@ -19,38 +21,7 @@ class CalendarController extends Controller
 
     protected function buildActions(): void
     {
-        $this->setActions([
-            [
-                'name' => 'Dashboard',
-                'icon' => '<i class="fa-solid fa-calendar-days"></i>',
-                'url' => route('calendar.index'),
-                'class' => 'btn btn-outline-primary',
-            ],
-            [
-                'name' => 'Contexts',
-                'icon' => '<i class="fa-solid fa-layer-group"></i>',
-                'url' => route('calendar.contexts.index'),
-                'class' => 'btn btn-outline-primary',
-            ],
-            [
-                'name' => 'Categories',
-                'icon' => '<i class="fa-solid fa-tags"></i>',
-                'url' => route('calendar.categories.index'),
-                'class' => 'btn btn-outline-primary',
-            ],
-            [
-                'name' => 'Events',
-                'icon' => '<i class="fa-solid fa-calendar-plus"></i>',
-                'url' => route('calendar.events.index'),
-                'class' => 'btn btn-outline-primary',
-            ],
-            [
-                'name' => 'Tablet',
-                'icon' => '<i class="fa-solid fa-tablet-screen-button"></i>',
-                'url' => route('calendar.tablet', ['context' => 'family']),
-                'class' => 'btn btn-outline-primary',
-            ],
-        ]);
+        $this->clearActions();
     }
 
     public function index(Request $request)

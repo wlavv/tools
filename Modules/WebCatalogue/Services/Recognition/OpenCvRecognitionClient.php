@@ -128,6 +128,38 @@ class OpenCvRecognitionClient
         }
     }
 
+    public function analyseQuality(string $publicPath): ?array
+    {
+        if (!$this->enabled() || !Storage::disk('public')->exists($publicPath)) {
+            return null;
+        }
+
+        try {
+            $baseUrl = rtrim((string) config('webcatalogue.recognition.opencv.base_url'), '/');
+            $token = config('webcatalogue.recognition.opencv.token');
+            $timeout = (int) config('webcatalogue.recognition.opencv.timeout', 20);
+            $path = Storage::disk('public')->path($publicPath);
+            $request = Http::timeout($timeout)->acceptJson();
+
+            if (filled($token)) {
+                $request = $request->withToken((string) $token);
+            }
+
+            $response = $request
+                ->attach('image', fopen($path, 'rb'), basename($path))
+                ->post($baseUrl . '/recognition/quality');
+
+            if (!$response->ok()) {
+                return null;
+            }
+
+            $payload = $response->json();
+            return is_array($payload) && !empty($payload['ok']) ? $payload : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     public function extractIdentifiers(string $publicPath): ?array
     {
         if (!$this->enabled() || !Storage::disk('public')->exists($publicPath)) {

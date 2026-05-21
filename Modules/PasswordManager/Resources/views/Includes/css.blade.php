@@ -45,9 +45,7 @@ html[data-theme="light"] .password-manager-shell,
 .passwordManager-card,
 .password-manager-card,
 .password-manager-form-card,
-.password-manager-toolbar,
 .pm-page-header,
-.password-manager-stat,
 .password-manager-meta{
     border:1px solid var(--pm-border);
     border-radius:5px;
@@ -56,7 +54,7 @@ html[data-theme="light"] .password-manager-shell,
     color:var(--pm-text);
 }
 
-.pm-page-header,.password-manager-card,.password-manager-form-card,.password-manager-toolbar{padding:1rem}
+.pm-page-header,.password-manager-card,.password-manager-form-card{padding:1rem}
 .pm-page-header{padding:1rem 1.125rem}
 .pm-breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;margin-bottom:.85rem;font-size:.8rem}
 .pm-breadcrumbs__link,.pm-breadcrumbs__current,.pm-breadcrumbs__sep{color:var(--pm-muted)}
@@ -83,20 +81,19 @@ body.theme-light .lsg-action-btn--success,body[data-theme="light"] .lsg-action-b
 body.theme-light .lsg-action-btn--warning,body[data-theme="light"] .lsg-action-btn--warning,html[data-theme="light"] .lsg-action-btn--warning,[data-bs-theme="light"] .lsg-action-btn--warning{--lsg-text:#b45309}
 body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-btn--danger,html[data-theme="light"] .lsg-action-btn--danger,[data-bs-theme="light"] .lsg-action-btn--danger{--lsg-text:#b91c1c}
 
-.pm-dashboard-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem;align-items:stretch}
-.pm-toolbar-grid,.password-manager-toolbar{display:grid;gap:.75rem}
-.pm-toolbar-search{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:center}
-.pm-toolbar-search__field{display:grid;grid-template-columns:auto 1fr;gap:.7rem;align-items:center;border-radius:5px;border:1px solid var(--pm-border);padding:0 0 0 .8rem;background:var(--pm-bg-input)}
-.pm-toolbar-search__field i{color:var(--pm-muted)}
-.pm-toolbar-search__field .password-manager-input{border:0;background:transparent;padding-left:0;padding-right:0}
-
-.password-manager-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
-.password-manager-stat{padding:.95rem;display:grid;gap:.3rem}
-.password-manager-stat__label{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pm-muted)}
-.password-manager-stat__value{font-size:1.35rem;line-height:1;color:var(--pm-text)}
-
-.password-manager-table-wrap{overflow-x:auto}
-.password-manager-table{width:100%;border-collapse:collapse;min-width:760px;color:var(--pm-text)}
+.password-manager-table-wrap{overflow-x:visible;max-width:100%}
+.password-manager-table-wrap .dataTables_wrapper,
+.password-manager-table-wrap .dataTables_scroll,
+.password-manager-table-wrap .dataTables_scrollHead,
+.password-manager-table-wrap .dataTables_scrollBody{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:visible!important;
+}
+.password-manager-table-wrap .dataTables_scrollBody{
+    overflow-y:visible!important;
+}
+.password-manager-table{width:100%;border-collapse:collapse;table-layout:fixed;color:var(--pm-text)}
 .password-manager-table th,.password-manager-table td{padding:.85rem .75rem;border-bottom:1px solid var(--pm-border);text-align:left;vertical-align:middle}
 .password-manager-table th{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pm-muted)}
 .pm-table-title{display:grid;gap:.15rem}
@@ -199,12 +196,32 @@ body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-bt
 .pm-password-field--single-action{
     grid-template-columns:minmax(0,1fr) auto;
 }
-.password-manager-table--lean{
-    min-width:900px;
-}
+.password-manager-table--lean{min-width:0}
 .password-manager-table--lean th,
 .password-manager-table--lean td{
-    padding:.72rem .7rem;
+    padding:.68rem .55rem;
+}
+.password-manager-table th,
+.password-manager-table td{
+    min-width:0;
+    white-space:normal;
+}
+.password-manager-table td{
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.pm-col-title{width:21%}
+.pm-col-category{width:12%}
+.pm-col-url{width:25%}
+.pm-col-username{width:16%}
+.pm-col-password{width:9%}
+.pm-col-date{width:11%}
+.password-manager-table th:last-child{width:76px}
+.password-manager-table .password-manager-badge{
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 .pm-table-link,
 .pm-copy-inline,
@@ -231,7 +248,7 @@ body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-bt
     white-space:nowrap;
 }
 .pm-table-link{
-    max-width:280px;
+    max-width:100%;
     color:var(--pm-blue);
 }
 .pm-copy-inline{
@@ -240,6 +257,8 @@ body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-bt
 .pm-copy-inline--secret{
     color:var(--pm-muted-2);
     letter-spacing:.05em;
+    padding-left:.35rem;
+    padding-right:.35rem;
 }
 .pm-table-link:hover,
 .pm-copy-inline:hover,
@@ -276,8 +295,8 @@ body.theme-light .lsg-action-btn--danger,body[data-theme="light"] .lsg-action-bt
     }
 }
 
-@media (max-width:991px){.pm-dashboard-grid,.password-manager-stats,.password-manager-grid{grid-template-columns:1fr}.password-manager-grid-1{grid-column:span 1}}
-@media (max-width:768px){.password-manager-page{padding:.75rem}.pm-page-header,.password-manager-card,.password-manager-form-card,.password-manager-toolbar{padding:.9rem}.pm-page-header__main{flex-direction:column}.pm-page-header__identity{width:100%}.pm-page-header__actions,.lsg-page-actions{width:100%;justify-content:flex-start}.pm-toolbar-search{grid-template-columns:1fr}.password-manager-table-wrap{display:none}.password-manager-mobile-list{display:grid;gap:.75rem}.pm-password-field{grid-template-columns:minmax(0,1fr) auto auto}.pm-form-section{padding:.8rem}}
+@media (max-width:991px){.password-manager-grid{grid-template-columns:1fr}.password-manager-grid-1{grid-column:span 1}}
+@media (max-width:768px){.password-manager-page{padding:.75rem}.pm-page-header,.password-manager-card,.password-manager-form-card{padding:.9rem}.pm-page-header__main{flex-direction:column}.pm-page-header__identity{width:100%}.pm-page-header__actions,.lsg-page-actions{width:100%;justify-content:flex-start}.password-manager-table-wrap{display:none}.password-manager-mobile-list{display:grid;gap:.75rem}.pm-password-field{grid-template-columns:minmax(0,1fr) auto auto}.pm-form-section{padding:.8rem}}
 
 /* Select options contrast fix */
 .pm-wrap select,

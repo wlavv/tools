@@ -3,11 +3,10 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @include('calendar::partials.nav')
+
     <div class="card calendar-card mb-3">
         <div class="card-body p-3 p-md-4">
-            <h3 class="mb-1">Calendar Categories</h3>
-            <div class="calendar-muted mb-3">Categorias para eventos.</div>
-
             <form method="POST" action="{{ route('calendar.categories.store') }}">
                 @csrf
                 <div class="row g-3 align-items-end">
@@ -22,7 +21,7 @@
                     </div>
                     <div class="col-md-2"><label class="form-label">Name</label><input class="form-control" name="name" required></div>
                     <div class="col-md-2"><label class="form-label">Slug</label><input class="form-control" name="slug" required></div>
-                    <div class="col-md-2"><label class="form-label">Color</label><input class="form-control" name="color"></div>
+                    <div class="col-md-2"><label class="form-label">Color</label><input class="form-control calendar-color-field" name="color" type="color" value="#0d6efd"></div>
                     <div class="col-md-2"><label class="form-label">Icon</label><input class="form-control" name="icon"></div>
                     <div class="col-md-1"><label class="form-label">Order</label><input class="form-control" name="sort_order" type="number" value="0"></div>
                     <div class="col-md-1"><label class="form-label">Active</label><select class="form-select" name="is_active"><option value="1">Yes</option><option value="0">No</option></select></div>
@@ -42,7 +41,7 @@
                             <tr>
                                 <td>{{ $category->name }}</td>
                                 <td>{{ $category->context?->name }}</td>
-                                <td>{{ $category->slug }}</td>
+                                <td><span class="calendar-context-dot" style="background-color: {{ $category->color ?: '#0d6efd' }}"></span> {{ $category->slug }}</td>
                                 <td style="min-width:360px;">
                                     <form method="POST" action="{{ route('calendar.categories.update', $category) }}" class="calendar-form-compact">
                                         @csrf
@@ -54,7 +53,7 @@
                                         </select>
                                         <input class="form-control" name="name" value="{{ $category->name }}" required>
                                         <input class="form-control" name="slug" value="{{ $category->slug }}" required>
-                                        <input class="form-control" name="color" value="{{ $category->color }}">
+                                        <input class="form-control calendar-color-field" name="color" type="color" value="{{ $category->color ?: '#0d6efd' }}">
                                         <input class="form-control" name="icon" value="{{ $category->icon }}">
                                         <div class="row g-2">
                                             <div class="col"><input class="form-control" name="sort_order" type="number" value="{{ $category->sort_order }}"></div>
@@ -62,7 +61,7 @@
                                         </div>
                                         <button class="btn btn-outline-primary btn-sm mt-2"><i class="fa-solid fa-floppy-disk me-1"></i>Save</button>
                                     </form>
-                                    <form method="POST" action="{{ route('calendar.categories.delete', $category) }}" class="mt-2">
+                                    <form method="POST" action="{{ route('calendar.categories.delete', $category) }}" class="mt-2" onsubmit="return confirm('Delete this category?')">
                                         @csrf
                                         <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                                     </form>
@@ -78,5 +77,3 @@
     </div>
 </div>
 @endsection
-
-

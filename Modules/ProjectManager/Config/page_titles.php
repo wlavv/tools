@@ -25,6 +25,7 @@ $sections = [
 $titles = [
     'project_manager.index' => 'Project Manager',
     'project_manager.dashboard' => 'Project Manager',
+    'project_manager.operations' => 'Project Manager Operations',
     'project_manager.productivity' => 'Productivity Global',
     'project_manager.projects.index' => 'Projetos',
     'project_manager.projects.create' => 'Novo Projeto',

@@ -3,6 +3,8 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @include('calendar::partials.nav')
+
     <div class="card calendar-card mb-3">
         <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>

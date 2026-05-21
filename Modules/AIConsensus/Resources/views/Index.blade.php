@@ -13,7 +13,6 @@
         </div>
     @endif
 
-    @include('ai-consensus::Includes._components.stats')
     <div id="showCards" style="display: none;margin-bottom: 20px;">
         @include('ai-consensus::Includes._components.cards')
     </div>

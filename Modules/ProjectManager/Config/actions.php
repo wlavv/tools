@@ -3,6 +3,11 @@
 $routes = [
         'project_manager.index' => [
             'new' => 'project_manager.projects.create',
+            'operations' => [
+                'label' => 'Operations',
+                'route' => 'project_manager.operations',
+                'icon' => 'fa-solid fa-table-columns',
+            ],
             'productivity' => [
                 'label' => 'Productivity',
                 'route' => 'project_manager.productivity',
@@ -12,10 +17,25 @@ $routes = [
 
         'project_manager.dashboard' => [
             'new' => 'project_manager.projects.create',
+            'operations' => [
+                'label' => 'Operations',
+                'route' => 'project_manager.operations',
+                'icon' => 'fa-solid fa-table-columns',
+            ],
             'productivity' => [
                 'label' => 'Productivity',
                 'route' => 'project_manager.productivity',
                 'icon' => 'fa-solid fa-table-columns',
+            ],
+        ],
+
+        'project_manager.operations' => [
+            'back' => 'project_manager.index',
+            'new' => 'project_manager.projects.create',
+            'productivity' => [
+                'label' => 'Productivity',
+                'route' => 'project_manager.productivity',
+                'icon' => 'fa-solid fa-gauge-high',
             ],
         ],
 

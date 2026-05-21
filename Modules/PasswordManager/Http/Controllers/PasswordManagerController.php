@@ -22,11 +22,8 @@ class PasswordManagerController extends Controller
 
     public function index(Request $request): View
     {
-        $search = $request->string('q')->toString();
-
         $entries = $this->service->listForUser(
             userId: (int) $request->user()->id,
-            search: $search,
         );
 
         $entries->transform(function (PasswordEntry $entry) {
@@ -38,7 +35,6 @@ class PasswordManagerController extends Controller
 
         return $this->view('password-manager::Index', [
             'entries' => $entries,
-            'search' => $search,
         ]);
     }
 

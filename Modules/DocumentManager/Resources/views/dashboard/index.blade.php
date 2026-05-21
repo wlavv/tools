@@ -44,7 +44,7 @@
             <div class="dms-card__head">
                 <div>
                     <span class="dms-eyebrow">Recent activity</span>
-                    <h3>Ultimos 10 documentos uploaded</h3>
+                    <h3>Ultimos documentos uploaded</h3>
                 </div>
                 <a href="{{ route('document-manager.documents.index') }}" class="btn btn-outline-primary">
                     <i class="fa-solid fa-folder-open"></i> Explorer
@@ -76,7 +76,5 @@
                 </tbody>
             </table>
         </div>
-
-        @include('documentmanager::partials.quick-upload', ['open' => true])
     </div>
 @endsection

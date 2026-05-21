@@ -12,6 +12,7 @@
         <p>Capture product recognition sessions, unmatched product requests and brand prospect demand generated from the public catalogue.</p>
     </div>
     <div class="wc-hero-actions">
+        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.pipeline.index') }}"><i class="fa-solid fa-chart-line"></i> Pipeline v2</a>
         <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.sessions.index') }}"><i class="fa-solid fa-list"></i> Sessions</a>
         <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.leads.index') }}"><i class="fa-solid fa-bullseye"></i> Leads</a>
     </div>

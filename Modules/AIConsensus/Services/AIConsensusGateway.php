@@ -15,6 +15,36 @@ class AIConsensusGateway
     ) {
     }
 
+    public function run(array $payload): AIConsensusRun
+    {
+        if (isset($payload['template_key'], $payload['output_type'], $payload['input_payload'])) {
+            return $this->createRun($payload);
+        }
+
+        $templateKey = (string) ($payload['template'] ?? $payload['template_key'] ?? 'modules.lsg_validation');
+
+        if ($templateKey === 'modules.lsg_validation_report_analysis') {
+            $templateKey = 'modules.lsg_validation';
+        }
+
+        return $this->createRun([
+            'source_module' => (string) ($payload['source_module'] ?? 'AIConsensusGateway'),
+            'source_type' => (string) ($payload['source_type'] ?? 'legacy_gateway_run'),
+            'source_id' => $payload['source_id'] ?? null,
+            'template_key' => $templateKey,
+            'output_type' => (string) ($payload['output_type'] ?? 'risk_analysis'),
+            'input_payload' => $payload['input_payload'] ?? $payload,
+            'options' => $payload['options'] ?? [
+                'async' => true,
+                'language' => 'pt',
+                'return_format' => 'json',
+            ],
+            'requested_by' => $payload['requested_by'] ?? auth()->id(),
+            'title' => $payload['title'] ?? data_get($payload, 'module_name', 'AI Consensus run'),
+            'message' => $payload['message'] ?? null,
+        ]);
+    }
+
     public function createRun(array $payload): AIConsensusRun
     {
         $data = $this->validate($payload);

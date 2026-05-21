@@ -3,6 +3,8 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @include('calendar::partials.nav')
+
     <div class="card calendar-card mb-3">
         <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
@@ -29,7 +31,7 @@
                                 <td>{{ $event->category?->name }}</td>
                                 <td>
                                     <a href="{{ route('calendar.events.show', $event) }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-eye me-1"></i>Show</a>
-                                    <form method="POST" action="{{ route('calendar.events.delete', $event) }}" class="d-inline">
+                                    <form method="POST" action="{{ route('calendar.events.delete', $event) }}" class="d-inline" onsubmit="return confirm('Delete this event?')">
                                         @csrf
                                         <button class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                                     </form>

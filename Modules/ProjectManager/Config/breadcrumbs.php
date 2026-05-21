@@ -33,6 +33,11 @@ $breadcrumbs = [
         'parent' => 'project_manager.index',
         'translate' => false,
     ],
+    'project_manager.operations' => [
+        'label' => 'Operations',
+        'parent' => 'project_manager.index',
+        'translate' => false,
+    ],
     'project_manager.productivity' => [
         'label' => 'Productivity Global',
         'parent' => 'project_manager.index',

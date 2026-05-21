@@ -13,13 +13,27 @@ use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\VisualRecognitionCapture;
 use Modules\WebCatalogue\Models\VisualRecognitionMatch;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
+use Modules\WebCatalogue\Services\Recognition\Comparators\ColorHistogramComparator;
+use Modules\WebCatalogue\Services\Recognition\Comparators\CompositeVisualComparator;
+use Modules\WebCatalogue\Services\Recognition\Comparators\EmbeddingComparator;
+use Modules\WebCatalogue\Services\Recognition\Comparators\HashComparator;
+use Modules\WebCatalogue\Services\Recognition\Comparators\OrbMarkerComparator;
 
 class InternalImageMatchService
 {
+    private array $internalTimings = [];
+    private array $internalCounters = [];
+    private ?float $internalStartedAt = null;
+
     public function __construct(
         private OpenCvRecognitionClient $openCv,
         private ProductIdentifierService $productIdentifiers,
-        private RecognitionCandidateService $candidates
+        private RecognitionCandidateService $candidates,
+        private HashComparator $hashComparator,
+        private ColorHistogramComparator $colorComparator,
+        private EmbeddingComparator $embeddingComparator,
+        private CompositeVisualComparator $compositeComparator,
+        private OrbMarkerComparator $orbComparator
     )
     {
     }
@@ -34,44 +48,54 @@ class InternalImageMatchService
      */
     public function matchSession(VisualRecognitionSession $session, Store $store, int $limit = 5): array
     {
-        return $this->matchAgainstResources($session, $this->candidateResources($store), $store, $limit);
+        $this->resetInternalTelemetry();
+        $candidateResources = $this->measureInternal('scope_time_ms', fn () => $this->candidateResources($store));
+        $this->setInternalCounter('candidate_resources_initial', count($candidateResources));
+
+        return $this->matchAgainstResources($session, $candidateResources, $store, $limit);
     }
 
     public function matchGlobalSession(VisualRecognitionSession $session, int $limit = 5): array
     {
-        return $this->matchAgainstResources($session, $this->globalCandidateResources(), null, $limit);
+        $this->resetInternalTelemetry();
+        $candidateResources = $this->measureInternal('scope_time_ms', fn () => $this->globalCandidateResources());
+        $this->setInternalCounter('candidate_resources_initial', count($candidateResources));
+
+        return $this->matchAgainstResources($session, $candidateResources, null, $limit);
     }
 
     private function matchAgainstResources(VisualRecognitionSession $session, $candidateResources, ?Store $store, int $limit = 5): array
     {
-        $captures = $session->captures()
+        $captures = $this->measureInternal('input_preparation_time_ms', fn () => $session->captures()
             ->where('capture_type', 'object_photo')
             ->latest()
             ->limit((int) config('webcatalogue.recognition.multi_frame_count', 3))
-            ->get();
+            ->get());
+        $this->setInternalCounter('capture_frames_received', $captures->count());
 
         if ($captures->isEmpty()) {
             $session->update(['status' => 'capture_missing']);
-            return $this->emptyResult('No capture image available for matching.');
+            return $this->withInternalTelemetry($this->emptyResult('No capture image available for matching.'));
         }
 
-        $identifierMatch = $this->matchByDetectedIdentifiers($session, $captures, $store);
+        $identifierMatch = $this->measureInternal('ocr_time_ms', fn () => $this->matchByDetectedIdentifiers($session, $captures, $store));
         if ($identifierMatch) {
-            return $identifierMatch;
+            return $this->withInternalTelemetry($identifierMatch);
         }
 
-        $serverIdentifiers = $this->extractServerIdentifiers($session, $captures);
+        $serverIdentifiers = $this->measureInternal('ocr_time_ms', fn () => $this->extractServerIdentifiers($session, $captures));
+        $this->setInternalCounter('server_identifiers_detected', count($serverIdentifiers));
         if (!empty($serverIdentifiers)) {
             $session->refresh();
-            $captures = $session->captures()
+            $captures = $this->measureInternal('input_preparation_time_ms', fn () => $session->captures()
                 ->where('capture_type', 'object_photo')
                 ->latest()
                 ->limit((int) config('webcatalogue.recognition.multi_frame_count', 3))
-                ->get();
+                ->get());
 
-            $identifierMatch = $this->matchByDetectedIdentifiers($session, $captures, $store);
+            $identifierMatch = $this->measureInternal('ocr_time_ms', fn () => $this->matchByDetectedIdentifiers($session, $captures, $store));
             if ($identifierMatch) {
-                return $identifierMatch;
+                return $this->withInternalTelemetry($identifierMatch);
             }
         }
 
@@ -83,9 +107,9 @@ class InternalImageMatchService
                 continue;
             }
 
-            $profilePath = $this->normalisedCaptureProfilePath($capture);
+            $profilePath = $this->measureInternal('perspective_correction_time_ms', fn () => $this->normalisedCaptureProfilePath($capture));
 
-            $markers = $this->markersFromPublicPath($profilePath);
+            $markers = $this->measureInternal('orb_time_ms', fn () => $this->markersFromPublicPath($profilePath));
             if ($markers) {
                 $captureMarkers[] = [
                     'capture' => $capture,
@@ -97,7 +121,7 @@ class InternalImageMatchService
                 continue;
             }
 
-            $profile = $this->profileFromPublicPath($profilePath);
+            $profile = $this->measureInternal('hash_generation_time_ms', fn () => $this->profileFromPublicPath($profilePath));
             if ($profile === null) {
                 continue;
             }
@@ -119,7 +143,7 @@ class InternalImageMatchService
                 ]),
             ]);
 
-            return $this->emptyResult('Could not extract visual markers from captured images.');
+            return $this->withInternalTelemetry($this->emptyResult('Could not extract visual markers from captured images.'));
         }
 
         if (!$markerOnly && empty($captureProfiles)) {
@@ -138,16 +162,20 @@ class InternalImageMatchService
                 'capture_profile_failures' => $profileFailures,
             ]);
 
-            return $this->emptyResult('Could not process captured images.');
+            return $this->withInternalTelemetry($this->emptyResult('Could not process captured images.'));
         }
 
-        $candidateSet = $this->candidates->retrieve($candidateResources, $captureProfiles, $captureMarkers, $store);
+        $candidateSet = $this->measureInternal('hash_search_time_ms', fn () => $this->candidates->retrieve($candidateResources, $captureProfiles, $captureMarkers, $store));
         $preselected = $candidateSet['candidates'] ?? [];
         $candidateStats = $candidateSet['stats'] ?? [];
-        $markerBatchScores = $markerOnly ? $this->markerOnlyBatchScores($preselected, $captureMarkers) : [];
+        $this->setInternalCounter('candidates_after_hash', (int) ($candidateStats['fingerprinted_candidates'] ?? count($preselected)));
+        $this->setInternalCounter('candidates_after_orb', (int) ($candidateStats['marker_augmented_candidates'] ?? count($preselected)));
+        $this->setInternalCounter('candidates_scored', count($preselected));
+        $markerBatchScores = $markerOnly ? $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($preselected, $captureMarkers)) : [];
 
         $scoresByProduct = [];
 
+        $this->measureInternal('scoring_time_ms', function () use ($preselected, $markerOnly, $markerBatchScores, $captureMarkers, $captureProfiles, &$scoresByProduct): void {
         foreach ($preselected as $candidateResource) {
             $resource = $candidateResource['resource'];
             $scoreSet = null;
@@ -163,7 +191,7 @@ class InternalImageMatchService
                 $scoreCapture = $batchScore['capture'] ?? ($captureMarkers[0]['capture'] ?? null);
             } else {
                 $resourceProfile = !empty($candidateResource['fingerprint'])
-                    ? $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource)
+                    ? $this->measureInternal('hash_generation_time_ms', fn () => $this->comparisonProfileForFingerprint($candidateResource['fingerprint'], $resource))
                     : null;
                 if (!$resourceProfile) {
                     continue;
@@ -192,7 +220,7 @@ class InternalImageMatchService
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = $markerOnly ? count($captureMarkers) : count($captureProfiles);
             if (!$markerOnly) {
-                $scoreSet = $this->applyMarkerScore($scoreSet, $captureMarkers, $resource);
+                $scoreSet = $this->measureInternal('orb_time_ms', fn () => $this->applyMarkerScore($scoreSet, $captureMarkers, $resource));
             }
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
@@ -207,6 +235,7 @@ class InternalImageMatchService
                 ];
             }
         }
+        });
 
         usort($scoresByProduct, fn ($a, $b) => $b['score'] <=> $a['score']);
 
@@ -215,7 +244,7 @@ class InternalImageMatchService
         $maxStored = max($limit, $debugTop);
         $topScores = array_slice($scoresByProduct, 0, $maxStored);
 
-        VisualRecognitionMatch::where('id_session', $session->id)
+        $this->measureInternal('database_time_ms', fn () => VisualRecognitionMatch::where('id_session', $session->id)
             ->whereIn('match_provider', [
                 'internal_average_hash',
                 'internal_phash',
@@ -232,7 +261,7 @@ class InternalImageMatchService
                 'opencv_short_hash_embedding_phash_color_edge_v3_8',
                 $this->algorithmName(),
             ])
-            ->delete();
+            ->delete());
 
         $suggestions = [];
         $debugMatches = [];
@@ -249,7 +278,7 @@ class InternalImageMatchService
             $match = null;
 
             if ($shouldPersist) {
-                $match = VisualRecognitionMatch::create([
+                $match = $this->measureInternal('database_time_ms', fn () => VisualRecognitionMatch::create([
                     'id_session' => $session->id,
                     'id_product' => $candidate['product']->id,
                     'match_provider' => $this->algorithmName(),
@@ -293,7 +322,7 @@ class InternalImageMatchService
                             'capture_frames' => count($captureProfiles),
                         ],
                     ],
-                ]);
+                ]));
             }
 
             $item = [
@@ -336,7 +365,7 @@ class InternalImageMatchService
 
         if (!empty($suggestions) && $suggestions[0]['score'] >= $autoThreshold && $hasSafeMargin) {
             $autoMatch = $suggestions[0];
-            $session->update([
+            $this->measureInternal('database_time_ms', fn () => $session->update([
                 'id_product' => $autoMatch['product_id'],
                 'matched_score' => $autoMatch['score'],
                 'matched_at' => now(),
@@ -357,26 +386,26 @@ class InternalImageMatchService
                     'verification_pool_size' => $candidateStats['verification_pool_size'] ?? (int) config('webcatalogue.recognition.verification_pool.size', 120),
                     'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? 0,
                 ]),
-            ]);
+            ]));
 
             if (!empty($autoMatch['match_id'])) {
-                VisualRecognitionMatch::where('id', $autoMatch['match_id'])->update(['status' => 'matched']);
+                $this->measureInternal('database_time_ms', fn () => VisualRecognitionMatch::where('id', $autoMatch['match_id'])->update(['status' => 'matched']));
             }
 
             $this->sendMatchedNotification($session, $autoMatch);
 
-            return [
+            return $this->withInternalTelemetry([
                 'matched' => true,
                 'auto_match' => $autoMatch,
                 'suggestions' => $suggestions,
                 'debug_matches' => $debugMatches,
                 'message' => 'Product matched automatically.',
-            ];
+            ], $candidateStats);
         }
 
         $suggestions = array_values(array_filter($suggestions, fn ($item) => $item['score'] >= $suggestionThreshold));
 
-        $session->update([
+        $this->measureInternal('database_time_ms', fn () => $session->update([
             'status' => count($suggestions) ? 'suggestions_found' : 'no_match',
             'matched_score' => $debugMatches[0]['score'] ?? null,
             'metadata' => array_merge($session->metadata ?: [], [
@@ -396,15 +425,15 @@ class InternalImageMatchService
                 'verification_pool_size' => $candidateStats['verification_pool_size'] ?? (int) config('webcatalogue.recognition.verification_pool.size', 120),
                 'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? 0,
             ]),
-        ]);
+        ]));
 
-        return [
+        return $this->withInternalTelemetry([
             'matched' => false,
             'auto_match' => null,
             'suggestions' => $suggestions,
             'debug_matches' => $debugMatches,
             'message' => count($suggestions) ? 'Possible product suggestions found.' : 'No product match found.',
-        ];
+        ], $candidateStats);
     }
 
     public function rebuildStoreDataset(Store $store): array
@@ -1930,7 +1959,7 @@ class InternalImageMatchService
         $best = null;
 
         foreach ($captureMarkers as $captureMarker) {
-            $comparison = $this->openCv->compareMarkers($captureMarker['markers'], $reference);
+            $comparison = $this->orbComparator->compare($captureMarker['markers'], $reference);
             if (!$comparison) {
                 continue;
             }
@@ -1953,52 +1982,13 @@ class InternalImageMatchService
             return $scoreSet;
         }
 
-        $baseScore = (float) ($scoreSet['final_score'] ?? 0);
-        $markerScore = (float) ($best['score'] ?? 0);
-        $weight = max(0, min(1, (float) config('webcatalogue.recognition.visual_markers.score_weight', 0.35)));
-        $minScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.min_score_for_boost', 8)));
-        $boostPerGoodMatch = max(0, (float) config('webcatalogue.recognition.visual_markers.boost_per_good_match', 0.18));
-        $maxBoost = max(0, (float) config('webcatalogue.recognition.visual_markers.max_boost', 8));
-        $strongMinScore = max(0, min(100, (float) config('webcatalogue.recognition.visual_markers.strong_min_score', 18)));
-        $strongMinGoodMatches = max(1, (int) config('webcatalogue.recognition.visual_markers.strong_min_good_matches', 35));
-        $goodMatches = (int) ($best['good_matches'] ?? 0);
-        $relativeBoost = $markerScore >= $minScore
-            ? min($maxBoost, ($markerScore * $weight) + ($goodMatches * $boostPerGoodMatch))
-            : 0.0;
-        $markerConfidence = min(100, ($markerScore * 1.65) + ($goodMatches * 0.38));
-        $strongMarkerQualified = $markerScore >= $strongMinScore && $goodMatches >= $strongMinGoodMatches;
-        $strongMarkerScore = $strongMarkerQualified ? $markerConfidence : 0.0;
-        $finalScore = $markerOnly
-            ? $markerConfidence
-            : min(100, max($baseScore + $relativeBoost, $strongMarkerScore));
-
-        $scoreSet['final_score_before_markers'] = round($baseScore, 4);
-        $scoreSet['marker_score'] = round($markerScore, 4);
-        $scoreSet['marker_boost'] = $markerOnly ? 0.0 : round(max(0, $finalScore - $baseScore), 4);
-        $scoreSet['marker_weight'] = round($weight, 4);
-        $scoreSet['marker_scoring_mode'] = $this->markerScoringMode();
-        $scoreSet['marker_min_score_for_boost'] = round($minScore, 4);
-        $scoreSet['marker_boost_per_good_match'] = round($boostPerGoodMatch, 4);
-        $scoreSet['marker_max_boost'] = round($maxBoost, 4);
-        $scoreSet['marker_confidence_score'] = round($markerConfidence, 4);
-        $scoreSet['marker_strong_min_score'] = round($strongMinScore, 4);
-        $scoreSet['marker_strong_min_good_matches'] = $strongMinGoodMatches;
-        $scoreSet['marker_strong_qualified'] = $strongMarkerQualified;
-        $scoreSet['marker_strong_applied'] = $strongMarkerQualified && $markerConfidence >= $baseScore + $relativeBoost;
-        $scoreSet['marker_applied'] = $markerOnly ? $markerScore > 0 : $finalScore > $baseScore;
-        $scoreSet['marker_status'] = $markerOnly ? 'markers_only' : ($strongMarkerQualified ? 'strong_marker' : ($markerScore >= $minScore ? 'scored' : 'below_min_score'));
-        $scoreSet['marker_matches'] = (int) ($best['matches'] ?? 0);
-        $scoreSet['marker_good_matches'] = $goodMatches;
-        $scoreSet['marker_inlier_ratio'] = round((float) ($best['inlier_ratio'] ?? 0), 4);
-        $scoreSet['marker_capture_id'] = $best['capture_id'] ?? null;
-        $scoreSet['marker_resource_marker_id'] = $resourceMarkers->id;
-        if ($markerOnly) {
-            $scoreSet['visual_score_ignored'] = true;
-            $scoreSet['scoring_mode'] = 'markers_only';
-        }
-        $scoreSet['final_score'] = round($finalScore, 4);
-
-        return $scoreSet;
+        return $this->orbComparator->boostResult(
+            $scoreSet,
+            $best,
+            $markerOnly,
+            $this->markerScoringMode(),
+            (int) $resourceMarkers->id
+        );
     }
 
     private function markerOnlyBatchScores(array $preselected, array $captureMarkers): array
@@ -2049,12 +2039,12 @@ class InternalImageMatchService
             }
 
             foreach (array_chunk($references, $batchSize) as $chunk) {
-                $payload = $this->openCv->compareMarkersBatch($captureMarker['markers'], $chunk);
+                $payload = $this->orbComparator->compareBatch($captureMarker['markers'], $chunk);
                 $results = is_array($payload) ? ($payload['results'] ?? []) : [];
 
                 if (empty($results)) {
                     foreach ($chunk as $reference) {
-                        $fallback = $this->openCv->compareMarkers($captureMarker['markers'], $reference);
+                        $fallback = $this->orbComparator->compare($captureMarker['markers'], $reference);
                         if ($fallback) {
                             $results[] = ['id' => $reference['id'], ...$fallback];
                         }
@@ -2069,7 +2059,7 @@ class InternalImageMatchService
 
                     $markerScore = (float) ($result['score'] ?? 0);
                     $goodMatches = (int) ($result['good_matches'] ?? 0);
-                    $confidence = $this->markerConfidenceScore($markerScore, $goodMatches);
+                    $confidence = $this->orbComparator->confidence($markerScore, $goodMatches);
 
                     if (!isset($bestByResource[$resourceId]) || $confidence > (float) ($bestByResource[$resourceId]['marker_confidence_score'] ?? 0)) {
                         $bestByResource[$resourceId] = [
@@ -2119,7 +2109,7 @@ class InternalImageMatchService
 
     private function markerConfidenceScore(float $markerScore, int $goodMatches): float
     {
-        return round(min(100, ($markerScore * 1.65) + ($goodMatches * 0.38)), 4);
+        return $this->orbComparator->confidence($markerScore, $goodMatches);
     }
 
     private function applyCaptureScoreBoost(array $scoreSet, ?VisualRecognitionCapture $capture): array
@@ -2154,24 +2144,7 @@ class InternalImageMatchService
 
     private function scoreSingleProfiles(array $a, array $b): array
     {
-        $embeddingScore = $this->scoreEmbeddings($a['embedding'] ?? [], $b['embedding'] ?? []);
-        $phashScore = $this->scoreHashes((string) ($a['phash'] ?? ''), (string) ($b['phash'] ?? ''));
-        $edgeScore = $this->scoreHashes((string) ($a['edge_hash'] ?? ''), (string) ($b['edge_hash'] ?? ''));
-        $colorScore = $this->scoreHistograms($a['color_histogram'] ?? [], $b['color_histogram'] ?? []);
-        $weights = $this->normalisedWeights();
-
-        $final = ($embeddingScore * $weights['embedding'])
-            + ($phashScore * $weights['phash'])
-            + ($edgeScore * $weights['edge'])
-            + ($colorScore * $weights['color']);
-
-        return [
-            'final_score' => round($final, 4),
-            'embedding_score' => round($embeddingScore, 4),
-            'phash_score' => round($phashScore, 4),
-            'edge_score' => round($edgeScore, 4),
-            'color_score' => round($colorScore, 4),
-        ];
+        return $this->compositeComparator->score($a, $b, $this->normalisedWeights());
     }
 
     private function retrievalScore(array $captureProfile, array $resourceProfile): float
@@ -2186,9 +2159,7 @@ class InternalImageMatchService
 
         foreach ($captureVariants as $captureVariant) {
             foreach ($resourceVariants as $resourceVariant) {
-                $embedding = $this->scoreEmbeddings($captureVariant['embedding'] ?? [], $resourceVariant['embedding'] ?? []);
-                $color = $this->scoreHistograms($captureVariant['color_histogram'] ?? [], $resourceVariant['color_histogram'] ?? []);
-                $best = max($best, ($embedding * 0.75) + ($color * 0.25));
+                $best = max($best, $this->compositeComparator->retrievalScore($captureVariant, $resourceVariant));
             }
         }
 
@@ -2197,49 +2168,17 @@ class InternalImageMatchService
 
     private function scoreHashes(string $a, string $b): float
     {
-        $length = min(strlen($a), strlen($b));
-        if ($length === 0) {
-            return 0.0;
-        }
-
-        $distance = 0;
-        for ($i = 0; $i < $length; $i++) {
-            if ($a[$i] !== $b[$i]) {
-                $distance++;
-            }
-        }
-
-        return max(0, (1 - ($distance / $length)) * 100);
+        return $this->hashComparator->score($a, $b);
     }
 
     private function scoreHistograms(array $a, array $b): float
     {
-        $length = min(count($a), count($b));
-        if ($length === 0) {
-            return 0.0;
-        }
-
-        $intersection = 0.0;
-        for ($i = 0; $i < $length; $i++) {
-            $intersection += min((float) $a[$i], (float) $b[$i]);
-        }
-
-        return max(0, min(100, $intersection * 100));
+        return $this->colorComparator->score($a, $b);
     }
 
     private function scoreEmbeddings(array $a, array $b): float
     {
-        $length = min(count($a), count($b));
-        if ($length === 0) {
-            return 0.0;
-        }
-
-        $dot = 0.0;
-        for ($i = 0; $i < $length; $i++) {
-            $dot += ((float) $a[$i]) * ((float) $b[$i]);
-        }
-
-        return max(0, min(100, (($dot + 1) / 2) * 100));
+        return $this->embeddingComparator->score($a, $b);
     }
 
     private function normalisedWeights(): array
@@ -2292,6 +2231,64 @@ class InternalImageMatchService
             'priority' => 'low',
             'channels' => ['internal'],
             'users' => [1],
+        ]);
+    }
+
+    private function resetInternalTelemetry(): void
+    {
+        $this->internalStartedAt = microtime(true);
+        $this->internalTimings = [
+            'scope_time_ms' => 0,
+            'input_preparation_time_ms' => 0,
+            'quality_check_time_ms' => 0,
+            'contour_detection_time_ms' => 0,
+            'perspective_correction_time_ms' => 0,
+            'hash_generation_time_ms' => 0,
+            'hash_search_time_ms' => 0,
+            'color_comparison_time_ms' => 0,
+            'ocr_time_ms' => 0,
+            'orb_time_ms' => 0,
+            'scoring_time_ms' => 0,
+            'database_time_ms' => 0,
+        ];
+        $this->internalCounters = [];
+    }
+
+    private function measureInternal(string $key, callable $callback): mixed
+    {
+        $startedAt = microtime(true);
+
+        try {
+            return $callback();
+        } finally {
+            $this->internalTimings[$key] = ($this->internalTimings[$key] ?? 0) + (int) round((microtime(true) - $startedAt) * 1000);
+        }
+    }
+
+    private function setInternalCounter(string $key, int|float|string|null $value): void
+    {
+        $this->internalCounters[$key] = $value;
+    }
+
+    private function withInternalTelemetry(array $result, array $candidateStats = []): array
+    {
+        $total = $this->internalStartedAt
+            ? (int) round((microtime(true) - $this->internalStartedAt) * 1000)
+            : array_sum(array_map('intval', $this->internalTimings));
+
+        $timings = array_merge($this->internalTimings, [
+            'total_processing_time_ms' => $total,
+        ]);
+
+        return array_merge($result, [
+            'internal_timings_ms' => $timings,
+            'internal_counters' => array_merge($this->internalCounters, [
+                'candidate_resources' => $candidateStats['candidate_resources'] ?? ($this->internalCounters['candidate_resources_initial'] ?? null),
+                'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? ($this->internalCounters['candidates_after_hash'] ?? null),
+                'marker_augmented_candidates' => $candidateStats['marker_augmented_candidates'] ?? ($this->internalCounters['candidates_after_orb'] ?? null),
+                'verification_pool_added_candidates' => $candidateStats['verification_pool_added_candidates'] ?? null,
+                'scored_candidates' => $candidateStats['scored_candidates'] ?? ($this->internalCounters['candidates_scored'] ?? null),
+            ]),
         ]);
     }
 }

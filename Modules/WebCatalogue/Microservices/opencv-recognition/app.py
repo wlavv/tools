@@ -80,6 +80,24 @@ async def normalize(
     return response
 
 
+@app.post("/recognition/quality")
+async def quality(
+    image: UploadFile = File(...),
+    authorization: Optional[str] = Header(default=None),
+):
+    require_token(authorization)
+
+    content = await image.read()
+    if len(content) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image too large")
+
+    source = decode_image(content)
+    if source is None:
+        raise HTTPException(status_code=422, detail="Could not decode image")
+
+    return image_quality(source)
+
+
 @app.post("/recognition/markers")
 async def markers(
     image: UploadFile = File(...),
@@ -300,6 +318,56 @@ def normalize_card_ratio(image):
     target_height = 900
     target_width = int(target_height / 1.395)
     return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_AREA)
+
+
+def image_quality(image):
+    resized = resize_max_side(image, 900)
+    gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(resized, cv2.COLOR_BGR2HSV)
+
+    blur_variance = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    blur_score = max(0.0, min(100.0, (blur_variance / 650.0) * 100.0))
+
+    brightness = float(np.mean(gray))
+    brightness_score = max(0.0, min(100.0, 100.0 - ((abs(brightness - 132.0) / 132.0) * 100.0)))
+
+    glare_mask = (hsv[:, :, 2] >= 238) & (hsv[:, :, 1] <= 32)
+    glare_percent = float(np.count_nonzero(glare_mask)) / float(max(1, glare_mask.size)) * 100.0
+    glare_score = max(0.0, min(100.0, 100.0 - (glare_percent * 4.5)))
+
+    contour_result = normalize_rectangular_object(resized)
+    contour = contour_result.get("contour") if contour_result.get("ok") else None
+    if contour:
+        image_area = float(max(1, resized.shape[0] * resized.shape[1]))
+        object_area = float(contour["width"] * contour["height"]) / image_area
+        object_area_score = max(0.0, min(100.0, 100.0 - (abs(object_area - 0.72) / 0.72) * 100.0))
+        perspective_score = max(0.0, min(100.0, float(contour_result.get("confidence", 0.0)) * 100.0))
+    else:
+        object_area_score = 0.0
+        perspective_score = 0.0
+
+    score = (
+        (blur_score * 0.24)
+        + (brightness_score * 0.22)
+        + (glare_score * 0.18)
+        + (object_area_score * 0.20)
+        + (perspective_score * 0.16)
+    )
+
+    return {
+        "ok": True,
+        "score": round(float(score), 4),
+        "blur": round(float(blur_score), 4),
+        "brightness": round(float(brightness_score), 4),
+        "glare": round(float(glare_percent), 4),
+        "glare_score": round(float(glare_score), 4),
+        "object_area": round(float(object_area_score), 4),
+        "card_area": round(float(object_area_score), 4),
+        "perspective": round(float(perspective_score), 4),
+        "source_width": int(image.shape[1]),
+        "source_height": int(image.shape[0]),
+        "contour": contour,
+    }
 
 
 def draw_debug(image, result):

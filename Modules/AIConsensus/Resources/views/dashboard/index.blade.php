@@ -12,28 +12,12 @@
         <a href="{{ route('ai_consensus.providers.index') }}" class="btn btn-outline-secondary">
             <i class="fas fa-plug"></i> Providers
         </a>
-        <a href="{{ route('ai_consensus.legacy.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-clock-rotate-left"></i> Legacy Runs
-        </a>
-        <a href="{{ route('ai_consensus.runs.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Run
-        </a>
-    </div>
-
-    <div class="row g-3 mb-3">
-        <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Runs</div><h4 class="mb-0">{{ $stats['runs'] }}</h4></div></div></div>
-        <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Open</div><h4 class="mb-0">{{ $stats['pending'] }}</h4></div></div></div>
-        <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Templates</div><h4 class="mb-0">{{ $stats['templates'] }}</h4></div></div></div>
-        <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Active Providers</div><h4 class="mb-0">{{ $stats['providers'] }}</h4></div></div></div>
-        @if(($stats['legacy_runs'] ?? 0) > 0)
-            <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Legacy Runs</div><h4 class="mb-0">{{ $stats['legacy_runs'] }}</h4></div></div></div>
-        @endif
     </div>
 
     <div class="card">
         <div class="card-header">Recent Runs</div>
         <div class="card-body table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-striped table-hover lsg-datatable">
                 <thead>
                     <tr>
                         <th>ID</th>

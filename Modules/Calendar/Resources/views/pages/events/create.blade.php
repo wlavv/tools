@@ -3,6 +3,8 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @include('calendar::partials.nav')
+
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <h3 class="mb-1">Create Event</h3>

@@ -25,12 +25,10 @@ class DocumentController extends BaseDocumentController
 {
     public function index(DocumentRepository $repository)
     {
-        $documents = $repository->paginate(request()->only(['q', 'workspace_id', 'status']));
+        $documents = $repository->paginate([]);
 
         return view('documentmanager::documents.index', [
             'documents' => $documents,
-            'workspaces' => $this->lookup('document_core_workspaces', ['id', 'name']),
-            'categories' => $this->lookup('document_core_categories', ['id', 'name']),
             'missingTables' => DocumentTable::missingTables(),
         ]);
     }

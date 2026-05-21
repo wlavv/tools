@@ -3,113 +3,75 @@
 @section('content')
 @include('project-manager::partials.styles')
 @php
-    use Illuminate\Support\Str;
-
-    $projects = $projects ?? collect();
     $projectGroups = $projectGroups ?? ['execution' => collect(), 'hold' => collect(), 'pending' => collect(), 'done' => collect()];
-    $activeMilestones = $activeMilestones ?? [];
-    $milestoneCards = $milestoneCards ?? collect($activeMilestones)->values();
-    $matrixTasks = $matrixTasks ?? collect();
-    $ganttTasks = $ganttTasks ?? collect();
-    $executionCounters = $executionCounters ?? [];
     $stats = $stats ?? [];
-    $quickProjects = $quickProjects ?? collect();
-    $quickMilestones = $quickMilestones ?? collect();
-    $quickParentTasks = $quickParentTasks ?? collect();
-    $selectedProjectId = $selectedProjectId ?? null;
     $moduleGovernance = $moduleGovernance ?? [
         'available' => false,
         'has_scan' => false,
-        'counters' => ['modules' => 0, 'broken' => 0, 'incomplete' => 0, 'functional' => 0, 'enhanced' => 0, 'saas_candidates' => 0, 'dependency_impacts' => 0],
+        'counters' => ['modules' => 0, 'broken' => 0, 'incomplete' => 0, 'saas_candidates' => 0, 'dependency_impacts' => 0],
         'critical_modules' => collect(),
-        'saas_candidates' => collect(),
-        'component_groups' => ['required' => collect(), 'recommended' => collect(), 'optional' => collect()],
-        'phase_flow' => collect(),
     ];
 
-    $matrixGroups = [
-        'do_now' => ['label' => 'Fazer agora', 'hint' => 'Importante + urgente', 'importance' => 5, 'urgency' => 5, 'items' => collect(), 'icon' => 'fa-fire'],
-        'plan' => ['label' => 'Planear', 'hint' => 'Importante + pouco urgente', 'importance' => 5, 'urgency' => 2, 'items' => collect(), 'icon' => 'fa-calendar-check'],
-        'delegate' => ['label' => 'Delegar / simplificar', 'hint' => 'Urgente + menos importante', 'importance' => 2, 'urgency' => 5, 'items' => collect(), 'icon' => 'fa-bolt'],
-        'later' => ['label' => 'Mais tarde', 'hint' => 'Pouco urgente + menos importante', 'importance' => 2, 'urgency' => 2, 'items' => collect(), 'icon' => 'fa-box-archive'],
+    $closureBlockers = ($moduleGovernance['counters']['broken'] ?? 0) + ($moduleGovernance['counters']['incomplete'] ?? 0);
+    $executionProjects = $projectGroups['execution'] ?? collect();
+    $holdProjects = $projectGroups['hold'] ?? collect();
+    $pendingProjects = $projectGroups['pending'] ?? collect();
+
+    $dashboardCards = [
+        [
+            'label' => 'Operations',
+            'description' => 'Execucao global, Eisenhower, Gantt, governance e quick task.',
+            'icon' => 'fa-solid fa-table-columns',
+            'route' => 'project_manager.operations',
+            'metric' => ($stats['matrix_tasks'] ?? 0) . ' tasks',
+        ],
+        [
+            'label' => 'Productivity',
+            'description' => 'Fluxo operacional por estado, bloqueios e dependencias globais.',
+            'icon' => 'fa-solid fa-gauge-high',
+            'route' => 'project_manager.productivity',
+            'metric' => ($stats['blocked'] ?? 0) . ' blocked',
+        ],
+        [
+            'label' => 'Projects',
+            'description' => 'Lista completa de projetos, filtros e entrada em cada workspace.',
+            'icon' => 'fa-solid fa-folder-tree',
+            'route' => 'project_manager.projects.index',
+            'metric' => ($stats['projects_execution'] ?? 0) . ' active',
+        ],
     ];
-
-    foreach ($matrixTasks as $task) {
-        $importance = (int)($task->importance ?? max(1, 6 - (int)($task->priority ?? 3)));
-        $urgency = (int)($task->urgency ?? (in_array(($task->status ?? ''), ['in_progress', 'review']) ? 5 : 2));
-        if ($importance >= 4 && $urgency >= 4) { $matrixGroups['do_now']['items']->push($task); }
-        elseif ($importance >= 4) { $matrixGroups['plan']['items']->push($task); }
-        elseif ($urgency >= 4) { $matrixGroups['delegate']['items']->push($task); }
-        else { $matrixGroups['later']['items']->push($task); }
-    }
-
-    $statusLabels = [
-        'in_progress' => 'Em execução',
-        'review' => 'Review',
-        'ready' => 'Ready',
-        'pending' => 'Pending',
-        'waiting' => 'Waiting',
-        'blocked' => 'Blocked',
-        'done' => 'Done',
-        'completed' => 'Done',
-    ];
-
-    $totalVisible = max(1, $matrixTasks->count());
 @endphp
 
 <style>
-    .pm-entry-layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start;}
-    .pm-project-sidebar{position:sticky;top:12px;max-height:calc(100vh - 140px);overflow:auto;}
-    .pm-project-group{margin-bottom:14px;}
-    .pm-project-group-title{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--pm-muted);margin:0 0 8px;}
-    .pm-project-accordion{border:1px solid var(--pm-border);border-radius:10px;background:rgba(255,255,255,.7);overflow:hidden;margin-top:10px;}
-    .pm-project-accordion summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;background:linear-gradient(135deg,#fff,#f8f7f1);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#374151;}
-    .pm-project-accordion summary::-webkit-details-marker{display:none;}
-    .pm-project-accordion summary .pm-chevron{transition:.15s ease;color:#9ca3af;}
-    .pm-project-accordion[open] summary .pm-chevron{transform:rotate(90deg);color:#8a6d18;}
-    .pm-project-accordion-body{padding:9px;border-top:1px solid var(--pm-border);}
-    .pm-project-list{display:flex;flex-direction:column;gap:7px;}
-    .pm-project-sidebar-head{align-items:flex-start;}
-
-    .pm-project-filter-main{display:flex;align-items:center;gap:9px;min-width:0;}
-    .pm-project-logo{width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid rgba(201,166,70,.35);background:#fff;box-shadow:0 4px 10px rgba(17,24,39,.08);flex:0 0 34px;}
-    .pm-project-logo-fallback{width:34px;height:34px;border-radius:8px;border:1px solid rgba(201,166,70,.45);background:linear-gradient(135deg,#fff8dc,#f5e3a0);color:#8a6d18;font-size:12px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(17,24,39,.08);flex:0 0 34px;}
-    .pm-project-name-wrap{min-width:0;}
-    .pm-project-name-wrap strong,.pm-project-name-wrap small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .pm-icon-action{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(201,166,70,.7);background:linear-gradient(135deg,#fff,#f8f3df);color:#8a6d18;text-decoration:none;flex:0 0 34px;}
-    .pm-project-row{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:6px;align-items:stretch;}
-    .pm-quick-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-    .pm-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1050;display:none;align-items:center;justify-content:center;padding:18px;}
-    .pm-modal-backdrop.is-open{display:flex;}
-    .pm-modal-panel{width:min(760px,100%);max-height:calc(100vh - 36px);overflow:auto;background:linear-gradient(135deg,#fff,#faf8ef);border:1px solid rgba(201,166,70,.35);border-radius:14px;box-shadow:0 24px 70px rgba(15,23,42,.22);}
-    .pm-modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--pm-border);}
-    .pm-modal-body{padding:18px;}
-    .pm-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .pm-form-field label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--pm-muted);margin-bottom:5px;}
-    .pm-form-field input,.pm-form-field select,.pm-form-field textarea{width:100%;border:1px solid var(--pm-border);border-radius:8px;padding:8px 10px;background:#fff;color:var(--pm-text);}
-    .pm-form-field textarea{min-height:90px;resize:vertical;}
-    .pm-form-field--full{grid-column:1 / -1;}
-    .pm-modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--pm-border);}
-    .pm-btn--success{background:linear-gradient(135deg,#16a34a,#22c55e);border-color:#16a34a;color:#fff;}
-    @media(max-width:760px){.pm-modal-grid{grid-template-columns:1fr}}
-    .pm-open-project{border:1px solid var(--pm-border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--pm-muted);background:rgba(255,255,255,.8);text-decoration:none;}
-    .pm-open-project:hover{border-color:rgba(201,166,70,.9);color:#8a6d18;background:#fff8dc;}
-    .pm-project-filter{width:100%;border:1px solid var(--pm-border);background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(248,247,242,.86));border-radius:8px;padding:9px 10px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--pm-text);transition:.15s ease;}
-    .pm-project-filter:hover,.pm-project-filter.is-active{border-color:rgba(201,166,70,.9);box-shadow:0 8px 18px rgba(17,24,39,.08);transform:translateY(-1px);}
-    .pm-project-filter strong{display:block;font-size:13px;line-height:1.2;}
-    .pm-project-filter small{display:block;color:var(--pm-muted);font-size:11px;margin-top:2px;}
-    .pm-status-dot{width:9px;height:9px;border-radius:99px;background:#d1d5db;flex:0 0 9px;}
-    .pm-status-dot--execution{background:#22c55e}.pm-status-dot--hold{background:#f59e0b}.pm-status-dot--pending{background:#94a3b8}.pm-status-dot--done{background:#64748b}
-    .pm-entry-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;}
-    .pm-mini-stat{border:1px solid var(--pm-border);border-radius:10px;padding:12px;background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,247,242,.9));}
-    .pm-mini-stat span{display:block;color:var(--pm-muted);font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.08em}.pm-mini-stat strong{font-size:22px;line-height:1.1;}
-    .pm-selected-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-    .pm-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
-    .pm-progress-item{margin-bottom:12px;}.pm-progress-head{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:5px;}.pm-progress-track{height:9px;border-radius:99px;background:rgba(148,163,184,.18);overflow:hidden}.pm-progress-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c9a646,#f2d57e);}
-    .pm-gantt--wide .pm-gantt-label{width:260px;}.pm-gantt-task-meta{font-size:11px;color:var(--pm-muted);margin-top:2px;}
-    .pm-hidden-by-filter{display:none!important;}
-    @media(max-width:1100px){.pm-entry-layout{grid-template-columns:1fr}.pm-project-sidebar{position:relative;top:auto;max-height:none}.pm-entry-top,.pm-charts-row{grid-template-columns:1fr 1fr}}
-    @media(max-width:680px){.pm-entry-top,.pm-charts-row{grid-template-columns:1fr}}
+    .pm-hub-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .pm-hub-kpi{position:relative;overflow:hidden;min-height:94px;padding:14px;border:1px solid var(--pm-border);border-radius:var(--pm-radius);background:var(--pm-surface);box-shadow:var(--pm-shadow);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .pm-hub-kpi span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--pm-muted);font-weight:900}
+    .pm-hub-kpi strong{display:block;margin-top:6px;font-size:28px;line-height:1;color:var(--pm-text);font-weight:900}
+    .pm-hub-kpi-icon{width:42px;height:42px;border-radius:var(--pm-radius);display:inline-flex;align-items:center;justify-content:center;flex:0 0 42px;background:rgba(var(--pm-accent-rgb),.12);border:1px solid rgba(var(--pm-accent-rgb),.26);color:var(--pm-accent)}
+    .pm-hub-kpi--success{--pm-kpi-color:34,197,94}.pm-hub-kpi--info{--pm-kpi-color:37,99,235}.pm-hub-kpi--warning{--pm-kpi-color:245,158,11}.pm-hub-kpi--danger{--pm-kpi-color:220,38,38}
+    .pm-hub-kpi[class*="pm-hub-kpi--"] .pm-hub-kpi-icon{background:rgba(var(--pm-kpi-color),.12);border-color:rgba(var(--pm-kpi-color),.26);color:rgb(var(--pm-kpi-color))}
+    .pm-hub-overview{display:grid;grid-template-columns:minmax(0,8fr) minmax(320px,4fr);gap:12px;margin-bottom:12px;align-items:stretch}
+    .pm-hub-nav-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .pm-hub-card{display:flex;flex-direction:column;gap:12px;min-height:176px;text-decoration:none}
+    .pm-hub-card:hover{border-color:var(--pm-accent)!important;text-decoration:none}
+    .pm-hub-card-icon{width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(var(--pm-accent-rgb),.35);border-radius:var(--pm-radius);background:rgba(var(--pm-accent-rgb),.1);color:var(--pm-accent)}
+    .pm-hub-card strong{font-size:1.05rem;color:var(--pm-text)}
+    .pm-hub-card p{margin:0;color:var(--pm-muted);font-size:.88rem;line-height:1.4}
+    .pm-hub-card-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;color:var(--pm-muted);font-size:.8rem;font-weight:800}
+    .pm-hub-project-list{display:grid;gap:8px}
+    .pm-hub-project-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--pm-border);border-radius:var(--pm-radius);background:var(--pm-surface)}
+    .pm-hub-project-row strong{display:block;color:var(--pm-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pm-hub-project-row span{display:block;color:var(--pm-muted);font-size:.78rem;margin-top:2px}
+    .pm-hub-side-stack{display:grid;gap:12px}
+    .pm-hub-governance{height:100%}
+    .pm-hub-governance .pm-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .pm-hub-pipeline .pm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .pm-hub-governance .pm-hub-kpi{min-height:78px;padding:11px}
+    .pm-hub-governance .pm-hub-kpi strong{font-size:22px}
+    .pm-hub-governance .pm-hub-kpi-icon{width:36px;height:36px;flex-basis:36px}
+    @media(max-width:1100px){.pm-hub-overview{grid-template-columns:1fr}.pm-hub-nav-grid{grid-template-columns:1fr}}
+    @media(max-width:560px){.pm-hub-governance .pm-grid,.pm-hub-pipeline .pm-grid{grid-template-columns:1fr}}
+    @media(max-width:680px){.pm-hub-kpis{grid-template-columns:1fr}}
 </style>
 
 <div class="lsg-content pm-wrap">
@@ -118,590 +80,96 @@
             <div class="pm-alert">{{ session('success') }}</div>
         @endif
 
-        <div class="pm-entry-layout">
-            <aside class="pm-card pm-project-sidebar">
-                <div class="pm-section-bar pm-project-sidebar-head">
-                    <div>
-                        <div class="pm-card-title"><i class="fa-solid fa-folder-tree"></i> Projetos</div>
-                        <div class="pm-card-subtitle mb-0">Seleciona para filtrar execução.</div>
-                    </div>
-                    <a class="pm-icon-action" href="{{ route('project_manager.projects.create') }}" title="Novo projeto"><i class="fa-solid fa-plus"></i></a>
-                </div>
-
-                <button type="button" class="pm-project-filter is-active" data-project-filter="all" data-project-label="Todos os projetos em aberto">
-                    <span><strong>Todos os projetos em aberto</strong><small>Eisenhower + Gantt globais</small></span>
-                    <i class="fa-solid fa-layer-group"></i>
-                </button>
-
-                @foreach([
-                    'execution' => ['label' => 'Em execução', 'icon' => 'fa-play', 'open' => true],
-                    'hold' => ['label' => 'Hold', 'icon' => 'fa-pause', 'open' => false],
-                    'pending' => ['label' => 'Pending', 'icon' => 'fa-clock', 'open' => false],
-                    'done' => ['label' => 'Done', 'icon' => 'fa-check', 'open' => false],
-                ] as $groupKey => $groupMeta)
-                    <details class="pm-project-accordion" {{ $groupMeta['open'] ? 'open' : '' }}>
-                        <summary>
-                            <span><i class="fa-solid {{ $groupMeta['icon'] }}"></i> {{ $groupMeta['label'] }}</span>
-                            <span>{{ ($projectGroups[$groupKey] ?? collect())->count() }} <i class="fa-solid fa-chevron-right pm-chevron"></i></span>
-                        </summary>
-                        <div class="pm-project-accordion-body">
-                            <div class="pm-project-list">
-                                @forelse(($projectGroups[$groupKey] ?? collect()) as $project)
-                                    @php
-                                        $milestone = $activeMilestones[(int) $project->id] ?? null;
-                                    @endphp
-                                    <div class="pm-project-row" data-project-row="{{ $project->id }}">
-                                        <button type="button" class="pm-project-filter" data-project-filter="{{ $project->id }}" data-project-label="{{ $project->name }}">
-                                            <span class="pm-project-filter-main">
-                                                @if(!empty($project->project_logo_url))
-                                                    <img class="pm-project-logo" src="{{ $project->project_logo_url }}" alt="{{ $project->name }}">
-                                                @else
-                                                    <span class="pm-project-logo-fallback">{{ $project->project_initials ?? 'P' }}</span>
-                                                @endif
-                                                <span class="pm-project-name-wrap">
-                                                    <strong>{{ $project->name }}</strong>
-                                                    <small>{{ $milestone->title ?? ($project->status ?? 'sem milestone ativo') }}</small>
-                                                </span>
-                                            </span>
-                                            <span class="pm-status-dot pm-status-dot--{{ $groupKey }}"></span>
-                                        </button>
-                                        <a class="pm-open-project" href="{{ route('project_manager.projects.show', $project->id) }}" title="Entrar no projeto"><i class="fa-solid fa-arrow-right"></i></a>
-                                    </div>
-                                @empty
-                                    <div class="pm-empty pm-empty--small">Sem projetos.</div>
-                                @endforelse
+        <div class="pm-hub-overview">
+            <section>
+                <div class="pm-hub-nav-grid">
+                    @foreach($dashboardCards as $card)
+                        <a class="pm-card pm-hub-card" href="{{ route($card['route']) }}">
+                            <span class="pm-hub-card-icon"><i class="{{ $card['icon'] }}"></i></span>
+                            <div>
+                                <strong>{{ $card['label'] }}</strong>
+                                <p>{{ $card['description'] }}</p>
                             </div>
-                        </div>
-                    </details>
-                @endforeach
-
-                <div class="pm-entry-top">
-                    <div class="pm-mini-stat"><span>Projetos em execução</span><strong data-stat-execution-projects>{{ $stats['projects_execution'] ?? 0 }}</strong></div>
-                    <div class="pm-mini-stat"><span>Milestones ativos</span><strong data-stat-active-milestones>{{ $stats['active_milestones'] ?? 0 }}</strong></div>
-                    <div class="pm-mini-stat"><span>Tasks priorizáveis</span><strong data-total-matrix>{{ $stats['matrix_tasks'] ?? 0 }}</strong></div>
-                    <div class="pm-mini-stat"><span>Bloqueadas</span><strong>{{ $stats['blocked'] ?? 0 }}</strong></div>
+                            <span class="pm-hub-card-foot">
+                                <span>{{ $card['metric'] }}</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </span>
+                        </a>
+                    @endforeach
                 </div>
-            </aside>
 
-            <main class="pm-main-zone">
-                <div class="pm-card mb-3 pm-governance-card">
+                <div class="pm-card mt-3">
                     <div class="pm-section-bar">
                         <div>
-                            <div class="pm-card-title"><i class="fa-solid fa-shield-halved"></i> Operations/Core Governance</div>
-                            <div class="pm-card-subtitle mb-0">ModuleHealth feed para closure estrutural, readiness e impacto nas dependências.</div>
+                            <div class="pm-card-title"><i class="fa-solid fa-play"></i> Projetos em execucao</div>
+                            <div class="pm-card-subtitle mb-0">Acesso rapido aos workspaces ativos.</div>
                         </div>
-                        <div class="pm-quick-actions">
-                            @if(Route::has('module_health.index'))
-                                <a class="pm-btn" href="{{ route('module_health.index') }}"><i class="fa-solid fa-heart-pulse"></i> ModuleHealth</a>
-                            @endif
-                            @if(Route::has('module_health.scan.run'))
-                                <form method="POST" action="{{ route('module_health.scan.run') }}">
-                                    @csrf
-                                    <button class="pm-btn pm-btn--primary" type="submit"><i class="fa-solid fa-rotate"></i> Scan</button>
-                                </form>
-                            @endif
-                        </div>
+                        <a class="pm-btn pm-btn--compact" href="{{ route('project_manager.projects.index') }}">Ver todos</a>
                     </div>
 
+                    <div class="pm-hub-project-list">
+                        @forelse($executionProjects->take(10) as $project)
+                            <div class="pm-hub-project-row">
+                                <div>
+                                    <strong>{{ $project->name }}</strong>
+                                    <span>{{ $project->status ?? 'active' }}</span>
+                                </div>
+                                <a class="pm-btn pm-btn--compact" href="{{ route('project_manager.projects.show', $project->id) }}"><i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        @empty
+                            <div class="pm-empty">Sem projetos em execucao.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
+
+            <aside class="pm-hub-side-stack">
+                <section class="pm-card">
+                    <div class="pm-hub-kpis">
+                        <div class="pm-hub-kpi pm-hub-kpi--success">
+                            <div><span>Em execucao</span><strong>{{ $stats['projects_execution'] ?? 0 }}</strong></div>
+                            <div class="pm-hub-kpi-icon"><i class="fa-solid fa-play"></i></div>
+                        </div>
+                        <div class="pm-hub-kpi pm-hub-kpi--info">
+                            <div><span>Milestones ativos</span><strong>{{ $stats['active_milestones'] ?? 0 }}</strong></div>
+                            <div class="pm-hub-kpi-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+                        </div>
+                        <div class="pm-hub-kpi pm-hub-kpi--warning">
+                            <div><span>Tasks abertas</span><strong>{{ $stats['matrix_tasks'] ?? 0 }}</strong></div>
+                            <div class="pm-hub-kpi-icon"><i class="fa-solid fa-list-check"></i></div>
+                        </div>
+                        <div class="pm-hub-kpi pm-hub-kpi--danger">
+                            <div><span>Bloqueios</span><strong>{{ $stats['blocked'] ?? 0 }}</strong></div>
+                            <div class="pm-hub-kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="pm-card pm-hub-governance">
+                    <div class="pm-card-title"><i class="fa-solid fa-shield-halved"></i> Governance</div>
                     @if(!($moduleGovernance['available'] ?? false))
-                        <div class="pm-empty">ModuleHealth ainda não está disponível para leitura. O ProjectManager fica pronto para consumir o feed assim que as tabelas existirem.</div>
+                        <div class="pm-empty pm-empty--small">ModuleHealth ainda nao esta disponivel.</div>
                     @elseif(!($moduleGovernance['has_scan'] ?? false))
-                        <div class="pm-empty">Sem scan estrutural ainda. Corre um scan no ModuleHealth para ativar a matriz de closure.</div>
+                        <div class="pm-empty pm-empty--small">Sem scan estrutural ainda.</div>
                     @else
-                        <div class="pm-governance-top">
-                            <div class="pm-mini-stat"><span>Modules</span><strong>{{ $moduleGovernance['counters']['modules'] ?? 0 }}</strong></div>
-                            <div class="pm-mini-stat"><span>Closure blockers</span><strong>{{ ($moduleGovernance['counters']['broken'] ?? 0) + ($moduleGovernance['counters']['incomplete'] ?? 0) }}</strong></div>
-                            <div class="pm-mini-stat"><span>SaaS candidates</span><strong>{{ $moduleGovernance['counters']['saas_candidates'] ?? 0 }}</strong></div>
-                            <div class="pm-mini-stat"><span>Dependency impacts</span><strong>{{ $moduleGovernance['counters']['dependency_impacts'] ?? 0 }}</strong></div>
-                        </div>
-
-                        <div class="pm-execution-flow">
-                            @foreach(($moduleGovernance['phase_flow'] ?? collect()) as $phase)
-                                <div class="pm-flow-node {{ ($phase['blocked'] ?? 0) > 0 ? 'has-blockers' : '' }}">
-                                    <span>{{ $phase['label'] }}</span>
-                                    <strong>{{ $phase['count'] }}</strong>
-                                    <small>{{ $phase['blocked'] }} blocked / {{ $phase['ready'] }} ready</small>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <div class="pm-governance-grid">
-                            <div class="pm-governance-panel">
-                                <div class="pm-card-title"><i class="fa-solid fa-table-list"></i> Module Closure Matrix</div>
-                                @foreach(['required' => 'Required Components', 'recommended' => 'Recommended Components', 'optional' => 'Optional Components'] as $groupKey => $groupLabel)
-                                    <div class="pm-component-group">
-                                        <div class="pm-component-group-title">{{ $groupLabel }}</div>
-                                        <div class="pm-component-list">
-                                            @foreach(($moduleGovernance['component_groups'][$groupKey] ?? collect())->take(8) as $component)
-                                                <div class="pm-component-row">
-                                                    <span>{{ $component['label'] }}</span>
-                                                    <strong>{{ $component['coverage'] }}%</strong>
-                                                    <div class="pm-progress-track"><span style="width: {{ $component['coverage'] }}%"></span></div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="pm-governance-panel">
-                                <div class="pm-card-title"><i class="fa-solid fa-triangle-exclamation"></i> Closure Blockers</div>
-                                <div class="pm-governance-list">
-                                    @forelse(($moduleGovernance['critical_modules'] ?? collect()) as $module)
-                                        <div class="pm-governance-module">
-                                            <div>
-                                                <strong>{{ $module->module_name }}</strong>
-                                                <small>{{ $module->dependency_impact }} · {{ $module->completion }}%</small>
-                                            </div>
-                                            <span class="pm-pill pm-pill--danger">{{ $module->status }}</span>
-                                        </div>
-                                    @empty
-                                        <div class="pm-empty pm-empty--small">Sem blockers estruturais no último scan.</div>
-                                    @endforelse
-                                </div>
-
-                                <div class="pm-card-title mt-3"><i class="fa-solid fa-rocket"></i> SaaS Readiness</div>
-                                <div class="pm-governance-list">
-                                    @forelse(($moduleGovernance['saas_candidates'] ?? collect()) as $module)
-                                        <div class="pm-governance-module">
-                                            <div>
-                                                <strong>{{ $module->module_name }}</strong>
-                                                <small>{{ $module->execution_phase }} · {{ count($module->present_optional_list ?? []) }} optional capabilities</small>
-                                            </div>
-                                            <span class="pm-pill pm-pill--success">{{ $module->saas_score }}%</span>
-                                        </div>
-                                    @empty
-                                        <div class="pm-empty pm-empty--small">Ainda sem candidatos SaaS fortes. Fecha primeiro os blocos Operations.</div>
-                                    @endforelse
-                                </div>
-                            </div>
+                        <div class="pm-grid">
+                            <div class="pm-hub-kpi pm-hub-kpi--info"><div><span>Modules</span><strong>{{ $moduleGovernance['counters']['modules'] ?? 0 }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-cubes"></i></div></div>
+                            <div class="pm-hub-kpi pm-hub-kpi--danger"><div><span>Closure blockers</span><strong>{{ $closureBlockers }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-shield-halved"></i></div></div>
+                            <div class="pm-hub-kpi pm-hub-kpi--success"><div><span>SaaS candidates</span><strong>{{ $moduleGovernance['counters']['saas_candidates'] ?? 0 }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-cloud"></i></div></div>
+                            <div class="pm-hub-kpi pm-hub-kpi--warning"><div><span>Dependency impacts</span><strong>{{ $moduleGovernance['counters']['dependency_impacts'] ?? 0 }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-code-branch"></i></div></div>
                         </div>
                     @endif
-                </div>
+                </section>
 
-                <div class="pm-card mb-3">
-                    <div class="pm-section-bar">
-                        <div>
-                            <div class="pm-card-title"><i class="fa-solid fa-table-cells-large"></i> Eisenhower global</div>
-                            <div class="pm-card-subtitle mb-0">Carrega tasks dos projetos em execução, no milestone atual. Ao selecionar um projeto, filtra a matriz.</div>
-                        </div>
-                        <div class="pm-quick-actions">
-                            <button type="button" class="pm-btn pm-btn--success" data-open-quick-task><i class="fa-solid fa-plus"></i> Criar task rápida</button>
-                            <span class="pm-save-indicator" data-pm-matrix-status>Pronto</span>
-                        </div>
+                <section class="pm-card pm-hub-pipeline">
+                    <div class="pm-card-title"><i class="fa-solid fa-layer-group"></i> Pipeline</div>
+                    <div class="pm-grid">
+                        <div class="pm-hub-kpi pm-hub-kpi--warning"><div><span>Hold</span><strong>{{ $holdProjects->count() }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-pause"></i></div></div>
+                        <div class="pm-hub-kpi pm-hub-kpi--info"><div><span>Pending</span><strong>{{ $pendingProjects->count() }}</strong></div><div class="pm-hub-kpi-icon"><i class="fa-solid fa-clock"></i></div></div>
                     </div>
-
-                    <div class="pm-eisenhower pm-eisenhower--dropzones">
-                        @foreach($matrixGroups as $key => $group)
-                            <div class="pm-eisenhower-cell" data-pm-matrix-zone="{{ $key }}" data-importance="{{ $group['importance'] }}" data-urgency="{{ $group['urgency'] }}">
-                                <div class="pm-eisenhower-title"><i class="fa-solid {{ $group['icon'] }}"></i> {{ $group['label'] }}</div>
-                                <div class="pm-muted pm-small mb-2">{{ $group['hint'] }}</div>
-                                <div class="pm-matrix-list" data-pm-matrix-list>
-                                    @forelse($group['items'] as $task)
-                                        <article class="pm-matrix-task" draggable="true" data-task-id="{{ $task->id }}" data-project-id="{{ $task->project_id }}" data-update-url="{{ route('project_manager.tasks.priority_matrix', $task->id) }}" data-status-url="{{ route('project_manager.tasks.panel', $task->id) }}">
-                                            <strong>{{ Str::limit($task->title, 48) }}</strong>
-                                            <div class="pm-matrix-task-status">{{ $task->project_name }} · {{ $task->milestone_title }}</div>
-                                            <div class="pm-matrix-task-meta">
-                                                <span data-pm-importance><i class="fa-solid fa-star"></i> {{ $task->importance ?? 3 }}</span>
-                                                <span data-pm-urgency><i class="fa-solid fa-bolt"></i> {{ $task->urgency ?? 3 }}</span>
-                                            </div>
-                                            <div class="pm-matrix-task-actions">
-                                                <select class="pm-task-state-select" data-pm-task-status title="Alterar estado da task">
-                                                    @php $taskStatus = str_replace(' ', '_', (string)($task->status ?? 'ready')); @endphp
-                                                    <option value="next" @selected(in_array($taskStatus, ['ready','pending','waiting','open','todo','new']))>Seguinte</option>
-                                                    <option value="execution" @selected($taskStatus === 'in_progress')>Em execução</option>
-                                                    <option value="review" @selected($taskStatus === 'review')>Review</option>
-                                                    <option value="done" @selected(in_array($taskStatus, ['done','completed']))>Done</option>
-                                                </select>
-                                            </div>
-                                        </article>
-                                    @empty
-                                        <div class="pm-empty pm-empty--small" data-pm-empty>Sem tasks.</div>
-                                    @endforelse
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="pm-card">
-                    <div class="pm-section-bar">
-                        <div>
-                            <div class="pm-card-title"><i class="fa-solid fa-chart-gantt"></i> Gantt operacional</div>
-                            <div class="pm-card-subtitle mb-0">Mesmo filtro da matriz: todos os projetos abertos ou apenas o projeto selecionado.</div>
-                        </div>
-                    </div>
-                    <div class="pm-gantt pm-gantt--wide">
-                        @forelse($ganttTasks as $task)
-                            @php
-                                $offset = max(0, min(80, ((int)($task->priority ?? 3) - 1) * 10));
-                                $width = max(18, min(90, (int)($task->expected_time ?? 8) * 3));
-                            @endphp
-                            <div class="pm-gantt-row" data-project-id="{{ $task->project_id }}">
-                                <div class="pm-gantt-label">
-                                    {{ Str::limit($task->title, 38) }}
-                                    <div class="pm-gantt-task-meta">{{ $task->project_name }} · {{ $task->milestone_title }}</div>
-                                </div>
-                                <div class="pm-gantt-track"><span style="left: {{ $offset }}%; width: {{ $width }}%;"></span></div>
-                            </div>
-                        @empty
-                            <div class="pm-empty">Sem tasks suficientes para Gantt.</div>
-                        @endforelse
-                    </div>
-                </div>
-
-                <div class="pm-charts-row">
-                    <div class="pm-card">
-                        <div class="pm-card-title"><i class="fa-solid fa-chart-simple"></i> Contadores de execução</div>
-                        <div class="pm-card-subtitle">Distribuição das tasks carregadas por estado.</div>
-                        @forelse(($executionCounters['by_status'] ?? []) as $status => $count)
-                            @php
-                                $percent = round(($count / $totalVisible) * 100);
-                            @endphp
-                            <div class="pm-progress-item">
-                                <div class="pm-progress-head"><span>{{ $statusLabels[$status] ?? ucfirst($status) }}</span><strong>{{ $count }}</strong></div>
-                                <div class="pm-progress-track"><span style="width: {{ $percent }}%"></span></div>
-                            </div>
-                        @empty
-                            <div class="pm-empty">Sem dados de execução.</div>
-                        @endforelse
-                    </div>
-
-                    <div class="pm-card">
-                        <div class="pm-card-title"><i class="fa-solid fa-bars-progress"></i> Evolução por projeto</div>
-                        <div class="pm-card-subtitle">Leitura rápida das tasks do milestone atual.</div>
-                        @forelse(($executionCounters['by_project'] ?? []) as $projectCounter)
-                            @php
-                                $percent = $projectCounter['total'] ? round((($projectCounter['done'] + $projectCounter['in_progress']) / $projectCounter['total']) * 100) : 0;
-                            @endphp
-                            <div class="pm-progress-item" data-project-id="{{ $projectCounter['project_id'] }}">
-                                <div class="pm-progress-head"><span>{{ $projectCounter['project_name'] }}</span><strong>{{ $percent }}%</strong></div>
-                                <div class="pm-progress-track"><span style="width: {{ $percent }}%"></span></div>
-                                <div class="pm-muted pm-small">{{ $projectCounter['in_progress'] }} em execução · {{ $projectCounter['blocked'] }} bloqueadas · {{ $projectCounter['total'] }} total</div>
-                            </div>
-                        @empty
-                            <div class="pm-empty">Sem projetos em execução com tasks no milestone atual.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </main>
+                </section>
+            </aside>
         </div>
     </div>
 </div>
-
-
-<div class="pm-modal-backdrop" data-quick-task-modal aria-hidden="true">
-    <div class="pm-modal-panel" role="dialog" aria-modal="true" aria-labelledby="quickTaskTitle">
-        <form method="POST" action="{{ route('project_manager.quick_tasks.store') }}" data-quick-task-form>
-            @csrf
-            <div class="pm-modal-head">
-                <div>
-                    <div class="pm-card-title mb-0" id="quickTaskTitle"><i class="fa-solid fa-plus"></i> Criar task rápida</div>
-                    <div class="pm-card-subtitle mb-0">Liga a task ao projeto, milestone atual e, se necessário, a uma task pai.</div>
-                </div>
-                <button type="button" class="pm-icon-action" data-close-quick-task aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="pm-modal-body">
-                <div class="pm-modal-grid">
-                    <div class="pm-form-field">
-                        <label>Projeto</label>
-                        <select name="project_id" data-quick-project required>
-                            <option value="">Selecionar projeto</option>
-                            @foreach(($quickProjects ?? collect()) as $project)
-                                <option value="{{ $project->id }}">{{ $project->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Milestone</label>
-                        <select name="milestone_id" data-quick-milestone required>
-                            <option value="">Seleciona primeiro o projeto</option>
-                        </select>
-                    </div>
-                    <div class="pm-form-field pm-form-field--full">
-                        <label>Task pai / Subtask de</label>
-                        <select name="parent_task_id" data-quick-parent-task>
-                            <option value="">Criar como task direta do milestone</option>
-                        </select>
-                    </div>
-                    <div class="pm-form-field pm-form-field--full">
-                        <label>Título da task</label>
-                        <input type="text" name="title" maxlength="180" required placeholder="Ex: Criar formulário inline para Project Details">
-                    </div>
-                    <div class="pm-form-field pm-form-field--full">
-                        <label>Descrição / Notas</label>
-                        <textarea name="description" placeholder="Contexto, objetivo ou critérios de conclusão."></textarea>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Estado inicial</label>
-                        <select name="status">
-                            <option value="ready">Ready</option>
-                            <option value="pending">Pending</option>
-                            <option value="in_progress">Em execução</option>
-                            <option value="waiting">Waiting</option>
-                        </select>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Prioridade</label>
-                        <select name="priority">
-                            @for($i = 1; $i <= 10; $i++)
-                                <option value="{{ $i }}" {{ $i === 5 ? 'selected' : '' }}>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Importância</label>
-                        <select name="importance">
-                            @for($i = 1; $i <= 5; $i++)
-                                <option value="{{ $i }}" {{ $i === 3 ? 'selected' : '' }}>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Urgência</label>
-                        <select name="urgency">
-                            @for($i = 1; $i <= 5; $i++)
-                                <option value="{{ $i }}" {{ $i === 3 ? 'selected' : '' }}>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Tempo previsto</label>
-                        <input type="number" name="expected_time" min="0" placeholder="Horas ou unidade interna">
-                    </div>
-                    <div class="pm-form-field">
-                        <label>Due date</label>
-                        <input type="date" name="due_date">
-                    </div>
-                </div>
-            </div>
-            <div class="pm-modal-foot">
-                <button type="button" class="pm-btn pm-btn--ghost" data-close-quick-task>Cancelar</button>
-                <button type="submit" class="pm-btn pm-btn--success"><i class="fa-solid fa-floppy-disk"></i> Criar task</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-(function(){
-    const csrf = '{{ csrf_token() }}';
-    const status = document.querySelector('[data-pm-matrix-status]');
-    let dragged = null;
-    let activeProject = 'all';
-    const projectShowBase = '{{ url(config('project-manager.route_prefix', 'project-manager') . '/projects') }}';
-    const quickMilestones = @json(($quickMilestones ?? collect())->toArray());
-    const quickParentTasks = @json(($quickParentTasks ?? collect())->toArray());
-
-    function setStatus(text, mode) {
-        if (!status) return;
-        status.textContent = text;
-        status.dataset.mode = mode || 'idle';
-    }
-
-    function refreshEmptyState(zone) {
-        const list = zone.querySelector('[data-pm-matrix-list]');
-        if (!list) return;
-        const empty = list.querySelector('[data-pm-empty]');
-        const visibleCards = Array.from(list.querySelectorAll('[data-task-id]')).filter(card => !card.classList.contains('pm-hidden-by-filter')).length;
-        if (empty) empty.style.display = visibleCards ? 'none' : '';
-    }
-
-    function applyFilter(projectId, label) {
-        activeProject = String(projectId || 'all');
-        document.querySelectorAll('[data-project-filter]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.projectFilter === activeProject));
-        const selectedLabel = document.querySelector('[data-selected-label]');
-        if (selectedLabel) {
-            selectedLabel.textContent = label || (activeProject === 'all' ? 'Todos os projetos em aberto · milestone atual' : 'Projeto selecionado · milestone atual');
-        }
-
-        const selectedOpen = document.querySelector('[data-selected-open]');
-        if (selectedOpen) {
-            if (activeProject === 'all') {
-                selectedOpen.style.display = 'none';
-                selectedOpen.setAttribute('href', '#');
-            } else {
-                selectedOpen.style.display = '';
-                selectedOpen.setAttribute('href', projectShowBase + '/' + activeProject);
-            }
-        }
-
-        document.querySelectorAll('[data-project-id]').forEach(function(el){
-            if (activeProject === 'all' || String(el.dataset.projectId) === activeProject) {
-                el.classList.remove('pm-hidden-by-filter');
-            } else {
-                el.classList.add('pm-hidden-by-filter');
-            }
-        });
-
-        document.querySelectorAll('[data-pm-matrix-zone]').forEach(refreshEmptyState);
-        updateVisibleStats();
-    }
-
-    function visibleCount(selector) {
-        return Array.from(document.querySelectorAll(selector)).filter(el => !el.classList.contains('pm-hidden-by-filter')).length;
-    }
-
-    function updateVisibleStats() {
-        const totalMatrix = document.querySelector('[data-total-matrix]');
-        if (totalMatrix) totalMatrix.textContent = visibleCount('.pm-matrix-task[data-task-id]');
-    }
-
-    document.querySelectorAll('[data-project-filter]').forEach(function(button){
-        button.addEventListener('click', function(){
-            const projectId = this.dataset.projectFilter;
-            const projectLabel = this.dataset.projectLabel || (this.querySelector('strong') ? this.querySelector('strong').textContent : 'Projeto selecionado');
-            applyFilter(projectId, projectId === 'all' ? 'Todos os projetos em aberto · milestone atual' : (projectLabel + ' · milestone atual'));
-        });
-    });
-
-    const quickModal = document.querySelector('[data-quick-task-modal]');
-    const quickProject = document.querySelector('[data-quick-project]');
-    const quickMilestone = document.querySelector('[data-quick-milestone]');
-    const quickParentTask = document.querySelector('[data-quick-parent-task]');
-
-    function openQuickTaskModal() {
-        if (!quickModal) return;
-        quickModal.classList.add('is-open');
-        quickModal.setAttribute('aria-hidden', 'false');
-        if (activeProject !== 'all' && quickProject) {
-            quickProject.value = activeProject;
-            syncQuickTaskSelects();
-        }
-    }
-
-    function closeQuickTaskModal() {
-        if (!quickModal) return;
-        quickModal.classList.remove('is-open');
-        quickModal.setAttribute('aria-hidden', 'true');
-    }
-
-    function syncQuickTaskSelects() {
-        const projectId = quickProject ? String(quickProject.value || '') : '';
-        if (quickMilestone) {
-            quickMilestone.innerHTML = '<option value="">Selecionar milestone</option>';
-            (quickMilestones[projectId] || []).forEach(function(item){
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.title + (item.status ? ' · ' + item.status : '');
-                quickMilestone.appendChild(option);
-            });
-        }
-        syncQuickParentTasks();
-    }
-
-    function syncQuickParentTasks() {
-        const projectId = quickProject ? String(quickProject.value || '') : '';
-        const milestoneId = quickMilestone ? String(quickMilestone.value || '') : '';
-        if (!quickParentTask) return;
-        quickParentTask.innerHTML = '<option value="">Criar como task direta do milestone</option>';
-        (quickParentTasks[projectId] || []).forEach(function(item){
-            if (milestoneId && String(item.parent_id) !== milestoneId) return;
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = (item.milestone_title ? item.milestone_title + ' › ' : '') + item.title;
-            quickParentTask.appendChild(option);
-        });
-    }
-
-    document.querySelectorAll('[data-open-quick-task]').forEach(btn => btn.addEventListener('click', openQuickTaskModal));
-    document.querySelectorAll('[data-close-quick-task]').forEach(btn => btn.addEventListener('click', closeQuickTaskModal));
-    if (quickProject) quickProject.addEventListener('change', syncQuickTaskSelects);
-    if (quickMilestone) quickMilestone.addEventListener('change', syncQuickParentTasks);
-    if (quickModal) quickModal.addEventListener('click', function(event){ if (event.target === quickModal) closeQuickTaskModal(); });
-
-
-    document.querySelectorAll('.pm-matrix-task[draggable="true"]').forEach(function(card){
-        card.addEventListener('dragstart', function(){
-            dragged = card;
-            card.classList.add('is-dragging');
-        });
-        card.addEventListener('dragend', function(){
-            card.classList.remove('is-dragging');
-            dragged = null;
-        });
-    });
-
-    document.querySelectorAll('[data-pm-matrix-zone]').forEach(function(zone){
-        zone.addEventListener('dragover', function(event){
-            event.preventDefault();
-            zone.classList.add('is-over');
-        });
-        zone.addEventListener('dragleave', function(){
-            zone.classList.remove('is-over');
-        });
-        zone.addEventListener('drop', function(event){
-            event.preventDefault();
-            zone.classList.remove('is-over');
-            if (!dragged) return;
-
-            const oldZone = dragged.closest('[data-pm-matrix-zone]');
-            const list = zone.querySelector('[data-pm-matrix-list]');
-            if (!list) return;
-
-            list.appendChild(dragged);
-            dragged.classList.remove('pm-hidden-by-filter');
-            if (activeProject !== 'all' && String(dragged.dataset.projectId) !== activeProject) {
-                dragged.classList.add('pm-hidden-by-filter');
-            }
-
-            const importance = parseInt(zone.dataset.importance || '3', 10);
-            const urgency = parseInt(zone.dataset.urgency || '3', 10);
-            const updateUrl = dragged.dataset.updateUrl;
-            dragged.querySelector('[data-pm-importance]').innerHTML = '<i class="fa-solid fa-star"></i> ' + importance;
-            dragged.querySelector('[data-pm-urgency]').innerHTML = '<i class="fa-solid fa-bolt"></i> ' + urgency;
-            refreshEmptyState(zone);
-            if (oldZone) refreshEmptyState(oldZone);
-
-            setStatus('A guardar...', 'saving');
-            fetch(updateUrl, {
-                method: 'POST',
-                headers: {'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json'},
-                body: JSON.stringify({importance, urgency})
-            }).then(function(response){
-                if (!response.ok) throw new Error('Erro ao guardar');
-                return response.json();
-            }).then(function(){
-                setStatus('Guardado', 'saved');
-            }).catch(function(){
-                setStatus('Erro ao guardar', 'error');
-            });
-        });
-        refreshEmptyState(zone);
-    });
-
-    document.querySelectorAll('[data-pm-task-status]').forEach(function(select){
-        select.addEventListener('pointerdown', function(event){ event.stopPropagation(); });
-        select.addEventListener('mousedown', function(event){ event.stopPropagation(); });
-        select.addEventListener('dragstart', function(event){ event.preventDefault(); event.stopPropagation(); });
-        select.addEventListener('change', function(){
-            const card = select.closest('[data-task-id]');
-            if (!card || !card.dataset.statusUrl) return;
-
-            setStatus('A atualizar estado...', 'saving');
-            fetch(card.dataset.statusUrl, {
-                method: 'POST',
-                headers: {'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json'},
-                body: JSON.stringify({panel: select.value})
-            }).then(function(response){
-                if (!response.ok) throw new Error('Erro ao atualizar estado');
-                return response.json();
-            }).then(function(data){
-                const label = select.options[select.selectedIndex] ? select.options[select.selectedIndex].textContent : data.status;
-                const statusLine = card.querySelector('.pm-matrix-task-status');
-                if (statusLine) {
-                    statusLine.dataset.taskStatus = data.status || select.value;
-                }
-                card.classList.remove('is-task-next','is-task-execution','is-task-review','is-task-done');
-                card.classList.add('is-task-' + select.value);
-                setStatus('Estado atualizado: ' + label, 'saved');
-            }).catch(function(){
-                setStatus('Erro ao atualizar estado', 'error');
-            });
-        });
-    });
-
-    updateVisibleStats();
-})();
-</script>
 @endsection

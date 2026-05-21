@@ -19,9 +19,11 @@
     <div class="dms-document-workspace">
         <div class="dms-card dms-document-sheet-card">
             <div class="dms-card__head">
-                <div>
-                    <span class="dms-eyebrow">Preview engine</span>
-                    <h3>Documento</h3>
+                <div class="dms-readiness">
+                    <div class="{{ $document->has_file ? 'is-ok' : '' }}"><i class="fa-solid fa-file"></i> File</div>
+                    <div class="{{ $document->has_preview ? 'is-ok' : '' }}"><i class="fa-solid fa-eye"></i> Preview</div>
+                    <div class="{{ $document->has_ocr ? 'is-ok' : '' }}"><i class="fa-solid fa-align-left"></i> OCR</div>
+                    <div class="{{ $document->has_embeddings ? 'is-ok' : '' }}"><i class="fa-solid fa-vector-square"></i> Embeddings</div>
                 </div>
             </div>
 
@@ -54,13 +56,6 @@
                     <strong>Sem ficheiro</strong>
                     <span>Este documento existe como objeto operacional sem anexo fisico.</span>
                 @endif
-            </div>
-
-            <div class="dms-readiness">
-                <div class="{{ $document->has_file ? 'is-ok' : '' }}"><i class="fa-solid fa-file"></i> File</div>
-                <div class="{{ $document->has_preview ? 'is-ok' : '' }}"><i class="fa-solid fa-eye"></i> Preview</div>
-                <div class="{{ $document->has_ocr ? 'is-ok' : '' }}"><i class="fa-solid fa-align-left"></i> OCR</div>
-                <div class="{{ $document->has_embeddings ? 'is-ok' : '' }}"><i class="fa-solid fa-vector-square"></i> Embeddings</div>
             </div>
         </div>
 

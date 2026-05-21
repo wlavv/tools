@@ -3,6 +3,8 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @include('calendar::partials.nav')
+
     <div class="card calendar-card">
         <div class="card-body p-3 p-md-4">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
@@ -79,7 +81,7 @@
                 </div>
             </form>
 
-            <form method="POST" action="{{ route('calendar.events.delete', $event) }}" class="mt-3">
+            <form method="POST" action="{{ route('calendar.events.delete', $event) }}" class="mt-3" onsubmit="return confirm('Delete this event?')">
                 @csrf
                 <button class="btn btn-outline-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
             </form>

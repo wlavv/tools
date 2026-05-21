@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Areas;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Route;
+use Modules\PermissionRoleManager\Services\RoutePermissionAccessService;
 
 use Modules\Tasks\Services\FamilyPlannerWeatherService;
 use Modules\Tasks\Services\FamilyPlannerThoughtService;
@@ -15,21 +17,33 @@ class dashboardController extends Controller{
 
         $this->setBreadcrumbs([]);
 
-        $heroStats = [
-            ['label' => 'Areas', 'value' => 10, 'icon' => 'fa-solid fa-grip'],
-            ['label' => 'Modules', 'value' => 12, 'icon' => 'fa-solid fa-cubes'],
-            ['label' => 'Shortcuts', 'value' => count($this->accessList), 'icon' => 'fa-solid fa-bolt'],
-        ];
+        $routeAccess = app(RoutePermissionAccessService::class);
+        $canAccess = fn (string $routeName): bool => Route::has($routeName)
+            && $routeAccess->canAccessRouteName(auth()->id(), $routeName);
 
-        $heroActions = [
-            ['label' => 'Administration', 'icon' => 'fa-solid fa-screwdriver-wrench', 'url' => route('administration.index')],
-            ['label' => 'Web', 'icon' => 'fa-solid fa-globe', 'url' => route('web.index')],
-            ['label' => 'Sales', 'icon' => 'fa-solid fa-basket-shopping', 'url' => route('sales.index')],
-            ['label' => 'Finance', 'icon' => 'fa-solid fa-chart-line', 'url' => route('finance.index')],
-            ['label' => 'Purchasing', 'icon' => 'fa-solid fa-cart-flatbed', 'url' => route('purchasing.index')],
-            ['label' => 'Marketing', 'icon' => 'fa-solid fa-bullhorn', 'url' => route('marketing.index')],
-            ['label' => 'Customer Support', 'icon' => 'fa-solid fa-headset', 'url' => route('customerSupport.index')],
-            ['label' => 'LSG', 'icon' => 'fa-solid fa-building', 'url' => route('lsg.index')],
+        $heroActions = collect([
+            ['label' => 'Administration', 'icon' => 'fa-solid fa-screwdriver-wrench', 'route' => 'administration.index'],
+            ['label' => 'Webmaster', 'icon' => 'fa-solid fa-code', 'route' => 'web.index'],
+            ['label' => 'Sales', 'icon' => 'fa-solid fa-basket-shopping', 'route' => 'sales.index'],
+            ['label' => 'Finance', 'icon' => 'fa-solid fa-chart-line', 'route' => 'finance.index'],
+            ['label' => 'Marketing', 'icon' => 'fa-solid fa-bullhorn', 'route' => 'marketing.index'],
+            ['label' => 'Customer Support', 'icon' => 'fa-solid fa-headset', 'route' => 'customerSupport.index'],
+            ['label' => 'HR', 'icon' => 'fa-solid fa-user-group', 'route' => 'hr.index'],
+            ['label' => 'Purchasing', 'icon' => 'fa-solid fa-cart-flatbed', 'route' => 'purchasing.index'],
+            ['label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child', 'route' => 'family.index'],
+            ['label' => 'LSG', 'icon' => 'fa-solid fa-building', 'route' => 'lsg.index'],
+        ])
+            ->filter(fn (array $action) => $canAccess($action['route']))
+            ->map(fn (array $action) => array_merge($action, ['url' => route($action['route'])]))
+            ->values()
+            ->all();
+
+        $modulesCount = count(glob(base_path('Modules/*/module.json')) ?: []);
+
+        $heroStats = [
+            ['label' => 'Areas', 'value' => count($heroActions), 'icon' => 'fa-solid fa-grip'],
+            ['label' => 'Modules', 'value' => $modulesCount, 'icon' => 'fa-solid fa-cubes'],
+            ['label' => 'Shortcuts', 'value' => count($this->accessList), 'icon' => 'fa-solid fa-bolt'],
         ];
 
         $weather = app(FamilyPlannerWeatherService::class)->today();

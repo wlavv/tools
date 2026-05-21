@@ -24,6 +24,16 @@ class DashboardController extends Controller
 
     public function index(Request $request, ModuleHealthGovernanceService $moduleHealthGovernance)
     {
+        return $this->view('project-manager::dashboard.index', $this->dashboardData($request, $moduleHealthGovernance));
+    }
+
+    public function operations(Request $request, ModuleHealthGovernanceService $moduleHealthGovernance)
+    {
+        return $this->view('project-manager::dashboard.operations', $this->dashboardData($request, $moduleHealthGovernance));
+    }
+
+    private function dashboardData(Request $request, ModuleHealthGovernanceService $moduleHealthGovernance): array
+    {
         $selectedProjectId = $request->integer('project') ?: null;
 
         $allProjects = Schema::hasTable('wt_projects')
@@ -86,7 +96,7 @@ class DashboardController extends Controller
         $quickParentTasks = $this->parentTasksForProjects($quickProjects->pluck('id')->map(fn ($id) => (int) $id)->all());
         $moduleGovernance = $moduleHealthGovernance->snapshot();
 
-        return $this->view('project-manager::dashboard.index', compact('projects', 'projectGroups', 'activeMilestones', 'milestoneCards', 'matrixTasks', 'ganttTasks', 'executionCounters', 'stats', 'selectedProjectId', 'quickProjects', 'quickMilestones', 'quickParentTasks', 'moduleGovernance'));
+        return compact('projects', 'projectGroups', 'activeMilestones', 'milestoneCards', 'matrixTasks', 'ganttTasks', 'executionCounters', 'stats', 'selectedProjectId', 'quickProjects', 'quickMilestones', 'quickParentTasks', 'moduleGovernance');
     }
 
     public function productivity()
