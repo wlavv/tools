@@ -57,7 +57,7 @@ async def normalize(
     if source is None:
         raise HTTPException(status_code=422, detail="Could not decode image")
 
-    result = normalize_rectangular_object(source)
+    result = normalize_mtg_card(source) if mode == "mtg_card" else normalize_rectangular_object(source)
     normalized = result["normalized"] if result["ok"] else resize_max_side(source, 1200)
     debug_image = draw_debug(source, result) if debug == "1" else None
 
@@ -72,6 +72,7 @@ async def normalize(
         "normalized_width": int(normalized.shape[1]),
         "normalized_height": int(normalized.shape[0]),
         "used_perspective": bool(result["ok"]),
+        "profile": result.get("profile", mode),
     }
 
     if debug_image is not None:
@@ -278,6 +279,90 @@ def normalize_rectangular_object(image):
         "normalized": normalized,
         "confidence": round(float(min(1.0, best["score"])), 4),
         "contour": [[int(point[0]), int(point[1])] for point in points],
+        "profile": "rectangular_object",
+    }
+
+
+def normalize_mtg_card(image):
+    working = resize_max_side(image, 1400)
+    ratio_x = image.shape[1] / working.shape[1]
+    ratio_y = image.shape[0] / working.shape[0]
+    gray = cv2.cvtColor(working, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    gray = clahe.apply(gray)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(blurred, 35, 115)
+    kernel = np.ones((3, 3), np.uint8)
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel, iterations=2)
+    edges = cv2.dilate(edges, kernel, iterations=1)
+
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    image_area = working.shape[0] * working.shape[1]
+    candidates = []
+    target_aspect = 1.395
+
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area < image_area * 0.14 or area > image_area * 0.92:
+            continue
+
+        perimeter = cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, 0.018 * perimeter, True)
+        if len(approx) == 4:
+            points = approx.reshape(4, 2).astype("float32")
+        else:
+            rect = cv2.minAreaRect(contour)
+            points = cv2.boxPoints(rect).astype("float32")
+
+        ordered = order_points(points)
+        width_a = np.linalg.norm(ordered[2] - ordered[3])
+        width_b = np.linalg.norm(ordered[1] - ordered[0])
+        height_a = np.linalg.norm(ordered[1] - ordered[2])
+        height_b = np.linalg.norm(ordered[0] - ordered[3])
+        max_width = max(width_a, width_b)
+        max_height = max(height_a, height_b)
+        aspect = max_height / max(1.0, max_width)
+        if aspect < 1.18 or aspect > 1.72:
+            continue
+
+        fill_ratio = area / max(1.0, max_width * max_height)
+        center = np.mean(ordered, axis=0)
+        center_penalty = (
+            abs(center[0] - (working.shape[1] / 2)) / working.shape[1]
+            + abs(center[1] - (working.shape[0] / 2)) / working.shape[0]
+        )
+        aspect_score = max(0.0, 1.0 - min(1.0, abs(aspect - target_aspect) / 0.35))
+        area_score = min(1.0, area / max(1.0, image_area * 0.58))
+        score = (aspect_score * 0.38) + (area_score * 0.26) + (fill_ratio * 0.22) + ((1 - min(0.75, center_penalty)) * 0.14)
+        candidates.append(
+            {
+                "score": float(score),
+                "area": float(area),
+                "points": ordered,
+                "approx_points": int(len(approx)),
+                "aspect": float(aspect),
+            }
+        )
+
+    if not candidates:
+        fallback = normalize_rectangular_object(image)
+        fallback["profile"] = "mtg_card_fallback_rectangular"
+        return fallback
+
+    best = max(candidates, key=lambda item: item["score"])
+    points = best["points"].copy()
+    points[:, 0] *= ratio_x
+    points[:, 1] *= ratio_y
+    normalized = four_point_transform_to_size(image, points, 672, 936)
+
+    return {
+        "ok": True,
+        "normalized": normalized,
+        "confidence": round(float(min(1.0, best["score"])), 4),
+        "contour": [[int(point[0]), int(point[1])] for point in points],
+        "profile": "mtg_card",
+        "card_aspect": round(float(best["aspect"]), 4),
+        "approx_points": int(best["approx_points"]),
     }
 
 
@@ -307,6 +392,16 @@ def four_point_transform(image, points):
     )
     matrix = cv2.getPerspectiveTransform(rect, destination)
     return cv2.warpPerspective(image, matrix, (max_width, max_height))
+
+
+def four_point_transform_to_size(image, points, target_width: int, target_height: int):
+    rect = order_points(points)
+    destination = np.array(
+        [[0, 0], [target_width - 1, 0], [target_width - 1, target_height - 1], [0, target_height - 1]],
+        dtype="float32",
+    )
+    matrix = cv2.getPerspectiveTransform(rect, destination)
+    return cv2.warpPerspective(image, matrix, (target_width, target_height))
 
 
 def normalize_card_ratio(image):

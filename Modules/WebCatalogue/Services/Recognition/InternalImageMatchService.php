@@ -180,7 +180,7 @@ class InternalImageMatchService
                 $this->setInternalCounter($counterKey, (int) $candidateStats[$counterKey]);
             }
         }
-        $markerBatchScores = !empty($captureMarkers)
+        $markerBatchScores = $markerOnly && !empty($captureMarkers)
             ? $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($preselected, $captureMarkers))
             : [];
 
@@ -231,10 +231,8 @@ class InternalImageMatchService
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = $markerOnly ? count($captureMarkers) : count($captureProfiles);
             if (!$markerOnly) {
-                $batchScore = $markerBatchScores[(int) $resource->id] ?? null;
-                $scoreSet = $batchScore
-                    ? $this->applyMarkerBatchScore($scoreSet, $batchScore)
-                    : $this->applyMissingMarkerScore($scoreSet, empty($captureMarkers) ? 'missing_capture_markers' : 'missing_resource_markers');
+                $scoreSet['marker_applied'] = false;
+                $scoreSet['marker_status'] = empty($captureMarkers) ? 'missing_capture_markers' : 'orb_deferred';
             }
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
@@ -250,6 +248,31 @@ class InternalImageMatchService
             }
         }
         });
+
+        if (!$markerOnly && !empty($captureMarkers) && $this->shouldRunOrbVerification($scoresByProduct)) {
+            $topResourceIds = array_map(
+                fn ($candidate) => (int) $candidate['resource']->id,
+                array_slice($this->rankScoreRows($scoresByProduct), 0, (int) config('webcatalogue.recognition.visual_markers.verify_top', 24))
+            );
+            $orbPreselected = array_values(array_filter(
+                $preselected,
+                fn ($candidate) => in_array((int) $candidate['resource']->id, $topResourceIds, true)
+            ));
+            $markerBatchScores = $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($orbPreselected, $captureMarkers));
+            foreach ($scoresByProduct as $productId => $scoreRow) {
+                $resourceId = (int) $scoreRow['resource']->id;
+                $batchScore = $markerBatchScores[$resourceId] ?? null;
+                $scoresByProduct[$productId]['scores'] = $batchScore
+                    ? $this->applyMarkerBatchScore($scoreRow['scores'], $batchScore)
+                    : $this->applyMissingMarkerScore($scoreRow['scores'], 'missing_resource_markers');
+                $scoresByProduct[$productId]['score'] = $scoresByProduct[$productId]['scores']['final_score'];
+            }
+        } elseif (!$markerOnly) {
+            foreach ($scoresByProduct as $productId => $scoreRow) {
+                $scoresByProduct[$productId]['scores']['marker_status'] = empty($captureMarkers) ? 'missing_capture_markers' : 'orb_skipped_confident_hash';
+            }
+            $this->setInternalCounter('orb_skipped', 1);
+        }
 
         usort($scoresByProduct, fn ($a, $b) => $b['score'] <=> $a['score']);
 
@@ -2003,6 +2026,46 @@ class InternalImageMatchService
             $this->markerScoringMode(),
             (int) $resourceMarkers->id
         );
+    }
+
+    private function shouldRunOrbVerification(array $scoresByProduct): bool
+    {
+        if (!(bool) config('webcatalogue.recognition.visual_markers.conditional_enabled', true)) {
+            return true;
+        }
+
+        $ranked = $this->rankScoreRows($scoresByProduct);
+        $top = $ranked[0] ?? null;
+        if (!$top) {
+            return false;
+        }
+
+        $second = $ranked[1] ?? null;
+        $topScore = (float) ($top['score'] ?? 0);
+        $secondScore = (float) ($second['score'] ?? 0);
+        $margin = $second ? $topScore - $secondScore : 100.0;
+        $scores = $top['scores'] ?? [];
+        $phash = (float) ($scores['phash_score'] ?? 0);
+        $edge = (float) ($scores['edge_score'] ?? 0);
+        $color = (float) ($scores['color_score'] ?? 0);
+
+        if ($topScore >= 72 && $margin >= 12 && $phash >= 82 && $edge >= 68) {
+            return false;
+        }
+
+        if ($topScore >= 66 && $margin >= 16 && $phash >= 78 && $edge >= 65 && $color >= 45) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function rankScoreRows(array $scoresByProduct): array
+    {
+        $rows = array_values($scoresByProduct);
+        usort($rows, fn ($a, $b) => ((float) ($b['score'] ?? 0)) <=> ((float) ($a['score'] ?? 0)));
+
+        return $rows;
     }
 
     private function markerOnlyBatchScores(array $preselected, array $captureMarkers): array

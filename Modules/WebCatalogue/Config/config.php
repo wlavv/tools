@@ -55,6 +55,7 @@ return [
             'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN'),
             'timeout' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TIMEOUT', 20),
             'store_debug_image' => env('WEBCATALOGUE_RECOGNITION_OPENCV_STORE_DEBUG', true),
+            'normalize_mode' => env('WEBCATALOGUE_RECOGNITION_OPENCV_NORMALIZE_MODE', 'mtg_card'),
             'score_boost' => env('WEBCATALOGUE_RECOGNITION_OPENCV_SCORE_BOOST', 3),
         ],
         'auto_match_min_margin' => env('WEBCATALOGUE_RECOGNITION_AUTO_MIN_MARGIN', 5),
@@ -85,6 +86,8 @@ return [
             // In markers_only mode, set this to 0 to compare every stored marker candidate.
             'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 42),
             'batch_size' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BATCH_SIZE', 180),
+            'conditional_enabled' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CONDITIONAL', true),
+            'verify_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_VERIFY_TOP', 24),
             'boost_per_good_match' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BOOST_PER_GOOD_MATCH', 0.18),
             'max_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX_BOOST', 8),
             'strong_min_score' => env('WEBCATALOGUE_RECOGNITION_MARKERS_STRONG_MIN_SCORE', 18),

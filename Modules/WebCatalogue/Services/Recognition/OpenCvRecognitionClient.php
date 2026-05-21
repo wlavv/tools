@@ -36,7 +36,7 @@ class OpenCvRecognitionClient
             $response = $request
                 ->attach('image', fopen($path, 'rb'), basename($path))
                 ->post($baseUrl . '/recognition/normalize', [
-                    'mode' => 'rectangular_object',
+                    'mode' => (string) config('webcatalogue.recognition.opencv.normalize_mode', 'mtg_card'),
                     'debug' => (bool) config('webcatalogue.recognition.opencv.store_debug_image', true) ? '1' : '0',
                 ]);
 
@@ -74,7 +74,10 @@ class OpenCvRecognitionClient
                         'debug_url' => $debugPath ? Storage::disk('public')->url($debugPath) : null,
                         'contour' => $payload['contour'] ?? null,
                         'confidence' => $payload['confidence'] ?? null,
-                        'mode' => $payload['mode'] ?? 'rectangular_object',
+                        'mode' => $payload['mode'] ?? config('webcatalogue.recognition.opencv.normalize_mode', 'mtg_card'),
+                        'profile' => $payload['profile'] ?? null,
+                        'card_aspect' => $payload['card_aspect'] ?? null,
+                        'approx_points' => $payload['approx_points'] ?? null,
                         'generated_at' => now()->toIso8601String(),
                     ],
                 ]),

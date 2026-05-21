@@ -209,6 +209,18 @@ class RecognitionScoringService
         $margin = $second ? $score - (float) ($second['score_final'] ?? 0) : 100;
         $ambiguousMargin = (float) config('webcatalogue.recognition.pipeline_v2.decision.ambiguous_margin', 8);
 
+        if ($score >= 75 && $margin >= 8) {
+            return ['status' => 'accepted', 'reason' => 'high_score_with_clear_margin'];
+        }
+
+        if ($score >= 70 && $margin >= 10) {
+            return ['status' => 'accepted', 'reason' => 'strong_score_with_safe_margin'];
+        }
+
+        if ($score >= 60 && $margin >= 14) {
+            return ['status' => 'accepted', 'reason' => 'moderate_score_with_large_margin'];
+        }
+
         if ($margin < $ambiguousMargin) {
             return ['status' => 'ambiguous', 'reason' => 'top_candidates_too_close'];
         }
