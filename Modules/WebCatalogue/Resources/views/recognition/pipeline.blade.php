@@ -3,6 +3,8 @@
 @section('content')
 @include('webcatalogue::Includes.css')
 <div class="webcatalogue-shell">
+    @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
+
     <div class="wc-hero-card">
         <div>
             <div class="wc-eyebrow"><i class="fa-solid fa-chart-line"></i> Recognition Pipeline v2</div>
@@ -12,6 +14,10 @@
         <div class="wc-hero-actions">
             <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.index') }}"><i class="fa-solid fa-arrow-left"></i> Recognition</a>
             <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.pipeline.summary') }}"><i class="fa-solid fa-code"></i> JSON</a>
+            <form method="POST" action="{{ route('webcatalogue.recognition.pipeline.flush') }}" onsubmit="return confirm('Clear all recognition sessions, captures, matches and pipeline metrics?');">
+                @csrf
+                <button type="submit" class="wc-secondary-btn"><i class="fa-solid fa-trash-can"></i> Flush stats</button>
+            </form>
         </div>
     </div>
 

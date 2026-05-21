@@ -2,14 +2,6 @@
 
 @section('content')
 <div class="wc-front-container wc-scan-page">
-    <section class="wc-front-hero wc-scan-hero">
-        <div>
-            <span class="wc-front-kicker"><i class="fa-solid fa-camera"></i> Visual Recognition</span>
-            <h1>{{ !empty($isGlobalScan) ? 'Understand this object' : 'Scan a product' }}</h1>
-            <p>{{ !empty($isGlobalScan) ? 'Point your camera at an object. We identify it and show useful information: manuals, assembly instructions, videos, technical files, images, 3D/AR resources and related documentation.' : 'Point your camera at a product. For best results, center the object, use a neutral background and avoid strong shadows. If we find it, we open the product intelligence page. If not, you can request it and help us improve the dataset.' }}</p>
-        </div>
-    </section>
-
     <div class="wc-scan-grid">
         <div class="wc-scan-camera-card">
             <div class="wc-scan-video-wrap">
@@ -85,6 +77,7 @@
 <style>
 .wc-scan-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:24px}.wc-scan-camera-card,.wc-scan-side-card,.wc-scan-modal-card{background:var(--wc-card,#fff);border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);box-shadow:0 14px 35px rgba(15,23,42,.08);padding:18px}.wc-scan-video-wrap{height:min(62vh,560px);background:#111;border-radius:var(--wc-radius,5px);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.wc-scan-video-wrap video{width:100%;height:100%;object-fit:contain;background:#111}.wc-scan-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;gap:8px;background:linear-gradient(135deg,#111827,#334155)}.wc-scan-placeholder i{font-size:54px;opacity:.8}.wc-scan-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.wc-scan-actions-end{justify-content:flex-end}.wc-scan-side-card ul{padding:0;margin:18px 0 0;list-style:none}.wc-scan-side-card li{margin:10px 0;color:var(--wc-text,#111827)}.wc-scan-side-card i{color:var(--wc-accent,#c9a96e);margin-right:8px}.wc-scan-message{margin-top:12px;color:var(--wc-muted,#64748b)}.wc-scan-modal{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}.wc-scan-modal[hidden]{display:none}.wc-scan-modal-card{max-width:780px;width:100%;position:relative}.wc-scan-modal-close{position:absolute;right:14px;top:10px;background:transparent;border:0;font-size:28px}.wc-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.wc-scan-modal label{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-weight:600}.wc-scan-modal input,.wc-scan-modal textarea{border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);padding:10px;background:#fff}.wc-front-btn[disabled]{opacity:.5;cursor:not-allowed}.wc-scan-focus-overlay{position:absolute;left:50%;top:50%;width:min(68%,520px);height:min(68%,420px);transform:translate(-50%,-50%);z-index:2;border:1px dashed rgba(255,255,255,.7);border-radius:var(--wc-radius,5px);box-shadow:0 0 0 9999px rgba(0,0,0,.22);display:flex;align-items:flex-end;justify-content:center;padding:14px;pointer-events:none;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.65);font-size:13px;letter-spacing:.02em}.wc-scan-focus-corner{position:absolute;width:34px;height:34px;border-color:var(--wc-accent,#c9a96e);border-style:solid}.wc-scan-focus-corner-tl{left:-2px;top:-2px;border-width:3px 0 0 3px}.wc-scan-focus-corner-tr{right:-2px;top:-2px;border-width:3px 3px 0 0}.wc-scan-focus-corner-bl{left:-2px;bottom:-2px;border-width:0 0 3px 3px}.wc-scan-focus-corner-br{right:-2px;bottom:-2px;border-width:0 3px 3px 0}.wc-scan-detected-box{position:absolute;z-index:3;display:none;border:3px solid var(--wc-accent,#c9a96e);border-radius:var(--wc-radius,5px);box-shadow:0 0 0 1px rgba(0,0,0,.34),0 0 28px rgba(201,169,110,.55);pointer-events:none;transition:left .12s ease,top .12s ease,width .12s ease,height .12s ease}.wc-scan-detected-box.is-visible{display:block}.wc-scan-detected-box.is-estimated{border-style:dashed;border-color:rgba(255,255,255,.86);box-shadow:0 0 0 1px rgba(0,0,0,.28),0 0 18px rgba(255,255,255,.22)}.wc-scan-detected-box span{position:absolute;left:8px;top:-28px;background:rgba(15,23,42,.86);color:#fff;border-radius:4px;padding:4px 7px;font-size:11px;font-weight:700;white-space:nowrap}.wc-scan-focus-tools{margin-top:12px;padding:12px;border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);background:color-mix(in srgb,var(--wc-card,#fff) 88%,var(--wc-accent,#c9a96e) 12%)}.wc-scan-toggle{display:flex;align-items:center;gap:9px;font-weight:700;color:var(--wc-text,#111827);cursor:pointer}.wc-scan-toggle input{width:17px;height:17px;accent-color:var(--wc-accent,#c9a96e)}.wc-scan-focus-tools small{display:block;margin-top:5px;color:var(--wc-muted,#64748b)}@media(max-width:900px){.wc-scan-grid,.wc-form-grid{grid-template-columns:1fr}.wc-scan-focus-overlay{width:76%;height:62%;font-size:12px}}
 .wc-scan-suggestions{margin-top:16px;border-top:1px solid var(--wc-border,#e5e7eb);padding-top:16px}.wc-scan-suggestions h3{margin:0 0 4px}.wc-scan-suggestion-help{margin:0 0 12px;color:var(--wc-muted,#64748b)}.wc-scan-suggestion-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}.wc-scan-suggestion-card{text-decoration:none;color:var(--wc-text,#111827);border:1px solid var(--wc-border,#e5e7eb);border-radius:var(--wc-radius,5px);background:var(--wc-surface,#fff);padding:10px;display:flex;flex-direction:column;gap:5px;transition:.18s ease}.wc-scan-suggestion-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,23,42,.12)}.wc-scan-suggestion-img{height:110px;display:flex;align-items:center;justify-content:center;background:var(--wc-image-bg,#f8fafc);border-radius:var(--wc-radius,5px);overflow:hidden}.wc-scan-suggestion-img img{width:100%;height:100%;object-fit:contain}.wc-scan-suggestion-img i{font-size:34px;color:var(--wc-muted,#64748b)}.wc-scan-suggestion-card small{color:var(--wc-muted,#64748b)}.wc-scan-suggestion-card em{font-style:normal;color:var(--wc-accent,#c9a96e);font-weight:700}
+.wc-scan-detected-box.is-locked{border-color:#22c55e;box-shadow:0 0 0 1px rgba(0,0,0,.32),0 0 30px rgba(34,197,94,.55)}.wc-scan-detected-box.is-locked span{background:rgba(22,101,52,.92)}
 </style>
 
 <script>
@@ -137,10 +130,12 @@
     let scanState = 'camera_idle';
     let stableSince = null;
     let lastStableRect = null;
+    let lockedRect = null;
+    let lockedSince = null;
     let processingScan = false;
     let scanCooldownUntil = 0;
     const autoScanEnabled = true;
-    const stableScanDelay = 900;
+    const stableScanDelay = 1650;
     const scanCooldownMs = 4200;
 
     function setMessage(text){ msg.textContent = text || ''; }
@@ -253,7 +248,7 @@
         detectedRectIsEstimated = estimated;
         const metrics = videoDisplayMetrics();
         if(!rect || !metrics){
-            detectedBox.classList.remove('is-visible');
+            detectedBox.classList.remove('is-visible', 'is-locked');
             return;
         }
 
@@ -262,8 +257,9 @@
         detectedBox.style.width = `${(rect.w / metrics.videoWidth) * metrics.displayWidth}px`;
         detectedBox.style.height = `${(rect.h / metrics.videoHeight) * metrics.displayHeight}px`;
         detectedBox.classList.toggle('is-estimated', estimated);
+        detectedBox.classList.toggle('is-locked', !!lockedRect && !estimated);
         const label = detectedBox.querySelector('span');
-        if(label) label.textContent = estimated ? 'Focus area' : 'Object focus';
+        if(label) label.textContent = lockedRect && !estimated ? 'Card locked' : (estimated ? 'Focus area' : 'Card focus');
         detectedBox.classList.add('is-visible');
     }
 
@@ -626,6 +622,8 @@
         trackedRect = null;
         stableSince = null;
         lastStableRect = null;
+        lockedRect = null;
+        lockedSince = null;
         missedDetections = 0;
         lastDetectionSource = 'none';
         updateDetectedBox(null);
@@ -644,39 +642,79 @@
         return Math.max(0, 1 - (centerShift * 3.4) - (sizeShift * 2.2));
     }
 
-    function rectQuality(rect){
-        if(!rect || detectedRectIsEstimated) return false;
+    function cardLockStatus(rect){
+        if(!rect || detectedRectIsEstimated) return {ok:false, reason:'no_card'};
         const videoWidth = video.videoWidth || 1280;
         const videoHeight = video.videoHeight || 720;
         const areaRatio = (rect.w * rect.h) / Math.max(1, videoWidth * videoHeight);
         const aspect = rect.h / Math.max(1, rect.w);
-        return areaRatio >= .12 && areaRatio <= .82 && aspect >= .55 && aspect <= 2.4;
+        const centerX = rect.x + (rect.w / 2);
+        const centerY = rect.y + (rect.h / 2);
+        const centerDistance = (Math.abs(centerX - (videoWidth / 2)) / videoWidth) + (Math.abs(centerY - (videoHeight / 2)) / videoHeight);
+        const focus = getFocusRect(videoWidth, videoHeight);
+        const insideFocus = rect.x >= focus.x - (focus.w * .12)
+            && rect.y >= focus.y - (focus.h * .12)
+            && rect.x + rect.w <= focus.x + focus.w + (focus.w * .12)
+            && rect.y + rect.h <= focus.y + focus.h + (focus.h * .12);
+
+        if(areaRatio < .20) return {ok:false, reason:'move_closer'};
+        if(areaRatio > .76) return {ok:false, reason:'move_back'};
+        if(aspect < 1.12 || aspect > 1.78) return {ok:false, reason:'align_card'};
+        if(centerDistance > .22 || !insideFocus) return {ok:false, reason:'center_card'};
+
+        return {ok:true, reason:'ready'};
+    }
+
+    function rectQuality(rect){
+        return cardLockStatus(rect).ok;
+    }
+
+    function lockMessage(reason){
+        if(reason === 'move_closer') return 'Move closer until the card fills the focus frame.';
+        if(reason === 'move_back') return 'Move back slightly so the full card is visible.';
+        if(reason === 'align_card') return 'Align the card vertically inside the frame.';
+        if(reason === 'center_card') return 'Center the card inside the focus frame.';
+        return 'Point the camera at the card and keep it inside the frame.';
     }
 
     function maybeAutoScan(){
         if(!autoScanEnabled || processingScan || Date.now() < scanCooldownUntil || suggestionsBox.hidden === false || modal.hidden === false) return;
-        if(!rectQuality(trackedRect)){
+        const lockStatus = cardLockStatus(trackedRect);
+        if(!lockStatus.ok){
             stableSince = null;
             lastStableRect = null;
-            if(stream && scanState !== 'camera_idle' && scanState !== 'processing') setScanState('object_waiting', 'Point the camera at the object and keep it inside the frame.');
+            lockedRect = null;
+            lockedSince = null;
+            if(stream && scanState !== 'camera_idle' && scanState !== 'processing') setScanState('object_waiting', lockMessage(lockStatus.reason));
             return;
         }
 
         const similarity = rectSimilarity(trackedRect, lastStableRect);
-        if(!stableSince || similarity < .84){
+        if(!stableSince || similarity < .92){
             stableSince = Date.now();
             lastStableRect = {...trackedRect};
-            setScanState('object_detected', 'Object detected. Hold still...');
+            lockedRect = null;
+            lockedSince = null;
+            setScanState('object_detected', 'Card detected. Hold still for focus lock...');
             return;
         }
 
         if(Date.now() - stableSince >= stableScanDelay){
+            lockedRect = {...trackedRect};
+            lockedSince = Date.now();
+            updateDetectedBox(lockedRect, false);
+            setScanState('object_locked', 'Card locked. Scanning...');
             runAutoScan();
         }
     }
 
     async function runAutoScan(){
         if(processingScan) return;
+        if(!lockedRect){
+            const lockStatus = cardLockStatus(trackedRect);
+            setScanState('object_waiting', lockStatus.ok ? 'Hold still until the card locks.' : lockMessage(lockStatus.reason));
+            return;
+        }
         processingScan = true;
         scanCooldownUntil = Date.now() + scanCooldownMs;
         captureBtn.disabled = true;
@@ -708,6 +746,8 @@
             captureBtn.disabled = false;
             stableSince = null;
             lastStableRect = null;
+            lockedRect = null;
+            lockedSince = null;
         }
     }
 
@@ -820,13 +860,14 @@
     }
 
     function detectedRectForCanvas(width, height){
-        if(!detectedRect || detectedRectIsEstimated) return null;
+        const sourceRect = lockedRect || detectedRect;
+        if(!sourceRect || detectedRectIsEstimated) return null;
 
         return {
-            x: Math.max(0, Math.round((detectedRect.x / (video.videoWidth || width)) * width)),
-            y: Math.max(0, Math.round((detectedRect.y / (video.videoHeight || height)) * height)),
-            w: Math.max(1, Math.round((detectedRect.w / (video.videoWidth || width)) * width)),
-            h: Math.max(1, Math.round((detectedRect.h / (video.videoHeight || height)) * height))
+            x: Math.max(0, Math.round((sourceRect.x / (video.videoWidth || width)) * width)),
+            y: Math.max(0, Math.round((sourceRect.y / (video.videoHeight || height)) * height)),
+            w: Math.max(1, Math.round((sourceRect.w / (video.videoWidth || width)) * width)),
+            h: Math.max(1, Math.round((sourceRect.h / (video.videoHeight || height)) * height))
         };
     }
 
@@ -923,7 +964,8 @@
         return sessionToken;
     }
 
-    startBtn.addEventListener('click', async () => {
+    async function startCamera(){
+        if(stream) return;
         try{
             stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
             video.srcObject = stream;
@@ -938,6 +980,10 @@
             }, {once:true});
             setScanState('object_waiting', 'Camera ready. Point at an object and hold still to scan automatically.');
         }catch(e){ setMessage('Could not open camera: ' + e.message); }
+    }
+
+    startBtn.addEventListener('click', async () => {
+        await startCamera();
     });
 
     if(torchBtn){
@@ -975,6 +1021,12 @@
             setScanState('object_waiting', 'Point at another object and hold still to scan again.');
         }
     });
+
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+        window.setTimeout(() => {
+            startCamera();
+        }, 350);
+    }
 })();
 </script>
 @endsection

@@ -5,15 +5,19 @@ namespace Modules\WebCatalogue\Http\Controllers\Recognition;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Modules\WebCatalogue\Models\BrandProspectLead;
 use Modules\WebCatalogue\Models\FingerprintRebuildLog;
 use Modules\WebCatalogue\Models\RecognitionScan;
+use Modules\WebCatalogue\Models\RecognitionScanCandidate;
 use Modules\WebCatalogue\Models\RecognitionScanTiming;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\ResourceFingerprint;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\UnmatchedProductLead;
+use Modules\WebCatalogue\Models\VisualRecognitionCapture;
+use Modules\WebCatalogue\Models\VisualRecognitionMatch;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
 
 class RecognitionDashboardController extends Controller
@@ -95,6 +99,22 @@ class RecognitionDashboardController extends Controller
     public function pipelineSummary(): JsonResponse
     {
         return response()->json($this->pipelineMetrics());
+    }
+
+    public function flushPipeline(): RedirectResponse
+    {
+        DB::transaction(function (): void {
+            RecognitionScanTiming::query()->delete();
+            RecognitionScanCandidate::query()->delete();
+            RecognitionScan::query()->delete();
+            VisualRecognitionMatch::query()->delete();
+            VisualRecognitionCapture::query()->delete();
+            VisualRecognitionSession::query()->delete();
+        });
+
+        return redirect()
+            ->route('webcatalogue.recognition.pipeline.index')
+            ->with('success', 'Recognition sessions and pipeline metrics were cleared.');
     }
 
     private function sessionGroupForStatus(string $status): string
