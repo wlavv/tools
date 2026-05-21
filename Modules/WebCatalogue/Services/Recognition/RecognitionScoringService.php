@@ -109,6 +109,7 @@ class RecognitionScoringService
     private function weightedScore(array $scores, float $fallbackScore): float
     {
         $weights = (array) config('webcatalogue.recognition.pipeline_v2.weights', []);
+        $scores = $this->normaliseWeakSignals($scores);
         $weighted = 0.0;
         $totalWeight = 0.0;
 
@@ -126,6 +127,19 @@ class RecognitionScoringService
         }
 
         return max(0, min(100, $weighted / $totalWeight));
+    }
+
+    private function normaliseWeakSignals(array $scores): array
+    {
+        if (($scores['orb'] ?? null) !== null && (float) $scores['orb'] < 18) {
+            $scores['orb'] = null;
+        }
+
+        if (($scores['color'] ?? null) !== null && (float) $scores['color'] < 35) {
+            $scores['color'] = null;
+        }
+
+        return $scores;
     }
 
     private function decision(array $quality, ?array $top, ?array $second): array
