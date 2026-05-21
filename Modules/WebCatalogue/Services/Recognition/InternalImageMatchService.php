@@ -171,7 +171,9 @@ class InternalImageMatchService
         $this->setInternalCounter('candidates_after_hash', (int) ($candidateStats['fingerprinted_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_after_orb', (int) ($candidateStats['marker_augmented_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_scored', count($preselected));
-        $markerBatchScores = $markerOnly ? $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($preselected, $captureMarkers)) : [];
+        $markerBatchScores = !empty($captureMarkers)
+            ? $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($preselected, $captureMarkers))
+            : [];
 
         $scoresByProduct = [];
 
@@ -220,7 +222,10 @@ class InternalImageMatchService
             $scoreSet['capture_id'] = $scoreCapture?->id;
             $scoreSet['multi_frame_count'] = $markerOnly ? count($captureMarkers) : count($captureProfiles);
             if (!$markerOnly) {
-                $scoreSet = $this->measureInternal('orb_time_ms', fn () => $this->applyMarkerScore($scoreSet, $captureMarkers, $resource));
+                $batchScore = $markerBatchScores[(int) $resource->id] ?? null;
+                $scoreSet = $batchScore
+                    ? $this->applyMarkerBatchScore($scoreSet, $batchScore)
+                    : $this->applyMissingMarkerScore($scoreSet, empty($captureMarkers) ? 'missing_capture_markers' : 'missing_resource_markers');
             }
             $scoreSet = $this->applyCaptureScoreBoost($scoreSet, $scoreCapture);
             $productId = (int) $resource->id_product;
@@ -2077,6 +2082,31 @@ class InternalImageMatchService
         }
 
         return $bestByResource;
+    }
+
+    private function applyMarkerBatchScore(array $scoreSet, array $batchScore): array
+    {
+        return $this->orbComparator->boostResult(
+            $scoreSet,
+            [
+                'score' => $batchScore['marker_score'] ?? 0,
+                'matches' => $batchScore['matches'] ?? 0,
+                'good_matches' => $batchScore['good_matches'] ?? 0,
+                'inlier_ratio' => $batchScore['inlier_ratio'] ?? 0,
+                'capture_id' => $batchScore['capture']?->id,
+            ],
+            false,
+            $this->markerScoringMode(),
+            (int) ($batchScore['resource_marker_id'] ?? 0)
+        );
+    }
+
+    private function applyMissingMarkerScore(array $scoreSet, string $status): array
+    {
+        $scoreSet['marker_applied'] = false;
+        $scoreSet['marker_status'] = $status;
+
+        return $scoreSet;
     }
 
     private function markerOnlyScoreSetFromBatch(array $batchScore, array $candidateResource): array
