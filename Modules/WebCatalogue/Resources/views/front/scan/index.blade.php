@@ -135,7 +135,7 @@
     let processingScan = false;
     let scanCooldownUntil = 0;
     const autoScanEnabled = true;
-    const stableScanDelay = 1650;
+    const stableScanDelay = 850;
     const scanCooldownMs = 4200;
 
     function setMessage(text){ msg.textContent = text || ''; }
@@ -690,7 +690,7 @@
         }
 
         const similarity = rectSimilarity(trackedRect, lastStableRect);
-        if(!stableSince || similarity < .92){
+        if(!stableSince || similarity < .88){
             stableSince = Date.now();
             lastStableRect = {...trackedRect};
             lockedRect = null;

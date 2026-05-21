@@ -61,10 +61,10 @@ return [
         'structured_regions_enabled' => env('WEBCATALOGUE_RECOGNITION_STRUCTURED_REGIONS_ENABLED', false),
         'store_structured_regions' => env('WEBCATALOGUE_RECOGNITION_STORE_STRUCTURED_REGIONS', false),
         'embedding_precision' => env('WEBCATALOGUE_RECOGNITION_EMBEDDING_PRECISION', 4),
-        'short_hash_top_candidates' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_TOP', 20),
+        'short_hash_top_candidates' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_TOP', 16),
         'verification_pool' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_ENABLED', true),
-            'size' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_SIZE', 120),
+            'size' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_SIZE', 70),
         ],
         'visual_markers' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_MARKERS_ENABLED', true),
@@ -75,10 +75,10 @@ return [
             'score_weight' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORE_WEIGHT', 0.35),
             'scoring_mode' => env('WEBCATALOGUE_RECOGNITION_MARKERS_SCORING_MODE', 'boost'),
             'min_score_for_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MIN_SCORE_FOR_BOOST', 8),
-            'candidate_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_TOP', 30),
+            'candidate_top' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_TOP', 24),
             // In markers_only mode, set this to 0 to compare every stored marker candidate.
-            'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 60),
-            'batch_size' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BATCH_SIZE', 120),
+            'candidate_pool' => env('WEBCATALOGUE_RECOGNITION_MARKERS_CANDIDATE_POOL', 42),
+            'batch_size' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BATCH_SIZE', 180),
             'boost_per_good_match' => env('WEBCATALOGUE_RECOGNITION_MARKERS_BOOST_PER_GOOD_MATCH', 0.18),
             'max_boost' => env('WEBCATALOGUE_RECOGNITION_MARKERS_MAX_BOOST', 8),
             'strong_min_score' => env('WEBCATALOGUE_RECOGNITION_MARKERS_STRONG_MIN_SCORE', 18),
@@ -110,7 +110,7 @@ return [
             'edge' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_EDGE', 0.20),
             'color' => (float) env('WEBCATALOGUE_RECOGNITION_WEIGHT_COLOR', 0.15),
         ],
-        'max_scored_candidates' => env('WEBCATALOGUE_RECOGNITION_MAX_SCORED_CANDIDATES', 160),
+        'max_scored_candidates' => env('WEBCATALOGUE_RECOGNITION_MAX_SCORED_CANDIDATES', 90),
         'pipeline_v2' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_PIPELINE_V2_ENABLED', true),
             'debug' => env('WEBCATALOGUE_RECOGNITION_PIPELINE_V2_DEBUG', false),

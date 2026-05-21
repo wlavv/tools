@@ -168,6 +168,10 @@ class InternalImageMatchService
         $candidateSet = $this->measureInternal('hash_search_time_ms', fn () => $this->candidates->retrieve($candidateResources, $captureProfiles, $captureMarkers, $store));
         $preselected = $candidateSet['candidates'] ?? [];
         $candidateStats = $candidateSet['stats'] ?? [];
+        $maxScoredCandidates = max(10, (int) config('webcatalogue.recognition.max_scored_candidates', 90));
+        if (count($preselected) > $maxScoredCandidates) {
+            $preselected = array_slice($preselected, 0, $maxScoredCandidates);
+        }
         $this->setInternalCounter('candidates_after_hash', (int) ($candidateStats['fingerprinted_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_after_orb', (int) ($candidateStats['marker_augmented_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_scored', count($preselected));
