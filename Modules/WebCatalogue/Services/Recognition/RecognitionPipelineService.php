@@ -94,6 +94,10 @@ class RecognitionPipelineService
             'marker_augmented_candidates' => $internalCounters['marker_augmented_candidates'] ?? $metadata['marker_augmented_candidates'] ?? null,
             'after_ocr' => $internalCounters['server_identifiers_detected'] ?? $metadata['identifier_candidate_count'] ?? null,
             'scored_candidates' => $internalCounters['scored_candidates'] ?? count($scoring['candidates'] ?? []),
+            'after_hash_stage' => $internalCounters['after_hash_stage'] ?? null,
+            'after_marker_stage' => $internalCounters['after_marker_stage'] ?? null,
+            'after_verification_stage' => $internalCounters['after_verification_stage'] ?? null,
+            'after_final_stage' => $internalCounters['after_final_stage'] ?? null,
             'debug_top_count' => $metadata['debug_top_count'] ?? count($legacyResult['debug_matches'] ?? []),
             'recognition_algorithm' => $metadata['recognition_algorithm'] ?? null,
         ];

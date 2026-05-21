@@ -175,6 +175,11 @@ class InternalImageMatchService
         $this->setInternalCounter('candidates_after_hash', (int) ($candidateStats['fingerprinted_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_after_orb', (int) ($candidateStats['marker_augmented_candidates'] ?? count($preselected)));
         $this->setInternalCounter('candidates_scored', count($preselected));
+        foreach (['after_hash_stage', 'after_marker_stage', 'after_verification_stage', 'after_final_stage'] as $counterKey) {
+            if (isset($candidateStats[$counterKey])) {
+                $this->setInternalCounter($counterKey, (int) $candidateStats[$counterKey]);
+            }
+        }
         $markerBatchScores = !empty($captureMarkers)
             ? $this->measureInternal('orb_time_ms', fn () => $this->markerOnlyBatchScores($preselected, $captureMarkers))
             : [];

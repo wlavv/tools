@@ -168,7 +168,7 @@ class RecognitionScoringService
             return ['status' => 'accepted', 'reason' => 'conditional_score_with_safe_margin'];
         }
 
-        if ($score >= (float) config('webcatalogue.recognition.pipeline_v2.decision.ambiguous_min', 65)) {
+        if ($score >= (float) config('webcatalogue.recognition.pipeline_v2.decision.ambiguous_min', 40)) {
             return ['status' => 'ambiguous', 'reason' => 'score_requires_confirmation'];
         }
 

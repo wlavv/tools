@@ -62,6 +62,12 @@ return [
         'store_structured_regions' => env('WEBCATALOGUE_RECOGNITION_STORE_STRUCTURED_REGIONS', false),
         'embedding_precision' => env('WEBCATALOGUE_RECOGNITION_EMBEDDING_PRECISION', 4),
         'short_hash_top_candidates' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_TOP', 16),
+        'candidate_pipeline' => [
+            'hash_stage_limit' => env('WEBCATALOGUE_RECOGNITION_HASH_STAGE_LIMIT', 36),
+            'marker_stage_limit' => env('WEBCATALOGUE_RECOGNITION_MARKER_STAGE_LIMIT', 36),
+            'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 42),
+            'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 54),
+        ],
         'verification_pool' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_ENABLED', true),
             'size' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_SIZE', 70),
@@ -140,7 +146,7 @@ return [
                 'conditional_accept_min' => (float) env('WEBCATALOGUE_RECOGNITION_V2_CONDITIONAL_ACCEPT_MIN', 80),
                 'conditional_accept_max' => (float) env('WEBCATALOGUE_RECOGNITION_V2_CONDITIONAL_ACCEPT_MAX', 89.999),
                 'conditional_accept_margin' => (float) env('WEBCATALOGUE_RECOGNITION_V2_CONDITIONAL_ACCEPT_MARGIN', 10),
-                'ambiguous_min' => (float) env('WEBCATALOGUE_RECOGNITION_V2_AMBIGUOUS_MIN', 65),
+                'ambiguous_min' => (float) env('WEBCATALOGUE_RECOGNITION_V2_AMBIGUOUS_MIN', 40),
                 'ambiguous_margin' => (float) env('WEBCATALOGUE_RECOGNITION_V2_AMBIGUOUS_MARGIN', 8),
             ],
             'performance_targets' => [

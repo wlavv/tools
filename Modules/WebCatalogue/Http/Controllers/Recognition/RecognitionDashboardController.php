@@ -185,7 +185,7 @@ class RecognitionDashboardController extends Controller
                 ->groupBy('recognition_profile')
                 ->orderByDesc('total')
                 ->get(),
-            'recentScans' => RecognitionScan::with(['topProduct', 'timings'])
+            'recentScans' => RecognitionScan::with(['topProduct', 'timings', 'candidates.product'])
                 ->latest('id')
                 ->limit(20)
                 ->get(),

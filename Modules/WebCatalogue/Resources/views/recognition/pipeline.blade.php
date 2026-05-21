@@ -61,20 +61,38 @@
             <div class="wc-section-head"><div><h3>Recent scans</h3><p class="wc-muted">Last pipeline executions with score, quality and latency.</p></div></div>
             <div class="wc-table-wrap">
                 <table class="wc-table">
-                    <thead><tr><th>Scan</th><th>Status</th><th>Product</th><th>Quality</th><th>Score</th><th>Latency</th><th>Reason</th></tr></thead>
+                    <thead><tr><th>Scan</th><th>Status</th><th>Product</th><th>Top 3</th><th>Quality</th><th>Score</th><th>Latency</th><th>Reason</th></tr></thead>
                     <tbody>
                     @forelse($recentScans as $scan)
+                        @php($topCandidates = $scan->candidates->sortBy('rank')->take(3)->values())
                         <tr>
                             <td><code>{{ \Illuminate\Support\Str::limit($scan->scan_uuid, 8, '') }}</code></td>
                             <td><span class="wc-badge wc-status-{{ $scan->status }}">{{ $scan->status }}</span></td>
                             <td>{{ $scan->topProduct?->name ?? '—' }}</td>
+                            <td>
+                                @forelse($topCandidates as $candidate)
+                                    @php($scores = $candidate->scores ?: [])
+                                    <div style="margin-bottom:5px">
+                                        <strong>#{{ $candidate->rank }} {{ $candidate->product?->name ?? 'Product #'.$candidate->id_product }}</strong>
+                                        <span class="wc-muted">{{ round((float) $candidate->score_final, 1) }}</span>
+                                        <small class="wc-muted">
+                                            p {{ isset($scores['phash']) ? round((float) $scores['phash'], 0) : '—' }}
+                                            · e {{ isset($scores['ahash_dhash']) ? round((float) $scores['ahash_dhash'], 0) : '—' }}
+                                            · c {{ isset($scores['color']) ? round((float) $scores['color'], 0) : '—' }}
+                                            · orb {{ isset($scores['orb']) ? round((float) $scores['orb'], 0) : '—' }}
+                                        </small>
+                                    </div>
+                                @empty
+                                    —
+                                @endforelse
+                            </td>
                             <td>{{ $scan->quality_score === null ? '—' : round($scan->quality_score, 1) }}</td>
                             <td>{{ $scan->score_final === null ? '—' : round($scan->score_final, 1) }}</td>
                             <td>{{ $scan->timings?->total_processing_time_ms ?? '—' }}ms</td>
                             <td>{{ $scan->decision_reason }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="7"><div class="wc-list-empty"><i class="fa-solid fa-chart-line"></i><div><strong>No pipeline scans yet.</strong></div></div></td></tr>
+                        <tr><td colspan="8"><div class="wc-list-empty"><i class="fa-solid fa-chart-line"></i><div><strong>No pipeline scans yet.</strong></div></div></td></tr>
                     @endforelse
                     </tbody>
                 </table>

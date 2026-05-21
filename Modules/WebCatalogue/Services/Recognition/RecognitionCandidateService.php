@@ -52,11 +52,17 @@ class RecognitionCandidateService
         }
 
         $fingerprintedCount = count($preselected);
+        $preselected = $this->rankAndLimit($preselected, (int) config('webcatalogue.recognition.candidate_pipeline.hash_stage_limit', 36));
+        $afterHashStage = count($preselected);
         $preselected = $this->mergeMarkerCandidates($preselected, $captureMarkers, $store);
+        $preselected = $this->rankAndLimit($preselected, (int) config('webcatalogue.recognition.candidate_pipeline.marker_stage_limit', 36));
+        $afterMarkerStage = count($preselected);
         $beforeVerificationPool = count($preselected);
         $preselected = $markerOnly
             ? $preselected
             : $this->mergeVerificationPool($preselected, $resourcesById, $captureProfiles, $captureShortHashes);
+        $preselected = $this->rankAndLimit($preselected, (int) config('webcatalogue.recognition.candidate_pipeline.verification_stage_limit', 42));
+        $afterVerificationStage = count($preselected);
         $verificationAdded = max(0, count($preselected) - $beforeVerificationPool);
 
         $shortHashLimit = (int) config('webcatalogue.recognition.short_hash_top_candidates', 50);
@@ -67,20 +73,18 @@ class RecognitionCandidateService
             ? count($preselected)
             : max($shortHashLimit, $markerCandidateTop, $verificationPoolSize);
 
-        usort($preselected, function ($a, $b) {
-            $aRank = min((float) ($a['short_distance'] ?? 999), (float) ($a['marker_hash_distance'] ?? 999), (float) ($a['verification_distance'] ?? 999));
-            $bRank = min((float) ($b['short_distance'] ?? 999), (float) ($b['marker_hash_distance'] ?? 999), (float) ($b['verification_distance'] ?? 999));
-
-            return $aRank <=> $bRank;
-        });
-
-        $limited = array_slice($preselected, 0, $limit);
+        $finalLimit = min($limit, (int) config('webcatalogue.recognition.candidate_pipeline.final_stage_limit', 54));
+        $limited = $this->rankAndLimit($preselected, $finalLimit);
 
         return [
             'candidates' => $limited,
             'stats' => [
                 'candidate_resources' => $candidateCount,
                 'fingerprinted_candidates' => $fingerprintedCount,
+                'after_hash_stage' => $afterHashStage,
+                'after_marker_stage' => $afterMarkerStage,
+                'after_verification_stage' => $afterVerificationStage,
+                'after_final_stage' => count($limited),
                 'marker_augmented_candidates' => count($preselected),
                 'verification_pool_added_candidates' => $verificationAdded,
                 'verification_pool_enabled' => !$markerOnly && (bool) config('webcatalogue.recognition.verification_pool.enabled', true),
@@ -88,6 +92,7 @@ class RecognitionCandidateService
                 'marker_scoring_mode' => $this->markerScoringMode(),
                 'missing_fingerprint_candidates' => max(0, $candidateCount - $fingerprintedCount),
                 'scored_candidates' => count($limited),
+                'final_stage_limit' => $finalLimit,
                 'short_hash_top_candidates' => $shortHashLimit,
                 'marker_candidate_top' => $markerCandidateTop,
                 'marker_candidate_pool' => $markerCandidatePool,
@@ -110,6 +115,44 @@ class RecognitionCandidateService
         }
 
         return $indexed;
+    }
+
+    private function rankAndLimit(array $candidates, int $limit): array
+    {
+        if (empty($candidates)) {
+            return [];
+        }
+
+        usort($candidates, function ($a, $b) {
+            $aRank = $this->candidateRankValue($a);
+            $bRank = $this->candidateRankValue($b);
+
+            if ($aRank === $bRank) {
+                return ((float) ($b['verification_score'] ?? 0)) <=> ((float) ($a['verification_score'] ?? 0));
+            }
+
+            return $aRank <=> $bRank;
+        });
+
+        return array_slice($candidates, 0, max(1, $limit));
+    }
+
+    private function candidateRankValue(array $candidate): float
+    {
+        $short = $candidate['short_distance'] ?? null;
+        $marker = $candidate['marker_hash_distance'] ?? null;
+        $verification = $candidate['verification_distance'] ?? null;
+
+        $best = min(
+            is_numeric($short) ? (float) $short : 999,
+            is_numeric($marker) ? ((float) $marker * 0.85) : 999,
+            is_numeric($verification) ? ((float) $verification * 0.65) : 999
+        );
+
+        $sources = $candidate['candidate_sources'] ?? [];
+        $sourceBonus = (count(array_unique($sources)) - 1) * 2.0;
+
+        return max(0, $best - $sourceBonus);
     }
 
     private function existingFingerprintsForResources(array $resourcesById, array $shortHashPrefixes = [], array $aspectBuckets = [])
