@@ -122,11 +122,11 @@ class RecognitionScoringService
             $totalWeight += (float) $weight;
         }
 
-        if ($totalWeight <= 0) {
-            return max(0, min(100, $fallbackScore));
-        }
+        $baseScore = $totalWeight <= 0
+            ? max(0, min(100, $fallbackScore))
+            : max(0, min(100, $weighted / $totalWeight));
 
-        return max(0, min(100, $weighted / $totalWeight));
+        return max(0, min(100, $baseScore + $this->consensusBoost($scores)));
     }
 
     private function normaliseWeakSignals(array $scores): array
@@ -140,6 +140,49 @@ class RecognitionScoringService
         }
 
         return $scores;
+    }
+
+    private function consensusBoost(array $scores): float
+    {
+        $phash = $scores['phash'] ?? null;
+        $edge = $scores['ahash_dhash'] ?? null;
+        $color = $scores['color'] ?? null;
+        $orb = $scores['orb'] ?? null;
+        $boost = 0.0;
+
+        if ($phash !== null && (float) $phash >= 85) {
+            $boost += 4.0;
+        }
+
+        if ($edge !== null && (float) $edge >= 70) {
+            $boost += 3.0;
+        }
+
+        if ($color !== null && (float) $color >= 55) {
+            $boost += 2.0;
+        }
+
+        if ($orb !== null && (float) $orb >= 25) {
+            $boost += 4.0;
+        }
+
+        if ($orb !== null && (float) $orb >= 35) {
+            $boost += 2.0;
+        }
+
+        if ($phash !== null && $edge !== null && (float) $phash >= 80 && (float) $edge >= 70) {
+            $boost += 4.0;
+        }
+
+        if ($phash !== null && $edge !== null && $color !== null && (float) $phash >= 75 && (float) $edge >= 65 && (float) $color >= 55) {
+            $boost += 3.0;
+        }
+
+        if (($phash === null || (float) $phash < 68) && ($edge === null || (float) $edge < 58)) {
+            $boost -= 3.0;
+        }
+
+        return max(-5.0, min(18.0, $boost));
     }
 
     private function decision(array $quality, ?array $top, ?array $second): array

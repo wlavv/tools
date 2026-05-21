@@ -65,6 +65,7 @@
                     <tbody>
                     @forelse($recentScans as $scan)
                         @php($topCandidates = $scan->candidates->sortBy('rank')->take(3)->values())
+                        @php($scoreMargin = $topCandidates->count() > 1 ? round(((float) $topCandidates[0]->score_final) - ((float) $topCandidates[1]->score_final), 1) : null)
                         <tr>
                             <td><code>{{ \Illuminate\Support\Str::limit($scan->scan_uuid, 8, '') }}</code></td>
                             <td><span class="wc-badge wc-status-{{ $scan->status }}">{{ $scan->status }}</span></td>
@@ -87,7 +88,12 @@
                                 @endforelse
                             </td>
                             <td>{{ $scan->quality_score === null ? '—' : round($scan->quality_score, 1) }}</td>
-                            <td>{{ $scan->score_final === null ? '—' : round($scan->score_final, 1) }}</td>
+                            <td>
+                                {{ $scan->score_final === null ? '—' : round($scan->score_final, 1) }}
+                                @if($scoreMargin !== null)
+                                    <div class="wc-muted">Δ {{ $scoreMargin }}</div>
+                                @endif
+                            </td>
                             <td>{{ $scan->timings?->total_processing_time_ms ?? '—' }}ms</td>
                             <td>{{ $scan->decision_reason }}</td>
                         </tr>
