@@ -17,6 +17,24 @@ class WebCatalogueRecognitionSessionTest extends TestCase
 {
     use DatabaseTransactions;
 
+    public function test_front_scan_session_accepts_browser_user_agent_as_device_type(): void
+    {
+        Config::set('app.url', 'http://localhost');
+
+        $store = Store::create(['name' => 'Public Scan Store', 'slug' => 'public-scan-store', 'status' => 'active']);
+        $longUserAgent = str_repeat('Mozilla/5.0 Mobile Safari Recognition Test ', 8);
+
+        $response = $this->postJson('http://localhost/catalogue/' . $store->slug . '/scan/session', [
+            'device_type' => $longUserAgent,
+        ]);
+
+        $response->assertOk()->assertJson(['ok' => true]);
+
+        $session = VisualRecognitionSession::where('session_token', $response->json('session_token'))->first();
+        $this->assertNotNull($session);
+        $this->assertSame('mobile', $session->device_type);
+    }
+
     public function test_manual_match_updates_session_and_creates_confirmed_match(): void
     {
         Config::set('app.url', 'http://localhost');

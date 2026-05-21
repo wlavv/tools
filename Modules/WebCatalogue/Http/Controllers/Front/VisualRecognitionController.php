@@ -42,14 +42,14 @@ class VisualRecognitionController extends Controller
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
         $validated = $request->validate([
-            'device_type' => ['nullable', 'string', 'max:60'],
+            'device_type' => ['nullable', 'string', 'max:500'],
             'expected_product_id' => ['nullable', 'integer'],
             'expected_card_id' => ['nullable', 'string', 'max:120'],
             'scenario_label' => ['nullable', 'string', 'max:80'],
         ]);
 
         $session = $service->createSession($store, [
-            'device_type' => $validated['device_type'] ?? null,
+            'device_type' => $this->cleanDeviceType($validated['device_type'] ?? null),
             'user_agent' => $request->userAgent(),
             'ip_address' => $request->ip(),
             'ground_truth' => $this->groundTruthPayload($validated),
@@ -65,14 +65,14 @@ class VisualRecognitionController extends Controller
     public function globalSession(Request $request, VisualRecognitionService $service): JsonResponse
     {
         $validated = $request->validate([
-            'device_type' => ['nullable', 'string', 'max:60'],
+            'device_type' => ['nullable', 'string', 'max:500'],
             'expected_product_id' => ['nullable', 'integer'],
             'expected_card_id' => ['nullable', 'string', 'max:120'],
             'scenario_label' => ['nullable', 'string', 'max:80'],
         ]);
 
         $session = $service->createSession(null, [
-            'device_type' => $validated['device_type'] ?? null,
+            'device_type' => $this->cleanDeviceType($validated['device_type'] ?? null),
             'user_agent' => $request->userAgent(),
             'ip_address' => $request->ip(),
             'ground_truth' => $this->groundTruthPayload($validated),
@@ -524,5 +524,23 @@ class VisualRecognitionController extends Controller
             'expected_card_id' => $validated['expected_card_id'] ?? null,
             'scenario_label' => $validated['scenario_label'] ?? null,
         ];
+    }
+
+    private function cleanDeviceType(?string $deviceType): ?string
+    {
+        $deviceType = trim((string) $deviceType);
+        if ($deviceType === '') {
+            return null;
+        }
+
+        if (str_contains(strtolower($deviceType), 'mobile')) {
+            return 'mobile';
+        }
+
+        if (str_contains(strtolower($deviceType), 'tablet')) {
+            return 'tablet';
+        }
+
+        return mb_substr($deviceType, 0, 60);
     }
 }
