@@ -233,6 +233,21 @@ return [
         'parent' => 'webcatalogue.index',
         'translate' => false,
     ],
+    'webcatalogue.recognition.pipeline.index' => [
+        'label' => 'Pipeline v2',
+        'parent' => 'webcatalogue.recognition.index',
+        'translate' => false,
+    ],
+    'webcatalogue.recognition.pipeline.summary' => [
+        'label' => 'Pipeline JSON',
+        'parent' => 'webcatalogue.recognition.pipeline.index',
+        'translate' => false,
+    ],
+    'webcatalogue.recognition.pipeline.export_csv' => [
+        'label' => 'Export CSV',
+        'parent' => 'webcatalogue.recognition.pipeline.index',
+        'translate' => false,
+    ],
     'webcatalogue.recognition.sessions.index' => [
         'label' => 'Sessions',
         'parent' => 'webcatalogue.recognition.index',

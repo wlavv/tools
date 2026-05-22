@@ -2,6 +2,10 @@
 
 @section('content')
 @include('webcatalogue::Includes.css')
+@php
+    $webcataloguePrefix = trim((string) config('webcatalogue.route_prefix', 'webcatalogue'), '/');
+    $recognitionPipelineBaseUrl = url($webcataloguePrefix . '/recognition/pipeline');
+@endphp
 <div class="webcatalogue-shell">
     @if(session('success'))<div class="wc-alert">{{ session('success') }}</div>@endif
 
@@ -13,8 +17,8 @@
         </div>
         <div class="wc-hero-actions">
             <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.index') }}"><i class="fa-solid fa-arrow-left"></i> Recognition</a>
-            <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.pipeline.summary') }}"><i class="fa-solid fa-code"></i> JSON</a>
-            <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.pipeline.export_csv') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a class="wc-primary-btn" href="{{ $recognitionPipelineBaseUrl }}/summary"><i class="fa-solid fa-code"></i> JSON</a>
+            <a class="wc-secondary-btn" href="{{ $recognitionPipelineBaseUrl }}/export.csv"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
             <form method="POST" action="{{ route('webcatalogue.recognition.pipeline.flush') }}" onsubmit="return confirm('Clear all recognition sessions, captures, matches and pipeline metrics?');">
                 @csrf
                 <button type="submit" class="wc-secondary-btn"><i class="fa-solid fa-trash-can"></i> Flush stats</button>

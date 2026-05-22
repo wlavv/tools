@@ -68,6 +68,10 @@ return [
     'webcatalogue.imports.preview' => 'Import Preview',
 
     'webcatalogue.recognition.index' => 'Visual Recognition',
+    'webcatalogue.recognition.pipeline.index' => 'Recognition Pipeline',
+    'webcatalogue.recognition.pipeline.summary' => 'Recognition Pipeline JSON',
+    'webcatalogue.recognition.pipeline.export_csv' => 'Export Recognition Pipeline CSV',
+    'webcatalogue.recognition.pipeline.flush' => 'Flush Recognition Pipeline Metrics',
     'webcatalogue.recognition.sessions.index' => 'Recognition Sessions',
     'webcatalogue.recognition.sessions.show' => 'Recognition Session Details',
     'webcatalogue.recognition.leads.index' => 'Unmatched Product Leads',
