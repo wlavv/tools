@@ -79,6 +79,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const cardGroup = new THREE.Group();
     const cardDisplayPosition = new THREE.Vector3(0, 0, 0);
     const cardArPosition = new THREE.Vector3(0, -0.05, -1.15);
+    const cardVrPosition = new THREE.Vector3(0, 1.45, -2.1);
     const faceGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
     const front = new THREE.Mesh(faceGeometry, frontMaterial);
     front.position.z = faceOffset;
@@ -119,6 +120,9 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const rim = new THREE.DirectionalLight(0x9bdcff, 1.4);
     rim.position.set(-4, 2, -3);
     scene.add(rim);
+    const environmentGroup = createMirrodinEnvironment(width, height);
+    environmentGroup.visible = false;
+    scene.add(environmentGroup);
 
     const resize = () => {
         const rect = mount.getBoundingClientRect();
@@ -132,21 +136,35 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const arButton = document.createElement('button');
     arButton.type = 'button';
     arButton.className = 'wc-procedural-ar-btn';
-    arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+    arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> Open immersive';
     arButton.hidden = true;
     mount.appendChild(arButton);
 
     const arNote = document.createElement('div');
     arNote.className = 'wc-procedural-ar-note';
-    arNote.textContent = 'AR available on compatible WebXR browsers.';
+    arNote.textContent = 'VR/AR available on compatible WebXR browsers.';
     arNote.hidden = true;
     mount.appendChild(arNote);
 
     let xrSession = null;
+    let xrMode = null;
     if ('xr' in navigator) {
-        navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
-            arButton.hidden = !supported;
-            arNote.hidden = supported;
+        Promise.all([
+            navigator.xr.isSessionSupported('immersive-ar').catch(() => false),
+            navigator.xr.isSessionSupported('immersive-vr').catch(() => false)
+        ]).then(([arSupported, vrSupported]) => {
+            if (arSupported || vrSupported) {
+                arButton.hidden = false;
+                arButton.dataset.xrMode = arSupported ? 'immersive-ar' : 'immersive-vr';
+                arButton.innerHTML = arSupported
+                    ? '<i class="fa-solid fa-vr-cardboard"></i> View in AR'
+                    : '<i class="fa-solid fa-vr-cardboard"></i> Open in VR';
+                arNote.hidden = true;
+            } else {
+                arButton.hidden = true;
+                arNote.textContent = 'VR/AR is not available on this browser.';
+                arNote.hidden = false;
+            }
         }).catch(() => {
             arButton.hidden = true;
             arNote.hidden = false;
@@ -162,31 +180,40 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         }
 
         try {
-            xrSession = await navigator.xr.requestSession('immersive-ar', {
+            xrMode = arButton.dataset.xrMode || 'immersive-vr';
+            xrSession = await navigator.xr.requestSession(xrMode, {
                 optionalFeatures: ['local-floor', 'dom-overlay'],
                 domOverlay: {root: document.body}
             });
             renderer.xr.setSession(xrSession);
+            mount.classList.add('is-xr-active');
             controls.enabled = false;
             controls.autoRotate = false;
-            cardGroup.position.copy(cardArPosition);
+            cardGroup.position.copy(xrMode === 'immersive-ar' ? cardArPosition : cardVrPosition);
             cardGroup.rotation.set(0, 0, 0);
-            cardGroup.scale.setScalar(0.22);
-            scene.background = null;
+            cardGroup.scale.setScalar(xrMode === 'immersive-ar' ? 0.22 : 0.28);
+            environmentGroup.visible = xrMode === 'immersive-vr';
+            scene.background = xrMode === 'immersive-vr' ? new THREE.Color(0x080a10) : null;
             arButton.classList.add('is-exit');
-            arButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit AR';
+            arButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit';
             xrSession.addEventListener('end', () => {
                 xrSession = null;
+                xrMode = null;
+                mount.classList.remove('is-xr-active');
                 controls.enabled = true;
                 controls.autoRotate = true;
                 cardGroup.position.copy(cardDisplayPosition);
                 cardGroup.rotation.set(0, 0, 0);
                 cardGroup.scale.setScalar(1);
+                environmentGroup.visible = false;
+                scene.background = null;
                 arButton.classList.remove('is-exit');
-                arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+                arButton.innerHTML = arButton.dataset.xrMode === 'immersive-ar'
+                    ? '<i class="fa-solid fa-vr-cardboard"></i> View in AR'
+                    : '<i class="fa-solid fa-vr-cardboard"></i> Open in VR';
             });
         } catch (error) {
-            arNote.textContent = 'AR could not start on this device/browser.';
+            arNote.textContent = 'VR/AR could not start on this device/browser.';
             arNote.hidden = false;
         }
     });
@@ -277,6 +304,43 @@ function loadMaterialTexture(loader, url, material){
         material.map = texture;
         material.needsUpdate = true;
     });
+}
+
+function createMirrodinEnvironment(cardWidth, cardHeight){
+    const group = new THREE.Group();
+    const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(5.5, 96),
+        new THREE.MeshStandardMaterial({color: 0x151a20, roughness: 0.72, metalness: 0.25})
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0.55;
+    group.add(floor);
+
+    const ringMaterial = new THREE.MeshBasicMaterial({color: 0x62b6ff, transparent: true, opacity: 0.18, side: THREE.DoubleSide});
+    for (let i = 0; i < 4; i++) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(1.35 + i * 0.72, 0.008, 8, 96), ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 0.57;
+        group.add(ring);
+    }
+
+    const pillarMaterial = new THREE.MeshStandardMaterial({color: 0x2f2719, roughness: 0.58, metalness: 0.5});
+    for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.8, 0.16), pillarMaterial);
+        pillar.position.set(Math.cos(angle) * 3.8, 1.35, Math.sin(angle) * 3.8 - 1.2);
+        pillar.rotation.y = -angle;
+        group.add(pillar);
+    }
+
+    const backGlow = new THREE.Mesh(
+        new THREE.PlaneGeometry(cardWidth * 1.35, cardHeight * 1.18),
+        new THREE.MeshBasicMaterial({color: 0x62b6ff, transparent: true, opacity: 0.08, side: THREE.DoubleSide})
+    );
+    backGlow.position.set(0, 1.45, -2.18);
+    group.add(backGlow);
+
+    return group;
 }
 
 function roundedCanvasPath(ctx, x, y, width, height, radius){
