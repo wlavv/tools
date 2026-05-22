@@ -1149,9 +1149,7 @@ class InternalImageMatchService
             return true;
         }
 
-        $regions = $profile['structured_regions'] ?? [];
-
-        return is_array($regions) && count(array_filter($regions)) >= 2;
+        return $this->hasUsableStructuredRegions($profile['structured_regions'] ?? []);
     }
 
     private function operationalFingerprintProfile(array $profile): array
@@ -1163,6 +1161,31 @@ class InternalImageMatchService
             'source_height' => $profile['source_height'] ?? null,
             'object_aspect_ratio' => $profile['object_aspect_ratio'] ?? null,
         ];
+    }
+
+    private function hasUsableStructuredRegions(mixed $regions): bool
+    {
+        if (!is_array($regions)) {
+            return false;
+        }
+
+        $usable = 0;
+        foreach (['name', 'art', 'text', 'footer'] as $region) {
+            $profile = $regions[$region] ?? null;
+            if (
+                is_array($profile)
+                && (
+                    filled($profile['phash'] ?? null)
+                    || filled($profile['edge_hash'] ?? null)
+                    || !empty($profile['color_histogram'] ?? [])
+                    || !empty($profile['embedding'] ?? [])
+                )
+            ) {
+                $usable++;
+            }
+        }
+
+        return $usable >= 2;
     }
 
     private function shortHashPrefix(?string $shortHash): ?string
