@@ -1291,7 +1291,10 @@ class InternalImageMatchService
             'center' => $this->profileVariantFromBox($image, $this->centerCropBox($sourceWidth, $sourceHeight), 96),
             'full' => $this->profileVariantFromBox($image, [0, 0, $sourceWidth, $sourceHeight], 96),
         ];
-        $regions = (bool) config('webcatalogue.recognition.store_structured_regions', false)
+        $regions = (
+                (bool) config('webcatalogue.recognition.store_structured_regions', false)
+                || (bool) config('webcatalogue.recognition.structured_regions_enabled', true)
+            )
             ? $this->structuredRegionProfiles($image, $objectBox, 96)
             : [];
         $variants = array_filter($variants);
