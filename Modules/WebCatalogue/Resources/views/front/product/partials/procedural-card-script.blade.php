@@ -146,6 +146,61 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     arNote.hidden = true;
     mount.appendChild(arNote);
 
+    const controlsPanel = document.createElement('div');
+    controlsPanel.className = 'wc-procedural-controls';
+    controlsPanel.innerHTML = `
+        <button type="button" data-card-control="left" title="Rotate left"><i class="fa-solid fa-rotate-left"></i></button>
+        <button type="button" data-card-control="right" title="Rotate right"><i class="fa-solid fa-rotate-right"></i></button>
+        <button type="button" data-card-control="tilt-up" title="Tilt up"><i class="fa-solid fa-arrow-up"></i></button>
+        <button type="button" data-card-control="tilt-down" title="Tilt down"><i class="fa-solid fa-arrow-down"></i></button>
+        <button type="button" data-card-control="flip" title="Flip"><i class="fa-solid fa-repeat"></i></button>
+        <button type="button" data-card-control="reset" title="Reset"><i class="fa-solid fa-crosshairs"></i></button>
+    `;
+    mount.appendChild(controlsPanel);
+
+    const detailsToggle = document.createElement('button');
+    detailsToggle.type = 'button';
+    detailsToggle.className = 'wc-procedural-details-toggle';
+    detailsToggle.innerHTML = '<i class="fa-solid fa-circle-info"></i> Details';
+    mount.appendChild(detailsToggle);
+
+    const detailsPanel = document.createElement('div');
+    detailsPanel.className = 'wc-procedural-details';
+    detailsPanel.hidden = true;
+    detailsPanel.innerHTML = `
+        <h3>${escapeHtml(mount.dataset.cardName || 'Card')}</h3>
+        <div>
+            ${mount.dataset.cardReference ? `<span>${escapeHtml(mount.dataset.cardReference)}</span>` : ''}
+            ${mount.dataset.cardCategory ? `<span>${escapeHtml(mount.dataset.cardCategory)}</span>` : ''}
+            <span>${escapeHtml(finish)}</span>
+        </div>
+        ${mount.dataset.cardDescription ? `<p>${escapeHtml(mount.dataset.cardDescription).slice(0, 520)}</p>` : ''}
+    `;
+    mount.appendChild(detailsPanel);
+
+    const rotateStep = Math.PI / 10;
+    const tiltStep = Math.PI / 16;
+    controlsPanel.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-card-control]');
+        if (!button) return;
+        const action = button.dataset.cardControl;
+        controls.autoRotate = false;
+        if (action === 'left') cardGroup.rotation.y -= rotateStep;
+        if (action === 'right') cardGroup.rotation.y += rotateStep;
+        if (action === 'tilt-up') cardGroup.rotation.x -= tiltStep;
+        if (action === 'tilt-down') cardGroup.rotation.x += tiltStep;
+        if (action === 'flip') cardGroup.rotation.y += Math.PI;
+        if (action === 'reset') {
+            cardGroup.rotation.set(0, 0, 0);
+            controls.reset();
+            controls.autoRotate = true;
+        }
+    });
+
+    detailsToggle.addEventListener('click', () => {
+        detailsPanel.hidden = !detailsPanel.hidden;
+    });
+
     let xrSession = null;
     let xrMode = null;
     if ('xr' in navigator) {
@@ -341,6 +396,16 @@ function createMirrodinEnvironment(cardWidth, cardHeight){
     group.add(backGlow);
 
     return group;
+}
+
+function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[char]));
 }
 
 function roundedCanvasPath(ctx, x, y, width, height, radius){

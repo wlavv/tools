@@ -31,6 +31,10 @@
                 data-finish="{{ $card3d['finish'] ?? 'normal' }}"
                 data-ratio="{{ $card3d['ratio'] ?? 1.395 }}"
                 data-thickness="{{ $card3d['thickness'] ?? 0.012 }}"
+                data-card-name="{{ strip_tags($product->name) }}"
+                data-card-reference="{{ $product->reference }}"
+                data-card-category="{{ $product->category }}"
+                data-card-description="{{ strip_tags($product->short_description ?: $product->description ?: '') }}"
                 aria-label="{{ strip_tags($product->name) }} 3D card preview">
             </div>
         @endif
