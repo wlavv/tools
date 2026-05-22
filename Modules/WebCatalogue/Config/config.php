@@ -61,13 +61,14 @@ return [
         'auto_match_min_margin' => env('WEBCATALOGUE_RECOGNITION_AUTO_MIN_MARGIN', 5),
         'structured_regions_enabled' => env('WEBCATALOGUE_RECOGNITION_STRUCTURED_REGIONS_ENABLED', true),
         'store_structured_regions' => env('WEBCATALOGUE_RECOGNITION_STORE_STRUCTURED_REGIONS', true),
+        'max_runtime_profile_refreshes' => env('WEBCATALOGUE_RECOGNITION_MAX_RUNTIME_PROFILE_REFRESHES', 8),
         'embedding_precision' => env('WEBCATALOGUE_RECOGNITION_EMBEDDING_PRECISION', 4),
         'short_hash_top_candidates' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_TOP', 14),
         'candidate_pipeline' => [
             'hash_stage_limit' => env('WEBCATALOGUE_RECOGNITION_HASH_STAGE_LIMIT', 30),
             'marker_stage_limit' => env('WEBCATALOGUE_RECOGNITION_MARKER_STAGE_LIMIT', 30),
-            'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 52),
-            'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 54),
+            'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 44),
+            'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 44),
         ],
         'verification_pool' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_ENABLED', true),

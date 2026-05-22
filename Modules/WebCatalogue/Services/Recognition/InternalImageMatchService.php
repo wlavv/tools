@@ -24,6 +24,7 @@ class InternalImageMatchService
     private array $internalTimings = [];
     private array $internalCounters = [];
     private ?float $internalStartedAt = null;
+    private int $runtimeProfileRefreshes = 0;
 
     public function __construct(
         private OpenCvRecognitionClient $openCv,
@@ -1097,7 +1098,7 @@ class InternalImageMatchService
                 return $profile;
             }
 
-            $refreshed = $this->refreshStoredProfile($fingerprint, $resource);
+            $refreshed = $this->refreshStoredProfileIfAllowed($fingerprint, $resource);
             if ($refreshed) {
                 return $refreshed;
             }
@@ -1110,13 +1111,27 @@ class InternalImageMatchService
                 return $fingerprint->vector_json;
             }
 
-            $refreshed = $this->refreshStoredProfile($fingerprint, $resource);
+            $refreshed = $this->refreshStoredProfileIfAllowed($fingerprint, $resource);
             if ($refreshed) {
                 return $refreshed;
             }
 
             return $fingerprint->vector_json;
         }
+
+        return $this->refreshStoredProfileIfAllowed($fingerprint, $resource);
+    }
+
+    private function refreshStoredProfileIfAllowed(ResourceFingerprint $fingerprint, Resource $resource): ?array
+    {
+        $limit = max(0, (int) config('webcatalogue.recognition.max_runtime_profile_refreshes', 8));
+        if ($limit <= 0 || $this->runtimeProfileRefreshes >= $limit) {
+            $this->setInternalCounter('runtime_profile_refresh_skipped', ($this->internalCounters['runtime_profile_refresh_skipped'] ?? 0) + 1);
+            return null;
+        }
+
+        $this->runtimeProfileRefreshes++;
+        $this->setInternalCounter('runtime_profile_refreshes', $this->runtimeProfileRefreshes);
 
         return $this->refreshStoredProfile($fingerprint, $resource);
     }
@@ -2469,6 +2484,7 @@ class InternalImageMatchService
     private function resetInternalTelemetry(): void
     {
         $this->internalStartedAt = microtime(true);
+        $this->runtimeProfileRefreshes = 0;
         $this->internalTimings = [
             'scope_time_ms' => 0,
             'input_preparation_time_ms' => 0,
