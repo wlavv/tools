@@ -1149,10 +1149,6 @@ class InternalImageMatchService
             return true;
         }
 
-        if (!(bool) config('webcatalogue.recognition.store_structured_regions', true)) {
-            return true;
-        }
-
         $regions = $profile['structured_regions'] ?? [];
 
         return is_array($regions) && count(array_filter($regions)) >= 2;
@@ -1208,7 +1204,10 @@ class InternalImageMatchService
 
         $light['short_hash'] = $this->shortProfileHash($light);
 
-        if ((bool) config('webcatalogue.recognition.store_structured_regions', true)) {
+        if (
+            (bool) config('webcatalogue.recognition.store_structured_regions', false)
+            || (bool) config('webcatalogue.recognition.structured_regions_enabled', true)
+        ) {
             $light['structured_regions'] = $profile['structured_regions'] ?? [];
         }
 

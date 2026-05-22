@@ -250,7 +250,7 @@
                     </label>
                     <div class="wc-actions-row">
                         <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-check-double"></i> Save validation</button>
-                        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.sessions.diagnostic_zip', $item) }}"><i class="fa-solid fa-file-zipper"></i> Diagnostic ZIP</a>
+                        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.sessions.diagnostic_zip', $item) }}" data-diagnostic-zip-link><i class="fa-solid fa-file-zipper"></i> Diagnostic ZIP</a>
                     </div>
                 </form>
             </div>
@@ -393,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const caption = document.querySelector('[data-product-caption]');
     const info = document.querySelector('[data-associate-info]');
     const matchInput = document.querySelector('[data-associate-match-id]');
+    const diagnosticZipLink = document.querySelector('[data-diagnostic-zip-link]');
     if (!select || !preview || !imageWrap || !info) return;
 
     const pct = (value) => {
@@ -439,6 +440,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         preview.classList.toggle('is-visible', !!option?.value);
         matchInput.value = match?.match_id || '';
+        if (diagnosticZipLink) {
+            const url = new URL(diagnosticZipLink.href, window.location.origin);
+            if (option?.value) {
+                url.searchParams.set('id_product', option.value);
+            } else {
+                url.searchParams.delete('id_product');
+            }
+            diagnosticZipLink.href = url.toString();
+        }
         imageWrap.innerHTML = image ? '<img src="' + image + '" alt="Product image">' : '<span>No product image</span>';
         caption.textContent = reference ? ('#' + reference + ' - ' + name) : 'Product image';
 
