@@ -49,6 +49,7 @@ return [
         'object_crop_enabled' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP', true),
         'object_crop_threshold' => env('WEBCATALOGUE_RECOGNITION_OBJECT_CROP_THRESHOLD', 28),
         'multi_frame_count' => env('WEBCATALOGUE_RECOGNITION_MULTI_FRAME_COUNT', 3),
+        'card_default_back_url' => env('WEBCATALOGUE_CARD_DEFAULT_BACK_URL', '/modules/webcatalogue/images/mtg_back.jpg'),
         'opencv' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_OPENCV_ENABLED', false),
             'base_url' => env('WEBCATALOGUE_RECOGNITION_OPENCV_BASE_URL'),

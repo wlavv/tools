@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\PublicLink;
@@ -263,6 +264,7 @@ class FrontCatalogueController extends Controller
         $arFile = $resources->firstWhere('resource_type', 'ar_file');
         $vrFile = $resources->firstWhere('resource_type', 'vr_file') ?: $resources->firstWhere('resource_type', 'vr_scene');
         $thumbnail = $images->firstWhere('is_main', true) ?: $images->first();
+        $card3d = $this->buildProceduralCardPayload($product, $thumbnail, $resources);
 
         $activePrice = $product->prices()
             ->whereIn('status', ['active', 'published'])
@@ -270,7 +272,38 @@ class FrontCatalogueController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        return compact('resources', 'images', 'documents', 'videos', 'audio', 'model3d', 'arFile', 'vrFile', 'thumbnail', 'activePrice');
+        return compact('resources', 'images', 'documents', 'videos', 'audio', 'model3d', 'arFile', 'vrFile', 'thumbnail', 'activePrice', 'card3d');
+    }
+
+    private function buildProceduralCardPayload(Product $product, ?Resource $frontImage, $resources): ?array
+    {
+        if (!$frontImage?->resolved_url) {
+            return null;
+        }
+
+        $productMeta = is_array($product->metadata ?? null) ? $product->metadata : [];
+        $backResource = $resources->first(function ($resource): bool {
+            $metadata = is_array($resource->metadata ?? null) ? $resource->metadata : [];
+
+            return in_array($resource->resource_type, ['card_back', 'back_image'], true)
+                || (($metadata['card_side'] ?? null) === 'back');
+        });
+
+        $backUrl = $backResource?->resolved_url
+            ?: ($productMeta['card_back_url'] ?? $productMeta['back_url'] ?? config('webcatalogue.recognition.card_default_back_url'));
+
+        $finish = in_array(($productMeta['finish'] ?? $productMeta['visual_finish'] ?? 'normal'), ['foil', 'normal'], true)
+            ? ($productMeta['finish'] ?? $productMeta['visual_finish'] ?? 'normal')
+            : 'normal';
+
+        return [
+            'enabled' => true,
+            'front_url' => $frontImage->resolved_url,
+            'back_url' => $backUrl,
+            'finish' => $finish,
+            'ratio' => 1.395,
+            'thickness' => 0.012,
+        ];
     }
 
     private function frontVisibleStatuses(): array

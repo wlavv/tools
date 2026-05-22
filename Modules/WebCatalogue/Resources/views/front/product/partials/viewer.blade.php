@@ -1,4 +1,4 @@
-@if($model3d)
+@if($model3d || !empty($card3d))
 <section class="wc-product-viewer-block" id="viewer">
     <div class="wc-product-section-head">
         <div>
@@ -10,6 +10,7 @@
         </div>
     </div>
     <div class="wc-viewer">
+        @if($model3d)
         <model-viewer
             src="{{ $model3d->resolved_url }}"
             @if($arFile && $arFile->resolved_url) ios-src="{{ $arFile->resolved_url }}" @endif
@@ -22,7 +23,18 @@
             exposure="1"
             interaction-prompt="auto">
         </model-viewer>
+        @else
+            <div class="wc-procedural-card-viewer"
+                data-procedural-card
+                data-front-url="{{ $card3d['front_url'] }}"
+                data-back-url="{{ $card3d['back_url'] ?? '' }}"
+                data-finish="{{ $card3d['finish'] ?? 'normal' }}"
+                data-ratio="{{ $card3d['ratio'] ?? 1.395 }}"
+                data-thickness="{{ $card3d['thickness'] ?? 0.012 }}"
+                aria-label="{{ strip_tags($product->name) }} 3D card preview">
+            </div>
+        @endif
     </div>
-    <div class="wc-protected-note"><i class="fa-solid fa-shield-halved"></i> 3D/AR/VR files are presented through the viewer and are not exposed as download buttons.</div>
+    <div class="wc-protected-note"><i class="fa-solid fa-shield-halved"></i> {{ $model3d ? '3D/AR/VR files are presented through the viewer and are not exposed as download buttons.' : 'Procedural 3D card generated from product images. The back uses the default card back unless a back image is provided.' }}</div>
 </section>
 @endif

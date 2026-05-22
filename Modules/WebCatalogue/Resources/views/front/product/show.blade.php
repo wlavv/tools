@@ -35,6 +35,9 @@
 <script>
 (function(){
     const main = document.getElementById('mainProductImage');
+    const galleryBlock = document.querySelector('.wc-product-gallery-block[data-card-effect]');
+    const parallaxCard = document.querySelector('[data-card-parallax]');
+
     document.querySelectorAll('[data-gallery-src]').forEach(function(img){
         img.addEventListener('click', function(){
             if(main) main.src = this.dataset.gallerySrc;
@@ -42,6 +45,45 @@
             this.classList.add('is-active');
         });
     });
+
+    if(galleryBlock){
+        galleryBlock.querySelectorAll('[data-card-finish]').forEach(function(button){
+            button.addEventListener('click', function(){
+                galleryBlock.dataset.cardEffect = this.dataset.cardFinish || 'normal';
+                galleryBlock.querySelectorAll('[data-card-finish]').forEach(item => item.classList.remove('is-active'));
+                this.classList.add('is-active');
+            });
+        });
+    }
+
+    if(parallaxCard){
+        const resetTilt = () => {
+            parallaxCard.classList.remove('is-tilting');
+            parallaxCard.style.transform = '';
+            parallaxCard.style.setProperty('--foil-x', '50%');
+            parallaxCard.style.setProperty('--foil-y', '50%');
+        };
+
+        const applyTilt = (clientX, clientY) => {
+            const rect = parallaxCard.getBoundingClientRect();
+            if(!rect.width || !rect.height) return;
+            const x = (clientX - rect.left) / rect.width;
+            const y = (clientY - rect.top) / rect.height;
+            const rotateY = (x - .5) * 18;
+            const rotateX = (.5 - y) * 18;
+            parallaxCard.classList.add('is-tilting');
+            parallaxCard.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(1.025)`;
+            parallaxCard.style.setProperty('--foil-x', `${Math.round(x * 100)}%`);
+            parallaxCard.style.setProperty('--foil-y', `${Math.round(y * 100)}%`);
+        };
+
+        parallaxCard.addEventListener('pointermove', event => applyTilt(event.clientX, event.clientY));
+        parallaxCard.addEventListener('pointerleave', resetTilt);
+        parallaxCard.addEventListener('pointercancel', resetTilt);
+    }
 })();
 </script>
+@if(!empty($card3d))
+    @include('webcatalogue::front.product.partials.procedural-card-script')
+@endif
 @endpush
