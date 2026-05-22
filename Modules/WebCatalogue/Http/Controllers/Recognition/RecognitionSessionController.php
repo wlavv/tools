@@ -172,9 +172,13 @@ class RecognitionSessionController extends Controller
         ]);
 
         $product = Product::query()
+            ->with('mainImageResource')
             ->where('id', $validated['id_product'])
             ->when($session->id_store, fn ($query) => $query->where('id_store', $session->id_store))
             ->firstOrFail();
+
+        $session->load(['matches']);
+        $review = $this->buildGroundTruthReview($session, $product);
 
         $session->update([
             'id_product' => $product->id,
@@ -187,6 +191,7 @@ class RecognitionSessionController extends Controller
                     'matched_at' => now()->toIso8601String(),
                     'product_id' => $product->id,
                 ],
+                'ground_truth' => $review,
             ]),
         ]);
 
@@ -214,6 +219,8 @@ class RecognitionSessionController extends Controller
         if ($session->lead) {
             $session->lead->update(['status' => 'resolved', 'notes' => trim(($session->lead->notes ? $session->lead->notes . "\n" : '') . 'Resolved by manual product association #' . $product->id)]);
         }
+
+        $this->syncGroundTruthToLatestScan($session, $product, $review);
 
         return back()->with('success', 'Scan associated with product.');
     }
@@ -252,29 +259,17 @@ class RecognitionSessionController extends Controller
             ->when($session->id_store, fn ($query) => $query->where('id_store', $session->id_store))
             ->firstOrFail();
 
-        $session->load(['matches.product.mainImageResource', 'captures']);
-        $topMatches = $session->matches->sortBy('rank')->values();
-        $rank = $topMatches->firstWhere('id_product', $product->id)?->rank;
-        $classification = $this->groundTruthClassification($rank);
         $forcedCompare = !empty($validated['run_forced_compare'])
             ? $matcher->compareSessionWithProduct($session, $product)
             : null;
-
-        $review = [
-            'expected_product_id' => $product->id,
-            'expected_product_name' => strip_tags((string) $product->name),
-            'expected_product_reference' => $product->reference,
-            'scenario_label' => $validated['scenario_label'] ?: null,
-            'classification' => $classification,
-            'rank' => $rank ? (int) $rank : null,
-            'top_1_correct' => $rank !== null && (int) $rank === 1,
-            'top_3_correct' => $rank !== null && (int) $rank <= 3,
-            'top_5_correct' => $rank !== null && (int) $rank <= 5,
-            'notes' => $validated['notes'] ?: null,
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now()->toIso8601String(),
-            'forced_compare' => $forcedCompare,
-        ];
+        $session->load(['matches.product.mainImageResource', 'captures']);
+        $review = $this->buildGroundTruthReview(
+            $session,
+            $product,
+            $validated['scenario_label'] ?: null,
+            $validated['notes'] ?: null,
+            $forcedCompare
+        );
 
         $session->update([
             'metadata' => array_replace_recursive($session->metadata ?: [], [
@@ -282,28 +277,11 @@ class RecognitionSessionController extends Controller
             ]),
         ]);
 
-        $scan = RecognitionScan::query()
-            ->where('id_session', $session->id)
-            ->latest('id')
-            ->first();
-
-        if ($scan) {
-            $scan->update([
-                'expected_product_id' => $product->id,
-                'scenario_label' => $validated['scenario_label'] ?: null,
-                'top_1_correct' => $review['top_1_correct'],
-                'top_3_correct' => $review['top_3_correct'],
-                'false_positive' => ($session->status === 'matched' || $session->status === 'manual_matched') && !$review['top_1_correct'],
-                'false_negative' => !$review['top_1_correct'] && $review['top_3_correct'],
-                'metadata' => array_replace_recursive($scan->metadata ?: [], [
-                    'manual_ground_truth' => $review,
-                ]),
-            ]);
-        }
+        $this->syncGroundTruthToLatestScan($session, $product, $review);
 
         return back()
             ->withInput(['id_product' => $product->id])
-            ->with($forcedCompare && !($forcedCompare['ok'] ?? false) ? 'error' : 'success', 'Ground truth saved: ' . str_replace('_', ' ', $classification) . '.')
+            ->with($forcedCompare && !($forcedCompare['ok'] ?? false) ? 'error' : 'success', 'Ground truth saved: ' . str_replace('_', ' ', $review['classification']) . '.')
             ->with('forced_compare', $forcedCompare);
     }
 
@@ -316,7 +294,7 @@ class RecognitionSessionController extends Controller
         $groundTruthProduct = $groundTruthProductId
             ? Product::query()->with('mainImageResource')->find($groundTruthProductId)
             : null;
-        $topMatches = $session->matches->sortBy('rank')->take(5)->values();
+        $topMatches = $this->algorithmMatches($session)->take(5)->values();
         $zipPath = storage_path('app/webcatalogue-session-' . $session->id . '-diagnostic-' . now()->format('YmdHis') . '.zip');
         $zip = new \ZipArchive();
 
@@ -450,6 +428,65 @@ class RecognitionSessionController extends Controller
         }
 
         return 'missed_top_5';
+    }
+
+    private function buildGroundTruthReview(
+        VisualRecognitionSession $session,
+        Product $product,
+        ?string $scenarioLabel = null,
+        ?string $notes = null,
+        ?array $forcedCompare = null
+    ): array {
+        $rank = $this->algorithmMatches($session)->firstWhere('id_product', $product->id)?->rank;
+        $classification = $this->groundTruthClassification($rank ? (int) $rank : null);
+
+        return [
+            'expected_product_id' => $product->id,
+            'expected_product_name' => strip_tags((string) $product->name),
+            'expected_product_reference' => $product->reference,
+            'scenario_label' => $scenarioLabel,
+            'classification' => $classification,
+            'rank' => $rank ? (int) $rank : null,
+            'top_1_correct' => $rank !== null && (int) $rank === 1,
+            'top_3_correct' => $rank !== null && (int) $rank <= 3,
+            'top_5_correct' => $rank !== null && (int) $rank <= 5,
+            'notes' => $notes,
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now()->toIso8601String(),
+            'forced_compare' => $forcedCompare,
+        ];
+    }
+
+    private function syncGroundTruthToLatestScan(VisualRecognitionSession $session, Product $product, array $review): void
+    {
+        $scan = RecognitionScan::query()
+            ->where('id_session', $session->id)
+            ->latest('id')
+            ->first();
+
+        if (!$scan) {
+            return;
+        }
+
+        $scan->update([
+            'expected_product_id' => $product->id,
+            'scenario_label' => $review['scenario_label'] ?: null,
+            'top_1_correct' => $review['top_1_correct'],
+            'top_3_correct' => $review['top_3_correct'],
+            'false_positive' => in_array($session->status, ['matched', 'manual_matched'], true) && !$review['top_1_correct'],
+            'false_negative' => !$review['top_1_correct'] && $review['top_3_correct'],
+            'metadata' => array_replace_recursive($scan->metadata ?: [], [
+                'manual_ground_truth' => $review,
+            ]),
+        ]);
+    }
+
+    private function algorithmMatches(VisualRecognitionSession $session)
+    {
+        return $session->matches
+            ->reject(fn (VisualRecognitionMatch $match) => $match->match_provider === 'manual_review')
+            ->sortBy('rank')
+            ->values();
     }
 
     private function addPublicStorageFileToZip(\ZipArchive $zip, ?string $path, string $zipBaseName): void
