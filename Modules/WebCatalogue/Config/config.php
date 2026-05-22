@@ -66,12 +66,12 @@ return [
         'candidate_pipeline' => [
             'hash_stage_limit' => env('WEBCATALOGUE_RECOGNITION_HASH_STAGE_LIMIT', 30),
             'marker_stage_limit' => env('WEBCATALOGUE_RECOGNITION_MARKER_STAGE_LIMIT', 30),
-            'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 34),
-            'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 38),
+            'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 52),
+            'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 54),
         ],
         'verification_pool' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_ENABLED', true),
-            'size' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_SIZE', 48),
+            'size' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_SIZE', 72),
         ],
         'visual_markers' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_MARKERS_ENABLED', true),

@@ -142,6 +142,19 @@ class RecognitionCandidateService
         $short = $candidate['short_distance'] ?? null;
         $marker = $candidate['marker_hash_distance'] ?? null;
         $verification = $candidate['verification_distance'] ?? null;
+        $verificationScore = $candidate['verification_score'] ?? null;
+
+        if (is_numeric($verificationScore) && (float) $verificationScore >= 72) {
+            $sources = $candidate['candidate_sources'] ?? [];
+            $sourceBonus = (count(array_unique($sources)) - 1) * 2.0;
+            $distance = max(0, 82 - (float) $verificationScore) * 0.35;
+
+            if (is_numeric($short) && (float) $short <= 6) {
+                $distance -= 1.0;
+            }
+
+            return max(0, $distance - $sourceBonus);
+        }
 
         $best = min(
             is_numeric($short) ? (float) $short : 999,
