@@ -13,10 +13,13 @@
         </div>
     @endif
 
-    <div id="showCards" style="display: none;margin-bottom: 20px;">
-        @include('ai-consensus::Includes._components.cards')
+    <div class="ai-workspace">
+        @include('ai-consensus::Includes._components.sidebar')
+
+        <div class="ai-content-panel">
+            @include('ai-consensus::Includes._components.table')
+        </div>
     </div>
-    @include('ai-consensus::Includes._components.table')
     @include('ai-consensus::Includes._components.modals')
 </div>
 @endsection

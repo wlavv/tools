@@ -5,28 +5,6 @@
     $runCost = $run->providerResponses->sum(fn ($response) => (float) ($response->cost_estimate ?? 0));
 @endphp
 <div>
-    <div class="d-flex justify-content-end gap-2 mb-3">
-        <a href="{{ route('ai_consensus.logs.index', ['run_id' => $run->id]) }}" class="btn btn-outline-secondary">
-            <i class="fas fa-list"></i> Logs
-        </a>
-        @if($run->final_output)
-            <a href="{{ route('ai_consensus.runs.download', $run) }}" class="btn btn-outline-secondary">
-                <i class="fas fa-download"></i> Download
-            </a>
-            @if($run->output_type === 'lsg_module_blueprint')
-                <form method="POST" action="{{ route('ai_consensus.runs.module_package', $run) }}" class="d-inline">
-                    @csrf
-                    <button class="btn btn-outline-primary">
-                        <i class="fas fa-box-archive"></i> Download module package
-                    </button>
-                </form>
-            @endif
-        @endif
-        <a href="{{ route('ai_consensus.runs.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
-    </div>
-
     <div class="row g-3 mb-3">
         <div class="col-md-3">
             <div class="card"><div class="card-body">
@@ -54,13 +32,11 @@
         </div>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-header">Final Output</div>
+    <div class="card mb-3 ai-final-output-card">
         <div class="card-body">
             @include('ai-consensus::partials.structured-output', [
                 'content' => $run->final_output ?: $run->error_message ?: '',
                 'payload' => $run->outputs->last()?->json_payload,
-                'title' => 'Resposta consolidada',
             ])
         </div>
     </div>

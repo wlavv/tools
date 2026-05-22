@@ -1,4 +1,4 @@
-<div class="ai-card" style="margin-top: 15px;">
+<div class="ai-content-card">
     <div class="table-responsive">
         <table class="table align-middle text-center lsg-datatable" style="text-align: center !important">
             <thead>

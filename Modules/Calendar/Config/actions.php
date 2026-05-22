@@ -12,7 +12,13 @@ return [
 
         'calendar.contexts.index' => [
             'back' => 'calendar.index',
-            'new' => false,
+            'new' => [
+                'label' => 'New Context',
+                'url' => 'javascript:void(0)',
+                'icon' => 'fa-solid fa-plus',
+                'class' => 'lsg-action-btn lsg-action-btn--success',
+                'extra_class' => 'calendar-open-context-modal',
+            ],
             'edit' => false,
             'delete' => false,
         ],
@@ -40,7 +46,14 @@ return [
             'back' => 'calendar.events.index',
             'new' => 'calendar.events.create',
             'edit' => false,
-            'delete' => false,
+            'delete' => [
+                'route' => 'calendar.events.delete',
+                'type' => 'form',
+                'method' => 'POST',
+                'icon' => 'fa-solid fa-trash',
+                'class' => 'lsg-action-btn lsg-action-btn--danger',
+                'confirm' => 'Delete this event?',
+            ],
         ],
 
         'calendar.tablet' => [

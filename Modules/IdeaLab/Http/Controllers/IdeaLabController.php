@@ -51,7 +51,7 @@ class IdeaLabController extends Controller
 
     public function show(Idea $idea, IdeaToolWorkflowService $workflow)
     {
-        $this->setPageTitle($idea->title);
+        $this->setPageTitle($this->readableTitle($idea->title));
         $idea->load([
             'category',
             'tags',
@@ -111,6 +111,21 @@ class IdeaLabController extends Controller
         }
 
         return $slug;
+    }
+
+    private function readableTitle(string $title): string
+    {
+        $title = trim($title);
+
+        if ($title === '') {
+            return $title;
+        }
+
+        if (!preg_match('/\s/', $title) && preg_match('/[a-z0-9][A-Z]/', $title)) {
+            return Str::headline($title);
+        }
+
+        return $title;
     }
 
     private function syncTags(Idea $idea, ?string $tags): void

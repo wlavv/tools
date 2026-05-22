@@ -344,7 +344,7 @@ class InternalImageMatchService
                             'edge_size' => 32,
                             'color_bins' => 4,
                             'variants' => ['object', 'center', 'full'],
-                            'structured_regions' => ['name', 'art', 'text', 'footer'],
+                            'structured_regions' => ['name', 'art', 'text', 'footer', 'footer_left', 'footer_right'],
                             'candidate_resources' => $candidateStats['candidate_resources'] ?? count($candidateResources),
                             'fingerprinted_candidates' => $candidateStats['fingerprinted_candidates'] ?? count($preselected),
                             'missing_fingerprint_candidates' => $candidateStats['missing_fingerprint_candidates'] ?? max(0, count($candidateResources) - count($preselected)),
@@ -1093,13 +1093,36 @@ class InternalImageMatchService
         $profile = $profileRecord?->profile_json;
 
         if (is_array($profile) && !empty($profile['variants'])) {
+            if ($this->storedProfileIsOperational($profile)) {
+                return $profile;
+            }
+
+            $refreshed = $this->refreshStoredProfile($fingerprint, $resource);
+            if ($refreshed) {
+                return $refreshed;
+            }
+
             return $profile;
         }
 
         if (is_array($fingerprint->vector_json) && !empty($fingerprint->vector_json['variants'])) {
+            if ($this->storedProfileIsOperational($fingerprint->vector_json)) {
+                return $fingerprint->vector_json;
+            }
+
+            $refreshed = $this->refreshStoredProfile($fingerprint, $resource);
+            if ($refreshed) {
+                return $refreshed;
+            }
+
             return $fingerprint->vector_json;
         }
 
+        return $this->refreshStoredProfile($fingerprint, $resource);
+    }
+
+    private function refreshStoredProfile(ResourceFingerprint $fingerprint, Resource $resource): ?array
+    {
         $fresh = $this->profileFromPublicPath($resource->file_path);
         if (!$fresh) {
             return null;
@@ -1118,6 +1141,21 @@ class InternalImageMatchService
         );
 
         return (bool) config('webcatalogue.recognition.store_full_fingerprint_profile', false) ? $fresh : $lightProfile;
+    }
+
+    private function storedProfileIsOperational(array $profile): bool
+    {
+        if (!(bool) config('webcatalogue.recognition.structured_regions_enabled', true)) {
+            return true;
+        }
+
+        if (!(bool) config('webcatalogue.recognition.store_structured_regions', true)) {
+            return true;
+        }
+
+        $regions = $profile['structured_regions'] ?? [];
+
+        return is_array($regions) && count(array_filter($regions)) >= 2;
     }
 
     private function operationalFingerprintProfile(array $profile): array
@@ -1170,7 +1208,7 @@ class InternalImageMatchService
 
         $light['short_hash'] = $this->shortProfileHash($light);
 
-        if ((bool) config('webcatalogue.recognition.store_structured_regions', false)) {
+        if ((bool) config('webcatalogue.recognition.store_structured_regions', true)) {
             $light['structured_regions'] = $profile['structured_regions'] ?? [];
         }
 
@@ -1442,6 +1480,8 @@ class InternalImageMatchService
             'art' => [0.08, 0.18, 0.84, 0.325],
             'text' => [0.08, 0.555, 0.84, 0.285],
             'footer' => [0.08, 0.855, 0.84, 0.085],
+            'footer_left' => [0.08, 0.855, 0.38, 0.085],
+            'footer_right' => [0.50, 0.855, 0.42, 0.085],
         ];
 
         $profiles = [];
@@ -1904,11 +1944,19 @@ class InternalImageMatchService
             $globalWeight = (float) config('webcatalogue.recognition.region_global_weight', 0.45);
             $totalWeight = max(0.0001, $regionWeight + $globalWeight);
             $combinedScore = (($regionScore['region_score'] * $regionWeight) + ($globalScore * $globalWeight)) / $totalWeight;
-            $finalScore = max($globalScore, $combinedScore);
+            $discriminantBoost = $this->structuredDiscriminantBoost($regionScore['regions']);
+            $finalScore = max($globalScore, $combinedScore + $discriminantBoost);
             $best['global_score'] = round($globalScore, 4);
             $best['region_score'] = round($regionScore['region_score'], 4);
             $best['region_scores'] = $regionScore['regions'];
             $best['region_combined_score'] = round($combinedScore, 4);
+            $best['region_discriminant_boost'] = round($discriminantBoost, 4);
+            $best['region_name_score'] = $this->regionFinalScore($regionScore['regions'], 'name');
+            $best['region_footer_score'] = max(
+                $this->regionFinalScore($regionScore['regions'], 'footer') ?? 0,
+                $this->regionFinalScore($regionScore['regions'], 'footer_left') ?? 0,
+                $this->regionFinalScore($regionScore['regions'], 'footer_right') ?? 0
+            ) ?: null;
             $best['region_applied'] = $combinedScore >= $globalScore;
             $best['final_score'] = round($finalScore, 4);
             $best['scoring_mode'] = 'structured_regions';
@@ -1921,13 +1969,16 @@ class InternalImageMatchService
 
     private function scoreStructuredRegions(array $aRegions, array $bRegions): ?array
     {
-        $weights = config('webcatalogue.recognition.region_weights', []);
-        $weights = [
-            'art' => max(0, (float) ($weights['art'] ?? 0.45)),
-            'name' => max(0, (float) ($weights['name'] ?? 0.30)),
-            'text' => max(0, (float) ($weights['text'] ?? 0.20)),
-            'footer' => max(0, (float) ($weights['footer'] ?? 0.05)),
-        ];
+        $configuredWeights = config('webcatalogue.recognition.region_weights', []);
+        $weights = [];
+        foreach ($configuredWeights as $region => $weight) {
+            $weights[(string) $region] = max(0, (float) $weight);
+        }
+
+        if (empty($weights)) {
+            $weights = ['art' => 0.32, 'name' => 0.26, 'text' => 0.14, 'footer' => 0.10, 'footer_left' => 0.08, 'footer_right' => 0.10];
+        }
+
         $weightedScore = 0.0;
         $totalWeight = 0.0;
         $scores = [];
@@ -1951,6 +2002,47 @@ class InternalImageMatchService
             'region_score' => $weightedScore / $totalWeight,
             'regions' => $scores,
         ];
+    }
+
+    private function structuredDiscriminantBoost(array $regions): float
+    {
+        $name = $this->regionFinalScore($regions, 'name');
+        $art = $this->regionFinalScore($regions, 'art');
+        $footer = max(
+            $this->regionFinalScore($regions, 'footer') ?? 0,
+            $this->regionFinalScore($regions, 'footer_left') ?? 0,
+            $this->regionFinalScore($regions, 'footer_right') ?? 0
+        ) ?: null;
+        $boost = 0.0;
+
+        if ($name !== null && $name >= 78) {
+            $boost += 2.0;
+        }
+
+        if ($footer !== null && $footer >= 72) {
+            $boost += 2.5;
+        }
+
+        if ($name !== null && $footer !== null && $name >= 72 && $footer >= 68) {
+            $boost += 2.0;
+        }
+
+        if (($name === null || $name < 55) && ($footer === null || $footer < 55) && $art !== null && $art >= 75) {
+            $boost -= 3.0;
+        }
+
+        if ($footer !== null && $footer < 45) {
+            $boost -= 2.0;
+        }
+
+        return max(-5.0, min(6.0, $boost));
+    }
+
+    private function regionFinalScore(array $regions, string $region): ?float
+    {
+        $value = $regions[$region]['final_score'] ?? null;
+
+        return is_numeric($value) ? round(max(0, min(100, (float) $value)), 4) : null;
     }
 
     private function applyMarkerScore(array $scoreSet, array $captureMarkers, Resource $resource): array
@@ -2049,11 +2141,16 @@ class InternalImageMatchService
         $edge = (float) ($scores['edge_score'] ?? 0);
         $color = (float) ($scores['color_score'] ?? 0);
 
-        if ($topScore >= 72 && $margin >= 12 && $phash >= 82 && $edge >= 68) {
+        $skipScore = (float) config('webcatalogue.recognition.visual_markers.skip_when_score_above', 66);
+        $skipMargin = (float) config('webcatalogue.recognition.visual_markers.skip_when_margin_above', 10);
+        $skipPhash = (float) config('webcatalogue.recognition.visual_markers.skip_when_phash_above', 82);
+        $skipEdge = (float) config('webcatalogue.recognition.visual_markers.skip_when_edge_above', 68);
+
+        if ($topScore >= $skipScore && $margin >= $skipMargin && $phash >= $skipPhash && $edge >= $skipEdge) {
             return false;
         }
 
-        if ($topScore >= 66 && $margin >= 16 && $phash >= 78 && $edge >= 65 && $color >= 45) {
+        if ($topScore >= 60 && $margin >= 14 && $phash >= 78 && $edge >= 64 && $color >= 45) {
             return false;
         }
 

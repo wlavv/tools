@@ -22,16 +22,24 @@ return [
         ],
         'ai_consensus.templates.index' => [
             'back' => 'ai_consensus.index',
+            'new' => 'ai_consensus.templates.create',
+        ],
+        'ai_consensus.templates.create' => [
+            'back' => 'ai_consensus.templates.index',
+            'save' => true,
         ],
         'ai_consensus.templates.edit' => [
             'back' => 'ai_consensus.templates.index',
             'save' => true,
+            'new' => 'ai_consensus.templates.create',
         ],
         'ai_consensus.providers.index' => [
             'back' => 'ai_consensus.index',
+            'new' => false,
         ],
         'ai_consensus.logs.index' => [
             'back' => 'ai_consensus.index',
+            'new' => false,
         ],
         'ai_consensus.create' => [
             'back' => 'ai_consensus.index',

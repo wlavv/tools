@@ -2,9 +2,14 @@
 
 @section('content')
 <div>
-    <div class="card">
-        <div class="card-body table-responsive">
-            <table class="table table-striped table-hover">
+    @include('ai-consensus::Includes.css')
+    <div class="ai-workspace">
+        @include('ai-consensus::Includes._components.sidebar')
+
+        <div class="ai-content-panel">
+            <div class="ai-content-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover lsg-datatable">
                 <thead>
                     <tr>
                         <th>Created</th>
@@ -34,6 +39,8 @@
             </table>
 
             {{ $logs->links() }}
+        </div>
+            </div>
         </div>
     </div>
 </div>

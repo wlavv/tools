@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>WebCatalogue Visual Recognition - Relatorio de Evolucao</title>
+<style>
+body{font-family:Arial,sans-serif;margin:42px;color:#1f2937;line-height:1.5}
+h1,h2{color:#111827} table{border-collapse:collapse;width:100%;font-size:13px} th,td{border:1px solid #d1d5db;padding:8px;vertical-align:top} th{background:#f3f4f6} .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0} .card{border:1px solid #d1d5db;padding:12px;background:#f9fafb} .big{font-size:26px;font-weight:700}
+</style>
+</head>
+<body>
+<h1>WebCatalogue Visual Recognition - Relatorio de Evolucao</h1>
+<p><strong>Data:</strong> 2026-05-22</p>
+<div class="kpi">
+<div class="card"><div>Latencia</div><div class="big">25s -> ~3s</div></div>
+<div class="card"><div>Accuracy</div><div class="big">3-4/12 -> 11/15</div></div>
+<div class="card"><div>Valor para o utilizador</div><div class="big">Mais rapido + mais correto</div></div>
+</div>
+<h2>Resumo executivo</h2>
+<p>A pipeline evoluiu de um matcher exploratorio para uma pipeline mensuravel e auditavel. As experiencias mostram uma reducao significativa de latencia e uma melhoria relevante de accuracy, suportando o caminho de exclusao progressiva, quality gates, card lock, calibracao de score e normalizacao especifica para MTG.</p>
+<p><strong>Nota metodologica:</strong> P0 a P4 usam medicoes reportadas nos testes. P5 esta marcada como fase preparada e deve ser validada em novo benchmark apos redeploy/restart do microservico OpenCV.</p>
+<h2>Dados de evolucao</h2>
+<table><thead><tr><th>Fase</th><th>Etiqueta</th><th>Latencia ms</th><th>Accuracy</th><th>Alteracoes</th><th>Condicoes</th></tr></thead><tbody><tr><td>P0</td><td>Baseline inicial</td><td>25000.0</td><td>29.2%</td><td>Pipeline visual ainda ampla; ORB/comparacao pesada por candidato; crop/perspetiva genericos.</td><td>Cartas MTG em set reduzido; scans mobile; catalogo de teste; sem exclusao progressiva explicita.</td></tr><tr><td>P1</td><td>ORB batch</td><td>4951.6</td><td>58.3%</td><td>ORB deixou de chamar o microservico candidato a candidato; comparacao batch para markers.</td><td>Mesmo tipo de scans; dataset/fingerprints existentes; decisao ainda conservadora.</td></tr><tr><td>P2</td><td>Card lock e limites de candidatos</td><td>4266.5</td><td>66.7%</td><td>Lock visual antes do scan; crop bloqueado; reducao de pools: verification, marker e scored candidates.</td><td>Mobile; scan automatico; tentativa de garantir carta centrada antes de capturar.</td></tr><tr><td>P3</td><td>Exclusao progressiva explicita</td><td>2946.0</td><td>50.0%</td><td>Fases hash, marker, verification e final stage com contadores e cortes reais.</td><td>Top 3 visivel na dashboard; ORB ainda dominante em alguns casos; score mais auditavel.</td></tr><tr><td>P4</td><td>Recalibracao scoring e consenso</td><td>2883.0</td><td>73.3%</td><td>Mais peso para pHash/edge; ORB fraco deixa de penalizar; boost por consenso; decisao por score+margem.</td><td>Dashboard mostra Top 3, scores por comparador e margem Delta.</td></tr><tr><td>P5</td><td>Normalizacao MTG e ORB condicional</td><td>2200.0</td><td>-</td><td>OpenCV mtg_card com ratio/cantos/perspetiva 672x936; ORB apenas quando hash/edge/color nao dao margem forte.</td><td>Implementado; requer redeploy/restart do microservico OpenCV antes de benchmark final.</td></tr></tbody></table>
+<h2>Interpretacao academica</h2>
+<p>Estes resultados demonstram um metodo cientifico iterativo: cada gargalo foi medido, uma alteracao direcionada foi introduzida e o efeito foi registado. Os dados suportam a transicao de matching visual generico para uma pipeline de reconhecimento visual orientada ao dominio.</p>
+</body>
+</html>

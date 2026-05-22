@@ -3,15 +3,6 @@
 @section('idealab-content')
 @include('idealab::partials.alerts')
 
-<div class="d-flex justify-content-end mb-3">
-    <a href="{{ route('idealab.templates.index') }}" class="btn btn-outline-primary me-2">
-        <i class="fa-solid fa-cog"></i> Settings
-    </a>
-    <a href="{{ route('idealab.create') }}" class="btn btn-outline-success">
-        <i class="fa-solid fa-plus"></i> New Idea
-    </a>
-</div>
-
 <div class="card idealab-card">
     <div class="card-body table-responsive">
         <table class="table table-hover align-middle lsg-datatable" id="idealab-table">

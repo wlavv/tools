@@ -2,6 +2,7 @@
 
 @section('content')
 <div>
+    @php($isCreate = $isCreate ?? !$template->exists)
     @if($errors->any())
         <div class="alert alert-danger">
             <strong>Existem erros no formulário.</strong>
@@ -13,9 +14,11 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('ai_consensus.templates.update', $template) }}" class="card">
+    <form id="lsg-form" method="POST" action="{{ $isCreate ? route('ai_consensus.templates.store') : route('ai_consensus.templates.update', $template) }}" class="card">
         @csrf
-        @method('PATCH')
+        @unless($isCreate)
+            @method('PATCH')
+        @endunless
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -66,14 +69,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="card-footer text-end">
-            <a href="{{ route('ai_consensus.templates.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
-            <button class="btn btn-primary">
-                <i class="fas fa-save"></i> Save
-            </button>
         </div>
     </form>
 </div>

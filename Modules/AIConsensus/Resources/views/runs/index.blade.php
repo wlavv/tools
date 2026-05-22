@@ -2,26 +2,18 @@
 
 @section('content')
 <div>
+    @include('ai-consensus::Includes.css')
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="d-flex justify-content-end gap-2 mb-3">
-        <a href="{{ route('ai_consensus.templates.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-layer-group"></i> Templates
-        </a>
-        <a href="{{ route('ai_consensus.providers.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-plug"></i> Providers
-        </a>
-        <a href="{{ route('ai_consensus.runs.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Run
-        </a>
-    </div>
+    <div class="ai-workspace">
+        @include('ai-consensus::Includes._components.sidebar')
 
-    <div class="card">
-        <div class="card-body">
+        <div class="ai-content-panel">
+            <div class="ai-content-card">
             <div class="table-responsive">
-                <table class="table table-striped table-hover datatable">
+                <table class="table table-striped table-hover lsg-datatable">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -64,6 +56,7 @@
             </div>
 
             {{ $runs->links() }}
+            </div>
         </div>
     </div>
 </div>

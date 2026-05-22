@@ -1,0 +1,203 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2604 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(# WebCatalogue Visual Recognition - Relatorio de Evolucao) Tj
+T*
+() Tj
+T*
+(Data: 2026-05-22) Tj
+T*
+() Tj
+T*
+(## Resumo executivo) Tj
+T*
+() Tj
+T*
+(A pipeline de reconhecimento visual do WebCatalogue evoluiu de um matcher exploratorio para) Tj
+T*
+(uma pipeline mensuravel e auditavel para reconhecimento de cartas MTG. Os primeiros testes) Tj
+T*
+(tinham uma latencia aproximada de 25 segundos e uma accuracy na ordem de 3-4 acertos em 12) Tj
+T*
+(scans. O benchmark consolidado mais recente reporta 11 acertos em 15 scans, com mediana de) Tj
+T*
+(latencia perto de 3 segundos.) Tj
+T*
+() Tj
+T*
+(Em termos quantitativos, a latencia caiu cerca de 88.5% e a accuracy subiu 44.1 pontos) Tj
+T*
+(percentuais entre o baseline e o ultimo lote consolidado. Isto representa uma melhoria) Tj
+T*
+(direta para o utilizador: menos espera, mais confianca e menor necessidade de repetir o) Tj
+T*
+(scan.) Tj
+T*
+() Tj
+T*
+(Esta evolucao e relevante academicamente porque cada melhoria foi motivada por um gargalo ou) Tj
+T*
+(modo de falha observado: chamadas ORB excessivas, captura/crop instavel, pools de candidatos) Tj
+T*
+(demasiado amplas, compressao de score e normalizacao de perspetiva insuficiente.) Tj
+T*
+() Tj
+T*
+(## Metodologia) Tj
+T*
+() Tj
+T*
+(Os valores foram obtidos a partir dos lotes de teste reportados durante a evolucao do) Tj
+T*
+(modulo. Quando existia lista de scans, foi calculada media ou mediana sobre os tempos) Tj
+T*
+(apresentados. A fase P5 representa uma alteracao ja preparada/implementada, mas ainda) Tj
+T*
+(pendente de novo benchmark online apos redeploy do microservico OpenCV.) Tj
+T*
+() Tj
+T*
+(## Tabela de evolucao) Tj
+T*
+() Tj
+T*
+(| Fase | Alteracao principal | Latencia | Accuracy | Interpretacao |) Tj
+T*
+(|---|---|---:|---:|---|) Tj
+T*
+(| P0 Baseline inicial | Pipeline visual ainda ampla; ORB/comparacao pesada por candidato;) Tj
+T*
+(crop/perspetiva genericos. | 25000.0 ms | 29.2% | Resposta demasiado lenta; baixa confianca;) Tj
+T*
+(pouca utilidade operacional. |) Tj
+T*
+(| P1 ORB batch | ORB deixou de chamar o microservico candidato a candidato; comparacao batch) Tj
+T*
+(para markers. | 4951.6 ms | 58.3% | Reducao drastica de espera; ainda com muitas respostas) Tj
+T*
+(ambiguas. |) Tj
+T*
+(| P2 Card lock e limites de candidatos | Lock visual antes do scan; crop bloqueado; reducao) Tj
+T*
+(de pools: verification, marker e scored candidates. | 4266.5 ms | 66.7% | Menos) Tj
+T*
+(scroll/intervencao; captura mais controlada; tempo ainda perto de 4s. |) Tj
+T*
+(| P3 Exclusao progressiva explicita | Fases hash, marker, verification e final stage com) Tj
+T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2297 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(contadores e cortes reais. | 2946.0 ms | 50.0% | Melhor explicabilidade; regressao) Tj
+T*
+(temporaria de accuracy usada para calibrar pesos e score. |) Tj
+T*
+(| P4 Recalibracao scoring e consenso | Mais peso para pHash/edge; ORB fraco deixa de) Tj
+T*
+(penalizar; boost por consenso; decisao por score+margem. | 2883.0 ms | 73.3% | Resposta em) Tj
+T*
+(cerca de 3s; accuracy consolidada reportada 11/15; melhor base para prova de conceito. |) Tj
+T*
+(| P5 Normalizacao MTG e ORB condicional | OpenCV mtg_card com ratio/cantos/perspetiva) Tj
+T*
+(672x936; ORB apenas quando hash/edge/color nao dao margem forte. | 2200.0 ms | - | Melhor) Tj
+T*
+(consistencia esperada; menor custo ORB em scans faceis. |) Tj
+T*
+() Tj
+T*
+(## Relevancia cientifica) Tj
+T*
+() Tj
+T*
+(O historico de benchmarks fornece evidencia de um metodo iterativo de engenharia: medir,) Tj
+T*
+(identificar gargalos, alterar uma parte do sistema e voltar a medir. A reducao de latencia) Tj
+T*
+(valida a estrategia de exclusao progressiva. A melhoria de accuracy valida a passagem de) Tj
+T*
+(matching visual generico para reconhecimento orientado ao dominio das cartas.) Tj
+T*
+() Tj
+T*
+(## Principais aprendizagens) Tj
+T*
+() Tj
+T*
+(- ORB e util como sinal de confianca, mas e demasiado caro e ruidoso para correr contra) Tj
+T*
+(pools amplas.) Tj
+T*
+(- pHash e edge/hash sao bons sinais iniciais para ranking de cartas MTG quando o crop e) Tj
+T*
+(estavel.) Tj
+T*
+(- Um Top 3 visivel com scores por comparador e essencial para calibracao e auditabilidade) Tj
+T*
+(cientifica.) Tj
+T*
+(- A normalizacao de perspetiva especifica para cartas e a proxima alavanca principal de) Tj
+T*
+(accuracy.) Tj
+T*
+() Tj
+T*
+(## Proximo benchmark) Tj
+T*
+() Tj
+T*
+(Depois de redeploy/restart do microservico OpenCV com normalizacao `mtg_card`, deve ser) Tj
+T*
+(executado um novo benchmark controlado com pelo menos 3 repeticoes por cenario: luz ideal,) Tj
+T*
+(luz natural, pouca luz, glare, sleeve, carta inclinada e motion blur.) Tj
+T*
+() Tj
+T*
+(O Excel gerado em paralelo contem uma folha de evolucao completa, uma folha simplificada) Tj
+T*
+(para graficos e uma folha de notas interpretativas. Para apresentacao, recomenda-se um) Tj
+T*
+(grafico combinado com latencia em linha descendente e accuracy em linha ascendente.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000296 00000 n 
+0000002952 00000 n 
+0000003127 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+5476
+%%EOF

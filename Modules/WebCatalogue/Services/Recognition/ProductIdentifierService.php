@@ -235,6 +235,19 @@ class ProductIdentifierService
             'manufacturer_reference' => 'manufacturer_code',
             'mpn' => 'manufacturer_code',
             'part_number' => 'manufacturer_code',
+            'collector' => 'collector_number',
+            'collector_number' => 'collector_number',
+            'collector_no' => 'collector_number',
+            'card_number' => 'collector_number',
+            'number' => 'collector_number',
+            'set' => 'set_code',
+            'set_code' => 'set_code',
+            'expansion' => 'set_code',
+            'expansion_code' => 'set_code',
+            'scryfall_id' => 'external_id',
+            'oracle_id' => 'external_id',
+            'tcgplayer_id' => 'external_id',
+            'card_id' => 'external_id',
             'qr' => 'qr',
             'qr_code' => 'qr',
             'qr_url' => 'qr_url',
@@ -290,7 +303,7 @@ class ProductIdentifierService
 
             if (!empty($urlParts['query'])) {
                 parse_str((string) $urlParts['query'], $query);
-                foreach (['sku', 'ref', 'reference', 'ean', 'ean13', 'barcode', 'code', 'id', 'mpn'] as $key) {
+                foreach (['sku', 'ref', 'reference', 'ean', 'ean13', 'barcode', 'code', 'id', 'mpn', 'collector', 'collector_number', 'card_number', 'set', 'set_code'] as $key) {
                     if (!empty($query[$key]) && is_scalar($query[$key])) {
                         $values[] = trim((string) $query[$key]);
                     }
@@ -313,6 +326,8 @@ class ProductIdentifierService
             'code_128', 'code_39', 'code_93', 'itf', 'pdf417', 'aztec', 'data_matrix' => 'barcode',
             'externalid' => 'external_id',
             'mpn', 'manufacturer_reference', 'manufacturer_code', 'part_number' => 'manufacturer_code',
+            'collector', 'collector_no', 'collector_number', 'card_number' => 'collector_number',
+            'set', 'set_code', 'expansion', 'expansion_code' => 'set_code',
             default => $format ?: 'code',
         };
     }

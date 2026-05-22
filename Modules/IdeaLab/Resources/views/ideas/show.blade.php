@@ -11,39 +11,48 @@
     $tagsValue = $idea->tags->pluck('name')->implode(', ');
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="{{ route('idealab.index') }}" class="btn btn-outline-primary">
-        <i class="fa-solid fa-angle-left"></i> Back
-    </a>
-    <a href="{{ route('idealab.edit', $idea) }}" class="btn btn-outline-warning">
-        <i class="fa-solid fa-pencil"></i> Edit
-    </a>
-</div>
-
 <div class="idealab-summary">
     <div class="idealab-summary-item">
-        <span>Status</span>
-        <strong>{{ config('idealab.statuses.' . $idea->status, $idea->status) }}</strong>
+        <i class="fa-solid fa-circle-check idealab-summary-item__icon"></i>
+        <div>
+            <span>Status</span>
+            <strong>{{ config('idealab.statuses.' . $idea->status, $idea->status) }}</strong>
+        </div>
     </div>
     <div class="idealab-summary-item">
-        <span>Priority</span>
-        <strong>{{ config('idealab.priorities.' . $idea->priority, $idea->priority) }}</strong>
+        <i class="fa-solid fa-flag idealab-summary-item__icon"></i>
+        <div>
+            <span>Priority</span>
+            <strong>{{ config('idealab.priorities.' . $idea->priority, $idea->priority) }}</strong>
+        </div>
     </div>
     <div class="idealab-summary-item">
-        <span>Readiness</span>
-        <strong>{{ $idea->readiness_label }}</strong>
+        <i class="fa-solid fa-gauge-high idealab-summary-item__icon"></i>
+        <div>
+            <span>Readiness</span>
+            <strong>{{ $idea->readiness_label }}</strong>
+        </div>
     </div>
     <div class="idealab-summary-item">
-        <span>Score</span>
-        <strong>{{ $idea->final_score ?? '-' }}</strong>
+        <i class="fa-solid fa-chart-simple idealab-summary-item__icon"></i>
+        <div>
+            <span>Score</span>
+            <strong>{{ $idea->final_score ?? '-' }}</strong>
+        </div>
     </div>
     <div class="idealab-summary-item">
-        <span>AI Runs</span>
-        <strong>{{ $centralRuns->count() }}</strong>
+        <i class="fa-solid fa-brain idealab-summary-item__icon"></i>
+        <div>
+            <span>AI Runs</span>
+            <strong>{{ $centralRuns->count() }}</strong>
+        </div>
     </div>
     <div class="idealab-summary-item">
-        <span>AI Cost</span>
-        <strong>${{ number_format($totalCost, 4) }}</strong>
+        <i class="fa-solid fa-coins idealab-summary-item__icon"></i>
+        <div>
+            <span>AI Cost</span>
+            <strong>${{ number_format($totalCost, 4) }}</strong>
+        </div>
     </div>
 </div>
 

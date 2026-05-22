@@ -28,11 +28,39 @@ class AIConsensusTemplateController extends Controller
         return view('ai-consensus::templates.index', compact('templates'));
     }
 
+    public function create(): View
+    {
+        return view('ai-consensus::templates.edit', [
+            'template' => new AIConsensusTemplate([
+                'module_scope' => 'global',
+                'category' => 'general',
+                'default_output_type' => 'json',
+                'version' => '1.0',
+                'is_active' => true,
+            ]),
+            'outputTypes' => config('ai-consensus-output-types', []),
+            'isCreate' => true,
+        ]);
+    }
+
+    public function store(StoreTemplateRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $data['is_active'] = (bool) ($data['is_active'] ?? false);
+
+        AIConsensusTemplate::query()->create($data);
+
+        return redirect()
+            ->route('ai_consensus.templates.index')
+            ->with('success', 'Template criado.');
+    }
+
     public function edit(AIConsensusTemplate $template): View
     {
         return view('ai-consensus::templates.edit', [
             'template' => $template,
             'outputTypes' => config('ai-consensus-output-types', []),
+            'isCreate' => false,
         ]);
     }
 

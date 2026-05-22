@@ -93,15 +93,35 @@ class RecognitionScoringService
     private function normalisedComparatorScores(array $source, float $fallbackScore, string $provider): array
     {
         $identifierExact = $provider === 'identifier_exact_match_v1';
+        $regionName = $this->scoreOrNull($source['region_name_score'] ?? null)
+            ?? $this->regionScore($source, 'name');
+        $regionFooter = $this->scoreOrNull($source['region_footer_score'] ?? null)
+            ?? $this->maxScore(
+                $this->regionScore($source, 'footer'),
+                $this->regionScore($source, 'footer_left'),
+                $this->regionScore($source, 'footer_right')
+            );
+        $ocrCollector = $identifierExact ? 100.0 : $this->scoreOrNull($source['ocr_collector_score'] ?? $source['identifier_score'] ?? null);
+        $ocrName = $this->scoreOrNull($source['ocr_name_score'] ?? null);
+
+        if ($ocrCollector === null && $regionFooter !== null && $regionFooter >= 68) {
+            $ocrCollector = $regionFooter;
+        }
+
+        if ($ocrName === null && $regionName !== null && $regionName >= 68) {
+            $ocrName = $regionName;
+        }
 
         return [
             'phash' => $this->scoreOrNull($source['phash_score'] ?? null),
             'ahash_dhash' => $this->scoreOrNull($source['edge_score'] ?? $source['dhash_score'] ?? null),
-            'ocr_collector' => $identifierExact ? 100.0 : $this->scoreOrNull($source['ocr_collector_score'] ?? $source['identifier_score'] ?? null),
-            'ocr_name' => $this->scoreOrNull($source['ocr_name_score'] ?? null),
+            'ocr_collector' => $ocrCollector,
+            'ocr_name' => $ocrName,
             'orb' => $this->scoreOrNull($source['marker_confidence_score'] ?? $source['marker_score'] ?? null),
             'layout' => $this->scoreOrNull($source['region_score'] ?? $source['layout_score'] ?? null),
             'color' => $this->scoreOrNull($source['color_score'] ?? null),
+            'region_name' => $regionName,
+            'region_footer' => $regionFooter,
             'legacy' => round(max(0, min(100, $fallbackScore)), 4),
         ];
     }
@@ -148,6 +168,8 @@ class RecognitionScoringService
         $edge = $scores['ahash_dhash'] ?? null;
         $color = $scores['color'] ?? null;
         $orb = $scores['orb'] ?? null;
+        $regionName = $scores['region_name'] ?? null;
+        $regionFooter = $scores['region_footer'] ?? null;
         $boost = 0.0;
 
         if ($phash !== null && (float) $phash >= 85) {
@@ -176,6 +198,18 @@ class RecognitionScoringService
 
         if ($phash !== null && $edge !== null && $color !== null && (float) $phash >= 75 && (float) $edge >= 65 && (float) $color >= 55) {
             $boost += 3.0;
+        }
+
+        if ($regionName !== null && $regionFooter !== null && (float) $regionName >= 72 && (float) $regionFooter >= 68) {
+            $boost += 3.0;
+        }
+
+        if ($regionFooter !== null && (float) $regionFooter >= 75 && $phash !== null && (float) $phash >= 80) {
+            $boost += 2.0;
+        }
+
+        if (($regionName !== null && (float) $regionName < 50) && ($regionFooter !== null && (float) $regionFooter < 50)) {
+            $boost -= 2.0;
         }
 
         if (($phash === null || (float) $phash < 68) && ($edge === null || (float) $edge < 58)) {
@@ -278,5 +312,17 @@ class RecognitionScoringService
         }
 
         return round(max(0, min(100, (float) $value)), 4);
+    }
+
+    private function regionScore(array $source, string $region): ?float
+    {
+        return $this->scoreOrNull($source['region_scores'][$region]['final_score'] ?? null);
+    }
+
+    private function maxScore(?float ...$scores): ?float
+    {
+        $scores = array_values(array_filter($scores, fn ($score) => $score !== null));
+
+        return $scores ? max($scores) : null;
     }
 }

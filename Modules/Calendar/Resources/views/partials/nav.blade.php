@@ -1,4 +1,8 @@
 <nav class="calendar-module-nav" aria-label="Calendar navigation">
+    <div class="calendar-module-nav__title">
+        <strong>Calendar</strong>
+        <span>Empresa, faltas, folgas, ferias e visitas</span>
+    </div>
     <a href="{{ route('calendar.index') }}" class="{{ request()->routeIs('calendar.index') ? 'is-active' : '' }}">
         <i class="fa-solid fa-calendar-days"></i><span>Dashboard</span>
     </a>

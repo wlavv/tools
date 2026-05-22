@@ -14,6 +14,7 @@
         <div class="wc-hero-actions">
             <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.index') }}"><i class="fa-solid fa-arrow-left"></i> Recognition</a>
             <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.pipeline.summary') }}"><i class="fa-solid fa-code"></i> JSON</a>
+            <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.pipeline.export_csv') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
             <form method="POST" action="{{ route('webcatalogue.recognition.pipeline.flush') }}" onsubmit="return confirm('Clear all recognition sessions, captures, matches and pipeline metrics?');">
                 @csrf
                 <button type="submit" class="wc-secondary-btn"><i class="fa-solid fa-trash-can"></i> Flush stats</button>
@@ -117,6 +118,19 @@
                 @foreach($scansByScope as $row)
                     <div class="wc-ops-row"><div><strong>{{ $row->product_scope }}</strong><span>{{ $row->total }} scans</span></div></div>
                 @endforeach
+            </div>
+            <div class="wc-section-head" style="margin-top:16px"><div><h3>Scenarios</h3><p class="wc-muted">Ground truth benchmark labels.</p></div></div>
+            <div class="wc-ops-list">
+                @forelse($scansByScenario as $row)
+                    <div class="wc-ops-row">
+                        <div>
+                            <strong>{{ $row->scenario_label }}</strong>
+                            <span>{{ $row->total }} scans · Q {{ round((float) $row->average_quality, 1) }} · S {{ round((float) $row->average_score, 1) }}</span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="wc-list-empty"><i class="fa-solid fa-vial"></i><div><strong>No scenarios yet.</strong><p class="wc-muted">Use benchmark fields on the scan page.</p></div></div>
+                @endforelse
             </div>
         </aside>
     </div>

@@ -5,6 +5,39 @@
     $sandbox = $workflow['sandbox'] ?? [];
     $compliance = $workflow['compliance'] ?? [];
     $approval = $workflow['approval'] ?? [];
+    $stepActions = [
+        'discussion' => [
+            'route' => route('idealab.workflow.discussion', $idea),
+            'label' => 'Rerun discussion',
+            'icon' => 'fa-solid fa-brain',
+            'tone' => 'primary',
+        ],
+        'blueprint' => [
+            'route' => route('idealab.workflow.blueprint', $idea),
+            'label' => 'Rerun blueprint',
+            'icon' => 'fa-solid fa-cubes',
+            'tone' => 'primary',
+        ],
+        'sandbox' => [
+            'route' => route('idealab.workflow.sandbox', $idea),
+            'label' => !empty($sandbox['module_name']) ? 'Rerun creation' : 'Create sandbox',
+            'icon' => 'fa-solid fa-flask',
+            'tone' => 'success',
+        ],
+        'validation' => [
+            'route' => route('idealab.workflow.compliance', $idea),
+            'label' => !empty($compliance['run_id']) ? 'Rerun compliance' : 'Run compliance',
+            'icon' => 'fa-solid fa-shield-halved',
+            'tone' => 'warning',
+        ],
+        'approval' => [
+            'route' => route('idealab.workflow.approve_go_live', $idea),
+            'label' => !empty($approval['approved_at']) ? 'Approved' : 'Approve go live',
+            'icon' => 'fa-solid fa-check',
+            'tone' => 'success',
+            'disabled' => !empty($approval['approved_at']),
+        ],
+    ];
 @endphp
 
 <section class="card idealab-card idealab-section mb-3" id="tool-workflow">
@@ -25,6 +58,16 @@
                     </span>
                     <strong>{{ $step['label'] }}</strong>
                     <small>{{ $step['detail'] }}</small>
+                    @if(isset($stepActions[$step['key']]))
+                        @php($action = $stepActions[$step['key']])
+                        <form method="POST" action="{{ $action['route'] }}" class="idealab-workflow-step-action">
+                            @csrf
+                            <button class="idealab-workflow-action lsg-action-btn lsg-action-btn--{{ $action['tone'] }} lsg-action-btn--compact" title="{{ $action['label'] }}" @disabled($action['disabled'] ?? false)>
+                                <span class="idealab-workflow-action__icon"><i class="{{ $action['icon'] }}"></i></span>
+                                <span class="idealab-workflow-action__label">{{ $action['label'] }}</span>
+                            </button>
+                        </form>
+                    @endif
                 </div>
             @endforeach
         </div>
@@ -88,33 +131,16 @@
             </div>
         @endif
 
-        <div class="d-flex flex-wrap gap-2">
-            <form method="POST" action="{{ route('idealab.workflow.discussion', $idea) }}">
-                @csrf
-                <button class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-brain me-1"></i> AI discussion</button>
-            </form>
-            <form method="POST" action="{{ route('idealab.workflow.blueprint', $idea) }}">
-                @csrf
-                <button class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-cubes me-1"></i> Generate blueprint</button>
-            </form>
-            <form method="POST" action="{{ route('idealab.workflow.sandbox', $idea) }}">
-                @csrf
-                <button class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-flask me-1"></i> Create sandbox</button>
-            </form>
-            <form method="POST" action="{{ route('idealab.workflow.compliance', $idea) }}">
-                @csrf
-                <button class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-shield-halved me-1"></i> Run compliance</button>
-            </form>
-            @if(!empty($issues))
+        @if(!empty($issues))
+            <div class="d-flex flex-wrap gap-2 idealab-secondary-workflow-actions">
                 <form method="POST" action="{{ route('idealab.workflow.reformulate', $idea) }}">
                     @csrf
-                    <button class="btn btn-outline-warning btn-sm"><i class="fa-solid fa-rotate me-1"></i> Send issues to AI</button>
+                    <button class="lsg-action-btn lsg-action-btn--warning lsg-action-btn--compact">
+                        <span class="lsg-action-btn__icon"><i class="fa-solid fa-rotate"></i></span>
+                        <span class="lsg-action-btn__label">Send issues to AI</span>
+                    </button>
                 </form>
-            @endif
-            <form method="POST" action="{{ route('idealab.workflow.approve_go_live', $idea) }}">
-                @csrf
-                <button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-check me-1"></i> Approve go live</button>
-            </form>
-        </div>
+            </div>
+        @endif
     </div>
 </section>

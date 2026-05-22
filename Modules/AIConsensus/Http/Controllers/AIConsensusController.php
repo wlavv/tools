@@ -25,14 +25,8 @@ class AIConsensusController extends Controller
     public function index(Request $request): View
     {
         return $this->view('ai-consensus::dashboard.index', [
-            'stats' => [
-                'runs' => AIConsensusRun::query()->count(),
-                'pending' => AIConsensusRun::query()->whereIn('status', ['pending', 'processing', 'waiting_user_input'])->count(),
-                'templates' => AIConsensusTemplate::query()->where('is_active', true)->count(),
-                'providers' => AIConsensusProvider::query()->where('is_active', true)->count(),
-                'legacy_runs' => AIConsensus::query()->count(),
-            ],
             'recentRuns' => AIConsensusRun::query()->with('template')->latest()->limit(8)->get(),
+            'providerSettings' => AIConsensusProvider::query()->orderBy('priority')->get(),
         ]);
     }
 

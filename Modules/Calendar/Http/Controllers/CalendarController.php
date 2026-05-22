@@ -12,8 +12,6 @@ use Modules\Calendar\Models\CalendarEvent;
 
 class CalendarController extends Controller
 {
-    protected bool $hasPageActions = false;
-
     public function __construct()
     {
         parent::__construct();
@@ -21,7 +19,8 @@ class CalendarController extends Controller
 
     protected function buildActions(): void
     {
-        $this->clearActions();
+        $this->actions = $this->resolveActions();
+        $this->shareLayoutData();
     }
 
     public function index(Request $request)
@@ -112,12 +111,19 @@ class CalendarController extends Controller
         $this->buildActions();
 
         $contexts = CalendarContext::query()
+            ->withCount(['events', 'categories'])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $moveTargets = CalendarContext::query()
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
 
         return $this->view('calendar::pages.contexts.index', [
             'contexts' => $contexts,
+            'moveTargets' => $moveTargets,
         ]);
     }
 
@@ -163,8 +169,24 @@ class CalendarController extends Controller
             ->with('success', 'Contexto atualizado com sucesso.');
     }
 
-    public function deleteContext(CalendarContext $context): RedirectResponse
+    public function deleteContext(Request $request, CalendarContext $context): RedirectResponse
     {
+        $data = $request->validate([
+            'move_context_id' => ['nullable', 'integer', 'exists:calendar_contexts,id'],
+        ]);
+
+        $moveContextId = (int) ($data['move_context_id'] ?? 0);
+
+        if ($moveContextId === $context->id) {
+            return redirect()
+                ->route('calendar.contexts.index')
+                ->with('error', 'Escolhe um contexto diferente para mover os eventos.');
+        }
+
+        CalendarEvent::query()
+            ->where('context_id', $context->id)
+            ->update(['context_id' => $moveContextId ?: null]);
+
         $context->delete();
 
         return redirect()

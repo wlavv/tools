@@ -2,13 +2,18 @@
 
 @section('content')
 <div>
+    @include('ai-consensus::Includes.css')
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="card">
-        <div class="card-body table-responsive">
-            <table class="table table-striped table-hover">
+    <div class="ai-workspace">
+        @include('ai-consensus::Includes._components.sidebar')
+
+        <div class="ai-content-panel">
+            <div class="ai-content-card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover lsg-datatable">
                 <thead>
                     <tr>
                         <th>Provider</th>
@@ -48,6 +53,8 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+            </div>
         </div>
     </div>
 </div>

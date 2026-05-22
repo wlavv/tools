@@ -9,14 +9,6 @@ document.addEventListener('click', async function (event) {
         }
     }
 
-    const toggleCardsBtn = event.target.closest('#aiToggleCards');
-    if (toggleCardsBtn) {
-        const cards = document.getElementById('showCards');
-        if (cards) {
-            cards.style.display = cards.style.display === 'none' || !cards.style.display ? 'block' : 'none';
-        }
-    }
-
     const toggleBtn = event.target.closest('[data-secret-toggle]');
     if (toggleBtn) {
         event.preventDefault();

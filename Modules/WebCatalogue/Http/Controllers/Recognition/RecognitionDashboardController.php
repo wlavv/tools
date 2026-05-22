@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\View\View;
 use Modules\WebCatalogue\Models\BrandProspectLead;
 use Modules\WebCatalogue\Models\FingerprintRebuildLog;
@@ -101,6 +102,65 @@ class RecognitionDashboardController extends Controller
         return response()->json($this->pipelineMetrics());
     }
 
+    public function pipelineExportCsv(): StreamedResponse
+    {
+        return response()->streamDownload(function (): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'scan_uuid',
+                'created_at',
+                'status',
+                'decision_reason',
+                'expected_product_id',
+                'scenario_label',
+                'top_1_product_id',
+                'top_1_correct',
+                'top_3_correct',
+                'quality_score',
+                'score_final',
+                'total_processing_time_ms',
+                'hash_generation_time_ms',
+                'hash_search_time_ms',
+                'ocr_time_ms',
+                'orb_time_ms',
+                'scoring_time_ms',
+                'database_time_ms',
+            ]);
+
+            RecognitionScan::query()
+                ->with('timings')
+                ->latest('id')
+                ->chunk(200, function ($scans) use ($handle): void {
+                    foreach ($scans as $scan) {
+                        fputcsv($handle, [
+                            $scan->scan_uuid,
+                            optional($scan->created_at)->toDateTimeString(),
+                            $scan->status,
+                            $scan->decision_reason,
+                            $scan->expected_product_id,
+                            $scan->scenario_label,
+                            $scan->top_1_product_id,
+                            $scan->top_1_correct,
+                            $scan->top_3_correct,
+                            $scan->quality_score,
+                            $scan->score_final,
+                            $scan->timings?->total_processing_time_ms,
+                            $scan->timings?->hash_generation_time_ms,
+                            $scan->timings?->hash_search_time_ms,
+                            $scan->timings?->ocr_time_ms,
+                            $scan->timings?->orb_time_ms,
+                            $scan->timings?->scoring_time_ms,
+                            $scan->timings?->database_time_ms,
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        }, 'webcatalogue-recognition-pipeline-' . now()->format('Ymd-His') . '.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     public function flushPipeline(): RedirectResponse
     {
         DB::transaction(function (): void {
@@ -183,6 +243,12 @@ class RecognitionDashboardController extends Controller
             'scansByProfile' => RecognitionScan::query()
                 ->select('recognition_profile', DB::raw('count(*) as total'))
                 ->groupBy('recognition_profile')
+                ->orderByDesc('total')
+                ->get(),
+            'scansByScenario' => RecognitionScan::query()
+                ->select('scenario_label', DB::raw('count(*) as total'), DB::raw('avg(quality_score) as average_quality'), DB::raw('avg(score_final) as average_score'))
+                ->whereNotNull('scenario_label')
+                ->groupBy('scenario_label')
                 ->orderByDesc('total')
                 ->get(),
             'recentScans' => RecognitionScan::with(['topProduct', 'timings', 'candidates.product'])

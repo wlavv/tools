@@ -43,6 +43,11 @@ return [
         'parent' => 'ai_consensus.index',
     ],
 
+    'ai_consensus.templates.create' => [
+        'label' => 'New Template',
+        'parent' => 'ai_consensus.templates.index',
+    ],
+
     'ai_consensus.templates.edit' => [
         'label' => 'Edit Template',
         'parent' => 'ai_consensus.templates.index',

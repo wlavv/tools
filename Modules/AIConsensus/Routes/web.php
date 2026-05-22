@@ -22,6 +22,8 @@ Route::middleware(config('ai_consensus.middleware', ['web', 'auth']))
     Route::get('/runs/{run}', [AIConsensusRunController::class, 'show'])->name('runs.show');
 
     Route::get('/templates', [AIConsensusTemplateController::class, 'index'])->name('templates.index');
+    Route::get('/templates/create', [AIConsensusTemplateController::class, 'create'])->name('templates.create');
+    Route::post('/templates', [AIConsensusTemplateController::class, 'store'])->name('templates.store');
     Route::get('/templates/{template}/edit', [AIConsensusTemplateController::class, 'edit'])->name('templates.edit');
     Route::match(['put', 'patch'], '/templates/{template}', [AIConsensusTemplateController::class, 'update'])->name('templates.update');
 
