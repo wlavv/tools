@@ -57,6 +57,7 @@ return [
             'store_debug_image' => env('WEBCATALOGUE_RECOGNITION_OPENCV_STORE_DEBUG', true),
             'normalize_mode' => env('WEBCATALOGUE_RECOGNITION_OPENCV_NORMALIZE_MODE', 'mtg_card'),
             'score_boost' => env('WEBCATALOGUE_RECOGNITION_OPENCV_SCORE_BOOST', 3),
+            'min_card_confidence' => env('WEBCATALOGUE_RECOGNITION_OPENCV_MIN_CARD_CONFIDENCE', 0.10),
         ],
         'auto_match_min_margin' => env('WEBCATALOGUE_RECOGNITION_AUTO_MIN_MARGIN', 5),
         'structured_regions_enabled' => env('WEBCATALOGUE_RECOGNITION_STRUCTURED_REGIONS_ENABLED', true),

@@ -695,10 +695,17 @@
             && rect.y >= focus.y - (focus.h * .12)
             && rect.x + rect.w <= focus.x + focus.w + (focus.w * .12)
             && rect.y + rect.h <= focus.y + focus.h + (focus.h * .12);
+        const edgeMarginX = videoWidth * .025;
+        const edgeMarginY = videoHeight * .035;
+        const fullyVisible = rect.x > edgeMarginX
+            && rect.y > edgeMarginY
+            && rect.x + rect.w < videoWidth - edgeMarginX
+            && rect.y + rect.h < videoHeight - edgeMarginY;
 
         if(areaRatio < .20) return {ok:false, reason:'move_closer'};
         if(areaRatio > .76) return {ok:false, reason:'move_back'};
         if(aspect < 1.12 || aspect > 1.78) return {ok:false, reason:'align_card'};
+        if(!fullyVisible) return {ok:false, reason:'full_card'};
         if(centerDistance > .22 || !insideFocus) return {ok:false, reason:'center_card'};
 
         return {ok:true, reason:'ready'};
@@ -712,6 +719,7 @@
         if(reason === 'move_closer') return 'Move closer until the card fills the focus frame.';
         if(reason === 'move_back') return 'Move back slightly so the full card is visible.';
         if(reason === 'align_card') return 'Align the card vertically inside the frame.';
+        if(reason === 'full_card') return 'Keep the whole card visible, including top and bottom edges.';
         if(reason === 'center_card') return 'Center the card inside the focus frame.';
         return 'Point the camera at the card and keep it inside the frame.';
     }

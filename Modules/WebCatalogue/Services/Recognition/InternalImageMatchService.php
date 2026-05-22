@@ -109,6 +109,10 @@ class InternalImageMatchService
             }
 
             $profilePath = $this->measureInternal('perspective_correction_time_ms', fn () => $this->normalisedCaptureProfilePath($capture));
+            if (!$this->captureHasUsableNormalisation($capture, $profilePath)) {
+                $this->setInternalCounter('normalization_rejected_frames', (int) ($this->internalCounters['normalization_rejected_frames'] ?? 0) + 1);
+                continue;
+            }
 
             $markers = $this->measureInternal('orb_time_ms', fn () => $this->markersFromPublicPath($profilePath));
             if ($markers) {
@@ -1405,10 +1409,52 @@ class InternalImageMatchService
 
         $result = $this->openCv->normalizeCapture($capture);
         if (!empty($result['normalized_path']) && Storage::disk('public')->exists($result['normalized_path'])) {
+            $capture->refresh();
             return $result['normalized_path'];
         }
 
         return $capture->file_path;
+    }
+
+    private function captureHasUsableNormalisation(VisualRecognitionCapture $capture, ?string $profilePath): bool
+    {
+        if (!$profilePath || !$this->isOpenCvNormalisedPath($profilePath)) {
+            return true;
+        }
+
+        $metadata = $capture->metadata ?: [];
+        $analysis = $metadata['opencv_analysis'] ?? [];
+        $confidence = $analysis['confidence'] ?? null;
+        $contour = $analysis['contour'] ?? null;
+        $minConfidence = (float) config('webcatalogue.recognition.opencv.min_card_confidence', 0.10);
+
+        if (is_numeric($confidence) && (float) $confidence <= 0 && empty($contour)) {
+            $capture->update([
+                'metadata' => array_replace_recursive($metadata, [
+                    'opencv_analysis' => [
+                        'normalization_rejected' => true,
+                        'normalization_rejection_reason' => 'missing_card_contour',
+                    ],
+                ]),
+            ]);
+
+            return false;
+        }
+
+        if (is_numeric($confidence) && (float) $confidence < $minConfidence && empty($contour)) {
+            $capture->update([
+                'metadata' => array_replace_recursive($metadata, [
+                    'opencv_analysis' => [
+                        'normalization_rejected' => true,
+                        'normalization_rejection_reason' => 'low_card_confidence',
+                    ],
+                ]),
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     private function persistCaptureAnalysis(VisualRecognitionCapture $capture, array $profile, ?string $sourcePath = null): void
