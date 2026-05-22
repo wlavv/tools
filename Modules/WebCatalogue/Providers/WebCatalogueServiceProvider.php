@@ -4,6 +4,7 @@ namespace Modules\WebCatalogue\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\WebCatalogue\Console\CreateMirrodinEnvironmentCommand;
 use Modules\WebCatalogue\Console\RebuildRecognitionFingerprintsCommand;
 use Modules\WebCatalogue\Console\RebuildRecognitionMarkersCommand;
 use Modules\WebCatalogue\Console\SeedRecognitionTestProductsCommand;
@@ -42,6 +43,7 @@ class WebCatalogueServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                CreateMirrodinEnvironmentCommand::class,
                 RebuildRecognitionFingerprintsCommand::class,
                 RebuildRecognitionMarkersCommand::class,
                 SeedRecognitionTestProductsCommand::class,

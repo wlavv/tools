@@ -12,7 +12,7 @@
                 <span class="wc-eyebrow"><i class="fa-solid fa-vr-cardboard"></i> Environment</span>
                 <h2>{{ $item->name ?? $item->title ?? $item->reference ?? 'Environment' }}</h2>
                 <p>{{ $item->description ?? $item->short_description ?? 'Structured WebCatalogue record.' }}</p>
-                <div class="wc-detail-tags"><span class="wc-badge">{{ $item->status ?? '—' }}</span>@if(!empty($item->id_store))<span class="wc-badge">Store #{{ $item->id_store }}</span>@endif</div>
+                <div class="wc-detail-tags"><span class="wc-badge">{{ $item->status ?? '-' }}</span>@if(!empty($item->store))<span class="wc-badge">{{ $item->store->name }}</span>@endif @if(!empty($item->catalogue))<span class="wc-badge">{{ $item->catalogue->name }}</span>@endif</div>
             </div>
             <div class="wc-detail-icon"><i class="fa-solid fa-vr-cardboard"></i></div>
         </div>
@@ -20,6 +20,7 @@
         <div class="wc-detail-grid">
             <div class="wc-info-card"><i class="fa-solid fa-circle-info"></i><span>Slug</span><strong>{{ $item->slug ?? '—' }}</strong></div>
             <div class="wc-info-card"><i class="fa-solid fa-circle-info"></i><span>Environment Type</span><strong>{{ $item->environment_type ?? '—' }}</strong></div>
+            <div class="wc-info-card"><i class="fa-solid fa-book-open"></i><span>Catalogue</span><strong>{{ $item->catalogue->name ?? 'Store-wide' }}</strong></div>
             <div class="wc-info-card"><i class="fa-solid fa-circle-info"></i><span>Background Type</span><strong>{{ $item->background_type ?? '—' }}</strong></div>
             <div class="wc-info-card"><i class="fa-solid fa-circle-info"></i><span>Lighting Preset</span><strong>{{ $item->lighting_preset ?? '—' }}</strong></div>
             <div class="wc-info-card"><i class="fa-solid fa-circle-info"></i><span>Status</span><strong>{{ $item->status ?? '—' }}</strong></div>

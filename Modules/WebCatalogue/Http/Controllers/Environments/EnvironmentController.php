@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\WebCatalogue\Models\Catalogue;
 use Modules\WebCatalogue\Models\Store;
 use Modules\WebCatalogue\Models\StoreEnvironment;
 use Modules\WebCatalogue\Services\Resources\WebCatalogueResourceUploadService;
@@ -16,14 +17,20 @@ class EnvironmentController extends Controller
     use HandlesWebCatalogueFormData;
 
     public function __construct(){ parent::__construct(); $this->pageTitle = $this->resolvePageTitle(); }
-    protected function viewData(array $extra = []): array { return array_merge(['stores' => Store::query()->orderBy('name')->get()], $extra); }
+    protected function viewData(array $extra = []): array
+    {
+        return array_merge([
+            'stores' => Store::query()->orderBy('name')->get(),
+            'catalogues' => Catalogue::query()->orderBy('name')->get(),
+        ], $extra);
+    }
 
     public function index(Request $request): View
     {
         $storeId = $request->integer('id_store') ?: null;
         $store = $storeId ? Store::find($storeId) : null;
         $items = StoreEnvironment::query()
-            ->with('store')
+            ->with(['store', 'catalogue'])
             ->when($storeId, fn ($query) => $query->where('id_store', $storeId))
             ->latest('id')
             ->paginate(25)
@@ -43,8 +50,8 @@ class EnvironmentController extends Controller
         $this->handleEnvironmentUploads($request, $item, $resources);
         return redirect()->route('webcatalogue.environments.show', $item)->with('success', 'Environment created.');
     }
-    public function show(StoreEnvironment $environment): View { return $this->view('webcatalogue::environments.show', ['item' => $environment]); }
-    public function edit(StoreEnvironment $environment): View { return $this->view('webcatalogue::environments.form', $this->viewData(['item' => $environment, 'action' => route('webcatalogue.environments.update', $environment), 'method' => 'PUT'])); }
+    public function show(StoreEnvironment $environment): View { return $this->view('webcatalogue::environments.show', ['item' => $environment->loadMissing(['store', 'catalogue'])]); }
+    public function edit(StoreEnvironment $environment): View { return $this->view('webcatalogue::environments.form', $this->viewData(['item' => $environment->loadMissing(['store', 'catalogue']), 'action' => route('webcatalogue.environments.update', $environment), 'method' => 'PUT'])); }
     public function update(Request $request, StoreEnvironment $environment, WebCatalogueResourceUploadService $resources): RedirectResponse
     {
         $environment->update($this->cleanWebCatalogueData($request, ['json' => ['metadata', 'vr_scene_config', 'ar_scene_config'], 'boolean' => ['is_default'], 'default_status' => 'active']));

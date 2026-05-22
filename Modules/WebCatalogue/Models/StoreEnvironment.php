@@ -31,4 +31,5 @@ class StoreEnvironment extends Model
     ];
 
     public function store(){return $this->belongsTo(Store::class, 'id_store');}
+    public function catalogue(){return $this->belongsTo(Catalogue::class, 'id_catalogue');}
 }

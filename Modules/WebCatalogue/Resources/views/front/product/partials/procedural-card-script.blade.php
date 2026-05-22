@@ -23,6 +23,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.xr.enabled = true;
     mount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -76,6 +77,8 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     loadMaterialTexture(loader, backUrl, backMaterial);
 
     const cardGroup = new THREE.Group();
+    const cardDisplayPosition = new THREE.Vector3(0, 0, 0);
+    const cardArPosition = new THREE.Vector3(0, -0.05, -1.15);
     const faceGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
     const front = new THREE.Mesh(faceGeometry, frontMaterial);
     front.position.z = faceOffset;
@@ -126,15 +129,76 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         renderer.setSize(w, h, false);
     };
 
+    const arButton = document.createElement('button');
+    arButton.type = 'button';
+    arButton.className = 'wc-procedural-ar-btn';
+    arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+    arButton.hidden = true;
+    mount.appendChild(arButton);
+
+    const arNote = document.createElement('div');
+    arNote.className = 'wc-procedural-ar-note';
+    arNote.textContent = 'AR available on compatible WebXR browsers.';
+    arNote.hidden = true;
+    mount.appendChild(arNote);
+
+    let xrSession = null;
+    if ('xr' in navigator) {
+        navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+            arButton.hidden = !supported;
+            arNote.hidden = supported;
+        }).catch(() => {
+            arButton.hidden = true;
+            arNote.hidden = false;
+        });
+    } else {
+        arNote.hidden = false;
+    }
+
+    arButton.addEventListener('click', async () => {
+        if (xrSession) {
+            await xrSession.end();
+            return;
+        }
+
+        try {
+            xrSession = await navigator.xr.requestSession('immersive-ar', {
+                optionalFeatures: ['local-floor', 'dom-overlay'],
+                domOverlay: {root: document.body}
+            });
+            renderer.xr.setSession(xrSession);
+            controls.enabled = false;
+            controls.autoRotate = false;
+            cardGroup.position.copy(cardArPosition);
+            cardGroup.rotation.set(0, 0, 0);
+            cardGroup.scale.setScalar(0.22);
+            scene.background = null;
+            arButton.classList.add('is-exit');
+            arButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit AR';
+            xrSession.addEventListener('end', () => {
+                xrSession = null;
+                controls.enabled = true;
+                controls.autoRotate = true;
+                cardGroup.position.copy(cardDisplayPosition);
+                cardGroup.rotation.set(0, 0, 0);
+                cardGroup.scale.setScalar(1);
+                arButton.classList.remove('is-exit');
+                arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+            });
+        } catch (error) {
+            arNote.textContent = 'AR could not start on this device/browser.';
+            arNote.hidden = false;
+        }
+    });
+
     const animate = () => {
         controls.update();
         renderer.render(scene, camera);
-        requestAnimationFrame(animate);
     };
 
     window.addEventListener('resize', resize, {passive: true});
     resize();
-    animate();
+    renderer.setAnimationLoop(animate);
 });
 
 function createFoilTexture(){
