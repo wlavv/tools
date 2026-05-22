@@ -1283,7 +1283,9 @@ class InternalImageMatchService
 
         $sourceWidth = imagesx($image);
         $sourceHeight = imagesy($image);
-        $objectBox = $this->objectCropBox($image);
+        $objectBox = $this->isOpenCvNormalisedPath($path)
+            ? [0, 0, $sourceWidth, $sourceHeight]
+            : $this->objectCropBox($image);
         $variants = [
             'object' => $this->profileVariantFromBox($image, $objectBox, 96),
             'center' => $this->profileVariantFromBox($image, $this->centerCropBox($sourceWidth, $sourceHeight), 96),
@@ -1388,6 +1390,7 @@ class InternalImageMatchService
             && Storage::disk('public')->exists($metadata['detected_object_crop_path'])
             && (($metadata['recognition_analysis']['algorithm'] ?? null) === $this->algorithmName())
             && (($metadata['recognition_analysis']['source_path'] ?? null) === $sourcePath)
+            && !($this->isOpenCvNormalisedPath($sourcePath) && empty($metadata['recognition_analysis']['structured_regions']))
         ) {
             return;
         }
@@ -1599,6 +1602,11 @@ class InternalImageMatchService
         $maxY = min($height - 1, $maxY + $paddingY);
 
         return [$minX, $minY, max(1, $maxX - $minX), max(1, $maxY - $minY)];
+    }
+
+    private function isOpenCvNormalisedPath(string $path): bool
+    {
+        return str_contains(pathinfo($path, PATHINFO_FILENAME), '_opencv_normalized_');
     }
 
     private function darkRectangularObjectBox($image, int $width, int $height): ?array
