@@ -10,11 +10,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\WebCatalogue\Models\Product;
+use Modules\WebCatalogue\Models\RecognitionScan;
 use Modules\WebCatalogue\Models\Resource;
 use Modules\WebCatalogue\Models\UnmatchedProductLead;
 use Modules\WebCatalogue\Models\VisualRecognitionMatch;
 use Modules\WebCatalogue\Models\VisualRecognitionSession;
 use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class RecognitionSessionController extends Controller
 {
@@ -235,6 +237,156 @@ class RecognitionSessionController extends Controller
             ->with('forced_compare', $result);
     }
 
+    public function groundTruth(Request $request, VisualRecognitionSession $session, InternalImageMatchService $matcher): RedirectResponse
+    {
+        $validated = $request->validate([
+            'id_product' => ['required', 'integer'],
+            'scenario_label' => ['nullable', 'string', 'max:80'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'run_forced_compare' => ['nullable', 'boolean'],
+        ]);
+
+        $product = Product::query()
+            ->with('mainImageResource')
+            ->where('id', $validated['id_product'])
+            ->when($session->id_store, fn ($query) => $query->where('id_store', $session->id_store))
+            ->firstOrFail();
+
+        $session->load(['matches.product.mainImageResource', 'captures']);
+        $topMatches = $session->matches->sortBy('rank')->values();
+        $rank = $topMatches->firstWhere('id_product', $product->id)?->rank;
+        $classification = $this->groundTruthClassification($rank);
+        $forcedCompare = !empty($validated['run_forced_compare'])
+            ? $matcher->compareSessionWithProduct($session, $product)
+            : null;
+
+        $review = [
+            'expected_product_id' => $product->id,
+            'expected_product_name' => strip_tags((string) $product->name),
+            'expected_product_reference' => $product->reference,
+            'scenario_label' => $validated['scenario_label'] ?: null,
+            'classification' => $classification,
+            'rank' => $rank ? (int) $rank : null,
+            'top_1_correct' => $rank !== null && (int) $rank === 1,
+            'top_3_correct' => $rank !== null && (int) $rank <= 3,
+            'top_5_correct' => $rank !== null && (int) $rank <= 5,
+            'notes' => $validated['notes'] ?: null,
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now()->toIso8601String(),
+            'forced_compare' => $forcedCompare,
+        ];
+
+        $session->update([
+            'metadata' => array_replace_recursive($session->metadata ?: [], [
+                'ground_truth' => $review,
+            ]),
+        ]);
+
+        $scan = RecognitionScan::query()
+            ->where('id_session', $session->id)
+            ->latest('id')
+            ->first();
+
+        if ($scan) {
+            $scan->update([
+                'expected_product_id' => $product->id,
+                'scenario_label' => $validated['scenario_label'] ?: null,
+                'top_1_correct' => $review['top_1_correct'],
+                'top_3_correct' => $review['top_3_correct'],
+                'false_positive' => ($session->status === 'matched' || $session->status === 'manual_matched') && !$review['top_1_correct'],
+                'false_negative' => !$review['top_1_correct'] && $review['top_3_correct'],
+                'metadata' => array_replace_recursive($scan->metadata ?: [], [
+                    'manual_ground_truth' => $review,
+                ]),
+            ]);
+        }
+
+        return back()
+            ->withInput(['id_product' => $product->id])
+            ->with($forcedCompare && !($forcedCompare['ok'] ?? false) ? 'error' : 'success', 'Ground truth saved: ' . str_replace('_', ' ', $classification) . '.')
+            ->with('forced_compare', $forcedCompare);
+    }
+
+    public function diagnosticZip(Request $request, VisualRecognitionSession $session): BinaryFileResponse
+    {
+        abort_unless(class_exists(\ZipArchive::class), 500, 'PHP Zip extension is not available.');
+
+        $session->load(['store', 'product.mainImageResource', 'captures', 'matches.product.mainImageResource']);
+        $groundTruthProductId = (int) ($request->query('id_product') ?: data_get($session->metadata, 'ground_truth.expected_product_id') ?: $session->id_product);
+        $groundTruthProduct = $groundTruthProductId
+            ? Product::query()->with('mainImageResource')->find($groundTruthProductId)
+            : null;
+        $topMatches = $session->matches->sortBy('rank')->take(5)->values();
+        $zipPath = storage_path('app/webcatalogue-session-' . $session->id . '-diagnostic-' . now()->format('YmdHis') . '.zip');
+        $zip = new \ZipArchive();
+
+        abort_unless($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true, 500, 'Could not create diagnostic ZIP.');
+
+        $manifest = [
+            'session' => [
+                'id' => $session->id,
+                'status' => $session->status,
+                'store' => $session->store?->name,
+                'created_at' => $session->created_at?->toIso8601String(),
+                'metadata' => $session->metadata,
+            ],
+            'ground_truth_product' => $groundTruthProduct ? [
+                'id' => $groundTruthProduct->id,
+                'reference' => $groundTruthProduct->reference,
+                'name' => strip_tags((string) $groundTruthProduct->name),
+                'image_path' => $groundTruthProduct->mainImageResource?->file_path,
+            ] : null,
+            'top_5_candidates' => $topMatches->map(fn (VisualRecognitionMatch $match) => [
+                'rank' => (int) $match->rank,
+                'product_id' => $match->id_product,
+                'reference' => $match->product?->reference,
+                'name' => strip_tags((string) ($match->product?->name ?? '')),
+                'score' => (float) $match->score,
+                'provider' => $match->match_provider,
+                'status' => $match->status,
+                'image_path' => $match->product?->mainImageResource?->file_path,
+                'scores' => $match->metadata['scores'] ?? [],
+            ])->values()->all(),
+            'captures' => $session->captures->map(fn ($capture) => [
+                'id' => $capture->id,
+                'type' => $capture->capture_type,
+                'file_path' => $capture->file_path,
+                'crop_path' => $capture->metadata['detected_object_crop_path'] ?? null,
+                'opencv_normalized_path' => $capture->metadata['opencv_analysis']['normalized_path'] ?? null,
+                'opencv_debug_path' => $capture->metadata['opencv_analysis']['debug_path'] ?? null,
+                'metadata' => $capture->metadata,
+            ])->values()->all(),
+        ];
+
+        $zip->addFromString('manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+        foreach ($session->captures as $capture) {
+            $prefix = 'captures/capture_' . $capture->id . '/';
+            $this->addPublicStorageFileToZip($zip, $capture->file_path, $prefix . 'original');
+            $this->addPublicStorageFileToZip($zip, $capture->metadata['detected_object_crop_path'] ?? null, $prefix . 'detected_crop');
+            $this->addPublicStorageFileToZip($zip, $capture->metadata['opencv_analysis']['normalized_path'] ?? null, $prefix . 'opencv_normalized');
+            $this->addPublicStorageFileToZip($zip, $capture->metadata['opencv_analysis']['debug_path'] ?? null, $prefix . 'opencv_debug');
+        }
+
+        foreach ($topMatches as $match) {
+            $this->addPublicStorageFileToZip(
+                $zip,
+                $match->product?->mainImageResource?->file_path,
+                'candidates/rank_' . str_pad((string) $match->rank, 2, '0', STR_PAD_LEFT) . '_product_' . $match->id_product
+            );
+        }
+
+        if ($groundTruthProduct) {
+            $this->addPublicStorageFileToZip($zip, $groundTruthProduct->mainImageResource?->file_path, 'ground_truth/product_' . $groundTruthProduct->id);
+        }
+
+        $zip->close();
+
+        return response()
+            ->download($zipPath, 'webcatalogue-session-' . $session->id . '-diagnostic.zip')
+            ->deleteFileAfterSend(true);
+    }
+
     private function storeFeedbackCaptureAsProductResource(VisualRecognitionSession $session, Product $product): void
     {
         $capture = $session->captures()->where('capture_type', 'object_photo')->latest()->first();
@@ -281,6 +433,34 @@ class RecognitionSessionController extends Controller
                 ],
             ]
         );
+    }
+
+    private function groundTruthClassification(?int $rank): string
+    {
+        if ($rank === 1) {
+            return 'top_1_match';
+        }
+
+        if ($rank !== null && $rank <= 3) {
+            return 'failed_auto_but_in_top_3';
+        }
+
+        if ($rank !== null && $rank <= 5) {
+            return 'failed_auto_but_in_top_5';
+        }
+
+        return 'missed_top_5';
+    }
+
+    private function addPublicStorageFileToZip(\ZipArchive $zip, ?string $path, string $zipBaseName): void
+    {
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            return;
+        }
+
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $zipName = $zipBaseName . ($extension ? '.' . $extension : '');
+        $zip->addFile(Storage::disk('public')->path($path), $zipName);
     }
 
     public function createLead(Request $request, VisualRecognitionSession $session): RedirectResponse

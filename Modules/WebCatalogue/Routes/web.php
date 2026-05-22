@@ -77,6 +77,8 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
             Route::get('/sessions/{session}', [RecognitionSessionController::class, 'show'])->name('sessions.show');
             Route::delete('/sessions/{session}', [RecognitionSessionController::class, 'destroy'])->name('sessions.destroy');
             Route::post('/sessions/{session}/associate-product', [RecognitionSessionController::class, 'associateProduct'])->name('sessions.associate_product');
+            Route::post('/sessions/{session}/ground-truth', [RecognitionSessionController::class, 'groundTruth'])->name('sessions.ground_truth');
+            Route::get('/sessions/{session}/diagnostic.zip', [RecognitionSessionController::class, 'diagnosticZip'])->name('sessions.diagnostic_zip');
             Route::post('/sessions/{session}/compare-product', [RecognitionSessionController::class, 'compareProduct'])->name('sessions.compare_product');
             Route::post('/sessions/{session}/create-lead', [RecognitionSessionController::class, 'createLead'])->name('sessions.create_lead');
             Route::post('/sessions/{session}/create-product', [RecognitionSessionController::class, 'createProduct'])->name('sessions.create_product');

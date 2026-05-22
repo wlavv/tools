@@ -11,6 +11,8 @@
     $capturePreview = $objectCapture?->resolved_url;
     $captureCropPreview = $objectCapture?->metadata['detected_object_crop_url'] ?? null;
     $forcedCompare = session('forced_compare');
+    $groundTruth = $item->metadata['ground_truth'] ?? [];
+    $groundTruthProductId = old('id_product', $groundTruth['expected_product_id'] ?? $item->id_product);
     $matchByProduct = $item->matches->mapWithKeys(fn($match) => [$match->id_product => [
         'match_id' => $match->id,
         'rank' => $match->rank,
@@ -105,6 +107,21 @@
 
         <div class="wc-card wc-spaced-card">
             <div class="wc-section-head"><div><h3>Recognition matches</h3><p class="wc-muted">Internal matching suggestions generated from captured product images.</p></div></div>
+            @if(!empty($groundTruth))
+                <div class="wc-alert">
+                    <strong>Ground truth:</strong>
+                    {{ $groundTruth['expected_product_reference'] ?? '#' . ($groundTruth['expected_product_id'] ?? '-') }}
+                    - {{ $groundTruth['expected_product_name'] ?? 'Product' }}
+                    <br>
+                    <span>
+                        Result: {{ str_replace('_', ' ', $groundTruth['classification'] ?? '-') }}
+                        @if(!empty($groundTruth['rank'])) - rank {{ $groundTruth['rank'] }}@endif
+                        @if(array_key_exists('top_1_correct', $groundTruth)) - top 1 {{ !empty($groundTruth['top_1_correct']) ? 'yes' : 'no' }}@endif
+                        @if(array_key_exists('top_3_correct', $groundTruth)) - top 3 {{ !empty($groundTruth['top_3_correct']) ? 'yes' : 'no' }}@endif
+                        @if(array_key_exists('top_5_correct', $groundTruth)) - top 5 {{ !empty($groundTruth['top_5_correct']) ? 'yes' : 'no' }}@endif
+                    </span>
+                </div>
+            @endif
             @if(!empty($item->metadata['match_error']) || !empty($item->metadata['capture_error']))
                 <div class="wc-alert wc-alert-warning">
                     <strong>{{ $item->metadata['match_error'] ?? $item->metadata['capture_error'] }}</strong>
@@ -126,7 +143,7 @@
                 </div>
             @endif
             <div class="wc-grid">
-                @php($rankedMatches = $item->matches->sortBy('rank')->take(3))
+                @php($rankedMatches = $item->matches->sortBy('rank')->take(5))
                 @forelse($rankedMatches as $match)
                     @php($productImage = $match->product?->mainImageResource?->resolved_url)
                     <div class="wc-preview-card wc-match-card">
@@ -201,6 +218,44 @@
     </div>
 
     <aside class="wc-preview-panel">
+        <div class="wc-preview-card">
+            <div class="wc-preview-body">
+                <h4>Ground truth</h4>
+                <form method="post" action="{{ route('webcatalogue.recognition.sessions.ground_truth', $item) }}">
+                    @csrf
+                    <div class="wc-field">
+                        <label>Real product</label>
+                        <select name="id_product" required>
+                            <option value="">Select real product</option>
+                            @foreach($products as $product)
+                                <option value="{{ $product->id }}" @selected((string) $groundTruthProductId === (string) $product->id)>#{{ $product->reference }} - {{ strip_tags($product->name) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="wc-field">
+                        <label>Scenario</label>
+                        <select name="scenario_label">
+                            @foreach(['', 'ideal_light', 'natural_light', 'low_light', 'glare', 'sleeve', 'foil', 'angled', 'complex_background', 'motion_blur', 'distance_variation'] as $scenario)
+                                <option value="{{ $scenario }}" @selected(($groundTruth['scenario_label'] ?? '') === $scenario)>{{ $scenario ? str_replace('_', ' ', $scenario) : 'Not specified' }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="wc-field">
+                        <label>Notes</label>
+                        <textarea name="notes" rows="3">{{ old('notes', $groundTruth['notes'] ?? '') }}</textarea>
+                    </div>
+                    <label class="wc-muted" style="display:flex;gap:8px;align-items:center;margin:8px 0 12px;">
+                        <input type="checkbox" name="run_forced_compare" value="1">
+                        Force comparison against the real product
+                    </label>
+                    <div class="wc-actions-row">
+                        <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-check-double"></i> Save validation</button>
+                        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.sessions.diagnostic_zip', $item) }}"><i class="fa-solid fa-file-zipper"></i> Diagnostic ZIP</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="wc-preview-card">
             <div class="wc-preview-body">
                 <h4>Review actions</h4>
