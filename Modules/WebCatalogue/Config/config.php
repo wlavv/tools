@@ -69,6 +69,7 @@ return [
             'marker_stage_limit' => env('WEBCATALOGUE_RECOGNITION_MARKER_STAGE_LIMIT', 30),
             'verification_stage_limit' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_STAGE_LIMIT', 44),
             'final_stage_limit' => env('WEBCATALOGUE_RECOGNITION_FINAL_STAGE_LIMIT', 44),
+            'short_hash_protected_final' => env('WEBCATALOGUE_RECOGNITION_SHORT_HASH_PROTECTED_FINAL', 14),
         ],
         'verification_pool' => [
             'enabled' => env('WEBCATALOGUE_RECOGNITION_VERIFICATION_POOL_ENABLED', true),

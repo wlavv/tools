@@ -74,7 +74,7 @@ class RecognitionCandidateService
             : max($shortHashLimit, $markerCandidateTop, $verificationPoolSize);
 
         $finalLimit = min($limit, (int) config('webcatalogue.recognition.candidate_pipeline.final_stage_limit', 54));
-        $limited = $this->rankAndLimit($preselected, $finalLimit);
+        $limited = $this->finalRankAndLimit($preselected, $finalLimit);
 
         return [
             'candidates' => $limited,
@@ -93,6 +93,7 @@ class RecognitionCandidateService
                 'missing_fingerprint_candidates' => max(0, $candidateCount - $fingerprintedCount),
                 'scored_candidates' => count($limited),
                 'final_stage_limit' => $finalLimit,
+                'short_hash_protected_final' => (int) config('webcatalogue.recognition.candidate_pipeline.short_hash_protected_final', 14),
                 'short_hash_top_candidates' => $shortHashLimit,
                 'marker_candidate_top' => $markerCandidateTop,
                 'marker_candidate_pool' => $markerCandidatePool,
@@ -137,16 +138,69 @@ class RecognitionCandidateService
         return array_slice($candidates, 0, max(1, $limit));
     }
 
+    private function finalRankAndLimit(array $candidates, int $limit): array
+    {
+        if (empty($candidates)) {
+            return [];
+        }
+
+        $limit = max(1, $limit);
+        $protectedLimit = min(
+            $limit,
+            max(0, (int) config('webcatalogue.recognition.candidate_pipeline.short_hash_protected_final', 14))
+        );
+
+        if ($protectedLimit <= 0) {
+            return $this->rankAndLimit($candidates, $limit);
+        }
+
+        $shortHashCandidates = array_values(array_filter($candidates, function (array $candidate): bool {
+            return in_array('short_hash', $candidate['candidate_sources'] ?? [], true);
+        }));
+
+        $protected = $this->rankAndLimit($shortHashCandidates, $protectedLimit);
+        $protectedIds = [];
+        foreach ($protected as $candidate) {
+            $protectedIds[(int) $candidate['resource']->id] = true;
+        }
+
+        $remaining = array_values(array_filter($candidates, function (array $candidate) use ($protectedIds): bool {
+            return !isset($protectedIds[(int) $candidate['resource']->id]);
+        }));
+
+        $remainingLimit = $limit - count($protected);
+        if ($remainingLimit <= 0) {
+            return array_slice($protected, 0, $limit);
+        }
+
+        return array_values(array_merge(
+            $protected,
+            $this->rankAndLimit($remaining, $remainingLimit)
+        ));
+    }
+
     private function candidateRankValue(array $candidate): float
     {
         $short = $candidate['short_distance'] ?? null;
         $marker = $candidate['marker_hash_distance'] ?? null;
         $verification = $candidate['verification_distance'] ?? null;
         $verificationScore = $candidate['verification_score'] ?? null;
+        $sources = $candidate['candidate_sources'] ?? [];
+        $sourceBonus = (count(array_unique($sources)) - 1) * 2.0;
+
+        if (in_array('short_hash', $sources, true) && is_numeric($short)) {
+            $shortDistance = (float) $short;
+
+            if ($shortDistance <= 3) {
+                return max(0, ($shortDistance * 0.25) - $sourceBonus);
+            }
+
+            if ($shortDistance <= 5 && (!is_numeric($verificationScore) || (float) $verificationScore < 82)) {
+                return max(0, 1.0 + ($shortDistance * 0.35) - $sourceBonus);
+            }
+        }
 
         if (is_numeric($verificationScore) && (float) $verificationScore >= 72) {
-            $sources = $candidate['candidate_sources'] ?? [];
-            $sourceBonus = (count(array_unique($sources)) - 1) * 2.0;
             $distance = max(0, 82 - (float) $verificationScore) * 0.35;
 
             if (is_numeric($short) && (float) $short <= 6) {
@@ -161,9 +215,6 @@ class RecognitionCandidateService
             is_numeric($marker) ? ((float) $marker * 0.85) : 999,
             is_numeric($verification) ? ((float) $verification * 0.65) : 999
         );
-
-        $sources = $candidate['candidate_sources'] ?? [];
-        $sourceBonus = (count(array_unique($sources)) - 1) * 2.0;
 
         return max(0, $best - $sourceBonus);
     }
