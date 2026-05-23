@@ -25,6 +25,9 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         camera.near = Number.parseFloat(environment.camera.near ?? camera.near) || camera.near;
         camera.far = Number.parseFloat(environment.camera.far ?? camera.far) || camera.far;
         applyVector3(camera.position, environment.camera.position, [0, 0.25, 7.2]);
+        if (camera.position.length() < 4.2) {
+            camera.position.set(0.55, 0.32, 6.4);
+        }
         camera.updateProjectionMatrix();
     }
 
@@ -37,16 +40,18 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 0.7;
+    controls.enableRotate = true;
+    controls.enableZoom = true;
     controls.enablePan = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.7;
     controls.screenSpacePanning = true;
     controls.minDistance = 4.2;
     controls.maxDistance = 9;
     controls.target.set(0, 0, 0);
     if (environment?.camera) {
-        controls.minDistance = Number.parseFloat(environment.camera.minDistance ?? controls.minDistance) || controls.minDistance;
-        controls.maxDistance = Number.parseFloat(environment.camera.maxDistance ?? controls.maxDistance) || controls.maxDistance;
+        controls.minDistance = Math.min(4.2, Number.parseFloat(environment.camera.minDistance ?? controls.minDistance) || controls.minDistance);
+        controls.maxDistance = Math.max(9, Number.parseFloat(environment.camera.maxDistance ?? controls.maxDistance) || controls.maxDistance);
         applyVector3(controls.target, environment.camera.target, [0, 0, 0]);
     }
     controls.addEventListener('start', () => {
@@ -168,12 +173,24 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         renderer.setSize(w, h, false);
     };
 
+    const xrButtons = document.createElement('div');
+    xrButtons.className = 'wc-procedural-xr-actions';
+    xrButtons.hidden = true;
+    mount.appendChild(xrButtons);
+
     const arButton = document.createElement('button');
     arButton.type = 'button';
     arButton.className = 'wc-procedural-ar-btn';
-    arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> Open immersive';
-    arButton.hidden = true;
-    mount.appendChild(arButton);
+    arButton.dataset.xrMode = 'immersive-ar';
+    arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+    xrButtons.appendChild(arButton);
+
+    const vrButton = document.createElement('button');
+    vrButton.type = 'button';
+    vrButton.className = 'wc-procedural-ar-btn wc-procedural-vr-btn';
+    vrButton.dataset.xrMode = 'immersive-vr';
+    vrButton.innerHTML = '<i class="fa-solid fa-headset"></i> Open VR';
+    xrButtons.appendChild(vrButton);
 
     const arNote = document.createElement('div');
     arNote.className = 'wc-procedural-ar-note';
@@ -246,26 +263,26 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
             navigator.xr.isSessionSupported('immersive-vr').catch(() => false)
         ]).then(([arSupported, vrSupported]) => {
             if (arSupported || vrSupported) {
-                arButton.hidden = false;
-                arButton.dataset.xrMode = arSupported ? 'immersive-ar' : 'immersive-vr';
-                arButton.innerHTML = arSupported
-                    ? '<i class="fa-solid fa-vr-cardboard"></i> View in AR'
-                    : '<i class="fa-solid fa-vr-cardboard"></i> Open in VR';
+                xrButtons.hidden = false;
+                arButton.hidden = !arSupported;
+                vrButton.hidden = !vrSupported;
                 arNote.hidden = true;
             } else {
-                arButton.hidden = true;
+                xrButtons.hidden = true;
                 arNote.textContent = 'VR/AR is not available on this browser.';
                 arNote.hidden = false;
             }
         }).catch(() => {
-            arButton.hidden = true;
+            xrButtons.hidden = true;
             arNote.hidden = false;
         });
     } else {
         arNote.hidden = false;
     }
 
-    arButton.addEventListener('click', async () => {
+    xrButtons.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-xr-mode]');
+        if (!button) return;
         ambientAudio?.unlock();
         if (xrSession) {
             await xrSession.end();
@@ -273,7 +290,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         }
 
         try {
-            const requestedMode = arButton.dataset.xrMode || 'immersive-vr';
+            const requestedMode = button.dataset.xrMode || 'immersive-vr';
             const started = await requestProceduralXrSession(requestedMode);
             xrMode = started.mode;
             xrSession = started.session;
@@ -293,8 +310,10 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
             } else {
                 applyEnvironmentSkybox(scene, renderer, environment);
             }
-            arButton.classList.add('is-exit');
-            arButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit';
+            xrButtons.classList.add('is-exit');
+            arButton.hidden = true;
+            vrButton.hidden = false;
+            vrButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit';
             xrSession.addEventListener('end', () => {
                 releaseXrGrab();
                 xrSession = null;
@@ -307,10 +326,11 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
                 cardGroup.scale.setScalar(1);
                 environmentGroup.visible = !environment?.skybox_url;
                 applyEnvironmentSkybox(scene, renderer, environment);
-                arButton.classList.remove('is-exit');
-                arButton.innerHTML = arButton.dataset.xrMode === 'immersive-ar'
-                    ? '<i class="fa-solid fa-vr-cardboard"></i> View in AR'
-                    : '<i class="fa-solid fa-vr-cardboard"></i> Open in VR';
+                xrButtons.classList.remove('is-exit');
+                arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
+                vrButton.innerHTML = '<i class="fa-solid fa-headset"></i> Open VR';
+                navigator.xr?.isSessionSupported('immersive-ar').then((supported) => arButton.hidden = !supported).catch(() => arButton.hidden = true);
+                navigator.xr?.isSessionSupported('immersive-vr').then((supported) => vrButton.hidden = !supported).catch(() => vrButton.hidden = true);
             });
         } catch (error) {
             console.warn('[WebCatalogue] Procedural XR failed', error);
