@@ -62,6 +62,10 @@
             parallaxCard.style.transform = '';
             parallaxCard.style.setProperty('--foil-x', '50%');
             parallaxCard.style.setProperty('--foil-y', '50%');
+            parallaxCard.style.setProperty('--glare-x', '50%');
+            parallaxCard.style.setProperty('--glare-y', '50%');
+            parallaxCard.style.setProperty('--foil-angle', '115deg');
+            parallaxCard.style.setProperty('--foil-intensity', '.28');
         };
 
         const applyTilt = (clientX, clientY) => {
@@ -69,12 +73,20 @@
             if(!rect.width || !rect.height) return;
             const x = (clientX - rect.left) / rect.width;
             const y = (clientY - rect.top) / rect.height;
-            const rotateY = (x - .5) * 18;
-            const rotateX = (.5 - y) * 18;
+            const rotateY = (x - .5) * 26;
+            const rotateX = (.5 - y) * 24;
+            const glareX = Math.round((1 - x) * 100);
+            const glareY = Math.round((1 - y) * 100);
+            const angle = Math.round(110 + ((x - .5) * 34) + ((y - .5) * 18));
+            const intensity = Math.min(1, Math.max(0, Math.hypot(x - .5, y - .5) * 2.2));
             parallaxCard.classList.add('is-tilting');
-            parallaxCard.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(1.025)`;
+            parallaxCard.style.transform = `perspective(760px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(1.045)`;
             parallaxCard.style.setProperty('--foil-x', `${Math.round(x * 100)}%`);
             parallaxCard.style.setProperty('--foil-y', `${Math.round(y * 100)}%`);
+            parallaxCard.style.setProperty('--glare-x', `${glareX}%`);
+            parallaxCard.style.setProperty('--glare-y', `${glareY}%`);
+            parallaxCard.style.setProperty('--foil-angle', `${angle}deg`);
+            parallaxCard.style.setProperty('--foil-intensity', intensity.toFixed(2));
         };
 
         parallaxCard.addEventListener('pointermove', event => applyTilt(event.clientX, event.clientY));
