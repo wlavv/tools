@@ -12,6 +12,7 @@ use Modules\WebCatalogue\Models\Product;
 use Modules\WebCatalogue\Models\PublicLink;
 use Modules\WebCatalogue\Models\SessionLog;
 use Modules\WebCatalogue\Models\Store;
+use Modules\WebCatalogue\Models\StoreEnvironment;
 
 class FrontCatalogueController extends Controller
 {
@@ -108,8 +109,9 @@ class FrontCatalogueController extends Controller
         $product = $this->findProduct($store, $product_slug);
 
         $payload = $this->buildProductPayload($product);
+        $environmentPayload = $this->buildEnvironmentPayload($store);
 
-        return view('webcatalogue::front.product.show', $payload + compact('store', 'product'));
+        return view('webcatalogue::front.product.show', $payload + compact('store', 'product', 'environmentPayload'));
     }
 
     public function catalogueProduct(string $store_slug, string $catalogue_slug, string $product_slug): View
@@ -129,8 +131,9 @@ class FrontCatalogueController extends Controller
         );
 
         $payload = $this->buildProductPayload($product);
+        $environmentPayload = $this->buildEnvironmentPayload($store, $catalogue);
 
-        return view('webcatalogue::front.product.show', $payload + compact('store', 'catalogue', 'product'));
+        return view('webcatalogue::front.product.show', $payload + compact('store', 'catalogue', 'product', 'environmentPayload'));
     }
 
     public function viewer(string $store_slug, string $product_slug): View
@@ -138,8 +141,9 @@ class FrontCatalogueController extends Controller
         $store = $this->findStore($store_slug);
         $product = $this->findProduct($store, $product_slug);
         $payload = $this->buildProductPayload($product);
+        $environmentPayload = $this->buildEnvironmentPayload($store);
 
-        return view('webcatalogue::front.viewer.show', $payload + compact('store', 'product'));
+        return view('webcatalogue::front.viewer.show', $payload + compact('store', 'product', 'environmentPayload'));
     }
 
     public function catalogueViewer(string $store_slug, string $catalogue_slug, string $product_slug): View
@@ -158,8 +162,9 @@ class FrontCatalogueController extends Controller
         );
 
         $payload = $this->buildProductPayload($product);
+        $environmentPayload = $this->buildEnvironmentPayload($store, $catalogue);
 
-        return view('webcatalogue::front.viewer.show', $payload + compact('store', 'catalogue', 'product'));
+        return view('webcatalogue::front.viewer.show', $payload + compact('store', 'catalogue', 'product', 'environmentPayload'));
     }
 
     private function findStore(string $slug): Store
@@ -303,6 +308,48 @@ class FrontCatalogueController extends Controller
             'finish' => $finish,
             'ratio' => 1.395,
             'thickness' => 0.012,
+        ];
+    }
+
+    private function buildEnvironmentPayload(Store $store, ?Catalogue $catalogue = null): ?array
+    {
+        $environment = StoreEnvironment::query()
+            ->where('id_store', $store->id)
+            ->where('status', 'active')
+            ->when($catalogue, function ($query) use ($catalogue) {
+                $query->where(function ($sub) use ($catalogue) {
+                    $sub->where('id_catalogue', $catalogue->id)
+                        ->orWhereNull('id_catalogue');
+                });
+            }, fn ($query) => $query->whereNull('id_catalogue'))
+            ->orderByRaw($catalogue ? 'CASE WHEN id_catalogue = ? THEN 0 ELSE 1 END' : '0', $catalogue ? [$catalogue->id] : [])
+            ->orderByDesc('is_default')
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$environment) {
+            return null;
+        }
+
+        $vrConfig = is_array($environment->vr_scene_config ?? null) ? $environment->vr_scene_config : [];
+        $metadata = is_array($environment->metadata ?? null) ? $environment->metadata : [];
+        $background = is_array($vrConfig['background'] ?? null) ? $vrConfig['background'] : [];
+        $audio = is_array($vrConfig['audio'] ?? null) ? $vrConfig['audio'] : [];
+
+        return [
+            'id' => $environment->id,
+            'name' => $environment->name,
+            'slug' => $environment->slug,
+            'type' => $environment->environment_type,
+            'background_type' => $environment->background_type,
+            'background_color' => $environment->background_color ?: '#0b1018',
+            'skybox_url' => $background['url'] ?? null,
+            'audio_url' => $audio['url'] ?? null,
+            'audio_volume' => $audio['volume'] ?? 0.24,
+            'lighting' => $vrConfig['lighting'] ?? null,
+            'camera' => $vrConfig['camera'] ?? null,
+            'scene' => $vrConfig['scene'] ?? null,
+            'metadata' => $metadata,
         ];
     }
 

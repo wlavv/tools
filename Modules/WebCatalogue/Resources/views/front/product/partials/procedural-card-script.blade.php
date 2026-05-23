@@ -10,30 +10,50 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const finish = mount.dataset.finish || 'normal';
     const ratio = Number.parseFloat(mount.dataset.ratio || '1.395') || 1.395;
     const thickness = Number.parseFloat(mount.dataset.thickness || '0.012') || 0.012;
+    const environment = parseEnvironmentPayload(mount.dataset.environment);
     const width = 2.5;
     const height = width * ratio;
     const radius = width * 0.055;
     const faceOffset = Math.max(thickness / 2 + 0.01, 0.018);
     const scene = new THREE.Scene();
-    scene.background = null;
+    scene.background = environment?.background_color ? new THREE.Color(environment.background_color) : null;
 
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
     camera.position.set(0, 0.25, 7.2);
+    if (environment?.camera) {
+        camera.fov = Number.parseFloat(environment.camera.fov ?? camera.fov) || camera.fov;
+        camera.near = Number.parseFloat(environment.camera.near ?? camera.near) || camera.near;
+        camera.far = Number.parseFloat(environment.camera.far ?? camera.far) || camera.far;
+        applyVector3(camera.position, environment.camera.position, [0, 0.25, 7.2]);
+        camera.updateProjectionMatrix();
+    }
 
     const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.xr.enabled = true;
     mount.appendChild(renderer.domElement);
+    renderer.domElement.classList.add('wc-procedural-canvas');
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.autoRotate = true;
+    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.7;
-    controls.enablePan = false;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
     controls.minDistance = 4.2;
     controls.maxDistance = 9;
     controls.target.set(0, 0, 0);
+    if (environment?.camera) {
+        controls.minDistance = Number.parseFloat(environment.camera.minDistance ?? controls.minDistance) || controls.minDistance;
+        controls.maxDistance = Number.parseFloat(environment.camera.maxDistance ?? controls.maxDistance) || controls.maxDistance;
+        applyVector3(controls.target, environment.camera.target, [0, 0, 0]);
+    }
+    controls.addEventListener('start', () => {
+        controls.autoRotate = false;
+        mount.classList.add('is-interacting');
+    });
+    controls.addEventListener('end', () => mount.classList.remove('is-interacting'));
 
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin('anonymous');
@@ -113,16 +133,31 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         cardGroup.add(foil);
     }
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x0f172a, 1.6));
+    applyEnvironmentSkybox(scene, renderer, environment);
+
+    const lighting = environment?.lighting || {};
+    const hemisphere = lighting.hemisphere || {};
+    scene.add(new THREE.HemisphereLight(
+        colorFromConfig(hemisphere.skyColor, 0xffffff),
+        colorFromConfig(hemisphere.groundColor, 0x0f172a),
+        Number.parseFloat(hemisphere.intensity ?? 1.6) || 1.6
+    ));
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
-    key.position.set(3, 4, 6);
+    const keyConfig = lighting.key || {};
+    key.color.set(colorFromConfig(keyConfig.color, 0xffffff));
+    key.intensity = Number.parseFloat(keyConfig.intensity ?? 2.2) || 2.2;
+    applyVector3(key.position, keyConfig.position, [3, 4, 6]);
     scene.add(key);
     const rim = new THREE.DirectionalLight(0x9bdcff, 1.4);
-    rim.position.set(-4, 2, -3);
+    const rimConfig = lighting.rim || {};
+    rim.color.set(colorFromConfig(rimConfig.color, 0x9bdcff));
+    rim.intensity = Number.parseFloat(rimConfig.intensity ?? 1.4) || 1.4;
+    applyVector3(rim.position, rimConfig.position, [-4, 2, -3]);
     scene.add(rim);
     const environmentGroup = createMirrodinEnvironment(width, height);
-    environmentGroup.visible = false;
+    environmentGroup.visible = !environment?.skybox_url;
     scene.add(environmentGroup);
+    const ambientAudio = createEnvironmentAudio(mount, environment);
 
     const resize = () => {
         const rect = mount.getBoundingClientRect();
@@ -193,7 +228,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         if (action === 'reset') {
             cardGroup.rotation.set(0, 0, 0);
             controls.reset();
-            controls.autoRotate = true;
+            controls.autoRotate = false;
         }
     });
 
@@ -203,6 +238,8 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
 
     let xrSession = null;
     let xrMode = null;
+    const xrControllers = [];
+    const xrGrab = {active: false, controller: null, originalParent: null};
     if ('xr' in navigator) {
         Promise.all([
             navigator.xr.isSessionSupported('immersive-ar').catch(() => false),
@@ -229,6 +266,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     }
 
     arButton.addEventListener('click', async () => {
+        ambientAudio?.unlock();
         if (xrSession) {
             await xrSession.end();
             return;
@@ -241,27 +279,34 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
                 domOverlay: {root: document.body}
             });
             renderer.xr.setSession(xrSession);
+            ensureXrControllers();
             mount.classList.add('is-xr-active');
             controls.enabled = false;
             controls.autoRotate = false;
             cardGroup.position.copy(xrMode === 'immersive-ar' ? cardArPosition : cardVrPosition);
             cardGroup.rotation.set(0, 0, 0);
             cardGroup.scale.setScalar(xrMode === 'immersive-ar' ? 0.22 : 0.28);
-            environmentGroup.visible = xrMode === 'immersive-vr';
-            scene.background = xrMode === 'immersive-vr' ? new THREE.Color(0x080a10) : null;
+            environmentGroup.visible = xrMode === 'immersive-vr' && !environment?.skybox_url;
+            if (xrMode === 'immersive-ar') {
+                scene.background = null;
+                renderer.setClearColor(0x000000, 0);
+            } else {
+                applyEnvironmentSkybox(scene, renderer, environment);
+            }
             arButton.classList.add('is-exit');
             arButton.innerHTML = '<i class="fa-solid fa-xmark"></i> Exit';
             xrSession.addEventListener('end', () => {
+                releaseXrGrab();
                 xrSession = null;
                 xrMode = null;
                 mount.classList.remove('is-xr-active');
                 controls.enabled = true;
-                controls.autoRotate = true;
+                controls.autoRotate = false;
                 cardGroup.position.copy(cardDisplayPosition);
                 cardGroup.rotation.set(0, 0, 0);
                 cardGroup.scale.setScalar(1);
-                environmentGroup.visible = false;
-                scene.background = null;
+                environmentGroup.visible = !environment?.skybox_url;
+                applyEnvironmentSkybox(scene, renderer, environment);
                 arButton.classList.remove('is-exit');
                 arButton.innerHTML = arButton.dataset.xrMode === 'immersive-ar'
                     ? '<i class="fa-solid fa-vr-cardboard"></i> View in AR'
@@ -273,15 +318,139 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         }
     });
 
+    function ensureXrControllers(){
+        if (xrControllers.length) return;
+        for (let i = 0; i < 2; i++) {
+            const controller = renderer.xr.getController(i);
+            controller.addEventListener('selectstart', () => grabWithController(controller));
+            controller.addEventListener('selectend', releaseXrGrab);
+            xrControllers.push(controller);
+            scene.add(controller);
+        }
+    }
+
+    function grabWithController(controller){
+        if (xrGrab.active || !cardGroup.parent) return;
+        xrGrab.active = true;
+        xrGrab.controller = controller;
+        xrGrab.originalParent = cardGroup.parent;
+        controller.attach(cardGroup);
+    }
+
+    function releaseXrGrab(){
+        if (!xrGrab.active) return;
+        const parent = xrGrab.originalParent || scene;
+        parent.attach(cardGroup);
+        xrGrab.active = false;
+        xrGrab.controller = null;
+        xrGrab.originalParent = null;
+    }
+
     const animate = () => {
         controls.update();
         renderer.render(scene, camera);
     };
 
     window.addEventListener('resize', resize, {passive: true});
+    mount.addEventListener('pointerdown', () => ambientAudio?.unlock(), {passive: true});
     resize();
     renderer.setAnimationLoop(animate);
 });
+
+function parseEnvironmentPayload(raw){
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
+function applyEnvironmentSkybox(scene, renderer, environment){
+    const backgroundColor = environment?.background_color || '#080a10';
+    if (!environment?.skybox_url) {
+        scene.background = new THREE.Color(backgroundColor);
+        renderer.setClearColor(new THREE.Color(backgroundColor), 1);
+        return;
+    }
+
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin('anonymous');
+    loader.load(environment.skybox_url, (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.generateMipmaps = false;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() || 1);
+        scene.background = texture;
+        scene.environment = texture;
+        renderer.setClearColor(new THREE.Color(backgroundColor), 1);
+    }, undefined, () => {
+        scene.background = new THREE.Color(backgroundColor);
+        renderer.setClearColor(new THREE.Color(backgroundColor), 1);
+    });
+}
+
+function createEnvironmentAudio(mount, environment){
+    if (!environment?.audio_url) return null;
+
+    const audio = new Audio(environment.audio_url);
+    audio.loop = true;
+    audio.volume = Math.max(0, Math.min(1, Number.parseFloat(environment.audio_volume ?? 0.24) || 0.24));
+    audio.preload = 'metadata';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'wc-procedural-audio-toggle';
+    button.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Ambience';
+    mount.appendChild(button);
+
+    const setState = (playing) => {
+        button.classList.toggle('is-playing', playing);
+        button.innerHTML = playing
+            ? '<i class="fa-solid fa-volume-high"></i> Ambience'
+            : '<i class="fa-solid fa-volume-xmark"></i> Ambience';
+    };
+
+    const play = async () => {
+        try {
+            await audio.play();
+            setState(true);
+        } catch {
+            setState(false);
+        }
+    };
+
+    button.addEventListener('click', async () => {
+        if (audio.paused) await play();
+        else {
+            audio.pause();
+            setState(false);
+        }
+    });
+
+    return {unlock: play};
+}
+
+function colorFromConfig(value, fallback){
+    if (!value) return new THREE.Color(fallback);
+    try {
+        return new THREE.Color(value);
+    } catch {
+        return new THREE.Color(fallback);
+    }
+}
+
+function applyVector3(vector, value, fallback){
+    const source = Array.isArray(value) && value.length >= 3 ? value : fallback;
+    vector.set(
+        Number.parseFloat(source[0]) || 0,
+        Number.parseFloat(source[1]) || 0,
+        Number.parseFloat(source[2]) || 0
+    );
+}
 
 function createFoilTexture(){
     const canvas = document.createElement('canvas');

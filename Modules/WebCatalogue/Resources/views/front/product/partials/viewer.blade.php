@@ -21,6 +21,10 @@
             ar-modes="webxr scene-viewer quick-look"
             shadow-intensity="1"
             exposure="1"
+            @if(!empty($environmentPayload['skybox_url']))
+                environment-image="{{ $environmentPayload['skybox_url'] }}"
+                skybox-image="{{ $environmentPayload['skybox_url'] }}"
+            @endif
             interaction-prompt="auto">
         </model-viewer>
         @else
@@ -35,6 +39,7 @@
                 data-card-reference="{{ $product->reference }}"
                 data-card-category="{{ $product->category }}"
                 data-card-description="{{ strip_tags($product->short_description ?: $product->description ?: '') }}"
+                data-environment='@json($environmentPayload ?? null)'
                 aria-label="{{ strip_tags($product->name) }} 3D card preview">
             </div>
         @endif
