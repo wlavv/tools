@@ -1,0 +1,270 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2687 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(# WebCatalogue Visual Recognition - Relatorio Completo de Evolucao) Tj
+T*
+() Tj
+T*
+(Data: 2026-05-23) Tj
+T*
+() Tj
+T*
+(## Resumo executivo) Tj
+T*
+() Tj
+T*
+(O modulo de reconhecimento visual evoluiu de uma prova de conceito lenta para uma pipeline) Tj
+T*
+(auditavel, progressiva e preparada para demonstracao academica. O ponto mais importante nao) Tj
+T*
+(e apenas a melhoria absoluta, mas a demonstracao do caminho: cada alteracao foi motivada por) Tj
+T*
+(uma falha observada, seguida de novo teste e nova medicao.) Tj
+T*
+() Tj
+T*
+(O baseline reportado tinha aproximadamente 25 segundos de latencia e 3-4 acertos em 12) Tj
+T*
+(scans. A fase consolidada com scoring/consenso atingiu 11 acertos em 15 scans, com mediana) Tj
+T*
+(de cerca de 2.9 segundos. Nos testes A/B mais recentes, os ZIPs permitiram demonstrar) Tj
+T*
+(regressao, causa e correcao: por exemplo, a sessao 417 falhou top 5 e a 418, apos a correcao) Tj
+T*
+(de full-card visibility/normalizacao, acertou top 1.) Tj
+T*
+() Tj
+T*
+(## Evolucao quantitativa consolidada) Tj
+T*
+() Tj
+T*
+(| Iteracao | Accuracy | Latencia mediana | Leitura |) Tj
+T*
+(|---|---:|---:|---|) Tj
+T*
+(| B0_baseline_25s - Baseline inicial | 29.2% | - ms | Valor inicial reportado no chat.) Tj
+T*
+(Pipeline ainda ampla, com latencia cerca de 25s. |) Tj
+T*
+(| B1_primeiro_lote_lento - Pipeline v2 inicial com metricas | 35.7% | 25275.0 ms | Lote com) Tj
+T*
+(latencias ainda muito altas; OCR/ORB ainda demasiado caros e pouca exclusao. |) Tj
+T*
+(| B2_orb_batch - ORB batch e reducao de chamadas | 58.3% | 4539.0 ms | Latencia melhorou) Tj
+T*
+(muito apos batch ORB, mas todas continuavam ambiguas. |) Tj
+T*
+(| B3_auto_scan_lock - Scan automatico e camera mais acima | 41.7% | 4152.0 ms | Foi removido) Tj
+T*
+(o hero e automatizado o fluxo mobile; lock ainda lento e nem sempre focava a carta. |) Tj
+T*
+(| B4_progressive_exclusion - Exclusao progressiva explicita | 50.0% | 2973.0 ms | Top 3) Tj
+T*
+(passou a ser auditavel; fase util para perceber pesos e candidatos, embora com regressao) Tj
+T*
+(temporaria. |) Tj
+T*
+(| B5_scoring_consensus - Recalibracao scoring e consenso | 73.3% | 2883.0 ms | Ultimo lote) Tj
+T*
+(reportado; mediana 2883ms; confirma melhoria com amostra maior. |) Tj
+T*
+() Tj
+T*
+(## A/B tests com ZIPs diagnosticos) Tj
+T*
+() Tj
+T*
+(| Comparacao | Antes | Depois | Interpretacao |) Tj
+T*
+(|---|---|---|---|) Tj
+T*
+(| 409 -> 410 | 409: manual_matched, MRD-172 Frogmite, top_1_match, correct=True, score=89.64) Tj
+T*
+(| 410: manual_matched, MRD-176 Goblin Charbelcher, top_1_match, correct=True, score=88.21 |) Tj
+T*
+(Usado para validar se a alteracao melhorava a posicao do candidato real e a margem. |) Tj
+T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 3313 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(| 412 -> 413 | 412: matched, MRD-215 Myr Retriever, top_1_match, correct=True, score=89.59 |) Tj
+T*
+(413: suggestions_found, MRD-169 Extraplanar Lens, missed_top_5, correct=False, score=76.76 |) Tj
+T*
+(Regressao: o candidato correto saiu do top 5. Originou protecao de short_hash no pool final.) Tj
+T*
+(|) Tj
+T*
+(| 414 -> 415 | 414: matched, MRD-242 Skeleton Shard, top_1_match, correct=True, score=90.1 |) Tj
+T*
+(415: suggestions_found, MRD-279 Blinkmoth Well, missed_top_5, correct=False, score=66.24 |) Tj
+T*
+(Regressao causada por captura/crop invalido: OpenCV confidence 0 e contour null. Originou) Tj
+T*
+(rejeicao de normalizacao sem contorno. |) Tj
+T*
+(| 417 -> 418 | 417: suggestions_found, MRD-208 Mirror Golem, missed_top_5, correct=False,) Tj
+T*
+(score=80.01 | 418: matched, MRD-201 Loxodon Warhammer, top_1_match, correct=True, score=92.4) Tj
+T*
+(| Melhoria clara: o mesmo produto passou de missed_top_5 para top_1_match. |) Tj
+T*
+() Tj
+T*
+(## Timeline tecnica das alteracoes) Tj
+T*
+() Tj
+T*
+(| Passo | Alteracao | Resultado observado | Valor cientifico |) Tj
+T*
+(|---|---|---|---|) Tj
+T*
+(| T0 | Matcher visual amplo, comparacao pesada e pouca exclusao. | 3-4/12; cerca de 25s |) Tj
+T*
+(Mostrou que acertar carta sem pipeline orientada ao dominio era lento e pouco fiavel. |) Tj
+T*
+(| T1 | Criadas tabelas/logs de scans, scores, timings, candidatos e dashboard. | Passou a) Tj
+T*
+(existir evidencia por scan | Tornou a solucao mensuravel, essencial para tese. |) Tj
+T*
+(| T2 | Hash, edge, color, embedding, markers e perfis persistidos para evitar recalculo) Tj
+T*
+(normal. | Latencia desceu fortemente quando combinado com batch ORB | Confirma a estrategia) Tj
+T*
+(de pre-processamento de catalogo. |) Tj
+T*
+(| T3 | ORB deixou de executar chamada por candidato e passou a comparar por lote/top) Tj
+T*
+(candidates. | ~25s para ~5s | Primeira grande prova de melhoria operacional. |) Tj
+T*
+(| T4 | Camera mais acima, hero removido, auto scan e tentativa de focus/card lock. | UX) Tj
+T*
+(melhor, mas lock ainda podia aceitar frames maus | Mostrou que qualidade de captura e tao) Tj
+T*
+(importante como o matcher. |) Tj
+T*
+(| T5 | Scope, quality, hash, marker, verification e final stage com limites e contadores. |) Tj
+T*
+(~3s, mas regressao temporaria de accuracy | A regressao foi util porque expôs onde) Tj
+T*
+(candidatos corretos eram eliminados. |) Tj
+T*
+(| T6 | Export CSV, ground truth, classificacao top1/top3/top5/missed e ZIP com imagens. |) Tj
+T*
+(Permitiu A/B real entre sessoes 402-418 | Ferramenta cientifica chave: comparar input,) Tj
+T*
+(candidatos e real. |) Tj
+T*
+(| T7 | Reserva de candidatos short_hash no final stage e ranking conservador para bons short) Tj
+T*
+(hashes. | 412->413 revelou regressao; alteracao protege candidatos certos | Evita que) Tj
+T*
+(verification_pool domine e elimine sinais fortes. |) Tj
+T*
+(| T8 | Rejeicao de normalizacao OpenCV sem contorno/confianca e lock exige carta inteira) Tj
+T*
+(visivel. | 417->418: missed_top_5 para top_1_match | Mostra que uma captura melhor melhora) Tj
+T*
+(accuracy mais que apenas mexer em pesos. |) Tj
+T*
+(| T9 | Carta procedural com frente/verso MTG, foil suave, VR fallback e environment) Tj
+T*
+(Mirrodin. | Fora do benchmark de leitura | Demonstra caminho de produto imersivo apos) Tj
+T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 1192 >>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(reconhecimento. |) Tj
+T*
+() Tj
+T*
+(## Observacoes por ZIP diagnostico) Tj
+T*
+() Tj
+T*
+(Os ZIPs passaram a ser uma ferramenta central de diagnostico: contem captura,) Tj
+T*
+(crop/normalizacao, top 5 candidatos, candidato real e metadata do matching. Isto permitiu) Tj
+T*
+(distinguir falhas de ranking de falhas de captura.) Tj
+T*
+() Tj
+T*
+(- 412 -> 413: regressao por eliminacao do candidato certo do top 5; solucao: proteger) Tj
+T*
+(candidatos short_hash na fase final.) Tj
+T*
+(- 414 -> 415: regressao por captura mal enquadrada; OpenCV sem contorno e confidence 0;) Tj
+T*
+(solucao: rejeitar normalizacao invalida e exigir carta inteira visivel.) Tj
+T*
+(- 417 -> 418: melhoria confirmada; mesmo produto passou de missed_top_5 para top_1_match.) Tj
+T*
+() Tj
+T*
+(## Conclusao) Tj
+T*
+() Tj
+T*
+(O projeto demonstra uma estrategia cientificamente defensavel: medir, identificar gargalos,) Tj
+T*
+(formular hipotese, alterar a pipeline, testar e comparar. A evolucao da latencia prova o) Tj
+T*
+(valor da exclusao progressiva; a evolucao de accuracy prova a importancia de normalizacao) Tj
+T*
+(orientada ao dominio e de preservar sinais fortes como short_hash.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000302 00000 n 
+0000003041 00000 n 
+0000003216 00000 n 
+0000006581 00000 n 
+0000006756 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+8000
+%%EOF
