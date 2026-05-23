@@ -10,7 +10,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     const finish = mount.dataset.finish || 'normal';
     const ratio = Number.parseFloat(mount.dataset.ratio || '1.395') || 1.395;
     const thickness = Number.parseFloat(mount.dataset.thickness || '0.012') || 0.012;
-    const environment = parseEnvironmentPayload(mount.dataset.environment);
+    const environment = normalizeEnvironmentPayload(parseEnvironmentPayload(mount.dataset.environment));
     const width = 2.5;
     const height = width * ratio;
     const radius = width * 0.055;
@@ -160,7 +160,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     applyVector3(rim.position, rimConfig.position, [-4, 2, -3]);
     scene.add(rim);
     const environmentGroup = createMirrodinEnvironment(width, height);
-    environmentGroup.visible = !environment?.skybox_url;
+    environmentGroup.visible = false;
     scene.add(environmentGroup);
     const ambientAudio = createEnvironmentAudio(mount, environment);
 
@@ -245,7 +245,7 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         if (action === 'reset') {
             cardGroup.rotation.set(0, 0, 0);
             controls.reset();
-            controls.autoRotate = false;
+            controls.autoRotate = true;
         }
     });
 
@@ -306,9 +306,12 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
             environmentGroup.visible = xrMode === 'immersive-vr' && !environment?.skybox_url;
             if (xrMode === 'immersive-ar') {
                 scene.background = null;
+                setEnvironmentSkyDomeVisible(scene, false);
                 renderer.setClearColor(0x000000, 0);
             } else {
                 applyEnvironmentSkybox(scene, renderer, environment);
+                setEnvironmentSkyDomeVisible(scene, true);
+                ambientAudio?.unlock();
             }
             xrButtons.classList.add('is-exit');
             arButton.hidden = true;
@@ -324,8 +327,9 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
                 cardGroup.position.copy(cardDisplayPosition);
                 cardGroup.rotation.set(0, 0, 0);
                 cardGroup.scale.setScalar(1);
-                environmentGroup.visible = !environment?.skybox_url;
+                environmentGroup.visible = false;
                 applyEnvironmentSkybox(scene, renderer, environment);
+                setEnvironmentSkyDomeVisible(scene, false);
                 xrButtons.classList.remove('is-exit');
                 arButton.innerHTML = '<i class="fa-solid fa-vr-cardboard"></i> View in AR';
                 vrButton.innerHTML = '<i class="fa-solid fa-headset"></i> Open VR';
@@ -413,6 +417,10 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
     }
 
     const animate = () => {
+        const dome = scene.userData.wcEnvironmentSkyDome;
+        if (dome?.visible) {
+            dome.position.copy(camera.position);
+        }
         controls.update();
         renderer.render(scene, camera);
     };
@@ -433,9 +441,26 @@ function parseEnvironmentPayload(raw){
     }
 }
 
+function normalizeEnvironmentPayload(environment){
+    const env = environment && typeof environment === 'object' ? {...environment} : {};
+    env.background_color = env.background_color || '#0b1018';
+
+    if (!env.skybox_url) {
+        env.skybox_url = '/envs/mirrodin_artifact_vault_360.png';
+    }
+
+    if (!env.audio_url) {
+        env.audio_url = '/envs/mirrodin_low_metallic_ambience.wav';
+        env.audio_volume = 0.24;
+    }
+
+    return env;
+}
+
 function applyEnvironmentSkybox(scene, renderer, environment){
     const backgroundColor = environment?.background_color || '#080a10';
     if (!environment?.skybox_url) {
+        removeEnvironmentSkyDome(scene);
         scene.background = new THREE.Color(backgroundColor);
         renderer.setClearColor(new THREE.Color(backgroundColor), 1);
         return;
@@ -452,11 +477,48 @@ function applyEnvironmentSkybox(scene, renderer, environment){
         texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() || 1);
         scene.background = texture;
         scene.environment = texture;
+        ensureEnvironmentSkyDome(scene, texture);
         renderer.setClearColor(new THREE.Color(backgroundColor), 1);
     }, undefined, () => {
+        removeEnvironmentSkyDome(scene);
         scene.background = new THREE.Color(backgroundColor);
         renderer.setClearColor(new THREE.Color(backgroundColor), 1);
     });
+}
+
+function ensureEnvironmentSkyDome(scene, texture){
+    removeEnvironmentSkyDome(scene);
+
+    const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(80, 64, 32),
+        new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.BackSide,
+            depthWrite: false,
+            depthTest: false,
+            fog: false
+        })
+    );
+    dome.name = 'wc_environment_sky_dome';
+    dome.renderOrder = -1000;
+    dome.frustumCulled = false;
+    dome.visible = false;
+    scene.userData.wcEnvironmentSkyDome = dome;
+    scene.add(dome);
+}
+
+function removeEnvironmentSkyDome(scene){
+    const existing = scene.userData.wcEnvironmentSkyDome || scene.getObjectByName('wc_environment_sky_dome');
+    if (!existing) return;
+    scene.remove(existing);
+    existing.geometry?.dispose?.();
+    existing.material?.dispose?.();
+    scene.userData.wcEnvironmentSkyDome = null;
+}
+
+function setEnvironmentSkyDomeVisible(scene, visible){
+    const dome = scene.userData.wcEnvironmentSkyDome || scene.getObjectByName('wc_environment_sky_dome');
+    if (dome) dome.visible = !!visible;
 }
 
 function createEnvironmentAudio(mount, environment){
