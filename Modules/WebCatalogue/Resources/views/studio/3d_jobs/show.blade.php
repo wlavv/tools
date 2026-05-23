@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
 @include('webcatalogue::Includes.css')
 <div class="webcatalogue-shell wc-studio-shell" data-3d-job-status-url="{{ route('webcatalogue.studio.3d_jobs.status', $item) }}">
@@ -7,13 +7,13 @@
 <div class="wc-studio-hero wc-studio-hero-detail">
     <div>
         <span class="wc-eyebrow"><i class="fa-solid fa-cube"></i> 3D Studio Job</span>
-        <h2>{{ $item->product->name ? strip_tags($item->product->name) : '3D Job #' . $item->id }}</h2>
+        <h2>{{ $item->product?->name ? strip_tags($item->product?->name) : '3D Job #' . $item->id }}</h2>
         <p>{{ $item->prompt ?: '3D, AR and VR generation/asset job.' }}</p>
         <div class="wc-studio-steps">
-            <span><i class="fa-solid fa-store"></i>{{ $item->store->name ?? '—' }}</span>
-            <span><i class="fa-solid fa-box-open"></i>{{ $item->product->reference ?? '—' }}</span>
+            <span><i class="fa-solid fa-store"></i>{{ $item->store?->name ?? 'â€”' }}</span>
+            <span><i class="fa-solid fa-box-open"></i>{{ $item->product?->reference ?? 'â€”' }}</span>
             <span><i class="fa-solid fa-plug"></i>{{ $item->provider }}</span>
-            <span><i class="fa-solid fa-signal"></i>{{ $item->provider_status ?: '—' }} · {{ (int)($item->progress ?? 0) }}%</span>
+            <span><i class="fa-solid fa-signal"></i>{{ $item->provider_status ?: 'â€”' }} Â· {{ (int)($item->progress ?? 0) }}%</span>
             <span><i class="fa-solid fa-layer-group"></i>{{ $item->input_mode }}</span>
         </div>
     </div>
@@ -24,7 +24,7 @@
     <div>
         <div class="wc-studio-timeline">
             <div class="wc-studio-timeline-step is-done"><i class="fa-solid fa-images"></i><strong>Input</strong><span>{{ count((array) $item->source_resource_ids) }} source image(s)</span></div>
-            <div id="wc3dGenerationStep" class="wc-studio-timeline-step {{ in_array($item->status, ['processing','completed']) ? 'is-done' : '' }}"><i class="fa-solid fa-gears"></i><strong>Generation</strong><span id="wc3dProviderProgress">{{ ucfirst($item->provider ?? 'manual') }} · {{ (int)($item->progress ?? 0) }}%</span></div>
+            <div id="wc3dGenerationStep" class="wc-studio-timeline-step {{ in_array($item->status, ['processing','completed']) ? 'is-done' : '' }}"><i class="fa-solid fa-gears"></i><strong>Generation</strong><span id="wc3dProviderProgress">{{ ucfirst($item->provider ?? 'manual') }} Â· {{ (int)($item->progress ?? 0) }}%</span></div>
             <div id="wc3dModelStep" class="wc-studio-timeline-step {{ $item->resultResource ? 'is-done' : '' }}"><i class="fa-solid fa-cube"></i><strong>3D model</strong><span id="wc3dModelLabel">{{ $item->resultResource->filename ?? 'Pending' }}</span></div>
             <div id="wc3dImmersiveStep" class="wc-studio-timeline-step {{ ($item->arResource || $item->vrResource) ? 'is-done' : '' }}"><i class="fa-solid fa-vr-cardboard"></i><strong>Immersive</strong><span id="wc3dImmersiveLabel">AR/VR exports</span></div>
         </div>
@@ -47,7 +47,7 @@
             <div class="wc-preview-media"><i class="fa-solid fa-cube wc-preview-icon"></i></div>
             <div class="wc-preview-body"><h4>Preview status</h4><p class="wc-muted" id="wc3dPreviewStatus">{{ $item->resultResource ? '3D model resource is available for viewer integration.' : 'The job is queued/processing automatically. This panel refreshes the status every few seconds.' }}</p></div>
         </div>
-        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Provider</h4><p class="wc-muted"><strong>{{ $item->provider }}</strong><br>Task: {{ $item->provider_task_id ?: '—' }}<br>Status: <span id="wc3dProviderStatus">{{ $item->provider_status ?: '—' }}</span><br>Progress: <span id="wc3dProgress">{{ (int)($item->progress ?? 0) }}%</span></p></div></div>
+        <div class="wc-preview-card"><div class="wc-preview-body"><h4>Provider</h4><p class="wc-muted"><strong>{{ $item->provider }}</strong><br>Task: {{ $item->provider_task_id ?: 'â€”' }}<br>Status: <span id="wc3dProviderStatus">{{ $item->provider_status ?: 'â€”' }}</span><br>Progress: <span id="wc3dProgress">{{ (int)($item->progress ?? 0) }}%</span></p></div></div>
         <div class="wc-preview-card"><div class="wc-preview-body"><h4>Job controls</h4><div class="wc-actions-row">
             @if(!in_array($item->status, ['queued','processing','completed']))
                 <form method="POST" action="{{ route('webcatalogue.studio.3d_jobs.run', $item) }}">@csrf<button class="wc-action-link btn-outline-primary" type="submit"><i class="fa-solid fa-play"></i> Run now</button></form>
@@ -88,9 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
         currentStatus = data.status;
         if (statusText) statusText.textContent = data.status;
         if (statusOrb) statusOrb.className = 'wc-studio-status-orb wc-status-' + data.status;
-        if (providerStatus) providerStatus.textContent = data.provider_status || '—';
+        if (providerStatus) providerStatus.textContent = data.provider_status || 'â€”';
         if (progress) progress.textContent = (data.progress || 0) + '%';
-        if (providerProgress) providerProgress.textContent = (data.provider || 'Provider') + ' · ' + (data.progress || 0) + '%';
+        if (providerProgress) providerProgress.textContent = (data.provider || 'Provider') + ' Â· ' + (data.progress || 0) + '%';
 
         if (['processing', 'completed'].includes(data.status) && generationStep) generationStep.classList.add('is-done');
         if (data.result_resource_id && modelStep) modelStep.classList.add('is-done');
@@ -121,3 +121,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+
+

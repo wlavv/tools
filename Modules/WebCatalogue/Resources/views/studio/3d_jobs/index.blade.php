@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
 @include('webcatalogue::Includes.css')
 <div class="webcatalogue-shell wc-studio-shell">
@@ -41,14 +41,14 @@
             <div class="wc-studio-job-icon"><i class="fa-solid fa-cube"></i></div>
             <span class="wc-badge wc-status-{{ $item->status }}"><i class="fa-solid fa-{{ $statusIcon }}"></i> {{ $item->status }}</span>
         </div>
-        <h4><a href="{{ route('webcatalogue.studio.3d_jobs.show', $item) }}">{{ $item->product->name ? strip_tags($item->product->name) : '3D Job #' . $item->id }}</a></h4>
+        <h4><a href="{{ route('webcatalogue.studio.3d_jobs.show', $item) }}">{{ $item->product?->name ? strip_tags($item->product?->name) : '3D Job #' . $item->id }}</a></h4>
         <p>{{ $item->prompt ?: 'Manual/API generation job prepared for 3D, AR and VR outputs.' }}</p>
         <div class="wc-studio-job-meta">
-            <span><i class="fa-solid fa-store"></i>{{ $item->store->name ?? '—' }}</span>
-            <span><i class="fa-solid fa-box-open"></i>{{ $item->product->reference ?? '—' }}</span>
+            <span><i class="fa-solid fa-store"></i>{{ $item->store?->name ?? 'â€”' }}</span>
+            <span><i class="fa-solid fa-box-open"></i>{{ $item->product?->reference ?? 'â€”' }}</span>
             <span><i class="fa-solid fa-layer-group"></i>{{ $item->input_mode }}</span>
             <span><i class="fa-solid fa-plug"></i>{{ $item->provider }}</span>
-            <span><i class="fa-solid fa-signal"></i>{{ $item->provider_status ?: '—' }} · {{ (int)($item->progress ?? 0) }}%</span>
+            <span><i class="fa-solid fa-signal"></i>{{ $item->provider_status ?: 'â€”' }} Â· {{ (int)($item->progress ?? 0) }}%</span>
         </div>
         <div class="wc-studio-progress">
             <span class="{{ in_array($item->status, ['draft','queued','processing','completed']) ? 'is-done' : '' }}"><i class="fa-solid fa-images"></i></span>
@@ -68,3 +68,5 @@
 <div class="wc-pagination">{{ $items->links() }}</div>
 </div>
 @endsection
+
+
