@@ -273,12 +273,12 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
         }
 
         try {
-            xrMode = arButton.dataset.xrMode || 'immersive-vr';
-            xrSession = await navigator.xr.requestSession(xrMode, {
-                optionalFeatures: ['local-floor', 'dom-overlay'],
-                domOverlay: {root: document.body}
-            });
-            renderer.xr.setSession(xrSession);
+            const requestedMode = arButton.dataset.xrMode || 'immersive-vr';
+            const started = await requestProceduralXrSession(requestedMode);
+            xrMode = started.mode;
+            xrSession = started.session;
+            renderer.xr.setReferenceSpaceType(xrMode === 'immersive-vr' ? 'local-floor' : 'local');
+            await renderer.xr.setSession(xrSession);
             ensureXrControllers();
             mount.classList.add('is-xr-active');
             controls.enabled = false;
@@ -313,10 +313,56 @@ document.querySelectorAll('[data-procedural-card]').forEach((mount) => {
                     : '<i class="fa-solid fa-vr-cardboard"></i> Open in VR';
             });
         } catch (error) {
-            arNote.textContent = 'VR/AR could not start on this device/browser.';
+            console.warn('[WebCatalogue] Procedural XR failed', error);
+            arNote.textContent = `VR/AR could not start on this device/browser${error?.message ? ': ' + error.message : '.'}`;
             arNote.hidden = false;
         }
     });
+
+    async function requestProceduralXrSession(preferredMode){
+        if (!navigator.xr) {
+            throw new Error('WebXR unavailable');
+        }
+
+        const quest = /OculusBrowser/i.test(navigator.userAgent);
+        const attempts = [];
+
+        if (preferredMode === 'immersive-ar') {
+            if (quest) {
+                attempts.push(
+                    {mode: 'immersive-ar', init: {requiredFeatures: ['local'], optionalFeatures: ['local-floor']}},
+                    {mode: 'immersive-ar', init: {requiredFeatures: ['local']}},
+                    {mode: 'immersive-ar', init: {}}
+                );
+            } else {
+                attempts.push(
+                    {mode: 'immersive-ar', init: {requiredFeatures: ['local'], optionalFeatures: ['hit-test', 'dom-overlay'], domOverlay: {root: document.body}}},
+                    {mode: 'immersive-ar', init: {requiredFeatures: ['local'], optionalFeatures: ['hit-test']}},
+                    {mode: 'immersive-ar', init: {requiredFeatures: ['local']}},
+                    {mode: 'immersive-ar', init: {}}
+                );
+            }
+        }
+
+        attempts.push(
+            {mode: 'immersive-vr', init: {optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking']}},
+            {mode: 'immersive-vr', init: {}}
+        );
+
+        let lastError = null;
+        for (const attempt of attempts) {
+            try {
+                const supported = await navigator.xr.isSessionSupported(attempt.mode).catch(() => false);
+                if (!supported) continue;
+                const session = await navigator.xr.requestSession(attempt.mode, attempt.init);
+                return {mode: attempt.mode, session};
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError || new Error('No compatible XR session mode');
+    }
 
     function ensureXrControllers(){
         if (xrControllers.length) return;

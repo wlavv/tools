@@ -313,7 +313,7 @@ class FrontCatalogueController extends Controller
 
     private function buildEnvironmentPayload(Store $store, ?Catalogue $catalogue = null): ?array
     {
-        $environment = StoreEnvironment::query()
+        $environmentQuery = StoreEnvironment::query()
             ->where('id_store', $store->id)
             ->where('status', 'active')
             ->when($catalogue, function ($query) use ($catalogue) {
@@ -321,8 +321,13 @@ class FrontCatalogueController extends Controller
                     $sub->where('id_catalogue', $catalogue->id)
                         ->orWhereNull('id_catalogue');
                 });
-            }, fn ($query) => $query->whereNull('id_catalogue'))
-            ->orderByRaw($catalogue ? 'CASE WHEN id_catalogue = ? THEN 0 ELSE 1 END' : '0', $catalogue ? [$catalogue->id] : [])
+            }, fn ($query) => $query->whereNull('id_catalogue'));
+
+        if ($catalogue) {
+            $environmentQuery->orderByRaw('CASE WHEN id_catalogue = ? THEN 0 ELSE 1 END', [$catalogue->id]);
+        }
+
+        $environment = $environmentQuery
             ->orderByDesc('is_default')
             ->orderByDesc('id')
             ->first();
