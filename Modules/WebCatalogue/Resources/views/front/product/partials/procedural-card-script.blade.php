@@ -446,11 +446,11 @@ function normalizeEnvironmentPayload(environment){
     env.background_color = env.background_color || '#0b1018';
 
     if (!env.skybox_url) {
-        env.skybox_url = '/envs/mirrodin_artifact_vault_360.png';
+        env.skybox_url = '/envs/mirrodin_artifact_vault_360_4k.jpg';
     }
 
     if (!env.audio_url) {
-        env.audio_url = '/envs/mirrodin_low_metallic_ambience.wav';
+        env.audio_url = '/envs/mirrodin_artifact_vault_360.mp3';
         env.audio_volume = 0.24;
     }
 
@@ -471,8 +471,8 @@ function applyEnvironmentSkybox(scene, renderer, environment){
     loader.load(environment.skybox_url, (texture) => {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         texture.colorSpace = THREE.SRGBColorSpace;
-        texture.generateMipmaps = false;
-        texture.minFilter = THREE.LinearFilter;
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() || 1);
         scene.background = texture;
@@ -522,11 +522,16 @@ function setEnvironmentSkyDomeVisible(scene, visible){
 }
 
 function createEnvironmentAudio(mount, environment){
-    if (!environment?.audio_url) return null;
+    const audio = environment?.audio_url ? new Audio(environment.audio_url) : null;
+    let audioContext = null;
+    let proceduralNodes = null;
 
-    const audio = new Audio(environment.audio_url);
+    if (!audio) {
+        return {unlock: () => startProceduralAmbience()};
+    }
+
     audio.loop = true;
-    audio.volume = Math.max(0, Math.min(1, Number.parseFloat(environment.audio_volume ?? 0.24) || 0.24));
+    audio.volume = Math.max(0, Math.min(1, Number.parseFloat(environment.audio_volume ?? 0.34) || 0.34));
     audio.preload = 'metadata';
 
     const button = document.createElement('button');
@@ -542,19 +547,76 @@ function createEnvironmentAudio(mount, environment){
             : '<i class="fa-solid fa-volume-xmark"></i> Ambience';
     };
 
+    const startProceduralAmbience = async () => {
+        if (proceduralNodes) {
+            try { await audioContext?.resume?.(); } catch {}
+            setState(true);
+            return true;
+        }
+
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return false;
+
+        audioContext = audioContext || new Ctx();
+        try { await audioContext.resume(); } catch {}
+
+        const master = audioContext.createGain();
+        master.gain.value = Math.max(0.02, Math.min(0.26, Number.parseFloat(environment?.audio_volume ?? 0.14) || 0.14));
+        master.connect(audioContext.destination);
+
+        const low = audioContext.createOscillator();
+        const mid = audioContext.createOscillator();
+        const shimmer = audioContext.createOscillator();
+        const lowGain = audioContext.createGain();
+        const midGain = audioContext.createGain();
+        const shimmerGain = audioContext.createGain();
+        const lfo = audioContext.createOscillator();
+        const lfoGain = audioContext.createGain();
+
+        low.type = 'sine';
+        mid.type = 'triangle';
+        shimmer.type = 'sine';
+        low.frequency.value = 54;
+        mid.frequency.value = 82;
+        shimmer.frequency.value = 620;
+        lowGain.gain.value = 0.32;
+        midGain.gain.value = 0.15;
+        shimmerGain.gain.value = 0.018;
+        lfo.frequency.value = 0.055;
+        lfoGain.gain.value = 0.012;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(shimmer.frequency);
+        low.connect(lowGain).connect(master);
+        mid.connect(midGain).connect(master);
+        shimmer.connect(shimmerGain).connect(master);
+        low.start();
+        mid.start();
+        shimmer.start();
+        lfo.start();
+
+        proceduralNodes = {master, low, mid, shimmer, lfo};
+        setState(true);
+        return true;
+    };
+
     const play = async () => {
         try {
             await audio.play();
             setState(true);
+            return true;
         } catch {
-            setState(false);
+            return startProceduralAmbience();
         }
     };
 
     button.addEventListener('click', async () => {
-        if (audio.paused) await play();
+        if (audio.paused && !proceduralNodes) await play();
         else {
-            audio.pause();
+            audio?.pause();
+            if (audioContext) {
+                try { await audioContext.suspend(); } catch {}
+            }
             setState(false);
         }
     });

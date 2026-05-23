@@ -1,11 +1,11 @@
--- WebCatalogue Mirrodin VR environment
+﻿-- WebCatalogue Mirrodin VR environment
 -- Execute online after uploading:
---   public/envs/mirrodin_artifact_vault_360.png
---   public/envs/mirrodin_low_metallic_ambience.wav
+--   public/envs/mirrodin_artifact_vault_360_4k.jpg
+--   public/envs/mirrodin_artifact_vault_360.mp3
 --
 -- Expected public URLs:
---   /envs/mirrodin_artifact_vault_360.png
---   /envs/mirrodin_low_metallic_ambience.wav
+--   /envs/mirrodin_artifact_vault_360_4k.jpg
+--   /envs/mirrodin_artifact_vault_360.mp3
 
 SET @store_slug := 'tcg-collectors';
 SET @catalogue_slug := 'mirrodin';
@@ -56,18 +56,18 @@ INSERT INTO wc_store_environments (
         'scene', 'mirrodin_artifact_vault',
         'background', JSON_OBJECT(
             'type', 'equirectangular',
-            'url', '/envs/mirrodin_artifact_vault_360.png',
+            'url', '/envs/mirrodin_artifact_vault_360_4k.jpg',
             'mapping', 'EquirectangularReflectionMapping',
             'tone_mapping_exposure', 0.92,
             'environment_intensity', 0.72
         ),
         'audio', JSON_OBJECT(
             'enabled', true,
-            'url', '/envs/mirrodin_low_metallic_ambience.wav',
+            'url', '/envs/mirrodin_artifact_vault_360.mp3',
             'loop', true,
-            'volume', 0.28,
+            'volume', 0.34,
             'spatial', false,
-            'profile', 'mirrodin_low_metallic_ambience'
+            'profile', 'mirrodin_artifact_vault_ambience'
         ),
         'lighting', JSON_OBJECT(
             'hemisphere', JSON_OBJECT('skyColor', '#9ec8ff', 'groundColor', '#1b1510', 'intensity', 0.62),
@@ -90,7 +90,7 @@ INSERT INTO wc_store_environments (
             'fog', JSON_OBJECT('enabled', true, 'color', '#0b1018', 'density', 0.018),
             'floor', JSON_OBJECT('type', 'procedural_dark_metal_grid', 'color', '#151a20', 'accent', '#7a6330', 'roughness', 0.78),
             'particles', JSON_OBJECT('enabled', true, 'type', 'dust_sparks', 'density', 0.18, 'color', '#c7a755'),
-            'performance', JSON_OBJECT('mobile_texture_max', 2048, 'quest_texture_max', 2048, 'prefer_low_power_audio', true)
+            'performance', JSON_OBJECT('mobile_texture_max', 2048, 'quest_texture_max', 4096, 'prefer_low_power_audio', true)
         )
     ),
     JSON_OBJECT(
@@ -143,7 +143,7 @@ WHERE id_store = @store_id
   AND resource_owner_type = 'environment'
   AND resource_owner_id = @env_id
   AND resource_type IN ('skybox_360', 'ambient_audio')
-  AND title IN ('Mirrodin Artifact Vault 360', 'Mirrodin Low Metallic Ambience');
+  AND title IN ('Mirrodin Artifact Vault 360', 'Mirrodin Artifact Vault Ambience');
 
 INSERT INTO wc_resources (
     id_store,
@@ -176,16 +176,16 @@ INSERT INTO wc_resources (
     'Mirrodin Artifact Vault 360',
     'Lightweight equirectangular 360 background for the Mirrodin VR catalogue environment.',
     'public',
-    '/envs/mirrodin_artifact_vault_360.png',
-    'public/envs/mirrodin_artifact_vault_360.png',
-    '/envs/mirrodin_artifact_vault_360.png',
-    'mirrodin_artifact_vault_360.png',
-    'image/png',
-    'png',
+    '/envs/mirrodin_artifact_vault_360_4k.jpg',
+    'public/envs/mirrodin_artifact_vault_360_4k.jpg',
+    '/envs/mirrodin_artifact_vault_360_4k.jpg',
+    'mirrodin_artifact_vault_360_4k.jpg',
+    'image/jpeg',
+    'jpg',
     1,
     10,
     'active',
-    JSON_OBJECT('width', 2048, 'height', 1024, 'projection', 'equirectangular', 'theme', 'mirrodin'),
+    JSON_OBJECT('width', 4096, 'height', 2048, 'projection', 'equirectangular', 'theme', 'mirrodin'),
     NOW(),
     NOW()
 ),
@@ -195,15 +195,15 @@ INSERT INTO wc_resources (
     'environment',
     @env_id,
     'ambient_audio',
-    'Mirrodin Low Metallic Ambience',
+    'Mirrodin Artifact Vault Ambience',
     'Lightweight looping ambient audio for Mirrodin VR: low metallic drone, distant machinery, soft shimmer.',
     'public',
-    '/envs/mirrodin_low_metallic_ambience.wav',
-    'public/envs/mirrodin_low_metallic_ambience.wav',
-    '/envs/mirrodin_low_metallic_ambience.wav',
-    'mirrodin_low_metallic_ambience.wav',
-    'audio/wav',
-    'wav',
+    '/envs/mirrodin_artifact_vault_360.mp3',
+    'public/envs/mirrodin_artifact_vault_360.mp3',
+    '/envs/mirrodin_artifact_vault_360.mp3',
+    'mirrodin_artifact_vault_360.mp3',
+    'audio/mpeg',
+    'mp3',
     0,
     20,
     'active',
@@ -231,5 +231,7 @@ SELECT
     @env_id AS environment_id,
     @store_id AS store_id,
     @catalogue_id AS catalogue_id,
-    '/envs/mirrodin_artifact_vault_360.png' AS skybox_url,
-    '/envs/mirrodin_low_metallic_ambience.wav' AS audio_url;
+    '/envs/mirrodin_artifact_vault_360_4k.jpg' AS skybox_url,
+    '/envs/mirrodin_artifact_vault_360.mp3' AS audio_url;
+
+

@@ -1,11 +1,11 @@
--- WebCatalogue Mirrodin VR environment
+﻿-- WebCatalogue Mirrodin VR environment
 -- Execute online after uploading:
 --   public/envs/mirrodin_artifact_vault_360.png
---   public/envs/mirrodin_low_metallic_ambience.wav
+--   public/envs/mirrodin_artifact_vault_360.mp3
 --
 -- Expected public URLs:
 --   /envs/mirrodin_artifact_vault_360.png
---   /envs/mirrodin_low_metallic_ambience.wav
+--   /envs/mirrodin_artifact_vault_360.mp3
 
 SET @store_slug := 'tcg-collectors';
 SET @catalogue_slug := 'mirrodin';
@@ -63,11 +63,11 @@ INSERT INTO wc_store_environments (
         ),
         'audio', JSON_OBJECT(
             'enabled', true,
-            'url', '/envs/mirrodin_low_metallic_ambience.wav',
+            'url', '/envs/mirrodin_artifact_vault_360.mp3',
             'loop', true,
             'volume', 0.28,
             'spatial', false,
-            'profile', 'mirrodin_low_metallic_ambience'
+            'profile', 'mirrodin_artifact_vault_ambience'
         ),
         'lighting', JSON_OBJECT(
             'hemisphere', JSON_OBJECT('skyColor', '#9ec8ff', 'groundColor', '#1b1510', 'intensity', 0.62),
@@ -143,7 +143,7 @@ WHERE id_store = @store_id
   AND resource_owner_type = 'environment'
   AND resource_owner_id = @env_id
   AND resource_type IN ('skybox_360', 'ambient_audio')
-  AND title IN ('Mirrodin Artifact Vault 360', 'Mirrodin Low Metallic Ambience');
+  AND title IN ('Mirrodin Artifact Vault 360', 'Mirrodin Artifact Vault Ambience');
 
 INSERT INTO wc_resources (
     id_store,
@@ -195,15 +195,15 @@ INSERT INTO wc_resources (
     'environment',
     @env_id,
     'ambient_audio',
-    'Mirrodin Low Metallic Ambience',
+    'Mirrodin Artifact Vault Ambience',
     'Lightweight looping ambient audio for Mirrodin VR: low metallic drone, distant machinery, soft shimmer.',
     'public',
-    '/envs/mirrodin_low_metallic_ambience.wav',
-    'public/envs/mirrodin_low_metallic_ambience.wav',
-    '/envs/mirrodin_low_metallic_ambience.wav',
-    'mirrodin_low_metallic_ambience.wav',
-    'audio/wav',
-    'wav',
+    '/envs/mirrodin_artifact_vault_360.mp3',
+    'public/envs/mirrodin_artifact_vault_360.mp3',
+    '/envs/mirrodin_artifact_vault_360.mp3',
+    'mirrodin_artifact_vault_360.mp3',
+    'audio/mpeg',
+    'mp3',
     0,
     20,
     'active',
@@ -232,4 +232,5 @@ SELECT
     @store_id AS store_id,
     @catalogue_id AS catalogue_id,
     '/envs/mirrodin_artifact_vault_360.png' AS skybox_url,
-    '/envs/mirrodin_low_metallic_ambience.wav' AS audio_url;
+    '/envs/mirrodin_artifact_vault_360.mp3' AS audio_url;
+
