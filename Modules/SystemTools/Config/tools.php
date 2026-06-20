@@ -144,6 +144,17 @@ return [
         'external' => false,
         'requires_confirmation' => true,
     ],
+    'build_assets' => [
+        'section' => 'assets',
+        'label' => 'Build Assets',
+        'description' => 'Executa npm run build no servidor e regenera public/build.',
+        'icon' => 'fa-solid fa-cubes',
+        'type' => 'custom',
+        'handler' => 'npm_build',
+        'risk' => 'medium',
+        'external' => false,
+        'requires_confirmation' => true,
+    ],
     'composer_dump_autoload' => [
         'section' => 'diagnostics',
         'label' => 'Composer Dump Autoload',

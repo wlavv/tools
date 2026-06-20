@@ -31,6 +31,11 @@ return [
             'description' => 'Links e verificações de storage.',
             'icon' => 'fa-solid fa-folder-tree',
         ],
+        'assets' => [
+            'label' => 'Assets / Build',
+            'description' => 'Reconstrucao dos assets publicos geridos pelo Vite.',
+            'icon' => 'fa-solid fa-cubes',
+        ],
         'diagnostics' => [
             'label' => 'Diagnóstico',
             'description' => 'Verificações rápidas do ambiente.',

@@ -96,8 +96,43 @@ class MaintenanceActionService
             'system_info' => $this->systemInfo(),
             'writable_paths' => $this->writablePaths(),
             'composer_dump_autoload' => $this->composerDumpAutoload(),
+            'npm_build' => $this->npmBuild(),
             default => throw new RuntimeException('Invalid custom handler.'),
         };
+    }
+
+    protected function npmBuild(): string
+    {
+        $command = $this->npmCommand();
+
+        if (!$command) {
+            throw new RuntimeException(
+                'NPM binary not found. Configure SYSTEM_TOOLS_NPM_BINARY or install Node.js/NPM on the server.'
+            );
+        }
+
+        return $this->runShell(array_merge($command, ['run', 'build']));
+    }
+
+    protected function npmCommand(): ?array
+    {
+        $configured = trim((string) env('SYSTEM_TOOLS_NPM_BINARY', ''));
+
+        if ($configured !== '') {
+            return PHP_OS_FAMILY === 'Windows'
+                ? ['cmd.exe', '/C', $configured]
+                : [$configured];
+        }
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $binary = $this->which('npm.cmd') ?: $this->which('npm');
+
+            return $binary ? ['cmd.exe', '/C', $binary] : null;
+        }
+
+        $binary = $this->which('npm');
+
+        return $binary ? [$binary] : null;
     }
 
     protected function composerDumpAutoload(): string
