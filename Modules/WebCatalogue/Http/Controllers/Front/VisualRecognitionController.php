@@ -502,11 +502,21 @@ class VisualRecognitionController extends Controller
             return;
         }
 
-        try {
-            $benchmarks->runForSession($session->fresh(['captures', 'matches.product']), 'auto_scan');
-        } catch (Throwable) {
-            // Benchmarking must never block the public scan flow.
-        }
+        $sessionId = $session->id;
+
+        app()->terminating(function () use ($sessionId, $benchmarks): void {
+            try {
+                $freshSession = VisualRecognitionSession::query()
+                    ->with(['captures', 'matches.product'])
+                    ->find($sessionId);
+
+                if ($freshSession) {
+                    $benchmarks->runForSession($freshSession, 'auto_scan');
+                }
+            } catch (Throwable) {
+                // Benchmarking must never block the public scan flow.
+            }
+        });
     }
 
     private function cleanDetectedIdentifiers(array $identifiers): array

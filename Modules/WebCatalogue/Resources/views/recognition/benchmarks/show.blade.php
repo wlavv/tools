@@ -8,7 +8,8 @@
 
 @php($summary = $item->summary ?? [])
 @php($topMatches = collect(data_get($item->metadata, 'top_matches', [])))
-@php($expectedRank = $item->expected_product_id ? ($topMatches->firstWhere('product_id', $item->expected_product_id)['rank'] ?? null) : null)
+@php($expectedProductId = $groundTruth['expected_product_id'] ?? null)
+@php($expectedRank = $accuracy['expected_rank'] ?? null)
 
 <div class="wc-detail-hero wc-detail-hero-resource">
     <div>
@@ -19,8 +20,8 @@
             <span class="wc-badge">Session #{{ $item->id_session }}</span>
             <span class="wc-badge">{{ $item->store->name ?? $item->session?->store?->name ?? 'No store' }}</span>
             <span class="wc-badge">{{ $item->created_at?->format('Y-m-d H:i') }}</span>
-            @if($item->scenario_label)<span class="wc-badge">{{ $item->scenario_label }}</span>@endif
-            @if($item->expected_product_id)<span class="wc-badge">Expected #{{ $item->expected_product_id }}</span>@endif
+            @if($groundTruth['scenario_label'] ?? null)<span class="wc-badge">{{ $groundTruth['scenario_label'] }}</span>@endif
+            @if($expectedProductId)<span class="wc-badge">Expected #{{ $expectedProductId }}</span>@endif
         </div>
     </div>
     <div class="wc-detail-icon"><i class="fa-solid fa-flask-vial"></i></div>
@@ -33,7 +34,7 @@
     <div class="wc-kpi-card wc-kpi-card-resource"><div class="wc-kpi-content"><h3>Best confidence</h3><div class="wc-kpi">{{ $summary['highest_confidence_flow'] ?? '-' }}</div><div class="wc-muted">OpenCV normalization</div></div><i class="fa-solid fa-crosshairs wc-kpi-bg-icon"></i></div>
 </div>
 
-@if($item->expected_product_id)
+@if($expectedProductId)
     <div class="wc-card wc-spaced-card">
         <div class="wc-section-head">
             <div>
@@ -42,7 +43,7 @@
             </div>
         </div>
         <div class="wc-rich-meta">
-            <span class="wc-rich-metric"><i class="fa-solid fa-bullseye"></i>Expected product #{{ $item->expected_product_id }}</span>
+            <span class="wc-rich-metric"><i class="fa-solid fa-bullseye"></i>Expected product #{{ $expectedProductId }}</span>
             <span class="wc-rich-metric"><i class="fa-solid fa-ranking-star"></i>Rank {{ $expectedRank ?: 'missed top 5' }}</span>
             <span class="wc-rich-metric"><i class="fa-solid fa-circle-check"></i>Top 1 {{ (int) $expectedRank === 1 ? 'yes' : 'no' }}</span>
             <span class="wc-rich-metric"><i class="fa-solid fa-list-ol"></i>Top 3 {{ $expectedRank && (int) $expectedRank <= 3 ? 'yes' : 'no' }}</span>

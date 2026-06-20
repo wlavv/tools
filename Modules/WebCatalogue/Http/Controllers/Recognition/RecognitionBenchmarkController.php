@@ -50,6 +50,8 @@ class RecognitionBenchmarkController extends Controller
         return $this->view('webcatalogue::recognition.benchmarks.show', [
             'item' => $run,
             'callComparison' => $this->callComparison($run),
+            'groundTruth' => $this->groundTruthForRun($run),
+            'accuracy' => $this->accuracyForRun($run),
         ]);
     }
 
@@ -233,7 +235,8 @@ class RecognitionBenchmarkController extends Controller
     private function accuracyForRun(RecognitionBenchmarkRun $run): array
     {
         $matches = collect(data_get($run->metadata, 'top_matches', []));
-        $expectedProductId = $run->expected_product_id ? (int) $run->expected_product_id : null;
+        $groundTruth = $this->groundTruthForRun($run);
+        $expectedProductId = $groundTruth['expected_product_id'];
         $top1 = $matches->first();
         $rank = $expectedProductId
             ? $matches->firstWhere('product_id', $expectedProductId)['rank'] ?? null
@@ -247,6 +250,17 @@ class RecognitionBenchmarkController extends Controller
             'top_1_correct' => $rank !== null ? (int) ((int) $rank === 1) : null,
             'top_3_correct' => $rank !== null ? (int) ((int) $rank <= 3) : null,
             'top_5_correct' => $rank !== null ? (int) ((int) $rank <= 5) : null,
+        ];
+    }
+
+    private function groundTruthForRun(RecognitionBenchmarkRun $run): array
+    {
+        return [
+            'expected_product_id' => $run->expected_product_id
+                ? (int) $run->expected_product_id
+                : ((int) data_get($run->session?->metadata, 'ground_truth.expected_product_id') ?: null),
+            'scenario_label' => $run->scenario_label
+                ?: data_get($run->session?->metadata, 'ground_truth.scenario_label'),
         ];
     }
 

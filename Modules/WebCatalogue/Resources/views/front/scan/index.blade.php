@@ -151,6 +151,7 @@
     let stableIdentifierValue = null;
     let stableIdentifierSince = null;
     let scanState = 'camera_idle';
+    let sessionPromise = null;
     let stableSince = null;
     let lastStableRect = null;
     let lockedRect = null;
@@ -158,8 +159,8 @@
     let processingScan = false;
     let scanCooldownUntil = 0;
     const autoScanEnabled = true;
-    const stableScanDelay = 850;
-    const scanCooldownMs = 4200;
+    const stableScanDelay = 620;
+    const scanCooldownMs = 2600;
 
     function setMessage(text){ msg.textContent = text || ''; }
     function clearSuggestions(){ suggestionsBox.hidden = true; suggestionsBox.innerHTML = ''; }
@@ -768,25 +769,34 @@
         searchBtn.disabled = true;
         clearSuggestions();
         setScanState('processing', 'Scanning object...');
+        const scanStartedAt = performance.now();
 
         try{
-            await ensureSession(true);
+            await ensureSession(false);
+            const captureStartedAt = performance.now();
             const res = await sendCaptureFrame(1, 1);
             await readJsonResponse(res, 'Could not capture image.');
+            const captureMs = Math.round(performance.now() - captureStartedAt);
 
             setMessage('Searching catalogue...');
+            const matchStartedAt = performance.now();
             const matchRes = await fetch(routes.match, {method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({session_token:sessionToken})});
             const data = await readJsonResponse(matchRes, 'Could not complete recognition matching.');
+            const matchMs = Math.round(performance.now() - matchStartedAt);
+            const totalMs = Math.round(performance.now() - scanStartedAt);
+            const timingText = `Capture ${captureMs} ms | Match ${matchMs} ms | Total ${totalMs} ms`;
             if(data.result_url){ window.location.href = data.result_url; return; }
             if(data.matched && data.product_url){ window.location.href = data.product_url; return; }
             if(data.suggestions && data.suggestions.length){
-                setScanState('suggestions', 'We found possible matches. Select a product or scan again.');
+                setScanState('suggestions', `We found possible matches. ${timingText}`);
                 renderSuggestions(data.suggestions);
                 return;
             }
-            setScanState('no_match', 'No product found. Please submit details so we can review it.');
+            setScanState('no_match', `No product found. ${timingText}`);
             modal.hidden = false;
         }catch(e){
+            resetSession();
+            prewarmSession();
             setScanState('error', 'Scan failed: ' + e.message);
         }finally{
             processingScan = false;
@@ -968,23 +978,37 @@
         return new Promise(resolve => window.setTimeout(resolve, ms));
     }
 
+    function canvasToBlob(sourceCanvas, type = 'image/jpeg', quality = .88){
+        return new Promise((resolve, reject) => {
+            sourceCanvas.toBlob(blob => {
+                if(blob) resolve(blob);
+                else reject(new Error('Could not encode captured image.'));
+            }, type, quality);
+        });
+    }
+
     async function sendCaptureFrame(frameIndex, frameCount){
         const captureCanvas = createCaptureCanvas();
-        const photoData = captureCanvas.toDataURL('image/jpeg', .92);
+        const photoBlob = await canvasToBlob(captureCanvas);
+        const fd = new FormData();
+        fd.set('session_token', sessionToken);
+        fd.set('capture_type', 'object_photo');
+        fd.set('photo', photoBlob, 'scan.jpg');
+        fd.set('frame_index', frameIndex);
+        fd.set('frame_count', frameCount);
+        fd.set('detection_source', lastDetectionSource || '');
+        fd.set('cropped', detectedRect && !detectedRectIsEstimated ? '1' : '0');
+        detectedIdentifiers.slice(0, 8).forEach((identifier, index) => {
+            Object.entries(identifier || {}).forEach(([key, value]) => {
+                if(value === null || value === undefined || typeof value === 'object') return;
+                fd.set(`identifiers[${index}][${key}]`, String(value));
+            });
+        });
 
         return fetch(routes.capture, {
             method:'POST',
-            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-            body:JSON.stringify({
-                session_token:sessionToken,
-                capture_type:'object_photo',
-                photo_data:photoData,
-                frame_index:frameIndex,
-                frame_count:frameCount,
-                detection_source:lastDetectionSource,
-                cropped:!!(detectedRect && !detectedRectIsEstimated),
-                identifiers:detectedIdentifiers
-            })
+            headers:{'X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+            body:fd
         });
     }
 
@@ -1004,15 +1028,35 @@
 
     async function ensureSession(forceNew = false){
         if(sessionToken && !forceNew) return sessionToken;
-        const res = await fetch(routes.session, {
+        if(sessionPromise && !forceNew) return sessionPromise;
+
+        sessionPromise = fetch(routes.session, {
             method:'POST',
             headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
             body:JSON.stringify({device_type:navigator.userAgent, ...benchmarkPayload()})
-        });
-        const data = await readJsonResponse(res, 'Could not start recognition session.');
-        sessionToken = data.session_token;
-        tokenInput.value = sessionToken;
-        return sessionToken;
+        })
+            .then(res => readJsonResponse(res, 'Could not start recognition session.'))
+            .then(data => {
+                sessionToken = data.session_token;
+                tokenInput.value = sessionToken;
+                return sessionToken;
+            })
+            .catch(error => {
+                sessionPromise = null;
+                throw error;
+            });
+
+        return sessionPromise;
+    }
+
+    function resetSession(){
+        sessionToken = null;
+        sessionPromise = null;
+        tokenInput.value = '';
+    }
+
+    function prewarmSession(){
+        ensureSession(false).catch(() => {});
     }
 
     async function startCamera(){
@@ -1026,6 +1070,7 @@
             await setupIdentifierDetector();
             clearSuggestions();
             startObjectDetection();
+            prewarmSession();
             video.addEventListener('loadedmetadata', () => {
                 updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             }, {once:true});
@@ -1051,7 +1096,12 @@
         await runAutoScan();
     });
 
-    closeBtn.addEventListener('click', () => modal.hidden = true);
+    closeBtn.addEventListener('click', () => {
+        modal.hidden = true;
+        resetSession();
+        prewarmSession();
+        scanCooldownUntil = Date.now() + 1200;
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1068,6 +1118,8 @@
         if(event.target?.closest?.('.wc-scan-suggestion-card')) return;
         if(suggestionsBox.hidden === false && stream && !processingScan){
             clearSuggestions();
+            resetSession();
+            prewarmSession();
             scanCooldownUntil = Date.now() + 1200;
             setScanState('object_waiting', 'Point at another object and hold still to scan again.');
         }
