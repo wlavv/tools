@@ -166,6 +166,17 @@ return [
         'external' => false,
         'requires_confirmation' => true,
     ],
+    'npm_diagnostics' => [
+        'section' => 'assets',
+        'label' => 'NPM Diagnostics',
+        'description' => 'Mostra caminhos NPM/Node detectados e valida se o build pode correr.',
+        'icon' => 'fa-brands fa-node-js',
+        'type' => 'custom',
+        'handler' => 'npm_diagnostics',
+        'risk' => 'safe',
+        'external' => false,
+        'requires_confirmation' => false,
+    ],
     'composer_dump_autoload' => [
         'section' => 'diagnostics',
         'label' => 'Composer Dump Autoload',

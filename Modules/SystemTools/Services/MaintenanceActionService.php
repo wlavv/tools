@@ -97,6 +97,7 @@ class MaintenanceActionService
             'writable_paths' => $this->writablePaths(),
             'composer_dump_autoload' => $this->composerDumpAutoload(),
             'npm_build' => $this->npmBuild(),
+            'npm_diagnostics' => $this->npmDiagnostics(),
             'git_restore_system_tools_config' => $this->gitRestoreSystemToolsConfig(),
             default => throw new RuntimeException('Invalid custom handler.'),
         };
@@ -150,12 +151,58 @@ class MaintenanceActionService
         return $this->runShell(array_merge($command, ['run', 'build']));
     }
 
+    protected function npmDiagnostics(): string
+    {
+        $lines = [
+            'Configured SYSTEM_TOOLS_NPM_BINARY: ' . ($this->configuredNpmBinary() ?: '[empty]'),
+            'PATH: ' . (getenv('PATH') ?: '[empty]'),
+            'Base path: ' . base_path(),
+            'package.json: ' . (is_file(base_path('package.json')) ? '[OK]' : '[missing]'),
+            'node_modules: ' . (is_dir(base_path('node_modules')) ? '[OK]' : '[missing]'),
+            'public/build writable: ' . (is_dir(public_path('build')) && is_writable(public_path('build')) ? '[OK]' : '[missing or not writable]'),
+            '',
+            'NPM candidates:',
+        ];
+
+        $candidates = $this->npmCandidates();
+
+        if (!$candidates) {
+            $lines[] = '- [none found]';
+        }
+
+        foreach ($candidates as $candidate) {
+            $label = implode(' ', $candidate);
+
+            try {
+                $version = trim($this->runShell(array_merge($candidate, ['--version']), false));
+                $lines[] = '- [OK] ' . $label . ' => ' . $version;
+            } catch (\Throwable $e) {
+                $lines[] = '- [FAIL] ' . $label . ' => ' . $e->getMessage();
+            }
+        }
+
+        return implode(PHP_EOL, $lines);
+    }
+
     protected function npmCommand(): ?array
     {
-        $configured = trim((string) (config('system-tools.npm_binary') ?: env('SYSTEM_TOOLS_NPM_BINARY', '')));
+        $candidates = $this->npmCandidates();
+
+        return $candidates[0] ?? null;
+    }
+
+    protected function configuredNpmBinary(): string
+    {
+        return trim((string) (config('system-tools.npm_binary') ?: env('SYSTEM_TOOLS_NPM_BINARY', '')));
+    }
+
+    protected function npmCandidates(): array
+    {
+        $configured = $this->configuredNpmBinary();
+        $candidates = [];
 
         if ($configured !== '') {
-            return PHP_OS_FAMILY === 'Windows'
+            $candidates[] = PHP_OS_FAMILY === 'Windows'
                 ? ['cmd.exe', '/C', $configured]
                 : [$configured];
         }
@@ -163,12 +210,48 @@ class MaintenanceActionService
         if (PHP_OS_FAMILY === 'Windows') {
             $binary = $this->which('npm.cmd') ?: $this->which('npm');
 
-            return $binary ? ['cmd.exe', '/C', $binary] : null;
+            if ($binary) {
+                $candidates[] = ['cmd.exe', '/C', $binary];
+            }
+
+            return $this->uniqueCommands($candidates);
+        }
+
+        $commonPaths = [
+            '/usr/local/bin/npm',
+            '/usr/bin/npm',
+            '/bin/npm',
+            '/opt/cpanel/ea-nodejs*/bin/npm',
+            '/opt/alt/alt-nodejs*/root/usr/bin/npm',
+        ];
+
+        foreach ($commonPaths as $path) {
+            foreach (glob($path) ?: [] as $candidate) {
+                if (is_file($candidate) && is_executable($candidate)) {
+                    $candidates[] = [$candidate];
+                }
+            }
         }
 
         $binary = $this->which('npm');
 
-        return $binary ? [$binary] : null;
+        if ($binary) {
+            $candidates[] = [$binary];
+        }
+
+        return $this->uniqueCommands($candidates);
+    }
+
+    protected function uniqueCommands(array $commands): array
+    {
+        $unique = [];
+
+        foreach ($commands as $command) {
+            $key = implode("\0", $command);
+            $unique[$key] = $command;
+        }
+
+        return array_values($unique);
     }
 
     protected function composerDumpAutoload(): string
