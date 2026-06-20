@@ -6,6 +6,8 @@ return [
 
     'audit_enabled' => env('SYSTEM_TOOLS_AUDIT_ENABLED', true),
     'max_log_lines' => env('SYSTEM_TOOLS_MAX_LOG_LINES', 250),
+    'git_binary' => env('SYSTEM_TOOLS_GIT_BINARY'),
+    'npm_binary' => env('SYSTEM_TOOLS_NPM_BINARY'),
 
     'risk_labels' => [
         'safe' => 'Seguro',
@@ -63,6 +65,11 @@ return [
             'label' => 'Storage & Files',
             'description' => 'Storage link, pastas graváveis e utilização de espaço.',
             'icon' => 'fa-solid fa-folder-tree',
+        ],
+        'assets' => [
+            'label' => 'Assets / Build',
+            'description' => 'Reconstrução dos assets públicos geridos pelo Vite.',
+            'icon' => 'fa-solid fa-cubes',
         ],
         'prestashop' => [
             'label' => 'PrestaShop',

@@ -144,6 +144,17 @@ return [
         'external' => false,
         'requires_confirmation' => true,
     ],
+    'git_restore_system_tools_config' => [
+        'section' => 'git',
+        'label' => 'Restore System Tools Config',
+        'description' => 'Repõe Modules/SystemTools/Config/config.php para a versão do commit atual.',
+        'icon' => 'fa-brands fa-git-alt',
+        'type' => 'custom',
+        'handler' => 'git_restore_system_tools_config',
+        'risk' => 'danger',
+        'external' => false,
+        'requires_confirmation' => true,
+    ],
     'build_assets' => [
         'section' => 'assets',
         'label' => 'Build Assets',

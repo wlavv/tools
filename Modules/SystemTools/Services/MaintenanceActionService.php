@@ -97,8 +97,44 @@ class MaintenanceActionService
             'writable_paths' => $this->writablePaths(),
             'composer_dump_autoload' => $this->composerDumpAutoload(),
             'npm_build' => $this->npmBuild(),
+            'git_restore_system_tools_config' => $this->gitRestoreSystemToolsConfig(),
             default => throw new RuntimeException('Invalid custom handler.'),
         };
+    }
+
+    protected function gitRestoreSystemToolsConfig(): string
+    {
+        $command = $this->gitCommand();
+
+        if (!$command) {
+            throw new RuntimeException(
+                'Git binary not found. Configure SYSTEM_TOOLS_GIT_BINARY or make git available on the server.'
+            );
+        }
+
+        return $this->runShell(array_merge($command, [
+            'checkout',
+            '--',
+            'Modules/SystemTools/Config/config.php',
+        ]));
+    }
+
+    protected function gitCommand(): ?array
+    {
+        $configured = trim((string) (config('system-tools.git_binary') ?: env('SYSTEM_TOOLS_GIT_BINARY', '')));
+
+        if ($configured !== '') {
+            return [$configured];
+        }
+
+        $cpanelGit = '/usr/local/cpanel/3rdparty/bin/git';
+        if (is_file($cpanelGit) && is_executable($cpanelGit)) {
+            return [$cpanelGit];
+        }
+
+        $binary = PHP_OS_FAMILY === 'Windows' ? $this->which('git.exe') ?: $this->which('git') : $this->which('git');
+
+        return $binary ? [$binary] : null;
     }
 
     protected function npmBuild(): string
@@ -116,7 +152,7 @@ class MaintenanceActionService
 
     protected function npmCommand(): ?array
     {
-        $configured = trim((string) env('SYSTEM_TOOLS_NPM_BINARY', ''));
+        $configured = trim((string) (config('system-tools.npm_binary') ?: env('SYSTEM_TOOLS_NPM_BINARY', '')));
 
         if ($configured !== '') {
             return PHP_OS_FAMILY === 'Windows'
