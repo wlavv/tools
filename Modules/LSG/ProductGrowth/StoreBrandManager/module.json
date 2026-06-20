@@ -1,0 +1,9 @@
+{
+  "name": "Store Brand Manager",
+  "slug": "store-brand-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Store, channel and brand positioning step for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\StoreBrandManager\\Providers\\StoreBrandManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

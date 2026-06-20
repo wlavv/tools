@@ -2,11 +2,11 @@
     $routeName = Route::currentRouteName();
     $actions = config("catalogmanager.actions.$routeName", []);
     $fallbackCreateActions = [
-        'catalog-manager.products.index' => ['label' => 'Novo Produto', 'route' => 'catalog-manager.products.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
         'catalog-manager.manufacturers.index' => ['label' => 'Nova Marca', 'route' => 'catalog-manager.manufacturers.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
         'catalog-manager.suppliers.index' => ['label' => 'Novo Fornecedor', 'route' => 'catalog-manager.suppliers.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
-        'catalog-manager.stores.index' => ['label' => 'Nova Loja', 'route' => 'catalog-manager.stores.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
         'catalog-manager.categories.index' => ['label' => 'Nova Categoria', 'route' => 'catalog-manager.categories.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
+        'catalog-manager.characteristics.index' => ['label' => 'Nova Caracteristica', 'route' => 'catalog-manager.characteristics.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
+        'catalog-manager.combination-attributes.index' => ['label' => 'Novo Atributo', 'route' => 'catalog-manager.combination-attributes.create', 'icon' => 'fa-solid fa-plus', 'class' => 'outline-success'],
     ];
 
     if (empty($actions) && isset($fallbackCreateActions[$routeName])) {

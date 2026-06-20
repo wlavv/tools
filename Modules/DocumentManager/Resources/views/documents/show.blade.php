@@ -208,6 +208,38 @@
 
             <details class="dms-card dms-collapsible-panel">
                 <summary>
+                    <span><i class="fa-solid fa-receipt"></i> AI expense suggestions</span>
+                    <strong>{{ ($aiExpenseResults ?? collect())->count() }}</strong>
+                </summary>
+                @forelse(($aiExpenseResults ?? collect()) as $result)
+                    @php
+                        $payload = is_string($result->extracted_payload ?? null)
+                            ? json_decode($result->extracted_payload, true)
+                            : (array) ($result->extracted_payload ?? []);
+                        $expense = $payload['expense'] ?? [];
+                    @endphp
+                    <div class="dms-note">
+                        <strong>{{ $result->status }} / {{ $expense['supplier_name'] ?? 'Fornecedor por validar' }}</strong>
+                        <p>
+                            Total: {{ $expense['total'] ?? '-' }} {{ $expense['currency'] ?? 'EUR' }}
+                            · Categoria: {{ $expense['category_suggestion'] ?? '-' }}
+                        </p>
+                        <div class="dms-actions mt-2">
+                            <a href="{{ route('document-manager.documents.ai.results', $document->id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fa-solid fa-eye"></i> Ver resultado AI
+                            </a>
+                            <a href="{{ route('document-manager.documents.ai.create-expense', [$document->id, $result->id]) }}" class="btn btn-outline-success btn-sm">
+                                <i class="fa-solid fa-receipt"></i> Criar despesa
+                            </a>
+                        </div>
+                    </div>
+                @empty
+                    <div class="dms-empty">Ainda sem sugestoes AI de despesa.</div>
+                @endforelse
+            </details>
+
+            <details class="dms-card dms-collapsible-panel">
+                <summary>
                     <span><i class="fa-solid fa-clock-rotate-left"></i> Timeline</span>
                     <strong>{{ $timeline->count() }}</strong>
                 </summary>

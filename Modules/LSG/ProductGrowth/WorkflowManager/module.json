@@ -1,0 +1,9 @@
+{
+  "name": "Workflow Manager",
+  "slug": "workflow-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Product Growth workflow orchestration and timeline coordination.",
+  "provider": "Modules\\LSG\\ProductGrowth\\WorkflowManager\\Providers\\WorkflowManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

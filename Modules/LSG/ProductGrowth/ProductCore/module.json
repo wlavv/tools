@@ -1,0 +1,26 @@
+{
+  "name": "ProductCore",
+  "slug": "product-core",
+  "description": "LSG Product Growth Product Core - central source of truth for products, store products, assets and sync eligibility.",
+  "version": "1.0.0",
+  "author": "LSG",
+  "enabled": true,
+  "base_path": "Modules/LSG/ProductGrowth/ProductCore",
+  "route_prefix": "product-growth/product-core",
+  "route_name": "product_growth.product_core.",
+  "provider": "Modules\\LSG\\ProductGrowth\\ProductCore\\Providers\\ProductCoreServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  },
+  "menu": {
+    "label": "Product Core",
+    "icon": "fa-solid fa-boxes-stacked",
+    "group": "LSG / Product Growth",
+    "route": "product_growth.product_core.dashboard"
+  },
+  "providers": [
+    "Modules\\LSG\\ProductGrowth\\ProductCore\\Providers\\ProductCoreServiceProvider"
+  ]
+}

@@ -1,3 +1,120 @@
+# Webtools Manager
+
+## LSG AI Gateway
+
+The application integrates with the local LSG AI server through `App\Services\AI\AiGatewayService`.
+Keep gateway credentials in `.env`; do not hardcode URLs, tokens, or model names in controllers or modules.
+
+```env
+LSG_AI_GATEWAY_URL=https://api-ai.lsg-labs.com
+LSG_AI_GATEWAY_TOKEN=COLOCAR_TOKEN_AQUI
+LSG_AI_GATEWAY_TIMEOUT=180
+LSG_AI_ADMIN_TOKEN=COLOCAR_TOKEN_ADMIN_AQUI
+LSG_AI_BACKUP_TIMEOUT=300
+LSG_AI_DEFAULT_MODEL=qwen2.5:7b
+```
+
+Used endpoints:
+
+- `GET /health`
+- `POST /api/llm/generate`
+- `POST /api/llm/chat`
+- `POST /api/ocr/image`
+- `POST /api/ocr/pdf`
+- `POST /api/vision/analyze`
+- `POST /api/vision/phash`
+- `POST /api/vision/compare-phash`
+- `POST /api/documents/extract-expense`
+- `GET /api/admin/backups`
+- `POST /api/admin/backups/create`
+- `GET /api/admin/backups/{filename}`
+- `GET /api/admin/backups/{filename}/download`
+- `GET /api/admin/backups/{filename}/checksum`
+- `GET /api/admin/backups/{filename}/manifest`
+- `GET /api/admin/backups/logs`
+- `DELETE /api/admin/backups/{filename}`
+
+Validation commands:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan lsg:ai-test
+php artisan lsg:ocr-test --file=/path/to/test.pdf
+php artisan lsg:ai-extract-expense --file=/path/to/test-invoice.pdf
+```
+
+AI Server backup administration:
+
+- BO path: `Admin -> AI Server Backups`
+- Laravel routes are under `admin/infrastructure/ai-backups`.
+- Admin token is sent only server-side with `x-lsg-ai-admin-token`.
+- Downloads pass through Laravel and are audited in `infrastructure_backup_logs`.
+- The FastAPI side still needs the admin endpoints documented in `docs/lsg-ai-gateway-admin-backups.md` if they are not already deployed.
+
+Optional prompt:
+
+```bash
+php artisan lsg:ai-test "Resume este documento em três pontos."
+```
+
+Service examples:
+
+```php
+use App\Services\AI\AiGatewayService;
+
+$ai->generate('Classifica esta despesa: ' . $description);
+
+$ai->generate('Cria uma descrição SEO para este produto: ' . $productName);
+
+$ai->chat([
+    ['role' => 'system', 'content' => 'És um assistente interno do grupo LSG.'],
+    ['role' => 'user', 'content' => 'Resume este documento.'],
+]);
+```
+
+The local/staging route `GET /admin/ai-test` is available behind `auth` only outside production and should be removed or further protected before any production exposure.
+
+LSG AI OCR is enabled for Document Manager with:
+
+```env
+DOCUMENT_MANAGER_OCR_PROVIDER=lsg_ai
+```
+
+Document flow:
+
+- Upload or open a document in Documents Manager.
+- Use `Processar OCR` from the document detail.
+- Open `Ver OCR` to inspect extracted text.
+- Results are stored in the existing `document_ai_ocr` table and linked to the document/version.
+- Use `Processar AI / Despesa` from the document detail to call `/api/documents/extract-expense`.
+- Open `Ver resultado AI` to inspect OCR text, extracted expense fields, confidence, notes and raw payload.
+- Expense suggestions are stored in `document_manager_ai_results`; OCR text is also stored in `document_ai_ocr`.
+- `Criar despesa a partir da sugestao` redirects to an Expense Manager create route if one is registered. If the route is not available in this checkout, Document Manager shows the prefill payload for mapping.
+- The application never creates an expense automatically; a user must validate the suggested data first.
+- Active expenses must keep an associated `document_id`.
+
+Expense extraction command:
+
+```bash
+php artisan migrate
+php artisan config:clear
+php artisan cache:clear
+php artisan lsg:ai-extract-expense 123
+php artisan lsg:ai-extract-expense --file=/path/to/invoice.pdf
+```
+
+Service examples:
+
+```php
+use App\Services\AI\DocumentAiService;
+
+$result = $documentsAi->extractExpenseFromDocument($document);
+$latest = $documentsAi->getLatestAiResult($document, 'extract_expense');
+```
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

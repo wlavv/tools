@@ -239,7 +239,7 @@ textarea::placeholder {
 }
 
 .app-content {
-    padding: 14px 24px 28px;
+    padding: 18px 24px;
     width: 100%;
 }
 
@@ -489,7 +489,7 @@ textarea::placeholder {
 .quick-access-panel {
     padding: 18px;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 0 !important;
 }
 
 .quick-access-grid {
@@ -829,7 +829,7 @@ textarea::placeholder {
     }
 
     .app-content {
-        padding: 7px;
+        padding: 18px 24px;
     }
 
     .breadcrumbs-card {
@@ -1404,7 +1404,7 @@ hr {
     }
 
     .app-content {
-        padding: 7px;
+        padding: 18px 24px;
     }
 
     .app-topbar-inner,

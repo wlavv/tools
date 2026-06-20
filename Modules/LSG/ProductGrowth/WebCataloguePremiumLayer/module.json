@@ -1,0 +1,9 @@
+{
+  "name": "WebCatalogue Premium Layer",
+  "slug": "webcatalogue-premium-layer",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Premium WebCatalogue content layer for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\WebCataloguePremiumLayer\\Providers\\WebCataloguePremiumLayerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

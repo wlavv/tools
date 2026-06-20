@@ -13,21 +13,21 @@
             <thead>
                 <tr>
                     <th>ID</th>
-<th>Nome</th>
-<th>Website</th>
-<th>Ativo</th>
-
-                    <th>Ações</th>
+                    <th>Nome</th>
+                    <th>Website</th>
+                    <th>Lojas</th>
+                    <th>Ativo</th>
+                    <th>Acoes</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($manufacturers as $manufacturer)
                     <tr>
-                        <td>{{ $manufacturer->id ?? '—' }}</td>
-<td>{{ $manufacturer->name ?? '—' }}</td>
-<td>{{ $manufacturer->website ?? '—' }}</td>
-<td>{{ $manufacturer->active ?? '—' }}</td>
-
+                        <td>{{ $manufacturer->id ?? '-' }}</td>
+                        <td>{{ $manufacturer->name ?? '-' }}</td>
+                        <td>{{ $manufacturer->website ?? '-' }}</td>
+                        <td>{{ $manufacturer->store_names ?? 'Todas / nao definido' }}</td>
+                        <td>{{ !empty($manufacturer->active) ? 'Sim' : 'Nao' }}</td>
                         <td>
                             <a href="{{ route('catalog-manager.manufacturers.edit', $manufacturer->id) }}" class="btn btn-sm btn-outline-warning">
                                 <i class="fa-solid fa-pencil"></i>
@@ -37,8 +37,5 @@
                 @endforeach
             </tbody>
         </table>
-
-        
     </div>
 @endsection
-

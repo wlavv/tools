@@ -1,0 +1,9 @@
+{
+  "name": "Brand Compliance Manager",
+  "slug": "brand-compliance-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Brand and compliance validation step for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\BrandComplianceManager\\Providers\\BrandComplianceManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

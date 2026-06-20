@@ -46,12 +46,8 @@ class ModuleManager
 
         $modules = [];
 
-        foreach ($this->files->directories($modulesPath) as $directory) {
-            $manifestFile = $directory . '/module.json';
-
-            if (!$this->files->exists($manifestFile)) {
-                continue;
-            }
+        foreach ($this->manifestFiles($modulesPath) as $manifestFile) {
+            $directory = dirname($manifestFile);
 
             $data = json_decode($this->files->get($manifestFile), true);
 
@@ -65,6 +61,48 @@ class ModuleManager
         usort($modules, fn (Module $a, Module $b) => strcmp($a->name(), $b->name()));
 
         return $modules;
+    }
+
+    /** @return array<int, string> */
+    private function manifestFiles(string $modulesPath): array
+    {
+        $files = [];
+
+        foreach ($this->files->directories($modulesPath) as $directory) {
+            $manifestFile = $directory . '/module.json';
+
+            if ($this->files->exists($manifestFile)) {
+                $files[] = $manifestFile;
+            }
+        }
+
+        $lsgPath = $modulesPath . '/LSG';
+
+        if ($this->files->isDirectory($lsgPath)) {
+            foreach ($this->files->directories($lsgPath) as $directory) {
+                $manifestFile = $directory . '/module.json';
+
+                if ($this->files->exists($manifestFile)) {
+                    $files[] = $manifestFile;
+                }
+            }
+        }
+
+        $productGrowthPath = $modulesPath . '/LSG/ProductGrowth';
+
+        if ($this->files->isDirectory($productGrowthPath)) {
+            foreach ($this->files->directories($productGrowthPath) as $directory) {
+                $manifestFile = $directory . '/module.json';
+
+                if ($this->files->exists($manifestFile)) {
+                    $files[] = $manifestFile;
+                }
+            }
+        }
+
+        sort($files);
+
+        return $files;
     }
 
     public function registry(): ModuleRegistry

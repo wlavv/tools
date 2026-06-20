@@ -29,6 +29,7 @@ Route::middleware(['web', 'auth'])
         Route::get('users/create', [PermissionUserController::class, 'create'])->name('users.create');
         Route::post('users', [PermissionUserController::class, 'store'])->name('users.store');
         Route::get('users/{user}', [PermissionUserController::class, 'edit'])->name('users.edit');
+        Route::put('users/{user}', [PermissionUserController::class, 'update'])->name('users.update');
         Route::post('users/{user}/roles', [PermissionUserController::class, 'syncRoles'])->name('users.roles.sync');
         Route::post('users/{user}/permissions', [PermissionUserController::class, 'syncPermissions'])->name('users.permissions.sync');
 

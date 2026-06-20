@@ -19,11 +19,6 @@ return [
     |
     */
     'importables' => [
-        \Modules\CatalogManager\Models\CatalogManufacturer::class,
-        \Modules\CatalogManager\Models\CatalogSupplier::class,
-        \Modules\CatalogManager\Models\CatalogProduct::class,
-        \Modules\CatalogManager\Models\CatalogStore::class,
-        \Modules\CatalogManager\Models\CatalogStoreCategory::class,
     ],
 
     /*

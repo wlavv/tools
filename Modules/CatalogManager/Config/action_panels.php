@@ -4,11 +4,6 @@ return [
     'enabled' => true,
     'limit_per_panel' => 8,
     'panels' => [
-        'products_without_store' => [
-            'enabled' => true, 'title' => 'Produtos sem Loja', 'description' => 'Produtos master ainda não associados a nenhuma loja.',
-            'icon' => 'fa-solid fa-store-slash', 'tone' => 'warning',
-            'provider' => Modules\CatalogManager\Services\ActionPanels\Panels\ProductsWithoutStorePanel::class, 'order' => 10,
-        ],
         'sync_pending' => [
             'enabled' => true, 'title' => 'Sync Pendente', 'description' => 'Itens em fila para sincronização PrestaShop.',
             'icon' => 'fa-solid fa-clock', 'tone' => 'primary',

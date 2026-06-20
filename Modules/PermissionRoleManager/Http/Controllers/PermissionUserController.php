@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Modules\PermissionRoleManager\Models\PermissionPermission;
 use Modules\PermissionRoleManager\Models\PermissionRole;
 use Modules\PermissionRoleManager\Services\EffectivePermissionService;
@@ -101,6 +102,53 @@ class PermissionUserController extends Controller
         $selectedRoles = DB::table('permission_user_role')->where('user_id', $user)->pluck('permission_role_id')->toArray();
 
         return $this->view('permission-role-manager::users.edit', compact('userRecord', 'roles', 'selectedRoles'));
+    }
+
+    public function update(Request $request, int $user, PermissionAuditService $audit)
+    {
+        $userModel = config('permission-role-manager.user_model');
+        abort_unless(class_exists($userModel), 500, 'User model nao encontrado.');
+
+        $userRecord = $userModel::findOrFail($user);
+        $usersTable = $userRecord->getTable();
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique($usersTable, 'email')->ignore($userRecord->id),
+            ],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $before = [
+            'name' => $userRecord->name,
+            'email' => $userRecord->email,
+            'password_changed' => false,
+        ];
+
+        $userRecord->name = $data['name'];
+        $userRecord->email = $data['email'];
+
+        $passwordChanged = filled($data['password'] ?? null);
+
+        if ($passwordChanged) {
+            $userRecord->password = Hash::make($data['password']);
+        }
+
+        $userRecord->save();
+
+        $audit->log('user.updated', 'user', $userRecord->id, $before, [
+            'name' => $userRecord->name,
+            'email' => $userRecord->email,
+            'password_changed' => $passwordChanged,
+        ]);
+
+        return back()->with('success', $passwordChanged
+            ? 'Dados e password do utilizador atualizados.'
+            : 'Dados do utilizador atualizados.');
     }
 
     public function syncRoles(Request $request, int $user, PermissionAuditService $audit)

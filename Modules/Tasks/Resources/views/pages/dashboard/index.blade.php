@@ -4,15 +4,32 @@
 
 @section('content')
 <div class="lsg-content px-0">
+    @php
+        $selectedMonth = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+        $previousMonth = $selectedMonth->copy()->subMonth();
+        $nextMonth = $selectedMonth->copy()->addMonth();
+    @endphp
+
     <div class="card mb-3">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h3 class="mb-0">Dashboard de Tarefas</h3>
                 <div class="muted-small">{{ sprintf('%02d/%04d', $month, $year) }}</div>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('tasks.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-angle-left"></i></a>
-                <a href="{{ route('tasks.calendar', [$year, $month]) }}" class="btn btn-outline-primary"><i class="fa-solid fa-calendar-days"></i></a>
+            <div class="tasks-dashboard-toolbar">
+                <a href="{{ route('tasks.dashboard', [$previousMonth->year, $previousMonth->month]) }}" class="btn btn-outline-primary tasks-icon-btn" title="Mês anterior"><i class="fa-solid fa-chevron-left"></i></a>
+                <form method="GET" action="{{ route('tasks.dashboard') }}" class="tasks-month-selector">
+                    <select name="month" class="form-select form-select-sm compact-select" aria-label="Mês">
+                        @foreach(range(1, 12) as $monthOption)
+                            <option value="{{ $monthOption }}" @selected((int) $monthOption === (int) $month)>
+                                {{ \Carbon\Carbon::create($year, $monthOption, 1)->translatedFormat('F') }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <input type="number" name="year" class="form-control form-control-sm compact-input" value="{{ $year }}" min="2000" max="2100" aria-label="Ano">
+                    <button class="btn btn-outline-primary tasks-icon-btn" title="Aplicar"><i class="fa-solid fa-filter"></i></button>
+                </form>
+                <a href="{{ route('tasks.dashboard', [$nextMonth->year, $nextMonth->month]) }}" class="btn btn-outline-primary tasks-icon-btn" title="Mês seguinte"><i class="fa-solid fa-chevron-right"></i></a>
             </div>
         </div>
     </div>

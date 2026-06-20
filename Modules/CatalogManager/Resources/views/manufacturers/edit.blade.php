@@ -29,6 +29,7 @@
                         Ativo
                     </label>
                 </div>
+                @include('catalogmanager::partials.store-checkboxes', ['stores' => $stores ?? collect(), 'selectedStoreIds' => $selectedStoreIds ?? []])
 
             </div>
 

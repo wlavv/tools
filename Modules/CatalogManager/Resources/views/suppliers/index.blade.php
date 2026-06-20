@@ -13,23 +13,23 @@
             <thead>
                 <tr>
                     <th>ID</th>
-<th>Nome</th>
-<th>Código</th>
-<th>Moeda</th>
-<th>Ativo</th>
-
-                    <th>Ações</th>
+                    <th>Nome</th>
+                    <th>Codigo</th>
+                    <th>Moeda</th>
+                    <th>Lojas</th>
+                    <th>Ativo</th>
+                    <th>Acoes</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($suppliers as $supplier)
                     <tr>
-                        <td>{{ $supplier->id ?? '—' }}</td>
-<td>{{ $supplier->name ?? '—' }}</td>
-<td>{{ $supplier->code ?? '—' }}</td>
-<td>{{ $supplier->currency ?? '—' }}</td>
-<td>{{ $supplier->active ?? '—' }}</td>
-
+                        <td>{{ $supplier->id ?? '-' }}</td>
+                        <td>{{ $supplier->name ?? '-' }}</td>
+                        <td>{{ $supplier->code ?? '-' }}</td>
+                        <td>{{ $supplier->currency ?? '-' }}</td>
+                        <td>{{ $supplier->store_names ?? 'Todas / nao definido' }}</td>
+                        <td>{{ !empty($supplier->active) ? 'Sim' : 'Nao' }}</td>
                         <td>
                             <a href="{{ route('catalog-manager.suppliers.edit', $supplier->id) }}" class="btn btn-sm btn-outline-warning">
                                 <i class="fa-solid fa-pencil"></i>
@@ -39,8 +39,5 @@
                 @endforeach
             </tbody>
         </table>
-
-        
     </div>
 @endsection
-

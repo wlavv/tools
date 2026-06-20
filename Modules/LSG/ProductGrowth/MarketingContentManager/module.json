@@ -1,0 +1,9 @@
+{
+  "name": "Marketing Content Manager",
+  "slug": "marketing-content-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Copy, SEO and content step for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\MarketingContentManager\\Providers\\MarketingContentManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

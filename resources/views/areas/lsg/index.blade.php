@@ -98,8 +98,10 @@
             return str_starts_with($domain, 'http://') || str_starts_with($domain, 'https://') ? $domain : 'https://' . $domain;
         };
         $siteIcon = function ($site) {
-            $settings = json_decode((string) ($site->settings ?? ''), true);
-            return is_array($settings) && !empty($settings['icon']) ? $settings['icon'] : (($site->record_type ?? 'store') === 'store' ? 'fa-solid fa-store' : 'fa-solid fa-globe');
+            $settings = is_array($site->settings ?? null)
+                ? $site->settings
+                : json_decode((string) ($site->settings ?? ''), true);
+            return is_array($settings) && !empty($settings['icon']) ? $settings['icon'] : 'fa-solid fa-store';
         };
         $metricPayload = function ($site, $metric, string $strategy) use ($formatSeconds, $formatMs, $formatCls, $siteUrl, $siteIcon) {
             if (!$metric) {
@@ -187,9 +189,11 @@
                                         {{ $averageScore }}
                                     </button>
                                 @endif
-                                <a href="{{ route('catalog-manager.stores.edit', $site->id) }}" class="btn btn-sm btn-outline-warning lsg-site-action" title="Editar">
-                                    <i class="fa-solid fa-pencil"></i>
-                                </a>
+                                @if(Route::has('lsg.site_manager.sites.edit'))
+                                    <a href="{{ route('lsg.site_manager.sites.edit', $site->id) }}" class="btn btn-sm btn-outline-warning lsg-site-action" title="Editar">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @empty

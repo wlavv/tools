@@ -13,9 +13,24 @@
     <form method="POST" action="{{ route('document-manager.documents.process', [$document->id, 'ocr']) }}">
         @csrf
         <button type="submit" class="btn btn-outline-primary btn-sm">
-            <i class="fa-solid fa-file-lines"></i> OCR
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Processar OCR
         </button>
     </form>
+
+    <a href="{{ route('document-manager.documents.ocr.show', $document->id) }}" class="btn btn-outline-primary btn-sm">
+        <i class="fa-solid fa-eye"></i> Ver OCR
+    </a>
+
+    <form method="POST" action="{{ route('document-manager.documents.ai.extract-expense', $document->id) }}">
+        @csrf
+        <button type="submit" class="btn btn-outline-success btn-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Processar AI / Despesa
+        </button>
+    </form>
+
+    <a href="{{ route('document-manager.documents.ai.results', $document->id) }}" class="btn btn-outline-success btn-sm">
+        <i class="fa-solid fa-receipt"></i> Ver resultado AI
+    </a>
 
     <form method="POST" action="{{ route('document-manager.documents.process', [$document->id, 'summary']) }}">
         @csrf

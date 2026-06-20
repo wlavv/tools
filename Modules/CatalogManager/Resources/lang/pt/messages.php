@@ -8,5 +8,4 @@ return [
     'stores' => 'Lojas',
     'categories' => 'Categorias',
     'sync' => 'Sync PrestaShop',
-    'ai' => 'AI Product Pipeline',
 ];

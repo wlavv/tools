@@ -12,6 +12,15 @@ class SupplierController extends BaseCatalogController
     public function index(Request $request)
     {
         $suppliers = CatalogTable::safeGet('catalog_core_suppliers', function ($query) {
+            if (CatalogTable::exists('catalog_supplier_stores') && CatalogTable::exists('catalog_stores')) {
+                $query->select('catalog_core_suppliers.*')
+                    ->selectSub(function ($subQuery) {
+                        $subQuery->from('catalog_supplier_stores as ss')
+                            ->join('catalog_stores as s', 's.id', '=', 'ss.store_id')
+                            ->whereColumn('ss.supplier_id', 'catalog_core_suppliers.id')
+                            ->selectRaw('GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR ", ")');
+                    }, 'store_names');
+            }
             $query->orderBy('name');
         });
 
@@ -20,7 +29,11 @@ class SupplierController extends BaseCatalogController
 
     public function create()
     {
-        return view('catalogmanager::suppliers.create');
+        return view('catalogmanager::suppliers.create', [
+            'stores' => $this->stores(),
+            'selectedStoreIds' => [],
+            'currencyOptions' => $this->currencyOptions(),
+        ]);
     }
 
     public function store(Request $request)
@@ -37,20 +50,24 @@ class SupplierController extends BaseCatalogController
             'currency' => ['nullable', 'string', 'max:3'],
             'lead_time_days' => ['nullable', 'integer'],
             'active' => ['nullable'],
+            'store_ids' => ['nullable', 'array'],
+            'store_ids.*' => ['integer'],
         ]);
 
         try {
-            DB::table('catalog_core_suppliers')->insert([
+            $supplierPayload = [
                 'name' => $data['name'],
                 'code' => $data['code'] ?? null,
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'currency' => $data['currency'] ?? 'EUR',
+                'currency' => strtoupper($data['currency'] ?? 'EUR'),
                 'lead_time_days' => $data['lead_time_days'] ?? null,
                 'active' => $request->boolean('active', true),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+            ];
+            $supplierId = DB::table('catalog_core_suppliers')->insertGetId($supplierPayload);
+            $this->syncStores($supplierId, $data['store_ids'] ?? []);
         } catch (\Throwable $e) {
             CatalogLogger::exception($e, ['controller' => __CLASS__, 'method' => __METHOD__]);
 
@@ -67,7 +84,12 @@ class SupplierController extends BaseCatalogController
         $supplier = DB::table('catalog_core_suppliers')->where('id', $id)->first();
         abort_if(!$supplier, 404);
 
-        return view('catalogmanager::suppliers.edit', compact('supplier'));
+        return view('catalogmanager::suppliers.edit', [
+            'supplier' => $supplier,
+            'stores' => $this->stores(),
+            'selectedStoreIds' => $this->selectedStores($id),
+            'currencyOptions' => $this->currencyOptions(),
+        ]);
     }
 
     public function update(Request $request, int $id)
@@ -84,19 +106,23 @@ class SupplierController extends BaseCatalogController
             'currency' => ['nullable', 'string', 'max:3'],
             'lead_time_days' => ['nullable', 'integer'],
             'active' => ['nullable'],
+            'store_ids' => ['nullable', 'array'],
+            'store_ids.*' => ['integer'],
         ]);
 
         try {
-            DB::table('catalog_core_suppliers')->where('id', $id)->update([
+            $supplierPayload = [
                 'name' => $data['name'],
                 'code' => $data['code'] ?? null,
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'currency' => $data['currency'] ?? 'EUR',
+                'currency' => strtoupper($data['currency'] ?? 'EUR'),
                 'lead_time_days' => $data['lead_time_days'] ?? null,
                 'active' => $request->boolean('active'),
                 'updated_at' => now(),
-            ]);
+            ];
+            DB::table('catalog_core_suppliers')->where('id', $id)->update($supplierPayload);
+            $this->syncStores($id, $data['store_ids'] ?? []);
         } catch (\Throwable $e) {
             CatalogLogger::exception($e, ['controller' => __CLASS__, 'method' => __METHOD__, 'id' => $id]);
 
@@ -104,5 +130,70 @@ class SupplierController extends BaseCatalogController
         }
 
         return redirect()->route('catalog-manager.suppliers.index')->with('success', 'Fornecedor atualizado.');
+    }
+
+    private function stores()
+    {
+        return CatalogTable::safeGet('catalog_stores', function ($query) {
+            $query->where(function ($nested) {
+                $nested->where('record_type', 'store')->orWhereNull('record_type');
+            })->where('active', true)->orderBy('name');
+        });
+    }
+
+    private function currencyOptions(): array
+    {
+        if (!CatalogTable::exists('catalog_currencies')) {
+            return [
+                'EUR' => 'EUR - Euro',
+                'USD' => 'USD - US Dollar',
+                'GBP' => 'GBP - Pound Sterling',
+                'CHF' => 'CHF - Swiss Franc',
+                'JPY' => 'JPY - Japanese Yen',
+            ];
+        }
+
+        return DB::table('catalog_currencies')
+            ->where('active', true)
+            ->orderBy('position')
+            ->orderBy('iso_code')
+            ->get(['iso_code', 'name'])
+            ->mapWithKeys(fn ($currency) => [
+                (string) $currency->iso_code => trim($currency->iso_code . ' - ' . $currency->name),
+            ])
+            ->all();
+    }
+
+    private function selectedStores(int $supplierId): array
+    {
+        if (!CatalogTable::exists('catalog_supplier_stores')) {
+            return [];
+        }
+
+        return DB::table('catalog_supplier_stores')
+            ->where('supplier_id', $supplierId)
+            ->pluck('store_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    private function syncStores(int $supplierId, array $storeIds): void
+    {
+        if (!CatalogTable::exists('catalog_supplier_stores')) {
+            return;
+        }
+
+        DB::table('catalog_supplier_stores')->where('supplier_id', $supplierId)->delete();
+
+        $rows = collect($storeIds)->filter()->unique()->map(fn ($storeId) => [
+            'supplier_id' => $supplierId,
+            'store_id' => (int) $storeId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->values()->all();
+
+        if ($rows) {
+            DB::table('catalog_supplier_stores')->insert($rows);
+        }
     }
 }

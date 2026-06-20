@@ -25,13 +25,10 @@ class DiagnosticsController extends BaseCatalogController
 
         $routes = [
             'catalog-manager.dashboard',
-            'catalog-manager.products.index',
             'catalog-manager.manufacturers.index',
             'catalog-manager.suppliers.index',
-            'catalog-manager.stores.index',
             'catalog-manager.categories.index',
             'catalog-manager.sync.index',
-            'catalog-manager.ai.index',
             'catalog-manager.diagnostics.index',
         ];
 

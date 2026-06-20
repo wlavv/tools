@@ -17,17 +17,18 @@ class PermissionSyncService
             return compact('created', 'updated');
         }
 
-        foreach (File::directories($modulesPath) as $modulePath) {
-            $configPath = $modulePath . '/Config/permissions.php';
-            if (!File::exists($configPath)) {
-                continue;
-            }
+        foreach ($this->permissionConfigFiles($modulesPath) as $configPath) {
+            $modulePath = dirname($configPath, 2);
 
             $config = include $configPath;
-            $moduleName = basename($modulePath);
+            $moduleName = $this->moduleName($modulePath);
             $group = $config['group'] ?? $moduleName;
 
             foreach (($config['permissions'] ?? []) as $key => $data) {
+                if (!is_array($data)) {
+                    $data = ['label' => (string) $data];
+                }
+
                 $permission = PermissionPermission::withTrashed()->where('key', $key)->first();
                 $payload = [
                     'key' => $key,
@@ -52,5 +53,63 @@ class PermissionSyncService
         }
 
         return compact('created', 'updated');
+    }
+
+    /** @return array<int, string> */
+    private function permissionConfigFiles(string $modulesPath): array
+    {
+        $files = [];
+
+        foreach (File::directories($modulesPath) as $modulePath) {
+            $configPath = $modulePath . '/Config/permissions.php';
+
+            if (File::exists($configPath)) {
+                $files[] = $configPath;
+            }
+        }
+
+        $lsgPath = $modulesPath . '/LSG';
+
+        if (File::isDirectory($lsgPath)) {
+            foreach (File::directories($lsgPath) as $modulePath) {
+                $configPath = $modulePath . '/Config/permissions.php';
+
+                if (File::exists($configPath)) {
+                    $files[] = $configPath;
+                }
+            }
+        }
+
+        $productGrowthPath = $modulesPath . '/LSG/ProductGrowth';
+
+        if (File::isDirectory($productGrowthPath)) {
+            foreach (File::directories($productGrowthPath) as $modulePath) {
+                $configPath = $modulePath . '/Config/permissions.php';
+
+                if (File::exists($configPath)) {
+                    $files[] = $configPath;
+                }
+            }
+        }
+
+        $files = array_values(array_unique($files));
+        sort($files);
+
+        return $files;
+    }
+
+    private function moduleName(string $modulePath): string
+    {
+        $manifestPath = $modulePath . '/module.json';
+
+        if (File::exists($manifestPath)) {
+            $manifest = json_decode(File::get($manifestPath), true);
+
+            if (is_array($manifest) && !empty($manifest['name'])) {
+                return (string) $manifest['name'];
+            }
+        }
+
+        return basename($modulePath);
     }
 }

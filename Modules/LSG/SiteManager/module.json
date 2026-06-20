@@ -1,0 +1,24 @@
+{
+  "name": "SiteManager",
+  "slug": "site-manager",
+  "description": "LSG Site Manager - group sites, external tools, availability and performance monitoring.",
+  "version": "1.0.0",
+  "enabled": true,
+  "provider": "Modules\\LSG\\SiteManager\\Providers\\SiteManagerServiceProvider",
+  "dependencies": {
+    "composer": [],
+    "npm": [],
+    "internal_modules": []
+  },
+  "permissions": [
+    "permission_lsg_site_manager_view",
+    "permission_lsg_site_manager_manage",
+    "permission_lsg_site_manager_pagespeed"
+  ],
+  "menu": {
+    "label": "Site Manager",
+    "icon": "fa-solid fa-globe",
+    "group": "LSG",
+    "route": "lsg.site_manager.dashboard"
+  }
+}

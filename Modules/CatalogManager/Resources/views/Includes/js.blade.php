@@ -134,7 +134,7 @@
         }
 
         function initPanelCollapses() {
-            document.querySelectorAll('.catalog-lsg-panel-card .catalog-lsg-panel-top').forEach(function (trigger) {
+        document.querySelectorAll('.catalog-lsg-panel-card .catalog-lsg-panel-top').forEach(function (trigger) {
                 if (trigger.dataset.catalogCollapseReady === '1') {
                     return;
                 }
@@ -151,11 +151,56 @@
             });
         }
 
+        function initCategoryTree() {
+            document.querySelectorAll('.catalog-category-tree__item.has-children > .catalog-category-tree__node').forEach(function (node) {
+                if (node.dataset.catalogTreeReady === '1') {
+                    return;
+                }
+
+                node.dataset.catalogTreeReady = '1';
+
+                var toggle = function () {
+                    var item = node.closest('.catalog-category-tree__item');
+                    var isExpanded = item.classList.toggle('is-expanded');
+
+                    item.classList.toggle('is-collapsed', !isExpanded);
+                    node.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+                };
+
+                node.addEventListener('click', function (event) {
+                    if (event.target.closest('a, button')) {
+                        return;
+                    }
+
+                    toggle();
+                });
+
+                node.addEventListener('keydown', function (event) {
+                    if (event.key !== 'Enter' && event.key !== ' ') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    toggle();
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             initDataTables();
             initDropzones();
             initConfirmButtons();
             initPanelCollapses();
+            initCategoryTree();
+        });
+
+        document.querySelectorAll('[data-catalog-category-rule-toggle]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                var card = trigger.closest('[data-catalog-category-rule]');
+                if (card) {
+                    card.classList.toggle('is-collapsed');
+                }
+            });
         });
     })();
 </script>

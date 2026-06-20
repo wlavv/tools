@@ -2,6 +2,44 @@
 
 /*
 |--------------------------------------------------------------------------
+| Prevent Shared Apache Environment Bleed
+|--------------------------------------------------------------------------
+|
+| XAMPP/mod_php can keep process-level environment variables between
+| different local Laravel projects. Clear project-specific keys before
+| Laravel loads this application's .env file so another vhost cannot make
+| Webtools use the wrong database or session cookie.
+|
+*/
+
+foreach ([
+    'APP_NAME',
+    'APP_ENV',
+    'APP_KEY',
+    'APP_DEBUG',
+    'APP_URL',
+    'DB_CONNECTION',
+    'DB_HOST',
+    'DB_PORT',
+    'DB_DATABASE',
+    'DB_USERNAME',
+    'DB_PASSWORD',
+    'CACHE_DRIVER',
+    'QUEUE_CONNECTION',
+    'SESSION_DRIVER',
+    'SESSION_LIFETIME',
+    'SESSION_DOMAIN',
+    'SESSION_COOKIE',
+    'REDIS_HOST',
+    'REDIS_PASSWORD',
+    'REDIS_PORT',
+] as $environmentKey) {
+    unset($_ENV[$environmentKey], $_SERVER[$environmentKey]);
+    putenv($environmentKey);
+}
+
+/*
+|--------------------------------------------------------------------------
 | Create The Application
 |--------------------------------------------------------------------------
 |

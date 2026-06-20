@@ -5,8 +5,6 @@
     "description": "LSG Catalog Manager - full operational catalog module.",
     "keywords": [
         "catalog",
-        "products",
-        "stores",
         "prestashop",
         "lsg"
     ],
@@ -22,8 +20,6 @@
     "provider": "Modules\\CatalogManager\\Providers\\CatalogManagerServiceProvider",
     "permissions": [
         "permission_catalog_manager_view",
-        "permission_catalog_manager_manage_products",
-        "permission_catalog_manager_manage_stores",
         "permission_catalog_manager_manage_settings"
     ],
     "menu": {

@@ -1,0 +1,9 @@
+{
+  "name": "PrestaShop 9 Bridge",
+  "slug": "prestashop-bridge",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "PrestaShop 9 product and asset creation, update and soft delete bridge.",
+  "provider": "Modules\\LSG\\ProductGrowth\\PrestaShopBridge\\Providers\\PrestaShopBridgeServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

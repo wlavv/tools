@@ -20,6 +20,7 @@ return [
     'document_ai_embeddings',
     'document_ai_summaries',
     'document_ai_analysis',
+    'document_manager_ai_results',
     'document_workflow_states',
     'document_workflow_approvals',
     'document_workflow_tasks',

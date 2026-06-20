@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('catalog-manager:pagespeed')->dailyAt('06:10')->withoutOverlapping();
+        $schedule->command('lsg-sites:pagespeed --strategy=mobile')->dailyAt('06:10')->withoutOverlapping();
+        $schedule->command('lsg-sites:pagespeed --strategy=desktop')->dailyAt('06:30')->withoutOverlapping();
     }
 
     /**

@@ -9,5 +9,6 @@
 @endpush
 
 @section('content')
+    @include('areas.partials.product-growth-work-panel', ['areaKey' => 'sales'])
     @include('areas.partials.idea-panel', ['areaKey' => 'sales'])
 @endsection

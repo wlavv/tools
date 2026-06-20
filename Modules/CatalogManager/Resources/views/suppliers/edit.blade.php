@@ -33,7 +33,11 @@
                 </div>
 <div class="catalog-lsg-form-group">
                     <label>Moeda</label>
-                    <input type="text" name="currency" value="{{ old('currency', $supplier->currency ?? '') }}">
+                    <select name="currency">
+                        <?php foreach (($currencyOptions ?? ['EUR' => 'EUR - Euro']) as $currencyCode => $currencyLabel) { ?>
+                            <option value="{{ $currencyCode }}" @selected((string) old('currency', $supplier->currency ?? 'EUR') === (string) $currencyCode)>{{ $currencyLabel }}</option>
+                        <?php } ?>
+                    </select>
                 </div>
 <div class="catalog-lsg-form-group">
                     <label>Lead time dias</label>
@@ -45,6 +49,7 @@
                         Ativo
                     </label>
                 </div>
+                @include('catalogmanager::partials.store-checkboxes', ['stores' => $stores ?? collect(), 'selectedStoreIds' => $selectedStoreIds ?? []])
 
             </div>
 

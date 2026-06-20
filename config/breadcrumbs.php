@@ -9,6 +9,7 @@ return [
     'hr.index'              => [ 'label'  => 'app::breadcrumbs.hr.index',               'parent' => 'dashboard.index' ],
     'finance.index'         => [ 'label'  => 'app::breadcrumbs.finance.index',          'parent' => 'dashboard.index' ],
     'purchasing.index'      => [ 'label'  => 'app::breadcrumbs.purchasing.index',       'parent' => 'dashboard.index' ],
+    'logistics.index'       => [ 'label'  => 'Logistics',                               'parent' => 'dashboard.index', 'translate' => false ],
     'marketing.index'       => [ 'label'  => 'app::breadcrumbs.marketing.index',        'parent' => 'dashboard.index' ],
     'customerSupport.index' => [ 'label'  => 'app::breadcrumbs.customerSupport.index',  'parent' => 'dashboard.index' ],
     'sales.index'           => [ 'label'  => 'app::breadcrumbs.sales.index',            'parent' => 'dashboard.index' ],

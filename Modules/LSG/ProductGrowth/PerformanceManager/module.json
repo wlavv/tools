@@ -1,0 +1,9 @@
+{
+  "name": "Performance Manager",
+  "slug": "performance-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Performance, reporting and quality metrics for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\PerformanceManager\\Providers\\PerformanceManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

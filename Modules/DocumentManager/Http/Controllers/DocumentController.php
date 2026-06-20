@@ -118,6 +118,13 @@ class DocumentController extends BaseDocumentController
             'aiAnalyses' => DocumentTable::safeGet('document_ai_analysis', function ($query) use ($document) {
                 $query->where('document_id', $document->id)->orderByDesc('id')->limit(5);
             }),
+            'aiExpenseResults' => DocumentTable::safeGet('document_manager_ai_results', function ($query) use ($document) {
+                $query->where('document_id', $document->id)
+                    ->where('operation', 'extract_expense')
+                    ->orderByDesc('processed_at')
+                    ->orderByDesc('id')
+                    ->limit(5);
+            }),
         ]);
     }
 

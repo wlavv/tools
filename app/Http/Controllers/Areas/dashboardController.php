@@ -30,6 +30,7 @@ class dashboardController extends Controller{
             ['label' => 'Customer Support', 'icon' => 'fa-solid fa-headset', 'route' => 'customerSupport.index'],
             ['label' => 'HR', 'icon' => 'fa-solid fa-user-group', 'route' => 'hr.index'],
             ['label' => 'Purchasing', 'icon' => 'fa-solid fa-cart-flatbed', 'route' => 'purchasing.index'],
+            ['label' => 'Logistics', 'icon' => 'fa-solid fa-truck-fast', 'route' => 'logistics.index'],
             ['label' => 'Family', 'icon' => 'fa-solid fa-hands-holding-child', 'route' => 'family.index'],
             ['label' => 'LSG', 'icon' => 'fa-solid fa-building', 'route' => 'lsg.index'],
         ])

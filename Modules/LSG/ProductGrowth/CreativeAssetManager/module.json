@@ -1,0 +1,9 @@
+{
+  "name": "Creative Asset Manager",
+  "slug": "creative-asset-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Creative assets and media step for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\CreativeAssetManager\\Providers\\CreativeAssetManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

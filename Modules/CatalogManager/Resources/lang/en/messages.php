@@ -8,5 +8,4 @@ return [
     'stores' => 'Stores',
     'categories' => 'Categories',
     'sync' => 'PrestaShop Sync',
-    'ai' => 'AI Product Pipeline',
 ];

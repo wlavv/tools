@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @include('areas.partials.product-growth-work-panel', ['areaKey' => 'purchasing'])
     @include('areas.partials.idea-panel', ['areaKey' => 'purchasing'])
 
     <div class="customPanel">

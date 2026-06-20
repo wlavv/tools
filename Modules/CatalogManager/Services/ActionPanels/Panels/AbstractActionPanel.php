@@ -12,7 +12,7 @@ abstract class AbstractActionPanel
     protected function productUrl(?int $id): ?string
     {
         try {
-            return $id ? route('catalog-manager.products.show', $id, false) : null;
+            return null;
         } catch (\Throwable $e) {
             return null;
         }

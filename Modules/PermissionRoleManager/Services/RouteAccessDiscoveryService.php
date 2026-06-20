@@ -129,7 +129,17 @@ class RouteAccessDiscoveryService
     private function moduleFromController(string $controller): ?string
     {
         if (str_starts_with($controller, 'Modules\\')) {
-            return explode('\\', $controller)[1] ?? null;
+            $parts = explode('\\', $controller);
+
+            if (($parts[1] ?? null) === 'LSG' && ($parts[2] ?? null) === 'ProductGrowth') {
+                return $parts[3] ?? null;
+            }
+
+            if (($parts[1] ?? null) === 'LSG') {
+                return $parts[2] ?? null;
+            }
+
+            return $parts[1] ?? null;
         }
 
         if ($this->isBackofficeAreaController($controller)) {

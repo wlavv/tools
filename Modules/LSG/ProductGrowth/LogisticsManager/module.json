@@ -1,0 +1,9 @@
+{
+  "name": "Logistics Manager",
+  "slug": "logistics-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Logistics data step for Product Growth adverts.",
+  "provider": "Modules\\LSG\\ProductGrowth\\LogisticsManager\\Providers\\LogisticsManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

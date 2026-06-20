@@ -2,6 +2,7 @@
 
 namespace Modules\DocumentManager\Services;
 
+use App\Services\AI\DocumentOcrService as LsgDocumentOcrService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\DocumentManager\Models\Document;
@@ -13,7 +14,8 @@ class OcrService
 {
     public function __construct(
         private TextExtractionService $textExtraction,
-        private AuditService $audit
+        private AuditService $audit,
+        private LsgDocumentOcrService $lsgOcr
     ) {
     }
 
@@ -69,8 +71,8 @@ class OcrService
             }
 
             $ocrId = $this->startOcr($documentId, $version->id);
-            $result = $this->textExtraction->extract($version);
-            $completed = $result['status'] === 'completed';
+            $result = $this->extract($document, $version);
+            $completed = in_array($result['status'], ['completed', 'ok'], true) && trim((string) ($result['text'] ?? '')) !== '';
 
             if (DocumentTable::exists('document_ai_ocr')) {
                 DB::table('document_ai_ocr')
@@ -79,13 +81,13 @@ class OcrService
                         'status' => $completed ? 'completed' : $result['status'],
                         'confidence' => $result['confidence'],
                         'extracted_text' => $result['text'],
-                        'structured_blocks' => json_encode([
+                        'structured_blocks' => json_encode($result['structured_blocks'] ?? [
                             ['type' => 'text', 'text' => $result['text']],
-                        ], JSON_UNESCAPED_SLASHES),
-                        'raw_response' => json_encode([
+                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                        'raw_response' => json_encode($result['raw_response'] ?? [
                             'provider' => $this->provider(),
                             'message' => $result['message'],
-                        ], JSON_UNESCAPED_SLASHES),
+                        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                         'error_message' => $completed ? null : $result['message'],
                         'finished_at' => now(),
                         'updated_at' => now(),
@@ -119,6 +121,24 @@ class OcrService
 
     public function health(): array
     {
+        if ($this->provider() === 'lsg_ai') {
+            try {
+                $health = app(\App\Services\AI\AiGatewayService::class)->health();
+
+                return [
+                    'provider' => $this->provider(),
+                    'ok' => ($health['status'] ?? null) === 'ok',
+                    'message' => ($health['service'] ?? 'LSG AI Gateway') . ' / OCR endpoints configured',
+                ];
+            } catch (\Throwable $e) {
+                return [
+                    'provider' => $this->provider(),
+                    'ok' => false,
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
         return [
             'provider' => $this->provider(),
             'ok' => true,
@@ -144,5 +164,63 @@ class OcrService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    private function extract(Document $document, DocumentVersion $version): array
+    {
+        if ($this->provider() !== 'lsg_ai') {
+            return $this->textExtraction->extract($version);
+        }
+
+        try {
+            $result = $this->lsgOcr->processDocument($document, [
+                'version' => $version,
+                'lang' => 'por+eng',
+                'preprocess' => true,
+                'max_pages' => 5,
+            ]);
+
+            return [
+                'text' => $result['text'],
+                'status' => trim($result['text']) !== '' ? 'completed' : 'empty',
+                'message' => trim($result['text']) !== '' ? null : 'OCR completed without extracted text.',
+                'confidence' => $result['llm_ready'] ? 0.8500 : null,
+                'structured_blocks' => [
+                    [
+                        'type' => 'text',
+                        'text' => $result['text'],
+                        'language' => $result['language'],
+                        'text_length' => $result['text_length'],
+                        'processing_time_ms' => $result['processing_time_ms'],
+                        'pages_processed' => $result['pages_processed'],
+                    ],
+                ],
+                'raw_response' => [
+                    'provider' => $this->provider(),
+                    'engine' => 'LSG AI Gateway OCR',
+                    'type' => $result['type'],
+                    'language' => $result['language'],
+                    'preprocess' => $result['preprocess'],
+                    'llm_ready' => $result['llm_ready'],
+                    'text_length' => $result['text_length'],
+                    'processing_time_ms' => $result['processing_time_ms'],
+                    'pages_processed' => $result['pages_processed'],
+                    'payload' => $result['payload'],
+                ],
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'text' => '',
+                'status' => 'failed',
+                'message' => $e->getMessage(),
+                'confidence' => null,
+                'structured_blocks' => [],
+                'raw_response' => [
+                    'provider' => $this->provider(),
+                    'engine' => 'LSG AI Gateway OCR',
+                    'error' => $e->getMessage(),
+                ],
+            ];
+        }
     }
 }

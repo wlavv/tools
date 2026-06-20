@@ -1,0 +1,9 @@
+{
+  "name": "Product Evolution Manager",
+  "slug": "product-evolution-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Product improvement and iteration workflow for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\ProductEvolutionManager\\Providers\\ProductEvolutionManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

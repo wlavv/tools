@@ -6,28 +6,73 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Modules\CatalogManager\Services\StorePageSpeedInsightsService;
-use Modules\CatalogManager\Support\CatalogTable;
+use Modules\LSG\SiteManager\Models\Site;
+use Modules\LSG\SiteManager\Services\SitePageSpeedInsightsService;
 use Modules\PermissionRoleManager\Services\RoutePermissionAccessService;
 
 class lsgController extends Controller
 {
-    protected bool $hasPageActions = false;
-
-    public function index(StorePageSpeedInsightsService $pageSpeed)
+    public function index(SitePageSpeedInsightsService $pageSpeed)
     {
-        $this->addRouteAccess('catalog-manager.stores.create', 'Novo site', 'fa-solid fa-plus');
-        $this->addRouteAccess('catalog-manager.stores.index', 'Gerir sites', 'fa-solid fa-globe');
+        $this->prepareLsgPage('LSG', false);
+        $this->addRouteAccess('lsg.infrastructure', 'Infraestrutura', 'fa-solid fa-sitemap');
+        $this->addRouteAccess('lsg.stores', 'Stores', 'fa-solid fa-store');
+        $this->addRouteAccess('lsg.services', 'Servicos LSG', 'fa-solid fa-briefcase');
+        $this->addRouteAccess('lsg.reporting', 'Reporting', 'fa-solid fa-chart-line');
+
+        return $this->sitesDashboard($pageSpeed);
+    }
+
+    public function infrastructure()
+    {
+        $this->prepareLsgPage('Infraestrutura LSG');
+
+        $this->addRouteAccess('lsg.site_manager.dashboard', 'Sites', 'fa-solid fa-globe');
+        $this->addRouteAccess('admin.infrastructure.ai-backups.index', 'AI Backups', 'fa-solid fa-server');
+        $this->addRouteAccess('admin.lsg-ai.index', 'LSG AI Gateway', 'fa-solid fa-brain');
+        $this->addRouteAccess('admin.infrastructure.documentation.index', 'Documentacao', 'fa-solid fa-book');
+        $this->addRouteAccess('system-tools.index', 'System Tools', 'fa-solid fa-screwdriver-wrench');
+
+        return $this->view('areas/lsg/infrastructure');
+    }
+
+    public function stores()
+    {
+        $this->prepareLsgPage('Stores LSG');
+        $this->addRouteAccess('product_growth.product_core.dashboard', 'Product Growth', 'fa-solid fa-diagram-project');
         $this->addRouteAccess('multiStore.index', 'MultiStore', 'fa-solid fa-store');
-        $this->addRouteAccess('webcatalogue.index', 'Web Catalogue', 'fa-solid fa-book-open');
-        $this->addRouteAccess('catalog-manager.dashboard', 'Catalog Manager', 'fa-solid fa-boxes-stacked');
-        $this->addRouteAccess('package_tracker.dashboard', 'Package Tracker', 'fa-solid fa-truck-fast');
+
+        return $this->view('areas/lsg/stores');
+    }
+
+    public function services()
+    {
+        $this->prepareLsgPage('Servicos LSG');
+        $this->addRouteAccess('package_tracker.dashboard', 'Tracking', 'fa-solid fa-truck-fast');
         $this->addRouteAccess('package_tracker.shipments.index', 'Trackings', 'fa-solid fa-boxes-packing');
         $this->addRouteAccess('package_tracker.clients.index', 'Clientes tracking', 'fa-solid fa-users');
+        $this->addRouteAccess('webcatalogue.index', 'WebCatalogue', 'fa-solid fa-book-open');
+        $this->addRouteAccess('document-manager.dashboard', 'Document Manager', 'fa-solid fa-folder-tree');
+        $this->addRouteAccess('data_import_wizard.dashboard', 'Data Import Wizard', 'fa-solid fa-file-import');
+        $this->addRouteAccess('data_export_center.dashboard', 'Data Export Center', 'fa-solid fa-file-export');
 
-        $sites = CatalogTable::exists('catalog_stores')
-            ? DB::table('catalog_stores')
-                ->orderByRaw("FIELD(site_kind, 'group', 'store', 'service', 'showcase', 'labs')")
+        return $this->view('areas/lsg/services');
+    }
+
+    public function reporting()
+    {
+        $this->prepareLsgPage('Reporting LSG');
+        $this->addRouteAccess('lsg.site_manager.dashboard', 'PageSpeed diário', 'fa-solid fa-gauge-high');
+        $this->addRouteAccess('integration_health.dashboard', 'Integration Health', 'fa-solid fa-plug-circle-check');
+        $this->addRouteAccess('audit_log_central.dashboard', 'Audit Log', 'fa-solid fa-clipboard-list');
+
+        return $this->view('areas/lsg/reporting');
+    }
+
+    private function sitesDashboard(SitePageSpeedInsightsService $pageSpeed)
+    {
+        $sites = Schema::hasTable('lsg_sites')
+            ? Site::query()
                 ->orderBy('name')
                 ->get()
             : collect();
@@ -35,18 +80,16 @@ class lsgController extends Controller
         $sites = $this->attachProjectUrls($sites);
 
         $groups = collect([
-            'group' => ['label' => 'Site grupo', 'icon' => 'fa-solid fa-building', 'description' => 'Presenca institucional do grupo.'],
-            'store' => ['label' => 'Sites lojas', 'icon' => 'fa-solid fa-store', 'description' => 'Lojas reais que entram no fluxo MultiStore.'],
-            'service' => ['label' => 'Sites servicos', 'icon' => 'fa-solid fa-briefcase', 'description' => 'Servicos digitais ou operacionais.'],
-            'showcase' => ['label' => 'Sites mostra', 'icon' => 'fa-solid fa-display', 'description' => 'Showcases, landing pages e presencas demonstrativas.'],
-            'labs' => ['label' => 'Site labs', 'icon' => 'fa-solid fa-flask', 'description' => 'Experiencias, prototipos e ambientes de teste publicos.'],
+            'store' => ['label' => 'Lojas', 'icon' => 'fa-solid fa-store', 'description' => 'Lojas e canais comerciais do grupo.'],
+            'service' => ['label' => 'Servicos', 'icon' => 'fa-solid fa-briefcase', 'description' => 'Sites de servicos e ferramentas externas.'],
+            'presentation' => ['label' => 'Capa / apresentacao', 'icon' => 'fa-solid fa-display', 'description' => 'Sites institucionais, capas e apresentacoes.'],
         ])->map(function (array $meta, string $key) use ($sites) {
-            $items = $sites->filter(fn ($site) => ($site->site_kind ?? 'store') === $key)->values();
+            $items = $sites->where('site_type', $key)->values();
 
             return array_merge($meta, [
                 'key' => $key,
                 'count' => $items->count(),
-                'active' => $items->where('active', true)->count(),
+                'active' => $items->where('status', 'active')->count(),
                 'sites' => $items,
             ]);
         });
@@ -54,11 +97,42 @@ class lsgController extends Controller
         return $this->view('areas/lsg/index', [
             'sites' => $sites,
             'groups' => $groups,
-            'pageSpeedMetrics' => $pageSpeed->todayMetricsForStores($sites),
+            'pageSpeedMetrics' => $pageSpeed->todayMetricsForSites($sites),
             'pageSpeedMetricsByStrategy' => [
-                'mobile' => $pageSpeed->todayMetricsForStores($sites, 'mobile'),
-                'desktop' => $pageSpeed->todayMetricsForStores($sites, 'desktop'),
+                'mobile' => $pageSpeed->todayMetricsForSites($sites, 'mobile'),
+                'desktop' => $pageSpeed->todayMetricsForSites($sites, 'desktop'),
             ],
+        ]);
+    }
+
+    private function prepareLsgPage(string $title, bool $withBackAction = true): void
+    {
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'url' => route('dashboard.index'), 'translate' => false],
+            ['label' => 'LSG', 'url' => $withBackAction ? route('lsg.index') : null, 'translate' => false],
+        ];
+
+        if ($withBackAction) {
+            $breadcrumbs[] = ['label' => $title, 'url' => null, 'translate' => false];
+        }
+
+        $this->setPageTitle($title);
+        $this->setBreadcrumbs($breadcrumbs);
+        $this->setActions([]);
+
+        if (!$withBackAction) {
+            return;
+        }
+
+        $this->addAction([
+            'key' => 'back_lsg',
+            'label' => 'LSG',
+            'name' => 'LSG',
+            'icon' => 'fa-solid fa-angle-left',
+            'route' => 'lsg.index',
+            'url' => route('lsg.index'),
+            'type' => 'link',
+            'class' => 'lsg-action-btn lsg-action-btn--back',
         ]);
     }
 
@@ -117,26 +191,29 @@ class lsgController extends Controller
             }
         }
 
-        $settings = json_decode((string) ($site->settings ?? ''), true);
+        $settings = is_array($site->settings ?? null)
+            ? $site->settings
+            : json_decode((string) ($site->settings ?? ''), true);
+
         if (is_array($settings)) {
             foreach (['project_id', 'id_project'] as $key) {
-                if (!empty($settings[$key]) && $projectsById->has((int) $settings[$key])) {
+                if (!empty($settings[$key]) && is_scalar($settings[$key]) && $projectsById->has((int) $settings[$key])) {
                     return $projectsById->get((int) $settings[$key]);
                 }
             }
         }
 
         foreach ([$site->domain ?? null, $site->code ?? null, $site->name ?? null] as $value) {
-            if (!$value) {
+            if (!is_scalar($value) || !$value) {
                 continue;
             }
 
-            $domainKey = $this->normaliseDomainKey($value);
+            $domainKey = $this->normaliseDomainKey((string) $value);
             if (isset($projectsByKey[$domainKey])) {
                 return $projectsByKey[$domainKey];
             }
 
-            $projectKey = $this->normaliseProjectKey($value);
+            $projectKey = $this->normaliseProjectKey((string) $value);
             if (isset($projectsByKey[$projectKey])) {
                 return $projectsByKey[$projectKey];
             }

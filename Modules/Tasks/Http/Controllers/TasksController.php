@@ -126,10 +126,10 @@ class TasksController extends Controller
         ]));
     }
 
-    public function dashboard(?int $year = null, ?int $month = null)
+    public function dashboard(Request $request, ?int $year = null, ?int $month = null)
     {
-        $year = $year ?: now()->year;
-        $month = $month ?: now()->month;
+        $year = (int) ($request->query('year') ?: $year ?: now()->year);
+        $month = (int) ($request->query('month') ?: $month ?: now()->month);
         TaskRewardLevel::bootstrapDefaults();
         $this->buildActions($year, $month);
 

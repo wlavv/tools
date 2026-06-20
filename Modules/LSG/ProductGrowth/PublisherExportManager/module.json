@@ -1,0 +1,9 @@
+{
+  "name": "Publisher Export Manager",
+  "slug": "publisher-export-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Publishing and export readiness for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\PublisherExportManager\\Providers\\PublisherExportManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

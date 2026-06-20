@@ -377,4 +377,31 @@ return [
             ],
         ],
     ],
+    'logistics' => [
+        'title' => 'Logistics',
+        'subtitle' => 'Roadmap de ferramentas para expedicao, transportadores, embalagem, restricoes e dados logisticos.',
+        'icon' => 'fa-solid fa-truck-fast',
+        'topics' => [
+            [
+                'title' => 'Dados logisticos',
+                'items' => [
+                    'Gestao de pesos e medidas por produto e embalagem.',
+                    'Classes de envio por familia de produto.',
+                    'Exclusoes de transportadores por produto, pais ou restricao.',
+                    'Regras de embalamento e manuseamento especial.',
+                    'Validacao logistica no ciclo de criacao de anuncios.',
+                ],
+            ],
+            [
+                'title' => 'Operacao e transportes',
+                'items' => [
+                    'Matriz de transportadores por destino, peso e servico.',
+                    'Simulador de custos logisticos e margem apos transporte.',
+                    'Alertas de produtos sem dados logisticos completos.',
+                    'Templates de embalagem por canal ou marketplace.',
+                    'KPIs de expedicao, atrasos, recusas e incidencias.',
+                ],
+            ],
+        ],
+    ],
 ];

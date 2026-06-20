@@ -1,0 +1,9 @@
+{
+  "name": "AI Ads Manager",
+  "slug": "ai-ads-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "AI ads variants and campaign readiness for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\AiAdsManager\\Providers\\AiAdsManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}

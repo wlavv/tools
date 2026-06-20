@@ -14,7 +14,6 @@ class DashboardController extends BaseCatalogController
     {
         try {
             $stats = [
-                'products' => CatalogTable::count('catalog_core_products'),
                 'manufacturers' => CatalogTable::count('catalog_core_manufacturers'),
                 'suppliers' => CatalogTable::count('catalog_core_suppliers'),
                 'stores' => CatalogTable::count('catalog_stores', function ($query) {
@@ -34,19 +33,10 @@ class DashboardController extends BaseCatalogController
             $issuePanels = $issuePanelManager->resolve();
             $actionPanels = $actionPanelManager->resolve();
 
-            $latestProducts = CatalogTable::exists('catalog_core_products')
-                ? DB::table('catalog_core_products')
-                    ->select('id', 'name', 'reference', 'status', 'created_at')
-                    ->orderByDesc('id')
-                    ->limit(8)
-                    ->get()
-                : collect();
-
             return view('catalogmanager::dashboard.index', compact(
                 'stats',
                 'issuePanels',
-                'actionPanels',
-                'latestProducts'
+                'actionPanels'
             ));
         } catch (\Throwable $e) {
             CatalogLogger::exception($e, ['controller' => __CLASS__, 'method' => __METHOD__]);

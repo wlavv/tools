@@ -1,0 +1,9 @@
+{
+  "name": "Product Buzz Manager",
+  "slug": "product-buzz-manager",
+  "enabled": true,
+  "version": "0.1.0",
+  "description": "Launch buzz and activation planning for Product Growth.",
+  "provider": "Modules\\LSG\\ProductGrowth\\ProductBuzzManager\\Providers\\ProductBuzzManagerServiceProvider",
+  "dependencies": {"composer": [], "npm": [], "internal_modules": ["product-core"]}
+}
