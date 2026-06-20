@@ -188,6 +188,17 @@ return [
         'external' => false,
         'requires_confirmation' => false,
     ],
+    'asset_loading_diagnostics' => [
+        'section' => 'assets',
+        'label' => 'Asset Loading Diagnostics',
+        'description' => 'Verifica manifest Vite, public/hot e ficheiros CSS/JS esperados pelo layout.',
+        'icon' => 'fa-solid fa-file-code',
+        'type' => 'custom',
+        'handler' => 'asset_loading_diagnostics',
+        'risk' => 'safe',
+        'external' => false,
+        'requires_confirmation' => false,
+    ],
     'composer_dump_autoload' => [
         'section' => 'diagnostics',
         'label' => 'Composer Dump Autoload',

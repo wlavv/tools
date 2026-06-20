@@ -99,6 +99,7 @@ class MaintenanceActionService
             'npm_build' => $this->npmBuild(),
             'npm_install' => $this->npmInstall(),
             'npm_diagnostics' => $this->npmDiagnostics(),
+            'asset_loading_diagnostics' => $this->assetLoadingDiagnostics(),
             'git_restore_system_tools_config' => $this->gitRestoreSystemToolsConfig(),
             default => throw new RuntimeException('Invalid custom handler.'),
         };
@@ -200,6 +201,69 @@ class MaintenanceActionService
         }
 
         return implode(PHP_EOL, $lines);
+    }
+
+    protected function assetLoadingDiagnostics(): string
+    {
+        $lines = [
+            'APP_URL: ' . (string) config('app.url'),
+            'ASSET_URL: ' . (string) config('app.asset_url'),
+            'public_path: ' . public_path(),
+            'public/hot: ' . (is_file(public_path('hot')) ? '[PRESENT - remove it in production]' : '[missing OK]'),
+            '',
+            'Vite manifest:',
+        ];
+
+        $manifestPath = public_path('build/manifest.json');
+
+        if (!is_file($manifestPath)) {
+            $lines[] = '- [missing] public/build/manifest.json';
+        } else {
+            $lines[] = '- [OK] public/build/manifest.json (' . filesize($manifestPath) . ' bytes)';
+
+            $manifest = json_decode((string) file_get_contents($manifestPath), true);
+            if (!is_array($manifest)) {
+                $lines[] = '- [FAIL] manifest is not valid JSON';
+            } else {
+                foreach (['resources/sass/app.scss', 'resources/js/app.js'] as $entry) {
+                    $file = $manifest[$entry]['file'] ?? null;
+                    $lines[] = $this->assetDiagnosticLine($entry, $file ? 'build/' . $file : null);
+                }
+            }
+        }
+
+        $lines[] = '';
+        $lines[] = 'Legacy layout assets:';
+
+        foreach ([
+            'admin/css/app.css',
+            'admin/css/sweetalert2.min.css',
+            'admin/css/dropzone.min.css',
+            'admin/js/sweetalert2.min.js',
+            'admin/js/dropzone.min.js',
+            'assets/css/lsg-select2.css',
+            'assets/js/lsg-select2.js',
+        ] as $asset) {
+            $lines[] = $this->assetDiagnosticLine($asset, $asset);
+        }
+
+        return implode(PHP_EOL, $lines);
+    }
+
+    protected function assetDiagnosticLine(string $label, ?string $relativePath): string
+    {
+        if (!$relativePath) {
+            return '- [missing manifest entry] ' . $label;
+        }
+
+        $fullPath = public_path(str_replace('/', DIRECTORY_SEPARATOR, $relativePath));
+        $url = asset($relativePath);
+
+        if (!is_file($fullPath)) {
+            return '- [missing] ' . $label . ' => ' . $relativePath . ' | ' . $url;
+        }
+
+        return '- [OK] ' . $label . ' => ' . $relativePath . ' (' . filesize($fullPath) . ' bytes) | ' . $url;
     }
 
     protected function npmCommand(): ?array
