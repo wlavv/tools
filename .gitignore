@@ -20,5 +20,7 @@ yarn-error.log
 /.vscode
 /scripts
 /venv
+/testing/
+/tmp/
 #/Modules
 /Modules/_sandbox/

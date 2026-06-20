@@ -7,6 +7,8 @@
 @if(session('error'))<div class="wc-alert wc-alert-warning">{{ session('error') }}</div>@endif
 
 @php($summary = $item->summary ?? [])
+@php($topMatches = collect(data_get($item->metadata, 'top_matches', [])))
+@php($expectedRank = $item->expected_product_id ? ($topMatches->firstWhere('product_id', $item->expected_product_id)['rank'] ?? null) : null)
 
 <div class="wc-detail-hero wc-detail-hero-resource">
     <div>
@@ -18,6 +20,7 @@
             <span class="wc-badge">{{ $item->store->name ?? $item->session?->store?->name ?? 'No store' }}</span>
             <span class="wc-badge">{{ $item->created_at?->format('Y-m-d H:i') }}</span>
             @if($item->scenario_label)<span class="wc-badge">{{ $item->scenario_label }}</span>@endif
+            @if($item->expected_product_id)<span class="wc-badge">Expected #{{ $item->expected_product_id }}</span>@endif
         </div>
     </div>
     <div class="wc-detail-icon"><i class="fa-solid fa-flask-vial"></i></div>
@@ -30,13 +33,37 @@
     <div class="wc-kpi-card wc-kpi-card-resource"><div class="wc-kpi-content"><h3>Best confidence</h3><div class="wc-kpi">{{ $summary['highest_confidence_flow'] ?? '-' }}</div><div class="wc-muted">OpenCV normalization</div></div><i class="fa-solid fa-crosshairs wc-kpi-bg-icon"></i></div>
 </div>
 
+@if($item->expected_product_id)
+    <div class="wc-card wc-spaced-card">
+        <div class="wc-section-head">
+            <div>
+                <h3>Ground truth result</h3>
+                <p class="wc-muted">Current WebCatalogue ranking for the expected product at benchmark time.</p>
+            </div>
+        </div>
+        <div class="wc-rich-meta">
+            <span class="wc-rich-metric"><i class="fa-solid fa-bullseye"></i>Expected product #{{ $item->expected_product_id }}</span>
+            <span class="wc-rich-metric"><i class="fa-solid fa-ranking-star"></i>Rank {{ $expectedRank ?: 'missed top 5' }}</span>
+            <span class="wc-rich-metric"><i class="fa-solid fa-circle-check"></i>Top 1 {{ (int) $expectedRank === 1 ? 'yes' : 'no' }}</span>
+            <span class="wc-rich-metric"><i class="fa-solid fa-list-ol"></i>Top 3 {{ $expectedRank && (int) $expectedRank <= 3 ? 'yes' : 'no' }}</span>
+        </div>
+    </div>
+@else
+    <div class="wc-alert wc-alert-warning wc-spaced-card">
+        This benchmark has no ground truth. Save the real product in the session before running the benchmark to calculate accuracy.
+    </div>
+@endif
+
 <div class="wc-card wc-spaced-card">
     <div class="wc-section-head">
         <div>
             <h3>Flow comparison</h3>
             <p class="wc-muted">Legacy VPS, Rise-S base and Rise-S incremental are stored as separate rows.</p>
         </div>
-        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.export_csv') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+        <div class="wc-actions-row">
+            <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.export_csv') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.calls_csv') }}"><i class="fa-solid fa-network-wired"></i> Calls CSV</a>
+        </div>
     </div>
 
     <div class="wc-table-wrap">
@@ -66,6 +93,103 @@
                         <td>{{ $result->identifier_count ?? '-' }}</td>
                     </tr>
                 @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="wc-card wc-spaced-card">
+    <div class="wc-section-head">
+        <div>
+            <h3>Service calls</h3>
+            <p class="wc-muted">HTTP timings per endpoint, flow and server response.</p>
+        </div>
+    </div>
+
+    <div class="wc-table-wrap">
+        <table class="wc-table">
+            <thead>
+                <tr>
+                    <th>Flow</th>
+                    <th>Endpoint</th>
+                    <th>Status</th>
+                    <th>HTTP</th>
+                    <th>Client ms</th>
+                    <th>Server ms</th>
+                    <th>Gateway ms</th>
+                    <th>Req KB</th>
+                    <th>Resp KB</th>
+                    <th>Served by</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($item->results as $result)
+                    @foreach($result->calls as $call)
+                        @php($headers = $call->headers ?? [])
+                        <tr>
+                            <td>{{ $call->flow_key }}</td>
+                            <td>{{ $call->endpoint_key }}</td>
+                            <td><span class="wc-badge wc-status-{{ $call->status }}">{{ str_replace('_', ' ', $call->status) }}</span></td>
+                            <td>{{ $call->http_status ?? '-' }}</td>
+                            <td>{{ $call->client_time_ms ?? '-' }}</td>
+                            <td>{{ $call->server_time_ms ?? '-' }}</td>
+                            <td>{{ $call->gateway_time_ms ?? '-' }}</td>
+                            <td>{{ $call->request_bytes ? round($call->request_bytes / 1024, 1) : '-' }}</td>
+                            <td>{{ $call->response_bytes ? round($call->response_bytes / 1024, 1) : '-' }}</td>
+                            <td>{{ $headers['x-served-by'] ?? $headers['server'] ?? '-' }}</td>
+                        </tr>
+                    @endforeach
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="wc-card wc-spaced-card">
+    <div class="wc-section-head">
+        <div>
+            <h3>Endpoint comparison</h3>
+            <p class="wc-muted">Side-by-side latency matrix for legacy, Rise-S base and incremental flows.</p>
+        </div>
+    </div>
+
+    <div class="wc-table-wrap">
+        <table class="wc-table">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    @foreach($callComparison['flows'] as $flow)
+                        <th>{{ $flow }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($callComparison['rows'] as $row)
+                    <tr>
+                        <td><strong>{{ $row['endpoint'] }}</strong></td>
+                        @foreach($callComparison['flows'] as $flow)
+                            @php($cell = $row['flows'][$flow] ?? null)
+                            <td>
+                                @if($cell)
+                                    <div><strong>{{ $cell['client_time_ms'] ?? '-' }} ms</strong> <span class="wc-badge wc-status-{{ $cell['status'] }}">{{ $cell['http_status'] ?? '-' }}</span></div>
+                                    <div class="wc-muted">
+                                        server {{ $cell['server_time_ms'] ?? '-' }} ms
+                                        @if($cell['gateway_time_ms'] !== null) - gateway {{ $cell['gateway_time_ms'] }} ms @endif
+                                    </div>
+                                    <div class="wc-muted">req {{ $cell['request_kb'] ?? '-' }} KB - resp {{ $cell['response_kb'] ?? '-' }} KB</div>
+                                @else
+                                    <span class="wc-muted">-</span>
+                                @endif
+                            </td>
+                        @endforeach
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="{{ 1 + count($callComparison['flows']) }}">
+                            <div class="wc-list-empty"><i class="fa-solid fa-network-wired"></i><div><strong>No service call metrics yet.</strong><br><span>Run a new benchmark after the calls table migration.</span></div></div>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

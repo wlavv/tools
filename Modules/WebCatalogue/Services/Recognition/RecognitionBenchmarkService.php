@@ -5,6 +5,7 @@ namespace Modules\WebCatalogue\Services\Recognition;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\WebCatalogue\Models\RecognitionBenchmarkCall;
 use Modules\WebCatalogue\Models\RecognitionBenchmarkResult;
 use Modules\WebCatalogue\Models\RecognitionBenchmarkRun;
 use Modules\WebCatalogue\Models\VisualRecognitionCapture;
@@ -116,16 +117,16 @@ class RecognitionBenchmarkService
         }
 
         try {
-            $quality = $this->postImage($baseUrl . '/recognition/quality', $capture, $token, [], $timeout);
-            $normalize = $this->postImage($baseUrl . '/recognition/normalize', $capture, $token, [
+            $quality = $this->postImage($result, $capture, 'quality', $baseUrl . '/recognition/quality', $token, [], $timeout);
+            $normalize = $this->postImage($result, $capture, 'normalize', $baseUrl . '/recognition/normalize', $token, [
                 'mode' => (string) config('webcatalogue.recognition.opencv.normalize_mode', 'mtg_card'),
                 'debug' => '1',
             ], $timeout);
-            $markers = $this->postImage($baseUrl . '/recognition/markers', $capture, $token, [
+            $markers = $this->postImage($result, $capture, 'markers', $baseUrl . '/recognition/markers', $token, [
                 'max_markers' => (string) config('webcatalogue.recognition.visual_markers.max_markers', 250),
                 'preprocess' => (string) config('webcatalogue.recognition.visual_markers.preprocess', 'clahe'),
             ], $timeout);
-            $identifiers = $this->postImage($baseUrl . '/recognition/identifiers', $capture, $token, [], $timeout);
+            $identifiers = $this->postImage($result, $capture, 'identifiers', $baseUrl . '/recognition/identifiers', $token, [], $timeout);
 
             $normalizedPath = $this->storeBenchmarkImage($run, $flowKey, 'normalized', $normalize['json']['normalized_image_base64'] ?? null);
             $debugPath = $this->storeBenchmarkImage($run, $flowKey, 'debug', $normalize['json']['debug_image_base64'] ?? null);
@@ -191,28 +192,185 @@ class RecognitionBenchmarkService
         return $result->refresh();
     }
 
-    protected function postImage(string $url, VisualRecognitionCapture $capture, string $token, array $fields, int $timeout): array
+    protected function postImage(
+        RecognitionBenchmarkResult $result,
+        VisualRecognitionCapture $capture,
+        string $endpointKey,
+        string $url,
+        string $token,
+        array $fields,
+        int $timeout
+    ): array
     {
         $startedAt = microtime(true);
         $path = Storage::disk('public')->path($capture->file_path);
+        $requestBytes = Storage::disk('public')->size($capture->file_path);
+        $started = now();
         $request = Http::timeout($timeout)->acceptJson();
 
         if ($token !== '') {
             $request = $request->withToken($token);
         }
 
-        $response = $request
-            ->attach('image', fopen($path, 'rb'), basename($path))
-            ->post($url, $fields);
+        $handle = fopen($path, 'rb');
 
-        $json = $response->json();
+        try {
+            $response = $request
+                ->attach('image', $handle, basename($path))
+                ->post($url, $fields);
 
-        return [
-            'ok' => $response->ok() && is_array($json) && !empty($json['ok']),
-            'status' => $response->status(),
-            'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
-            'json' => is_array($json) ? $json : ['raw' => $response->body()],
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
+            $json = $response->json();
+            $json = is_array($json) ? $json : ['raw' => $response->body()];
+            $ok = $response->ok() && !empty($json['ok']);
+
+            $this->storeCall($result, $capture, [
+                'endpoint_key' => $endpointKey,
+                'url' => $url,
+                'status' => $ok ? 'completed' : 'completed_with_errors',
+                'ok' => $ok,
+                'http_status' => $response->status(),
+                'request_bytes' => $requestBytes,
+                'response_bytes' => strlen((string) $response->body()),
+                'client_time_ms' => $durationMs,
+                'server_time_ms' => $this->serverTimeMs($json, $response->headers()),
+                'gateway_time_ms' => $this->gatewayTimeMs($response->headers()),
+                'started_at' => $started,
+                'completed_at' => now(),
+                'headers' => $this->benchmarkHeaders($response->headers()),
+                'metadata' => [
+                    'fields' => $fields,
+                    'service' => $json['service'] ?? null,
+                    'version' => $json['version'] ?? null,
+                    'provider' => $json['provider'] ?? null,
+                    'mode' => $json['mode'] ?? null,
+                    'profile' => $json['profile'] ?? null,
+                ],
+            ]);
+
+            return [
+                'ok' => $ok,
+                'status' => $response->status(),
+                'duration_ms' => $durationMs,
+                'json' => $json,
+            ];
+        } catch (\Throwable $exception) {
+            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
+
+            $this->storeCall($result, $capture, [
+                'endpoint_key' => $endpointKey,
+                'url' => $url,
+                'status' => 'failed',
+                'ok' => false,
+                'request_bytes' => $requestBytes,
+                'client_time_ms' => $durationMs,
+                'started_at' => $started,
+                'completed_at' => now(),
+                'metadata' => ['fields' => $fields, 'exception' => get_class($exception)],
+                'error' => $exception->getMessage(),
+            ]);
+
+            return [
+                'ok' => false,
+                'status' => null,
+                'duration_ms' => $durationMs,
+                'json' => ['ok' => false, 'error' => $exception->getMessage()],
+            ];
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+        }
+    }
+
+    protected function storeCall(RecognitionBenchmarkResult $result, VisualRecognitionCapture $capture, array $data): void
+    {
+        RecognitionBenchmarkCall::create([
+            'id_run' => $result->id_run,
+            'id_result' => $result->id,
+            'id_session' => $result->id_session,
+            'id_capture' => $capture->id,
+            'flow_key' => $result->flow_key,
+            'flow_stage' => $result->flow_stage,
+            'endpoint_key' => $data['endpoint_key'],
+            'method' => 'POST',
+            'url_path' => parse_url($data['url'], PHP_URL_PATH),
+            'status' => $data['status'],
+            'ok' => $data['ok'],
+            'http_status' => $data['http_status'] ?? null,
+            'request_bytes' => $data['request_bytes'] ?? null,
+            'response_bytes' => $data['response_bytes'] ?? null,
+            'client_time_ms' => $data['client_time_ms'] ?? null,
+            'server_time_ms' => $data['server_time_ms'] ?? null,
+            'gateway_time_ms' => $data['gateway_time_ms'] ?? null,
+            'started_at' => $data['started_at'] ?? null,
+            'completed_at' => $data['completed_at'] ?? null,
+            'headers' => $data['headers'] ?? null,
+            'metadata' => $data['metadata'] ?? null,
+            'error' => $data['error'] ?? null,
+        ]);
+    }
+
+    protected function benchmarkHeaders(array $headers): array
+    {
+        $allowed = [
+            'server',
+            'x-served-by',
+            'x-response-time',
+            'x-process-time',
+            'x-runtime',
+            'server-timing',
+            'cf-ray',
+            'cf-cache-status',
+            'content-type',
+            'content-length',
         ];
+
+        $normalized = [];
+        foreach ($headers as $name => $values) {
+            $key = strtolower((string) $name);
+            if (in_array($key, $allowed, true)) {
+                $normalized[$key] = implode(', ', (array) $values);
+            }
+        }
+
+        return $normalized;
+    }
+
+    protected function serverTimeMs(array $json, array $headers): ?int
+    {
+        foreach (['server_time_ms', 'processing_time_ms', 'duration_ms', 'elapsed_ms'] as $key) {
+            if (isset($json[$key]) && is_numeric($json[$key])) {
+                return (int) round((float) $json[$key]);
+            }
+        }
+
+        return $this->headerTimeMs($headers, ['x-process-time', 'x-runtime', 'x-response-time']);
+    }
+
+    protected function gatewayTimeMs(array $headers): ?int
+    {
+        return $this->headerTimeMs($headers, ['x-gateway-time', 'x-proxy-time']);
+    }
+
+    protected function headerTimeMs(array $headers, array $names): ?int
+    {
+        $lookup = collect($headers)->mapWithKeys(fn ($value, $key) => [strtolower((string) $key) => $value]);
+
+        foreach ($names as $name) {
+            $value = $lookup[$name][0] ?? null;
+            if ($value === null || !preg_match('/([0-9]+(?:\.[0-9]+)?)/', (string) $value, $matches)) {
+                continue;
+            }
+
+            $number = (float) $matches[1];
+
+            return str_contains((string) $value, 'ms')
+                ? (int) round($number)
+                : (int) round($number * 1000);
+        }
+
+        return null;
     }
 
     protected function storeBenchmarkImage(RecognitionBenchmarkRun $run, string $flowKey, string $kind, ?string $base64): ?string
@@ -257,7 +415,7 @@ class RecognitionBenchmarkService
 
     protected function expectedProductId(VisualRecognitionSession $session): ?int
     {
-        return (int) (data_get($session->metadata, 'ground_truth.expected_product_id') ?: $session->id_product) ?: null;
+        return (int) data_get($session->metadata, 'ground_truth.expected_product_id') ?: null;
     }
 
     protected function topMatches(VisualRecognitionSession $session): array

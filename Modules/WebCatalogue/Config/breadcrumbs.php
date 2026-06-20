@@ -263,6 +263,11 @@ return [
         'parent' => 'webcatalogue.recognition.benchmarks.index',
         'translate' => false,
     ],
+    'webcatalogue.recognition.benchmarks.calls_csv' => [
+        'label' => 'Export Benchmark Calls CSV',
+        'parent' => 'webcatalogue.recognition.benchmarks.index',
+        'translate' => false,
+    ],
     'webcatalogue.recognition.sessions.index' => [
         'label' => 'Sessions',
         'parent' => 'webcatalogue.recognition.index',

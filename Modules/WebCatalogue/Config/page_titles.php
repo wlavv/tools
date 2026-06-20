@@ -75,6 +75,7 @@ return [
     'webcatalogue.recognition.benchmarks.index' => 'Recognition Benchmarks',
     'webcatalogue.recognition.benchmarks.show' => 'Recognition Benchmark Run',
     'webcatalogue.recognition.benchmarks.export_csv' => 'Export Recognition Benchmarks CSV',
+    'webcatalogue.recognition.benchmarks.calls_csv' => 'Export Recognition Benchmark Calls CSV',
     'webcatalogue.recognition.sessions.index' => 'Recognition Sessions',
     'webcatalogue.recognition.sessions.show' => 'Recognition Session Details',
     'webcatalogue.recognition.leads.index' => 'Unmatched Product Leads',

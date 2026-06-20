@@ -20,4 +20,5 @@ class RecognitionBenchmarkRun extends Model
     public function capture(){ return $this->belongsTo(VisualRecognitionCapture::class, 'id_capture'); }
     public function store(){ return $this->belongsTo(Store::class, 'id_store'); }
     public function results(){ return $this->hasMany(RecognitionBenchmarkResult::class, 'id_run'); }
+    public function calls(){ return $this->hasMany(RecognitionBenchmarkCall::class, 'id_run'); }
 }

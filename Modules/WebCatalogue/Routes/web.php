@@ -76,6 +76,7 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
             Route::post('/pipeline/flush', [RecognitionDashboardController::class, 'flushPipeline'])->name('pipeline.flush');
             Route::get('/benchmarks', [RecognitionBenchmarkController::class, 'index'])->name('benchmarks.index');
             Route::get('/benchmarks/export.csv', [RecognitionBenchmarkController::class, 'exportCsv'])->name('benchmarks.export_csv');
+            Route::get('/benchmarks/calls.csv', [RecognitionBenchmarkController::class, 'exportCallsCsv'])->name('benchmarks.calls_csv');
             Route::get('/benchmarks/{run}', [RecognitionBenchmarkController::class, 'show'])->name('benchmarks.show');
             Route::get('/sessions', [RecognitionSessionController::class, 'index'])->name('sessions.index');
             Route::get('/sessions/{session}', [RecognitionSessionController::class, 'show'])->name('sessions.show');

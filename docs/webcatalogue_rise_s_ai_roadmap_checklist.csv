@@ -27,6 +27,8 @@ ID;Fase;Prioridade;Tarefa;Estado;Responsavel;Dependencias;Validacao;Notas
 4.0b;Benchmark academico;Alta;Criar execucao manual por sessao no BO;Feito;;Sessao com captura;Botao Run benchmark disponivel;Cada scan pode ser testado nos 3 ambientes
 4.0c;Benchmark academico;Media;Criar pagina de analise e detalhe benchmark;Feito;;Runs gravados;Lista/detalhe visiveis;Inclui metricas agregadas por fluxo e imagens normalizadas/debug
 4.0d;Benchmark academico;Media;Exportar CSV academico;Feito;;Runs gravados;CSV descarregado;Base para graficos de 20 sessoes e relatorio academico
+4.0e;Benchmark academico;Alta;Guardar tempos por chamada de servico;Feito;;Benchmark run;Tabela wc_recognition_benchmark_calls criada;Regista endpoint, HTTP status, client_time_ms, server_time_ms, gateway_time_ms, bytes, headers e erro
+4.0f;Benchmark academico;Media;Exportar CSV de chamadas HTTP;Feito;;Chamadas gravadas;Calls CSV disponivel;Permite graficos por endpoint quality/normalize/markers/identifiers
 4.1;Benchmark pos-migracao;Alta;Selecionar dataset de benchmark;Pendente;;Produtos/cartas reais;Dataset fechado;Incluir fotos boas, mas e ambiguas
 4.2;Benchmark pos-migracao;Alta;Executar benchmark na VPS antiga se ainda ativa;Pendente;;Dataset pronto;Resultados base guardados;Top-1, top-3, falso positivo, latencia
 4.3;Benchmark pos-migracao;Alta;Executar benchmark no Rise-S;Pendente;;Cutover testado;Resultados Rise-S guardados;Comparar com baseline

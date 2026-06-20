@@ -14,6 +14,7 @@
     </div>
     <div class="wc-hero-actions">
         <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.export_csv') }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.calls_csv') }}"><i class="fa-solid fa-network-wired"></i> Calls CSV</a>
         <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.sessions.index') }}"><i class="fa-solid fa-camera"></i> Sessions</a>
     </div>
 </div>
