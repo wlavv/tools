@@ -131,7 +131,10 @@ class RecognitionBenchmarkService
             $normalizedPath = $this->storeBenchmarkImage($run, $flowKey, 'normalized', $normalize['json']['normalized_image_base64'] ?? null);
             $debugPath = $this->storeBenchmarkImage($run, $flowKey, 'debug', $normalize['json']['debug_image_base64'] ?? null);
 
-            $ok = $quality['ok'] && $normalize['ok'] && $markers['ok'] && $identifiers['ok'];
+            $requiredResponses = collect([$quality, $normalize, $markers, $identifiers])
+                ->reject(fn ($response) => $response['unsupported'] ?? false);
+            $ok = $requiredResponses->isNotEmpty()
+                && $requiredResponses->every(fn ($response) => !empty($response['ok']));
             $payload = [
                 'quality' => $this->withoutImagePayload($quality['json']),
                 'normalize' => $this->withoutImagePayload($normalize['json']),
@@ -165,11 +168,18 @@ class RecognitionBenchmarkService
                 'debug_path' => $debugPath,
                 'metrics' => [
                     'quality_ok' => $quality['ok'],
+                    'quality_unsupported' => $quality['unsupported'] ?? false,
                     'normalize_ok' => $normalize['ok'],
+                    'normalize_unsupported' => $normalize['unsupported'] ?? false,
                     'markers_ok' => $markers['ok'],
+                    'markers_unsupported' => $markers['unsupported'] ?? false,
                     'identifiers_ok' => $identifiers['ok'],
+                    'identifiers_unsupported' => $identifiers['unsupported'] ?? false,
                     'normalize_used_perspective' => $normalize['json']['used_perspective'] ?? null,
                     'normalize_profile' => $normalize['json']['profile'] ?? null,
+                    'framing_crop_applied' => $normalize['json']['framing_crop_applied'] ?? null,
+                    'framing_area_ratio' => $normalize['json']['framing_area_ratio'] ?? null,
+                    'framing_margins' => $normalize['json']['framing_margins'] ?? null,
                     'source_width' => $normalize['json']['source_width'] ?? $quality['json']['source_width'] ?? null,
                     'source_height' => $normalize['json']['source_height'] ?? $quality['json']['source_height'] ?? null,
                     'normalized_width' => $normalize['json']['normalized_width'] ?? null,
@@ -222,12 +232,13 @@ class RecognitionBenchmarkService
             $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
             $json = $response->json();
             $json = is_array($json) ? $json : ['raw' => $response->body()];
+            $unsupported = $response->status() === 404;
             $ok = $response->ok() && !empty($json['ok']);
 
             $this->storeCall($result, $capture, [
                 'endpoint_key' => $endpointKey,
                 'url' => $url,
-                'status' => $ok ? 'completed' : 'completed_with_errors',
+                'status' => $unsupported ? 'unsupported' : ($ok ? 'completed' : 'completed_with_errors'),
                 'ok' => $ok,
                 'http_status' => $response->status(),
                 'request_bytes' => $requestBytes,
@@ -250,6 +261,7 @@ class RecognitionBenchmarkService
 
             return [
                 'ok' => $ok,
+                'unsupported' => $unsupported,
                 'status' => $response->status(),
                 'duration_ms' => $durationMs,
                 'json' => $json,
@@ -272,6 +284,7 @@ class RecognitionBenchmarkService
 
             return [
                 'ok' => false,
+                'unsupported' => false,
                 'status' => null,
                 'duration_ms' => $durationMs,
                 'json' => ['ok' => false, 'error' => $exception->getMessage()],
@@ -318,6 +331,7 @@ class RecognitionBenchmarkService
             'x-served-by',
             'x-response-time',
             'x-process-time',
+            'x-service-version',
             'x-runtime',
             'server-timing',
             'cf-ray',

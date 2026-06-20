@@ -241,7 +241,18 @@
                 <span><strong>Markers</strong>{{ $result->markers_time_ms ?? '-' }} ms</span>
                 <span><strong>Identifiers</strong>{{ $result->identifiers_time_ms ?? '-' }} ms</span>
                 <span><strong>Profile</strong>{{ $metrics['normalize_profile'] ?? '-' }}</span>
+                <span><strong>Frame crop</strong>{{ array_key_exists('framing_crop_applied', $metrics) ? ($metrics['framing_crop_applied'] ? 'yes' : 'no') : '-' }}</span>
+                <span><strong>Frame area</strong>{{ isset($metrics['framing_area_ratio']) ? round((float) $metrics['framing_area_ratio'], 4) : '-' }}</span>
             </div>
+            @if(!empty($metrics['framing_margins']) && is_array($metrics['framing_margins']))
+                <p class="wc-capture-meta">
+                    Margins:
+                    L {{ round((float) ($metrics['framing_margins']['left'] ?? 0), 4) }},
+                    R {{ round((float) ($metrics['framing_margins']['right'] ?? 0), 4) }},
+                    T {{ round((float) ($metrics['framing_margins']['top'] ?? 0), 4) }},
+                    B {{ round((float) ($metrics['framing_margins']['bottom'] ?? 0), 4) }}
+                </p>
+            @endif
         </div>
     @endforeach
 </div>

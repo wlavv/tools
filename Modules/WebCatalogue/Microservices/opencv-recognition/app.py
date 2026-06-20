@@ -1,10 +1,11 @@
 import base64
 import os
+import time
 from typing import Optional
 
 import cv2
 import numpy as np
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
 
@@ -12,6 +13,15 @@ APP_TOKEN = os.getenv("WEBCATALOGUE_OPENCV_TOKEN", "")
 MAX_IMAGE_BYTES = int(os.getenv("WEBCATALOGUE_OPENCV_MAX_IMAGE_BYTES", "12000000"))
 
 app = FastAPI(title="WebCatalogue OpenCV Recognition", version="0.1.0")
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    started_at = time.perf_counter()
+    response = await call_next(request)
+    response.headers["X-Process-Time"] = f"{time.perf_counter() - started_at:.6f}"
+    response.headers["X-Service-Version"] = app.version
+    return response
 
 
 class MarkerPayload(BaseModel):
@@ -59,6 +69,7 @@ async def normalize(
     debug: str = Form("1"),
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     content = await image.read()
@@ -75,6 +86,8 @@ async def normalize(
 
     response = {
         "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
         "mode": mode,
         "normalized_image_base64": encode_jpeg(normalized),
         "confidence": result.get("confidence", 0.0),
@@ -90,6 +103,8 @@ async def normalize(
     if debug_image is not None:
         response["debug_image_base64"] = encode_jpeg(debug_image)
 
+    response["server_time_ms"] = elapsed_ms(started_at)
+
     return response
 
 
@@ -98,6 +113,7 @@ async def quality(
     image: UploadFile = File(...),
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     content = await image.read()
@@ -108,7 +124,12 @@ async def quality(
     if source is None:
         raise HTTPException(status_code=422, detail="Could not decode image")
 
-    return image_quality(source)
+    response = image_quality(source)
+    response["service"] = "webcatalogue-opencv-recognition"
+    response["version"] = app.version
+    response["server_time_ms"] = elapsed_ms(started_at)
+
+    return response
 
 
 @app.post("/recognition/markers")
@@ -118,6 +139,7 @@ async def markers(
     preprocess: str = Form("clahe"),
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     content = await image.read()
@@ -131,7 +153,10 @@ async def markers(
     marker_set = extract_orb_markers(source, max_markers=max_markers, preprocess=preprocess)
     return {
         "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
         "algorithm": "orb_v1",
+        "server_time_ms": elapsed_ms(started_at),
         "descriptor_type": "ORB",
         "preprocess": marker_set.get("preprocess", normalize_marker_preprocess(preprocess)),
         "width": int(source.shape[1]),
@@ -145,6 +170,7 @@ async def identifiers(
     image: UploadFile = File(...),
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     content = await image.read()
@@ -158,7 +184,10 @@ async def identifiers(
     detected = extract_identifiers(source)
     return {
         "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
         "provider": "opencv",
+        "server_time_ms": elapsed_ms(started_at),
         "width": int(source.shape[1]),
         "height": int(source.shape[0]),
         "identifiers": detected,
@@ -170,10 +199,17 @@ async def compare_markers(
     payload: CompareMarkersPayload,
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     result = compare_orb_marker_sets(payload.query.descriptors, payload.reference.descriptors)
-    return {"ok": True, **result}
+    return {
+        "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
+        "server_time_ms": elapsed_ms(started_at),
+        **result,
+    }
 
 
 @app.post("/recognition/compare-markers-batch")
@@ -181,6 +217,7 @@ async def compare_markers_batch(
     payload: CompareMarkersBatchPayload,
     authorization: Optional[str] = Header(default=None),
 ):
+    started_at = time.perf_counter()
     require_token(authorization)
 
     results = []
@@ -188,7 +225,18 @@ async def compare_markers_batch(
         result = compare_orb_marker_sets(payload.query.descriptors, reference.descriptors)
         results.append({"id": reference.id, **result})
 
-    return {"ok": True, "count": len(results), "results": results}
+    return {
+        "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
+        "server_time_ms": elapsed_ms(started_at),
+        "count": len(results),
+        "results": results,
+    }
+
+
+def elapsed_ms(started_at: float) -> int:
+    return int(round((time.perf_counter() - started_at) * 1000))
 
 
 def require_token(authorization: Optional[str]) -> None:
@@ -366,6 +414,7 @@ def normalize_mtg_card(image):
     points[:, 0] *= ratio_x
     points[:, 1] *= ratio_y
     normalized = four_point_transform_to_size(image, points, 672, 936)
+    normalized, framing = tighten_mtg_card_frame(normalized)
 
     return {
         "ok": True,
@@ -375,6 +424,7 @@ def normalize_mtg_card(image):
         "profile": "mtg_card",
         "card_aspect": round(float(best["aspect"]), 4),
         "approx_points": int(best["approx_points"]),
+        **framing,
     }
 
 
@@ -425,6 +475,90 @@ def normalize_card_ratio(image):
     target_height = 900
     target_width = int(target_height / 1.395)
     return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_AREA)
+
+
+def tighten_mtg_card_frame(image):
+    height, width = image.shape[:2]
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    dark_mask = (gray < 95).astype(np.uint8) * 255
+    low_saturation_bright = ((hsv[:, :, 1] < 55) & (hsv[:, :, 2] > 170)).astype(np.uint8) * 255
+    dark_mask = cv2.bitwise_and(dark_mask, cv2.bitwise_not(low_saturation_bright))
+    kernel = np.ones((5, 5), np.uint8)
+    dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+    dark_mask = cv2.dilate(dark_mask, kernel, iterations=1)
+
+    contours, _ = cv2.findContours(dark_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    image_area = float(max(1, width * height))
+    candidates = []
+
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        area_ratio = (w * h) / image_area
+        aspect = h / max(1.0, float(w))
+
+        if area_ratio < 0.42 or area_ratio > 0.98:
+            continue
+
+        if aspect < 1.18 or aspect > 1.72:
+            continue
+
+        margin_left = x / max(1.0, width)
+        margin_right = (width - (x + w)) / max(1.0, width)
+        margin_top = y / max(1.0, height)
+        margin_bottom = (height - (y + h)) / max(1.0, height)
+        margin_total = margin_left + margin_right + margin_top + margin_bottom
+        border_score = min(1.0, area_ratio) + min(0.35, margin_total)
+
+        candidates.append(
+            {
+                "score": float(border_score),
+                "box": (x, y, w, h),
+                "area_ratio": float(area_ratio),
+                "aspect": float(aspect),
+                "margins": {
+                    "left": float(margin_left),
+                    "right": float(margin_right),
+                    "top": float(margin_top),
+                    "bottom": float(margin_bottom),
+                },
+            }
+        )
+
+    if not candidates:
+        return image, {
+            "framing_crop_applied": False,
+            "framing_area_ratio": 1.0,
+            "framing_margins": {"left": 0.0, "right": 0.0, "top": 0.0, "bottom": 0.0},
+        }
+
+    best = max(candidates, key=lambda item: item["score"])
+    x, y, w, h = best["box"]
+    padding_x = max(2, int(w * 0.01))
+    padding_y = max(2, int(h * 0.01))
+    x1 = max(0, x - padding_x)
+    y1 = max(0, y - padding_y)
+    x2 = min(width, x + w + padding_x)
+    y2 = min(height, y + h + padding_y)
+
+    cropped = image[y1:y2, x1:x2]
+    if cropped.size == 0:
+        return image, {
+            "framing_crop_applied": False,
+            "framing_area_ratio": round(float(best["area_ratio"]), 4),
+            "framing_margins": rounded_margins(best["margins"]),
+        }
+
+    return cv2.resize(cropped, (672, 936), interpolation=cv2.INTER_AREA), {
+        "framing_crop_applied": True,
+        "framing_area_ratio": round(float(best["area_ratio"]), 4),
+        "framing_margins": rounded_margins(best["margins"]),
+    }
+
+
+def rounded_margins(margins):
+    return {key: round(float(value), 4) for key, value in margins.items()}
 
 
 def image_quality(image):
