@@ -1059,11 +1059,46 @@
         ensureSession(false).catch(() => {});
     }
 
+    function waitForVideoMetadata(){
+        if(video.videoWidth && video.videoHeight) return Promise.resolve();
+
+        return new Promise((resolve, reject) => {
+            const timeout = window.setTimeout(() => {
+                cleanup();
+                reject(new Error('Camera stream did not become ready.'));
+            }, 3500);
+            const cleanup = () => {
+                window.clearTimeout(timeout);
+                video.removeEventListener('loadedmetadata', onReady);
+                video.removeEventListener('canplay', onReady);
+            };
+            const onReady = () => {
+                cleanup();
+                resolve();
+            };
+            video.addEventListener('loadedmetadata', onReady, {once:true});
+            video.addEventListener('canplay', onReady, {once:true});
+        });
+    }
+
     async function startCamera(){
         if(stream) return;
         try{
-            stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+            setScanState('camera_starting', 'Opening camera...');
+            stream = await navigator.mediaDevices.getUserMedia({
+                video:{
+                    facingMode:{ideal:'environment'},
+                    width:{ideal:1280},
+                    height:{ideal:720}
+                },
+                audio:false
+            });
+            video.muted = true;
+            video.playsInline = true;
+            video.autoplay = true;
             video.srcObject = stream;
+            await waitForVideoMetadata();
+            await video.play();
             placeholder.style.display = 'none';
             captureBtn.disabled = false;
             await setupTorch();
@@ -1071,11 +1106,16 @@
             clearSuggestions();
             startObjectDetection();
             prewarmSession();
-            video.addEventListener('loadedmetadata', () => {
-                updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
-            }, {once:true});
+            updateDetectedBox(getFocusRect(video.videoWidth || 1280, video.videoHeight || 720), true);
             setScanState('object_waiting', 'Camera ready. Point at an object and hold still to scan automatically.');
-        }catch(e){ setMessage('Could not open camera: ' + e.message); }
+        }catch(e){
+            placeholder.style.display = '';
+            if(stream){
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            setMessage('Could not open camera: ' + e.message);
+        }
     }
 
     startBtn.addEventListener('click', async () => {
