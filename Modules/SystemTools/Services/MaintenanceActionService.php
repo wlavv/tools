@@ -97,6 +97,7 @@ class MaintenanceActionService
             'writable_paths' => $this->writablePaths(),
             'composer_dump_autoload' => $this->composerDumpAutoload(),
             'npm_build' => $this->npmBuild(),
+            'npm_install' => $this->npmInstall(),
             'npm_diagnostics' => $this->npmDiagnostics(),
             'git_restore_system_tools_config' => $this->gitRestoreSystemToolsConfig(),
             default => throw new RuntimeException('Invalid custom handler.'),
@@ -148,7 +149,24 @@ class MaintenanceActionService
             );
         }
 
-        return $this->runShell(array_merge($command, ['run', 'build']));
+        return $this->runShell(array_merge($command, ['run', 'build']), true, $this->npmEnvironment($command));
+    }
+
+    protected function npmInstall(): string
+    {
+        $command = $this->npmCommand();
+
+        if (!$command) {
+            throw new RuntimeException(
+                'NPM binary not found. Configure SYSTEM_TOOLS_NPM_BINARY or install Node.js/NPM on the server.'
+            );
+        }
+
+        $installCommand = is_file(base_path('package-lock.json'))
+            ? ['ci', '--include=dev']
+            : ['install'];
+
+        return $this->runShell(array_merge($command, $installCommand), true, $this->npmEnvironment($command));
     }
 
     protected function npmDiagnostics(): string
@@ -174,7 +192,7 @@ class MaintenanceActionService
             $label = implode(' ', $candidate);
 
             try {
-                $version = trim($this->runShell(array_merge($candidate, ['--version']), false));
+                $version = trim($this->runShell(array_merge($candidate, ['--version']), false, $this->npmEnvironment($candidate)));
                 $lines[] = '- [OK] ' . $label . ' => ' . $version;
             } catch (\Throwable $e) {
                 $lines[] = '- [FAIL] ' . $label . ' => ' . $e->getMessage();
@@ -217,13 +235,15 @@ class MaintenanceActionService
             return $this->uniqueCommands($candidates);
         }
 
-        $commonPaths = [
-            '/usr/local/bin/npm',
-            '/usr/bin/npm',
-            '/bin/npm',
-            '/opt/cpanel/ea-nodejs*/bin/npm',
-            '/opt/alt/alt-nodejs*/root/usr/bin/npm',
-        ];
+        $commonPaths = array_merge(
+            [
+                '/usr/local/bin/npm',
+                '/usr/bin/npm',
+                '/bin/npm',
+                '/opt/cpanel/ea-nodejs*/bin/npm',
+            ],
+            $this->descendingAltNodeNpmPaths()
+        );
 
         foreach ($commonPaths as $path) {
             foreach (glob($path) ?: [] as $candidate) {
@@ -240,6 +260,39 @@ class MaintenanceActionService
         }
 
         return $this->uniqueCommands($candidates);
+    }
+
+    protected function descendingAltNodeNpmPaths(): array
+    {
+        $paths = glob('/opt/alt/alt-nodejs*/root/usr/bin/npm') ?: [];
+
+        usort($paths, function (string $a, string $b): int {
+            return $this->nodeMajorFromPath($b) <=> $this->nodeMajorFromPath($a);
+        });
+
+        return $paths;
+    }
+
+    protected function nodeMajorFromPath(string $path): int
+    {
+        return preg_match('/alt-nodejs(\d+)/', $path, $matches) ? (int) $matches[1] : 0;
+    }
+
+    protected function npmEnvironment(array $command): array
+    {
+        $env = [
+            'NPM_CONFIG_PRODUCTION' => 'false',
+        ];
+
+        $npmPath = $command[count($command) - 1] ?? null;
+
+        if (is_string($npmPath) && $npmPath !== '') {
+            $dir = dirname($npmPath);
+            $path = getenv('PATH') ?: '';
+            $env['PATH'] = $dir . ($path !== '' ? PATH_SEPARATOR . $path : '');
+        }
+
+        return $env;
     }
 
     protected function uniqueCommands(array $commands): array
@@ -302,7 +355,7 @@ class MaintenanceActionService
         return $firstLine !== '' ? $firstLine : null;
     }
 
-    protected function runShell(array|string $command, bool $useBasePath = true): string
+    protected function runShell(array|string $command, bool $useBasePath = true, array $env = []): string
     {
         if (is_string($command)) {
             $command = $this->splitShellCommand($command);
@@ -323,7 +376,8 @@ class MaintenanceActionService
             array_map('strval', $command),
             $descriptorSpec,
             $pipes,
-            $useBasePath ? base_path() : null
+            $useBasePath ? base_path() : null,
+            $env ?: null
         );
 
         if (!is_resource($process)) {

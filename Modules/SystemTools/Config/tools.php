@@ -166,6 +166,17 @@ return [
         'external' => false,
         'requires_confirmation' => true,
     ],
+    'npm_install' => [
+        'section' => 'assets',
+        'label' => 'Install Frontend Dependencies',
+        'description' => 'Executa npm ci/install para criar node_modules antes do build.',
+        'icon' => 'fa-brands fa-node-js',
+        'type' => 'custom',
+        'handler' => 'npm_install',
+        'risk' => 'medium',
+        'external' => false,
+        'requires_confirmation' => true,
+    ],
     'npm_diagnostics' => [
         'section' => 'assets',
         'label' => 'NPM Diagnostics',
