@@ -248,6 +248,21 @@ return [
         'parent' => 'webcatalogue.recognition.pipeline.index',
         'translate' => false,
     ],
+    'webcatalogue.recognition.benchmarks.index' => [
+        'label' => 'Benchmarks',
+        'parent' => 'webcatalogue.recognition.index',
+        'translate' => false,
+    ],
+    'webcatalogue.recognition.benchmarks.show' => [
+        'label' => 'Benchmark Run',
+        'parent' => 'webcatalogue.recognition.benchmarks.index',
+        'translate' => false,
+    ],
+    'webcatalogue.recognition.benchmarks.export_csv' => [
+        'label' => 'Export Benchmarks CSV',
+        'parent' => 'webcatalogue.recognition.benchmarks.index',
+        'translate' => false,
+    ],
     'webcatalogue.recognition.sessions.index' => [
         'label' => 'Sessions',
         'parent' => 'webcatalogue.recognition.index',

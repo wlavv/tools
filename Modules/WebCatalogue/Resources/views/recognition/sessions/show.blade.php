@@ -44,6 +44,19 @@
         </div>
 
         <div class="wc-card wc-spaced-card">
+            <div class="wc-section-head">
+                <div>
+                    <h3>Academic benchmark</h3>
+                    <p class="wc-muted">Run this same scan through legacy VPS, Rise-S base and Rise-S incremental flows.</p>
+                </div>
+                <form method="POST" action="{{ route('webcatalogue.recognition.sessions.benchmark', $item) }}">
+                    @csrf
+                    <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-flask-vial"></i> Run benchmark</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="wc-card wc-spaced-card">
             <div class="wc-section-head"><div><h3>Captures</h3><p class="wc-muted">Object and label images submitted by the user.</p></div></div>
             <div class="wc-grid">
                 @forelse($item->captures as $capture)

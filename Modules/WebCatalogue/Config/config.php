@@ -195,5 +195,31 @@ return [
                 ],
             ],
         ],
+        'benchmark' => [
+            'enabled' => env('WEBCATALOGUE_RECOGNITION_BENCHMARK_ENABLED', false),
+            'auto_run' => env('WEBCATALOGUE_RECOGNITION_BENCHMARK_AUTO_RUN', false),
+            'store_images' => env('WEBCATALOGUE_RECOGNITION_BENCHMARK_STORE_IMAGES', true),
+            'timeout' => env('WEBCATALOGUE_RECOGNITION_BENCHMARK_TIMEOUT', 30),
+            'flows' => [
+                'legacy' => [
+                    'label' => 'Fluxo 1 - Legacy VPS',
+                    'base_url' => env('WEBCATALOGUE_RECOGNITION_OPENCV_LEGACY_BASE_URL'),
+                    'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_LEGACY_TOKEN', env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN')),
+                    'stage' => 'legacy',
+                ],
+                'rise_s_base' => [
+                    'label' => 'Fluxo 2 - Rise-S Base',
+                    'base_url' => env('WEBCATALOGUE_RECOGNITION_OPENCV_BASE_URL'),
+                    'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN'),
+                    'stage' => 'base',
+                ],
+                'rise_s_incremental' => [
+                    'label' => 'Fluxo 3 - Rise-S Incremental',
+                    'base_url' => env('WEBCATALOGUE_RECOGNITION_OPENCV_INCREMENTAL_BASE_URL', env('WEBCATALOGUE_RECOGNITION_OPENCV_BASE_URL')),
+                    'token' => env('WEBCATALOGUE_RECOGNITION_OPENCV_INCREMENTAL_TOKEN', env('WEBCATALOGUE_RECOGNITION_OPENCV_TOKEN')),
+                    'stage' => env('WEBCATALOGUE_RECOGNITION_INCREMENTAL_STAGE', 'opencv_base_cutover'),
+                ],
+            ],
+        ],
     ],
 ];

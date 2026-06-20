@@ -12,6 +12,7 @@ use Modules\WebCatalogue\Models\VisualRecognitionSession;
 use Modules\WebCatalogue\Services\Recognition\VisualRecognitionService;
 use Modules\WebCatalogue\Services\Recognition\InternalImageMatchService;
 use Modules\WebCatalogue\Services\Recognition\RecognitionPipelineService;
+use Modules\WebCatalogue\Services\Recognition\RecognitionBenchmarkService;
 use Throwable;
 
 class VisualRecognitionController extends Controller
@@ -199,7 +200,7 @@ class VisualRecognitionController extends Controller
         ]);
     }
 
-    public function match(Request $request, string $store_slug, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline): JsonResponse
+    public function match(Request $request, string $store_slug, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline, RecognitionBenchmarkService $benchmarks): JsonResponse
     {
         $store = Store::where('slug', $store_slug)->firstOrFail();
 
@@ -218,6 +219,8 @@ class VisualRecognitionController extends Controller
             $result = (bool) config('webcatalogue.recognition.pipeline_v2.enabled', true)
                 ? $pipeline->matchSession($session, $store)
                 : $matcher->matchSession($session, $store);
+
+            $this->autoBenchmark($session, $benchmarks);
         } catch (Throwable $exception) {
             $this->markMatchFailed($session, $exception);
 
@@ -239,7 +242,7 @@ class VisualRecognitionController extends Controller
         ]);
     }
 
-    public function globalMatch(Request $request, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline): JsonResponse
+    public function globalMatch(Request $request, InternalImageMatchService $matcher, RecognitionPipelineService $pipeline, RecognitionBenchmarkService $benchmarks): JsonResponse
     {
         $validated = $request->validate([
             'session_token' => ['required', 'string'],
@@ -256,6 +259,8 @@ class VisualRecognitionController extends Controller
             $result = (bool) config('webcatalogue.recognition.pipeline_v2.enabled', true)
                 ? $pipeline->matchSession($session, null)
                 : $matcher->matchGlobalSession($session);
+
+            $this->autoBenchmark($session, $benchmarks);
         } catch (Throwable $exception) {
             $this->markMatchFailed($session, $exception);
 
@@ -488,6 +493,20 @@ class VisualRecognitionController extends Controller
                 'matching_failed_at' => now()->toIso8601String(),
             ]),
         ]);
+    }
+
+    private function autoBenchmark(VisualRecognitionSession $session, RecognitionBenchmarkService $benchmarks): void
+    {
+        if (!(bool) config('webcatalogue.recognition.benchmark.enabled', false)
+            || !(bool) config('webcatalogue.recognition.benchmark.auto_run', false)) {
+            return;
+        }
+
+        try {
+            $benchmarks->runForSession($session->fresh(['captures', 'matches.product']), 'auto_scan');
+        } catch (Throwable) {
+            // Benchmarking must never block the public scan flow.
+        }
     }
 
     private function cleanDetectedIdentifiers(array $identifiers): array

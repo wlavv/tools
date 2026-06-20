@@ -168,6 +168,23 @@ return [
         'webcatalogue.recognition.pipeline.export_csv' => [
             'back' => 'webcatalogue.recognition.pipeline.index',
         ],
+        'webcatalogue.recognition.benchmarks.index' => [
+            'back' => 'webcatalogue.recognition.index',
+            'export_csv' => [
+                'label' => 'Export CSV',
+                'name' => 'Export CSV',
+                'icon' => 'fa-solid fa-file-csv',
+                'class' => 'lsg-action-btn lsg-action-btn--neutral',
+                'route' => 'webcatalogue.recognition.benchmarks.export_csv',
+                'type' => 'link',
+            ],
+        ],
+        'webcatalogue.recognition.benchmarks.show' => [
+            'back' => 'webcatalogue.recognition.benchmarks.index',
+        ],
+        'webcatalogue.recognition.benchmarks.export_csv' => [
+            'back' => 'webcatalogue.recognition.benchmarks.index',
+        ],
         'webcatalogue.recognition.sessions.index' => [
             'back' => 'webcatalogue.recognition.index',
         ],

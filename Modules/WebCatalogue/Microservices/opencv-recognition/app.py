@@ -37,7 +37,19 @@ class CompareMarkersBatchPayload(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "service": "webcatalogue-opencv-recognition"}
+    return {
+        "ok": True,
+        "service": "webcatalogue-opencv-recognition",
+        "version": app.version,
+        "endpoints": [
+            "/recognition/normalize",
+            "/recognition/quality",
+            "/recognition/markers",
+            "/recognition/identifiers",
+            "/recognition/compare-markers",
+            "/recognition/compare-markers-batch",
+        ],
+    }
 
 
 @app.post("/recognition/normalize")
@@ -434,7 +446,8 @@ def image_quality(image):
     contour = contour_result.get("contour") if contour_result.get("ok") else None
     if contour:
         image_area = float(max(1, resized.shape[0] * resized.shape[1]))
-        object_area = float(contour["width"] * contour["height"]) / image_area
+        contour_points = np.array(contour, dtype=np.float32)
+        object_area = float(cv2.contourArea(contour_points)) / image_area
         object_area_score = max(0.0, min(100.0, 100.0 - (abs(object_area - 0.72) / 0.72) * 100.0))
         perspective_score = max(0.0, min(100.0, float(contour_result.get("confidence", 0.0)) * 100.0))
     else:

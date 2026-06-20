@@ -13,6 +13,7 @@
     </div>
     <div class="wc-hero-actions">
         <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.pipeline.index') }}"><i class="fa-solid fa-chart-line"></i> Pipeline v2</a>
+        <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.benchmarks.index') }}"><i class="fa-solid fa-flask-vial"></i> Benchmarks</a>
         <a class="wc-primary-btn" href="{{ route('webcatalogue.recognition.sessions.index') }}"><i class="fa-solid fa-list"></i> Sessions</a>
         <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.leads.index') }}"><i class="fa-solid fa-bullseye"></i> Leads</a>
     </div>
