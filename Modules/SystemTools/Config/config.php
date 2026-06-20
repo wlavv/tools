@@ -64,11 +64,6 @@ return [
             'description' => 'Storage link, pastas graváveis e utilização de espaço.',
             'icon' => 'fa-solid fa-folder-tree',
         ],
-        'assets' => [
-            'label' => 'Assets / Build',
-            'description' => 'Reconstrução dos assets públicos geridos pelo Vite.',
-            'icon' => 'fa-solid fa-cubes',
-        ],
         'prestashop' => [
             'label' => 'PrestaShop',
             'description' => 'Diagnósticos orientados à ligação mysql2 / PrestaShop.',
