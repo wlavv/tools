@@ -1,0 +1,23 @@
+{
+    "name": "ProductImageReview",
+    "description": "Visual review of ASM product images by brand.",
+    "slug": "product-image-review",
+    "enabled": true,
+    "version": "1.0.0",
+    "provider": "Modules\\ProductImageReview\\Providers\\ProductImageReviewServiceProvider",
+    "permissions": [
+        "permission_product_image_review_view"
+    ],
+    "menu": {
+        "label": "Product Image Review",
+        "icon": "fa-solid fa-images",
+        "route": "product-image-review.index",
+        "group": "Marketing",
+        "order": 30
+    },
+    "lsg": {
+        "area": "marketing",
+        "type": "operational_module",
+        "managed_by": "module-compliance-center"
+    }
+}
