@@ -2,7 +2,7 @@
 
 Data: 2026-07-25
 
-Estado: **Proposta para aprovação**
+Estado: **Aprovado**
 
 ## Princípios
 
@@ -339,14 +339,16 @@ Não implementar SSO no MVP. A conta local continua a ser a identidade principal
 
 ## Decisões propostas para aprovação
 
-- [ ] autenticação local própria no MVP;
-- [ ] acesso ao studio apenas por convite;
-- [ ] MFA obrigatório no control;
-- [ ] MFA recomendado para owners;
-- [ ] cookies separados por subdomínio;
-- [ ] roles de organização: owner, admin, billing e member;
-- [ ] roles de store: manager, editor, reviewer, integrator e viewer;
-- [ ] papéis internos separados dos papéis de clientes;
-- [ ] autorização através de policies e abilities;
-- [ ] credenciais API com scopes e limitadas a uma store;
-- [ ] SSO apenas como evolução futura.
+- [x] autenticação local própria no MVP;
+- [x] acesso ao studio apenas por convite;
+- [x] MFA obrigatório no control;
+- [x] MFA recomendado para owners;
+- [x] cookies separados por subdomínio;
+- [x] roles de organização: owner, admin, billing e member;
+- [x] roles de store: manager, editor, reviewer, integrator e viewer;
+- [x] papéis internos separados dos papéis de clientes;
+- [x] autorização através de policies e abilities;
+- [x] credenciais API com scopes e limitadas a uma store;
+- [x] SSO apenas como evolução futura.
+
+Modelo aprovado pelo responsável do projeto em 2026-07-25.
