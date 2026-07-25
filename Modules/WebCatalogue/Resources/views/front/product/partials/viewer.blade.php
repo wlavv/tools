@@ -2,7 +2,6 @@
 <section class="wc-product-viewer-block" id="viewer">
     <div class="wc-product-section-head">
         <div>
-            <div class="wc-eyebrow">Interactive experience</div>
             <h2 class="wc-section-title">3D / AR / VR</h2>
         </div>
         <div class="wc-actions">

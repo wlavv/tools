@@ -24,18 +24,24 @@ class FrontCatalogueController extends Controller
     {
         $store = $this->findStore($store_slug);
 
-        $catalogues = Catalogue::query()
-            ->where('id_store', $store->id)
-            ->whereIn('status', $this->frontVisibleStatuses())
-            ->orderByRaw("FIELD(status, 'published', 'active')")
+        $statuses = $this->frontVisibleStatuses();
+        $catalogues = $this->storeCatalogues($store, $statuses)->get();
+        $featuredProducts = $this->storeProducts($store, $statuses)
             ->orderBy('name')
+            ->limit(12)
             ->get();
+        $filters = $this->buildFilters($store);
 
-        $productsQuery = Product::query()
-            ->with(['resources', 'prices', 'promotions'])
-            ->where('id_store', $store->id)
-            ->whereIn('status', $this->frontVisibleStatuses());
+        return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'featuredProducts', 'filters'));
+    }
 
+    public function products(Request $request, string $store_slug): View
+    {
+        $store = $this->findStore($store_slug);
+        $statuses = $this->frontVisibleStatuses();
+
+        $catalogues = $this->storeCatalogues($store, $statuses)->get();
+        $productsQuery = $this->storeProducts($store, $statuses);
         $this->applyFrontFilters($productsQuery, $request);
 
         $products = $productsQuery->orderBy('name')
@@ -44,7 +50,7 @@ class FrontCatalogueController extends Controller
 
         $filters = $this->buildFilters($store);
 
-        return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'products', 'filters'));
+        return view('webcatalogue::front.store.products', compact('store', 'catalogues', 'products', 'filters'));
     }
 
     public function preview(Request $request, string $token): View
@@ -192,6 +198,23 @@ class FrontCatalogueController extends Controller
             ->firstOrFail();
     }
 
+    private function storeCatalogues(Store $store, array $statuses): Builder
+    {
+        return Catalogue::query()
+            ->where('id_store', $store->id)
+            ->whereIn('status', $statuses)
+            ->orderByRaw("FIELD(status, 'published', 'active')")
+            ->orderBy('name');
+    }
+
+    private function storeProducts(Store $store, array $statuses): Builder
+    {
+        return Product::query()
+            ->with(['resources', 'prices', 'promotions'])
+            ->where('id_store', $store->id)
+            ->whereIn('status', $statuses);
+    }
+
     private function applyFrontFilters(Builder $query, Request $request): void
     {
         if ($request->filled('q')) {
@@ -201,7 +224,12 @@ class FrontCatalogueController extends Controller
                     ->orWhere('reference', 'like', '%' . $term . '%')
                     ->orWhere('sku', 'like', '%' . $term . '%')
                     ->orWhere('brand', 'like', '%' . $term . '%')
-                    ->orWhere('category', 'like', '%' . $term . '%');
+                    ->orWhere('category', 'like', '%' . $term . '%')
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(metadata), metadata, NULL), '$.set_code')) LIKE ?", ['%' . $term . '%'])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(metadata), metadata, NULL), '$.set_name')) LIKE ?", ['%' . $term . '%'])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(metadata), metadata, NULL), '$.collector_number')) LIKE ?", ['%' . $term . '%'])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(metadata), metadata, NULL), '$.rarity')) LIKE ?", ['%' . $term . '%'])
+                    ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(metadata), metadata, NULL), '$.artist')) LIKE ?", ['%' . $term . '%']);
             });
         }
 
@@ -214,17 +242,7 @@ class FrontCatalogueController extends Controller
         }
 
         foreach ((array) $request->query('resources', []) as $resourceFilter) {
-            match ($resourceFilter) {
-                'image' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['image', 'gallery_image', 'thumbnail', 'cover'])),
-                '3d' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'model_3d')),
-                'ar' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'ar_file')),
-                'vr' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['vr_file', 'vr_scene'])),
-                'video' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'video')),
-                'audio' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['audio', 'ambient_audio', 'voiceover', 'sound_effect', 'music_track'])),
-                'document' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['manual', 'datasheet', 'assembly_instructions', 'download'])),
-                'price' => $query->whereHas('prices', fn (Builder $p) => $p->whereIn('status', ['active', 'published'])),
-                default => null,
-            };
+            $this->applyResourceFilter($query, (string) $resourceFilter);
         }
     }
 
@@ -243,17 +261,53 @@ class FrontCatalogueController extends Controller
         return [
             'brands' => (clone $base)->whereNotNull('brand')->where('brand', '!=', '')->distinct()->orderBy('brand')->pluck('brand')->values(),
             'categories' => (clone $base)->whereNotNull('category')->where('category', '!=', '')->distinct()->orderBy('category')->pluck('category')->values(),
-            'resource_options' => [
-                'image' => ['label' => 'Images', 'icon' => 'fa-solid fa-image'],
-                '3d' => ['label' => '3D', 'icon' => 'fa-solid fa-cube'],
-                'ar' => ['label' => 'AR', 'icon' => 'fa-solid fa-vr-cardboard'],
-                'vr' => ['label' => 'VR', 'icon' => 'fa-solid fa-headset'],
-                'video' => ['label' => 'Video', 'icon' => 'fa-solid fa-video'],
-                'audio' => ['label' => 'Audio', 'icon' => 'fa-solid fa-volume-high'],
-                'document' => ['label' => 'Docs', 'icon' => 'fa-solid fa-file-lines'],
-                'price' => ['label' => 'Price', 'icon' => 'fa-solid fa-tag'],
-            ],
+            'resource_options' => $this->buildResourceFilterOptions($base),
         ];
+    }
+
+    private function buildResourceFilterOptions(Builder $base): array
+    {
+        $definitions = [
+            'image' => ['label' => 'Images', 'icon' => 'fa-solid fa-image'],
+            '3d' => ['label' => '3D', 'icon' => 'fa-solid fa-cube'],
+            'ar' => ['label' => 'AR', 'icon' => 'fa-solid fa-vr-cardboard'],
+            'vr' => ['label' => 'VR', 'icon' => 'fa-solid fa-headset'],
+            'video' => ['label' => 'Video', 'icon' => 'fa-solid fa-video'],
+            'audio' => ['label' => 'Audio', 'icon' => 'fa-solid fa-volume-high'],
+            'document' => ['label' => 'Docs', 'icon' => 'fa-solid fa-file-lines'],
+            'price' => ['label' => 'Price', 'icon' => 'fa-solid fa-tag'],
+        ];
+
+        $options = [];
+
+        foreach ($definitions as $key => $definition) {
+            $countQuery = clone $base;
+            $this->applyResourceFilter($countQuery, $key);
+            $count = (int) $countQuery->count();
+
+            if ($count <= 0) {
+                continue;
+            }
+
+            $options[$key] = $definition + ['count' => $count];
+        }
+
+        return $options;
+    }
+
+    private function applyResourceFilter(Builder $query, string $resourceFilter): void
+    {
+        match ($resourceFilter) {
+            'image' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['image', 'gallery_image', 'thumbnail', 'cover'])),
+            '3d' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'model_3d')),
+            'ar' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'ar_file')),
+            'vr' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['vr_file', 'vr_scene'])),
+            'video' => $query->whereHas('resources', fn (Builder $r) => $r->where('resource_type', 'video')),
+            'audio' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['audio', 'ambient_audio', 'voiceover', 'sound_effect', 'music_track'])),
+            'document' => $query->whereHas('resources', fn (Builder $r) => $r->whereIn('resource_type', ['manual', 'datasheet', 'assembly_instructions', 'download'])),
+            'price' => $query->whereHas('prices', fn (Builder $p) => $p->whereIn('status', ['active', 'published'])),
+            default => null,
+        };
     }
 
     private function buildProductPayload(Product $product): array
@@ -378,21 +432,15 @@ class FrontCatalogueController extends Controller
             ->orderBy('name')
             ->get();
 
-        $productsQuery = Product::query()
-            ->with(['resources', 'prices', 'promotions'])
-            ->where('id_store', $store->id)
-            ->whereIn('status', $statuses);
-
-        $this->applyFrontFilters($productsQuery, $request);
-
-        $products = $productsQuery->orderBy('name')
-            ->paginate(24)
-            ->withQueryString();
+        $featuredProducts = $this->storeProducts($store, $statuses)
+            ->orderBy('name')
+            ->limit(12)
+            ->get();
 
         $filters = $this->buildFilters($store, null, $statuses);
         $publicLink = $link;
 
-        return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'products', 'filters', 'publicLink', 'isPreview'));
+        return view('webcatalogue::front.store.show', compact('store', 'catalogues', 'featuredProducts', 'filters', 'publicLink', 'isPreview'));
     }
 
     private function trackLink(PublicLink $link, Request $request, string $event): void

@@ -55,6 +55,7 @@ Route::middleware(config('webcatalogue.front_middleware', ['web']))
         Route::post('/{store_slug}/scan/unmatched', [VisualRecognitionController::class, 'unmatched'])->name('scan.unmatched');
         Route::get('/{store_slug}/scan/result/{session_token}', [VisualRecognitionController::class, 'result'])->name('scan.result');
         Route::get('/{store_slug}', [FrontCatalogueController::class, 'store'])->name('store.show');
+        Route::get('/{store_slug}/products', [FrontCatalogueController::class, 'products'])->name('store.products');
         Route::get('/{store_slug}/product/{product_slug}', [FrontCatalogueController::class, 'product'])->name('product.show');
         Route::get('/{store_slug}/product/{product_slug}/viewer', [FrontCatalogueController::class, 'viewer'])->name('product.viewer');
         Route::get('/{store_slug}/{catalogue_slug}', [FrontCatalogueController::class, 'catalogue'])->name('catalogue.show');
@@ -78,6 +79,7 @@ Route::middleware(config('webcatalogue.middleware', ['web', 'auth']))
             Route::get('/benchmarks/export.csv', [RecognitionBenchmarkController::class, 'exportCsv'])->name('benchmarks.export_csv');
             Route::get('/benchmarks/calls.csv', [RecognitionBenchmarkController::class, 'exportCallsCsv'])->name('benchmarks.calls_csv');
             Route::get('/benchmarks/{run}', [RecognitionBenchmarkController::class, 'show'])->name('benchmarks.show');
+            Route::post('/benchmarks/{run}/sync-ground-truth', [RecognitionBenchmarkController::class, 'syncGroundTruth'])->name('benchmarks.sync_ground_truth');
             Route::get('/sessions', [RecognitionSessionController::class, 'index'])->name('sessions.index');
             Route::get('/sessions/{session}', [RecognitionSessionController::class, 'show'])->name('sessions.show');
             Route::delete('/sessions/{session}', [RecognitionSessionController::class, 'destroy'])->name('sessions.destroy');

@@ -74,6 +74,7 @@ return [
     'webcatalogue.recognition.pipeline.flush' => 'Flush Recognition Pipeline Metrics',
     'webcatalogue.recognition.benchmarks.index' => 'Recognition Benchmarks',
     'webcatalogue.recognition.benchmarks.show' => 'Recognition Benchmark Run',
+    'webcatalogue.recognition.benchmarks.sync_ground_truth' => 'Sync Recognition Benchmark Ground Truth',
     'webcatalogue.recognition.benchmarks.export_csv' => 'Export Recognition Benchmarks CSV',
     'webcatalogue.recognition.benchmarks.calls_csv' => 'Export Recognition Benchmark Calls CSV',
     'webcatalogue.recognition.sessions.index' => 'Recognition Sessions',

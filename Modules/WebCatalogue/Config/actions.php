@@ -190,6 +190,9 @@ return [
         'webcatalogue.recognition.benchmarks.show' => [
             'back' => 'webcatalogue.recognition.benchmarks.index',
         ],
+        'webcatalogue.recognition.benchmarks.sync_ground_truth' => [
+            'back' => 'webcatalogue.recognition.benchmarks.index',
+        ],
         'webcatalogue.recognition.benchmarks.export_csv' => [
             'back' => 'webcatalogue.recognition.benchmarks.index',
         ],

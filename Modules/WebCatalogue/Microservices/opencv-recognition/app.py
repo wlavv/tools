@@ -358,8 +358,8 @@ def normalize_mtg_card(image):
 
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     image_area = working.shape[0] * working.shape[1]
-    candidates = []
     target_aspect = 1.395
+    candidates = mtg_dark_border_candidates(working, image_area, target_aspect)
 
     for contour in contours:
         area = cv2.contourArea(contour)
@@ -401,6 +401,7 @@ def normalize_mtg_card(image):
                 "points": ordered,
                 "approx_points": int(len(approx)),
                 "aspect": float(aspect),
+                "source": "edge_contour",
             }
         )
 
@@ -424,8 +425,66 @@ def normalize_mtg_card(image):
         "profile": "mtg_card",
         "card_aspect": round(float(best["aspect"]), 4),
         "approx_points": int(best["approx_points"]),
+        "candidate_source": best.get("source", "edge_contour"),
         **framing,
     }
+
+
+def mtg_dark_border_candidates(image, image_area, target_aspect):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    dark_mask = ((gray < 105) & (hsv[:, :, 1] > 18)).astype(np.uint8) * 255
+    kernel = np.ones((5, 5), np.uint8)
+    dark_mask = cv2.morphologyEx(dark_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
+    dark_mask = cv2.dilate(dark_mask, kernel, iterations=2)
+
+    contours, _ = cv2.findContours(dark_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    candidates = []
+
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        box_area = float(w * h)
+        area_ratio = box_area / float(max(1, image_area))
+        aspect = h / max(1.0, float(w))
+
+        if area_ratio < 0.10 or area_ratio > 0.92:
+            continue
+
+        if aspect < 1.18 or aspect > 1.72:
+            continue
+
+        rect = cv2.minAreaRect(contour)
+        points = cv2.boxPoints(rect).astype("float32")
+        ordered = order_points(points)
+        contour_area = max(1.0, float(cv2.contourArea(contour)))
+        fill_ratio = min(1.0, contour_area / max(1.0, box_area))
+        center = np.array([x + (w / 2.0), y + (h / 2.0)], dtype="float32")
+        center_penalty = (
+            abs(center[0] - (image.shape[1] / 2)) / image.shape[1]
+            + abs(center[1] - (image.shape[0] / 2)) / image.shape[0]
+        )
+        aspect_score = max(0.0, 1.0 - min(1.0, abs(aspect - target_aspect) / 0.35))
+        area_score = min(1.0, area_ratio / 0.58)
+        score = (
+            (aspect_score * 0.34)
+            + (area_score * 0.24)
+            + (fill_ratio * 0.18)
+            + ((1 - min(0.75, center_penalty)) * 0.12)
+            + 0.12
+        )
+
+        candidates.append(
+            {
+                "score": float(score),
+                "area": box_area,
+                "points": ordered,
+                "approx_points": 4,
+                "aspect": float(aspect),
+                "source": "dark_card_border",
+            }
+        )
+
+    return candidates
 
 
 def order_points(points):

@@ -1,0 +1,26 @@
+services:
+  webcatalogue-opencv-base:
+    build: ./webcatalogue-opencv-base
+    container_name: webcatalogue-opencv-base
+    restart: unless-stopped
+    env_file:
+      - ./webcatalogue-opencv-base/.env
+    ports:
+      - "127.0.0.1:8010:8010"
+    networks:
+      - lsg_ai_net
+
+  webcatalogue-opencv-incremental:
+    build: ./webcatalogue-opencv-incremental
+    container_name: webcatalogue-opencv-incremental
+    restart: unless-stopped
+    env_file:
+      - ./webcatalogue-opencv-incremental/.env
+    ports:
+      - "127.0.0.1:8011:8010"
+    networks:
+      - lsg_ai_net
+
+networks:
+  lsg_ai_net:
+    external: true

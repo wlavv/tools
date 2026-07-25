@@ -20,7 +20,7 @@
             <div class="wc-empty"><i class="fa-regular fa-image"></i><br>No product image available.</div>
         @endif
     </div>
-    @if($images->count() > 1)
+    @if($images->count() > 1 || (!empty($showSingleThumb) && $images->count()))
         <div class="wc-gallery-strip">
             @foreach($images as $image)
                 @if($image->resolved_url)

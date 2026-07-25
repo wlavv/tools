@@ -32,6 +32,15 @@ Authorization: Bearer TOKEN
 
 The service should run as an internal Docker container. External traffic should go through the AI Gateway or the server reverse proxy, not directly to the container.
 
+For academic benchmarking, split this into two Rise-S services after the initial migration:
+
+```txt
+/opt/lsg-ai-stack/services/webcatalogue-opencv-base
+/opt/lsg-ai-stack/services/webcatalogue-opencv-incremental
+```
+
+See `BENCHMARK_FLOWS.md`.
+
 ## Deploy Files
 
 Copy these files to the Rise-S service directory:

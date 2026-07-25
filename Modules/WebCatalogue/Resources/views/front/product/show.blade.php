@@ -38,9 +38,38 @@
     const galleryBlock = document.querySelector('.wc-product-gallery-block[data-card-effect]');
     const parallaxCard = document.querySelector('[data-card-parallax]');
 
+    const syncFoilBounds = () => {
+        if (!main || !parallaxCard || !main.naturalWidth || !main.naturalHeight) return;
+
+        const boxWidth = parallaxCard.clientWidth;
+        const boxHeight = parallaxCard.clientHeight;
+        if (!boxWidth || !boxHeight) return;
+
+        const imageRatio = main.naturalWidth / main.naturalHeight;
+        const boxRatio = boxWidth / boxHeight;
+        let renderedWidth;
+        let renderedHeight;
+
+        if (boxRatio > imageRatio) {
+            renderedHeight = boxHeight;
+            renderedWidth = renderedHeight * imageRatio;
+        } else {
+            renderedWidth = boxWidth;
+            renderedHeight = renderedWidth / imageRatio;
+        }
+
+        parallaxCard.style.setProperty('--wc-card-img-width', `${renderedWidth}px`);
+        parallaxCard.style.setProperty('--wc-card-img-height', `${renderedHeight}px`);
+        parallaxCard.style.setProperty('--wc-card-img-left', `${(boxWidth - renderedWidth) / 2}px`);
+        parallaxCard.style.setProperty('--wc-card-img-top', `${(boxHeight - renderedHeight) / 2}px`);
+    };
+
     document.querySelectorAll('[data-gallery-src]').forEach(function(img){
         img.addEventListener('click', function(){
-            if(main) main.src = this.dataset.gallerySrc;
+            if(main) {
+                main.src = this.dataset.gallerySrc;
+                requestAnimationFrame(syncFoilBounds);
+            }
             document.querySelectorAll('[data-gallery-src]').forEach(i => i.classList.remove('is-active'));
             this.classList.add('is-active');
         });
@@ -66,6 +95,7 @@
             parallaxCard.style.setProperty('--glare-y', '50%');
             parallaxCard.style.setProperty('--foil-angle', '115deg');
             parallaxCard.style.setProperty('--foil-intensity', '.28');
+            syncFoilBounds();
         };
 
         const applyTilt = (clientX, clientY) => {
@@ -93,6 +123,10 @@
         parallaxCard.addEventListener('pointerleave', resetTilt);
         parallaxCard.addEventListener('pointercancel', resetTilt);
     }
+
+    main?.addEventListener('load', syncFoilBounds);
+    window.addEventListener('resize', syncFoilBounds);
+    syncFoilBounds();
 })();
 </script>
 @if(!empty($card3d))

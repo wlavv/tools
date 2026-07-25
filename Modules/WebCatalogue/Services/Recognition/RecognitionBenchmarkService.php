@@ -177,6 +177,7 @@ class RecognitionBenchmarkService
                     'identifiers_unsupported' => $identifiers['unsupported'] ?? false,
                     'normalize_used_perspective' => $normalize['json']['used_perspective'] ?? null,
                     'normalize_profile' => $normalize['json']['profile'] ?? null,
+                    'normalize_candidate_source' => $normalize['json']['candidate_source'] ?? null,
                     'framing_crop_applied' => $normalize['json']['framing_crop_applied'] ?? null,
                     'framing_area_ratio' => $normalize['json']['framing_area_ratio'] ?? null,
                     'framing_margins' => $normalize['json']['framing_margins'] ?? null,

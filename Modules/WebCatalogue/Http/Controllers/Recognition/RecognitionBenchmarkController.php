@@ -64,6 +64,23 @@ class RecognitionBenchmarkController extends Controller
             ->with('success', 'Benchmark created for session #' . $session->id . '.');
     }
 
+    public function syncGroundTruth(RecognitionBenchmarkRun $run): RedirectResponse
+    {
+        $run->load('session');
+        $groundTruth = $this->groundTruthForRun($run);
+
+        if (!$groundTruth['expected_product_id']) {
+            return back()->with('error', 'This benchmark session still has no ground truth saved.');
+        }
+
+        $run->update([
+            'expected_product_id' => $groundTruth['expected_product_id'],
+            'scenario_label' => $groundTruth['scenario_label'],
+        ]);
+
+        return back()->with('success', 'Ground truth synced from session #' . $run->id_session . '.');
+    }
+
     public function exportCsv(): Response
     {
         $rows = [[
@@ -255,12 +272,16 @@ class RecognitionBenchmarkController extends Controller
 
     private function groundTruthForRun(RecognitionBenchmarkRun $run): array
     {
+        $sessionGroundTruth = data_get($run->session?->metadata, 'ground_truth', []);
+
         return [
             'expected_product_id' => $run->expected_product_id
                 ? (int) $run->expected_product_id
-                : ((int) data_get($run->session?->metadata, 'ground_truth.expected_product_id') ?: null),
+                : ((int) data_get($sessionGroundTruth, 'expected_product_id') ?: null),
             'scenario_label' => $run->scenario_label
-                ?: data_get($run->session?->metadata, 'ground_truth.scenario_label'),
+                ?: data_get($sessionGroundTruth, 'scenario_label'),
+            'expected_product_reference' => data_get($sessionGroundTruth, 'expected_product_reference'),
+            'expected_product_name' => data_get($sessionGroundTruth, 'expected_product_name'),
         ];
     }
 

@@ -16,9 +16,12 @@
         <span class="@if($videos->count()) is-on @endif"><i class="fa-solid fa-video"></i> Video</span>
         <span class="@if($documents->count()) is-on @endif"><i class="fa-solid fa-file-lines"></i> Docs</span>
     </div>
-    @if($activePrice && $activePrice->regular_price)
-        <div class="wc-price">{{ number_format((float)($activePrice->sale_price ?: $activePrice->regular_price), 2, ',', ' ') }} {{ $activePrice->currency ?? 'EUR' }}</div>
-    @endif
+    <div class="wc-purchase-row">
+        @if($activePrice && $activePrice->regular_price)
+            <div class="wc-price">{{ number_format((float)($activePrice->sale_price ?: $activePrice->regular_price), 2, ',', ' ') }} {{ $activePrice->currency ?? 'EUR' }}</div>
+        @endif
+        <button class="wc-btn wc-btn-gold" type="button"><i class="fa-solid fa-cart-shopping"></i> Adicionar ao carrinho</button>
+    </div>
     @if(!empty($product->short_description))
         <div class="wc-richtext wc-short-description">{!! $product->short_description !!}</div>
     @endif

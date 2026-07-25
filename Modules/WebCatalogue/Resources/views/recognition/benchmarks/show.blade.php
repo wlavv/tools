@@ -37,21 +37,37 @@
 @if($expectedProductId)
     <div class="wc-card wc-spaced-card">
         <div class="wc-section-head">
-            <div>
-                <h3>Ground truth result</h3>
-                <p class="wc-muted">Current WebCatalogue ranking for the expected product at benchmark time.</p>
-            </div>
+        <div>
+            <h3>Ground truth result</h3>
+            <p class="wc-muted">Current WebCatalogue ranking for the expected product at benchmark time.</p>
         </div>
-        <div class="wc-rich-meta">
-            <span class="wc-rich-metric"><i class="fa-solid fa-bullseye"></i>Expected product #{{ $expectedProductId }}</span>
-            <span class="wc-rich-metric"><i class="fa-solid fa-ranking-star"></i>Rank {{ $expectedRank ?: 'missed top 5' }}</span>
-            <span class="wc-rich-metric"><i class="fa-solid fa-circle-check"></i>Top 1 {{ (int) $expectedRank === 1 ? 'yes' : 'no' }}</span>
-            <span class="wc-rich-metric"><i class="fa-solid fa-list-ol"></i>Top 3 {{ $expectedRank && (int) $expectedRank <= 3 ? 'yes' : 'no' }}</span>
+        <form method="POST" action="{{ route('webcatalogue.recognition.benchmarks.sync_ground_truth', $item) }}">
+            @csrf
+            <button class="wc-secondary-btn" type="submit"><i class="fa-solid fa-rotate"></i> Sync ground truth</button>
+        </form>
+    </div>
+    <div class="wc-rich-meta">
+        <span class="wc-rich-metric"><i class="fa-solid fa-bullseye"></i>Expected product #{{ $expectedProductId }}</span>
+        @if($groundTruth['expected_product_reference'] ?? null)
+            <span class="wc-rich-metric"><i class="fa-solid fa-tag"></i>{{ $groundTruth['expected_product_reference'] }} {{ $groundTruth['expected_product_name'] ?? '' }}</span>
+        @endif
+        <span class="wc-rich-metric"><i class="fa-solid fa-ranking-star"></i>Rank {{ $expectedRank ?: 'missed top 5' }}</span>
+        <span class="wc-rich-metric"><i class="fa-solid fa-circle-check"></i>Top 1 {{ (int) $expectedRank === 1 ? 'yes' : 'no' }}</span>
+        <span class="wc-rich-metric"><i class="fa-solid fa-list-ol"></i>Top 3 {{ $expectedRank && (int) $expectedRank <= 3 ? 'yes' : 'no' }}</span>
         </div>
     </div>
 @else
     <div class="wc-alert wc-alert-warning wc-spaced-card">
-        This benchmark has no ground truth. Save the real product in the session before running the benchmark to calculate accuracy.
+        This benchmark has no ground truth. Save the real product in the session, then sync this benchmark.
+        <div class="wc-actions-row" style="margin-top:10px">
+            @if($item->session)
+                <a class="wc-secondary-btn" href="{{ route('webcatalogue.recognition.sessions.show', $item->session) }}"><i class="fa-solid fa-camera"></i> Open session</a>
+            @endif
+            <form method="POST" action="{{ route('webcatalogue.recognition.benchmarks.sync_ground_truth', $item) }}">
+                @csrf
+                <button class="wc-primary-btn" type="submit"><i class="fa-solid fa-rotate"></i> Sync ground truth</button>
+            </form>
+        </div>
     </div>
 @endif
 
@@ -242,6 +258,7 @@
                 <span><strong>Markers</strong>{{ $result->markers_time_ms ?? '-' }} ms</span>
                 <span><strong>Identifiers</strong>{{ $result->identifiers_time_ms ?? '-' }} ms</span>
                 <span><strong>Profile</strong>{{ $metrics['normalize_profile'] ?? '-' }}</span>
+                <span><strong>Source</strong>{{ $metrics['normalize_candidate_source'] ?? '-' }}</span>
                 <span><strong>Frame crop</strong>{{ array_key_exists('framing_crop_applied', $metrics) ? ($metrics['framing_crop_applied'] ? 'yes' : 'no') : '-' }}</span>
                 <span><strong>Frame area</strong>{{ isset($metrics['framing_area_ratio']) ? round((float) $metrics['framing_area_ratio'], 4) : '-' }}</span>
             </div>

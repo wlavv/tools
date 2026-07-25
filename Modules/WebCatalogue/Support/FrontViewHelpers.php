@@ -44,4 +44,17 @@ class FrontViewHelpers
             ?: $prices->firstWhere('status', 'published')
             ?: $prices->first();
     }
+
+    public static function productPurchaseUrl($product): ?string
+    {
+        $metadata = is_array($product->metadata ?? null) ? $product->metadata : [];
+
+        foreach (['purchase_url', 'buy_url', 'product_url', 'external_url', 'source_url'] as $key) {
+            if (!empty($metadata[$key])) {
+                return (string) $metadata[$key];
+            }
+        }
+
+        return null;
+    }
 }
