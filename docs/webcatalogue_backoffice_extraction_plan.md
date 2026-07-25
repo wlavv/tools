@@ -16,18 +16,24 @@ api.ar-webcatalogue.com         Documentação e API
 {store}.ar-webcatalogue.com     Catálogo público
 ```
 
-## Estratégia
+## Estratégia revista: fork e poda controlada
 
-Usar uma migração incremental do tipo strangler:
+O BO atual é uma aplicação multi-projeto e já contém a infraestrutura necessária para executar o WebCatalogue. A estratégia passa a ser:
 
-1. manter temporariamente o BO atual;
-2. criar as novas superfícies em paralelo;
-3. migrar uma área funcional de cada vez;
-4. comparar resultados e manter rollback;
-5. bloquear alterações no BO antigo;
-6. remover as rotas antigas apenas após estabilização.
+1. criar uma baseline/tag do BO atual;
+2. criar um novo repositório Git privado a partir dessa baseline, preservando o histórico;
+3. instalar essa cópia num servidor/ambiente final dedicado ao WebCatalogue;
+4. validar primeiro uma versão funcionalmente igual à atual;
+5. no novo repositório, manter o WebCatalogue e as ferramentas transversais necessárias;
+6. remover progressivamente módulos, áreas, dados e menus sem utilidade para o WebCatalogue;
+7. construir `studio`, `control`, API e multi-tenancy no novo repositório;
+8. migrar os dados WebCatalogue para a nova base de dados;
+9. realizar o cutover;
+10. remover o WebCatalogue do BO multi-projeto original.
 
-Não começar por separar fisicamente o repositório. Primeiro criar limites claros dentro da aplicação atual; depois do cutover, o WebCatalogue pode ser movido para aplicação/repositório próprio com risco muito menor.
+Esta abordagem reduz o trabalho inicial de reconstrução da infraestrutura global. A separação física acontece no início, mas a remoção funcional continua incremental e reversível.
+
+Não copiar o `.env`, secrets, uploads ou a base de dados completa do BO multi-projeto para o novo servidor. Código e histórico podem ser clonados; dados e configuração devem ser migrados de forma seletiva.
 
 ## Regras de execução
 
@@ -39,6 +45,55 @@ Não começar por separar fisicamente o repositório. Primeiro criar limites cla
 - feature flags controlam exposição, escrita e cutover;
 - logs identificam origem: `legacy_bo`, `studio`, `control`, `api` ou `public`;
 - qualquer acesso cross-tenant é auditado.
+- depois do fork, não fazer merges gerais entre os dois repositórios;
+- correções realmente partilhadas devem ser portadas por commits identificados/cherry-pick;
+- cada repositório deve ter secrets, deploy, storage e base de dados próprios;
+- o BO original só perde o WebCatalogue depois do cutover e da janela de rollback.
+
+## Repositórios
+
+### BO multi-projeto atual
+
+Mantém:
+
+- projetos e módulos não relacionados com WebCatalogue;
+- ferramentas transversais que continuem necessárias a esses projetos;
+- histórico integral anterior à separação.
+
+Remove no final:
+
+- `Modules/WebCatalogue`;
+- rotas, menus, permissões e configs exclusivas do WebCatalogue;
+- assets e comandos exclusivos;
+- jobs/schedules exclusivos;
+- variáveis de ambiente exclusivas;
+- dados `wc_*`, apenas depois de backup e validação da migração.
+
+### Novo BO WebCatalogue
+
+Parte da baseline do BO atual e mantém inicialmente:
+
+- Laravel e infraestrutura base;
+- WebCatalogue;
+- autenticação;
+- permissões;
+- notificações;
+- auditoria e logs;
+- filas e scheduler;
+- gestão de erros;
+- ferramentas de sistema/deploy estritamente necessárias.
+
+Remove progressivamente:
+
+- áreas pessoais/familiares;
+- investimentos, ERP e gestão documental não necessários;
+- módulos de outros produtos;
+- menus e dashboards multi-projeto;
+- integrações e secrets não usados;
+- migrations/seeders/dados alheios;
+- uploads e ficheiros privados de outros projetos.
+
+A lista final de módulos a manter/remover será aprovada por inventário antes da poda.
 
 ## Feature flags propostas
 
@@ -78,7 +133,59 @@ As flags devem ter valores por ambiente e não podem ser alteradas por utilizado
 
 Não aplicável: ainda não existe mudança de arquitetura.
 
-## Fase 1 — fundação multi-tenant
+## Fase 1 — criar o novo repositório e ambiente
+
+### Trabalho
+
+- criar tag da baseline;
+- criar repositório Git privado WebCatalogue preservando histórico;
+- configurar remote e branch principal próprios;
+- criar servidor/virtual host de staging;
+- criar `.env` novo a partir de `.env.example`;
+- gerar `APP_KEY`, cookies e secrets próprios;
+- criar base de dados e utilizador de base de dados dedicados;
+- criar storage dedicado;
+- configurar CI/CD, logs, backups e health check;
+- instalar uma cópia funcionalmente equivalente antes de remover módulos.
+
+### Critério de saída
+
+- novo repositório acessível;
+- deploy reproduzível;
+- aplicação responde em staging;
+- não existem secrets ou dados de outros projetos;
+- WebCatalogue atual funciona no novo ambiente.
+
+### Rollback
+
+O BO original continua inalterado e operacional.
+
+## Fase 2 — inventário e poda do novo BO
+
+### Trabalho
+
+- inventariar todos os módulos, providers, commands, migrations e assets;
+- classificar cada componente: manter, substituir, remover ou avaliar;
+- mapear dependências transitivas;
+- remover uma área de cada vez;
+- executar testes, rotas e smoke tests após cada remoção;
+- substituir dashboard e navegação multi-projeto por shell WebCatalogue;
+- limpar composer/npm/config/env de dependências não usadas.
+
+### Critério de saída
+
+- apenas WebCatalogue e ferramentas aprovadas permanecem;
+- nenhuma rota/menu de outros projetos;
+- nenhuma dependência quebrada;
+- suite e deploy verdes;
+- inventário final documentado.
+
+### Rollback
+
+- reverter o commit de poda da área;
+- não remover várias áreas independentes no mesmo commit.
+
+## Fase 3 — fundação multi-tenant
 
 ### Trabalho
 
@@ -108,7 +215,7 @@ O BO antigo continua operacional. O enforcement inicia em modo de auditoria, reg
 - manter colunas/tabelas novas sem as apagar;
 - continuar a usar `id_store` como antes.
 
-## Fase 2 — autenticação e autorização autónomas
+## Fase 4 — autenticação e autorização autónomas
 
 ### Trabalho
 
@@ -136,7 +243,7 @@ Utilizadores piloto podem aceder ao `studio`; restantes continuam no BO antigo.
 - manter autenticação antiga;
 - não eliminar utilizadores ou mappings durante o piloto.
 
-## Fase 3 — shells studio e control
+## Fase 5 — shells studio e control
 
 ### Trabalho
 
@@ -163,7 +270,7 @@ As shells começam com funcionalidades de consulta. Links de escrita apontam tem
 - desligar as flags das shells;
 - manter links e rotas legacy.
 
-## Fase 4 — migração funcional para o studio
+## Fase 6 — migração funcional para o studio
 
 Migrar na seguinte ordem:
 
@@ -202,7 +309,7 @@ Para cada área:
 - reativar escrita legacy;
 - usar a mesma base de dados, evitando migração reversa de dados.
 
-## Fase 5 — BO control
+## Fase 7 — BO control
 
 ### Trabalho
 
@@ -226,7 +333,7 @@ Para cada área:
 - limitar `control` a leitura;
 - manter ferramentas internas atuais até estabilização.
 
-## Fase 6 — contratos e infraestrutura própria
+## Fase 8 — contratos e infraestrutura própria
 
 ### Trabalho
 
@@ -250,11 +357,15 @@ Para cada área:
 - adapters continuam capazes de encaminhar para serviços antigos;
 - feature flags selecionam implementação antiga/nova durante transição.
 
-## Fase 7 — domínio e cutover
+## Fase 9 — migração de dados e cutover
 
 ### Trabalho
 
 - configurar DNS/TLS wildcard;
+- exportar apenas tabelas/dados WebCatalogue e dependências aprovadas;
+- migrar utilizadores necessários através de processo controlado;
+- sincronizar storage WebCatalogue;
+- validar contagens, hashes e ownership;
 - configurar host routing;
 - ativar landing, studio, control, API e stores;
 - redirecionar links antigos;
@@ -274,12 +385,15 @@ Para cada área:
 - DNS/route flags voltam aos hosts anteriores;
 - reativar escrita legacy;
 - manter base partilhada durante a janela de rollback.
+- se os repositórios já usarem bases separadas, executar sincronização final e voltar temporariamente o tráfego ao BO original.
 
-## Fase 8 — remoção do BO antigo
+## Fase 10 — remoção do WebCatalogue no BO antigo
 
 ### Trabalho
 
 - remover rotas, menus e configs WebCatalogue do agregador;
+- remover módulo, assets, comandos, schedules e variáveis de ambiente exclusivas;
+- arquivar/retirar tabelas `wc_*` apenas depois de backup final;
 - remover dependência do controller/layout global;
 - remover PermissionRoleManager do runtime WebCatalogue;
 - remover adapters já sem uso;
@@ -297,40 +411,30 @@ Para cada área:
 
 Após esta fase o rollback é por versão/deploy, não por feature flag. Só executar após terminar a janela formal de retorno.
 
-## Fase 9 — separação física opcional
-
-Depois de comprovada a autonomia:
-
-- criar repositório/aplicação WebCatalogue;
-- mover código e histórico relevante;
-- criar pipeline CI/CD próprio;
-- decidir base de dados própria;
-- migrar storage;
-- manter contratos HTTP/eventos com serviços externos.
-
-Esta fase não é necessária para demonstrar o BO autónomo, mas completa a separação operacional.
-
 ## Sequência visual
 
 ```mermaid
 flowchart LR
-    A[Baseline] --> B[Tenancy]
-    B --> C[Auth e policies]
-    C --> D[Shells studio/control]
-    D --> E[Migração por área]
-    E --> F[Infraestrutura própria]
-    F --> G[Cutover de domínios]
-    G --> H[Remover BO legacy]
-    H --> I[Separação física opcional]
+    A[Baseline] --> B[Novo repositório e servidor]
+    B --> C[Inventário e poda]
+    C --> D[Tenancy]
+    D --> E[Auth e policies]
+    E --> F[Shells studio/control]
+    F --> G[Migração funcional]
+    G --> H[Migração de dados e cutover]
+    H --> I[Remover WebCatalogue do BO original]
 ```
 
 ## Estratégia de dados
 
-- uma base partilhada durante toda a transição;
+- base de dados dedicada no novo ambiente;
+- nunca copiar a base multi-projeto completa;
 - migrations apenas aditivas nas primeiras fases;
+- export seletivo das tabelas `wc_*` e dependências aprovadas;
+- sincronização final durante janela de manutenção;
 - dual-read apenas para validação, não como arquitetura permanente;
 - evitar dual-write;
-- legacy e novo BO usam os mesmos registos até ao cutover;
+- até ao cutover, o BO original continua como origem de verdade;
 - backups antes de migrations estruturais;
 - scripts de auditoria idempotentes;
 - foreign keys ativadas depois da limpeza.
@@ -379,12 +483,15 @@ Para cada fase:
 
 ## Decisões propostas para aprovação
 
-- [ ] migração incremental, sem big-bang;
+- [ ] criar o novo repositório a partir da baseline atual, preservando histórico;
+- [ ] colocar primeiro uma cópia funcional no novo servidor;
+- [ ] usar base de dados, storage, secrets e deploy próprios;
+- [ ] não copiar a base de dados multi-projeto completa;
+- [ ] podar o novo BO módulo a módulo;
+- [ ] aprovar inventário de ferramentas a manter antes da poda;
 - [ ] manter o BO atual durante a coexistência;
-- [ ] criar limites autónomos no repositório atual antes da separação física;
-- [ ] uma única base de dados/origem de verdade durante a transição;
+- [ ] manter o BO original como origem de verdade até ao cutover;
 - [ ] evitar dual-write;
-- [ ] migrar áreas na ordem definida;
 - [ ] feature flags e rollback por fase;
-- [ ] remover BO legacy apenas após período de observação;
-- [ ] separação para repositório próprio como fase final opcional.
+- [ ] remover WebCatalogue do BO original apenas após cutover e observação;
+- [ ] portar correções partilhadas por commits selecionados, sem merges gerais.
