@@ -497,3 +497,19 @@ Para cada fase:
 - [x] portar correções partilhadas por commits selecionados, sem merges gerais.
 
 Estratégia aprovada pelo responsável do projeto em 2026-07-25.
+
+## Destinos aprovados
+
+- Git: GitHub, conta `wlavv`;
+- repositório proposto: `wlavv/webcatalogue`, privado;
+- servidor de staging/produção: Rise-S;
+- baseline: tag `webcatalogue-extraction-baseline-2026-07-25`.
+
+O remote do BO multi-projeto mantém-se inalterado. No clone destinado ao WebCatalogue:
+
+```text
+origin  → novo repositório WebCatalogue
+legacy  → repositório tools, apenas para consulta/cherry-pick controlado
+```
+
+Não enviar `.env`, secrets, uploads ou dumps da base de dados para o GitHub.
