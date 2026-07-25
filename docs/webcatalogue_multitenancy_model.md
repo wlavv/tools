@@ -2,7 +2,7 @@
 
 Data: 2026-07-25
 
-Estado: **Proposta para aprovação**
+Estado: **Aprovado**
 
 ## Decisão principal proposta
 
@@ -268,13 +268,15 @@ Não depender apenas de global scopes Eloquent. Usar em conjunto:
 
 ## Decisões propostas para aprovação
 
-- [ ] base de dados partilhada com isolamento por linha;
-- [ ] organização como tenant principal;
-- [ ] store como unidade operacional e de publicação;
-- [ ] utilizadores podem pertencer a várias organizações e stores;
-- [ ] papéis separados entre organização e store;
-- [ ] credenciais API limitadas a uma store;
-- [ ] slug da store globalmente único;
-- [ ] `TenantContext` obrigatório em web, API, jobs, cache e storage;
-- [ ] BO `control` com acesso interno separado e auditado;
-- [ ] migração inicial através da organização `Legacy WebCatalogue`.
+- [x] base de dados partilhada com isolamento por linha;
+- [x] organização como tenant principal;
+- [x] store como unidade operacional e de publicação;
+- [x] utilizadores podem pertencer a várias organizações e stores;
+- [x] papéis separados entre organização e store;
+- [x] credenciais API limitadas a uma store;
+- [x] slug da store globalmente único;
+- [x] `TenantContext` obrigatório em web, API, jobs, cache e storage;
+- [x] BO `control` com acesso interno separado e auditado;
+- [x] migração inicial através da organização `Legacy WebCatalogue`.
+
+Modelo aprovado pelo responsável do projeto em 2026-07-25.
