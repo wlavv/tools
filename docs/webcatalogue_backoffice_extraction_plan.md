@@ -2,7 +2,7 @@
 
 Data: 2026-07-25
 
-Estado: **Proposta para aprovação**
+Estado: **Aprovado**
 
 ## Objetivo
 
@@ -483,15 +483,17 @@ Para cada fase:
 
 ## Decisões propostas para aprovação
 
-- [ ] criar o novo repositório a partir da baseline atual, preservando histórico;
-- [ ] colocar primeiro uma cópia funcional no novo servidor;
-- [ ] usar base de dados, storage, secrets e deploy próprios;
-- [ ] não copiar a base de dados multi-projeto completa;
-- [ ] podar o novo BO módulo a módulo;
-- [ ] aprovar inventário de ferramentas a manter antes da poda;
-- [ ] manter o BO atual durante a coexistência;
-- [ ] manter o BO original como origem de verdade até ao cutover;
-- [ ] evitar dual-write;
-- [ ] feature flags e rollback por fase;
-- [ ] remover WebCatalogue do BO original apenas após cutover e observação;
-- [ ] portar correções partilhadas por commits selecionados, sem merges gerais.
+- [x] criar o novo repositório a partir da baseline atual, preservando histórico;
+- [x] colocar primeiro uma cópia funcional no novo servidor;
+- [x] usar base de dados, storage, secrets e deploy próprios;
+- [x] não copiar a base de dados multi-projeto completa;
+- [x] podar o novo BO módulo a módulo;
+- [x] aprovar inventário de ferramentas a manter antes da poda;
+- [x] manter o BO atual durante a coexistência;
+- [x] manter o BO original como origem de verdade até ao cutover;
+- [x] evitar dual-write;
+- [x] feature flags e rollback por fase;
+- [x] remover WebCatalogue do BO original apenas após cutover e observação;
+- [x] portar correções partilhadas por commits selecionados, sem merges gerais.
+
+Estratégia aprovada pelo responsável do projeto em 2026-07-25.
