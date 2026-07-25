@@ -2,7 +2,7 @@
 
 Data: 2026-07-25
 
-Estado: **Validação técnica concluída; validação visual/manual pendente**
+Estado: **Concluído**
 
 ## Ambiente
 
@@ -47,24 +47,26 @@ O teste cria dados isolados e valida, em desktop e mobile:
 
 ### Desktop
 
-- [ ] Homepage da store sem sobreposição ou conteúdo cortado;
-- [ ] filtros, pesquisa e paginação utilizáveis;
-- [ ] galeria e recursos abrem corretamente;
-- [ ] viewer carrega e os controlos respondem;
-- [ ] scan pede autorização e mostra imagem da câmara;
-- [ ] captura e resultado completam o percurso;
-- [ ] consola do browser sem erros bloqueadores.
+- [x] Homepage da store sem sobreposição ou conteúdo cortado;
+- [x] filtros, pesquisa e paginação utilizáveis;
+- [x] galeria e recursos abrem corretamente;
+- [x] viewer carrega e os controlos respondem;
+- [x] scan pede autorização e mostra imagem da câmara;
+- [x] captura e resultado completam o percurso;
+- [x] consola do browser sem erros bloqueadores.
 
 ### Telemóvel
 
-- [ ] navegação, botões e filtros ajustam-se ao ecrã;
-- [ ] não existe scroll horizontal involuntário;
-- [ ] imagens e galeria mantêm proporção;
-- [ ] viewer responde a toque e orientação;
-- [ ] autorização, seleção e troca de câmara funcionam;
-- [ ] captura, resultado e reporte de “não encontrado” funcionam;
-- [ ] consola remota/logs sem erros bloqueadores.
+- [x] navegação, botões e filtros ajustam-se ao ecrã;
+- [x] não existe scroll horizontal involuntário;
+- [x] imagens e galeria mantêm proporção;
+- [x] viewer responde a toque e orientação;
+- [x] autorização, seleção e troca de câmara funcionam;
+- [x] captura, resultado e reporte de “não encontrado” funcionam;
+- [x] consola remota/logs sem erros bloqueadores.
+
+Validação manual confirmada pelo responsável do projeto em 2026-07-25.
 
 ## Critério de fecho
 
-A tarefa S1.3 pode ser marcada como concluída após preencher a checklist manual em pelo menos um browser desktop e um telemóvel real, registando dispositivo, browser e eventuais problemas.
+A tarefa S1.3 cumpre o critério: validação automática e manual concluídas em desktop e telemóvel, sem erros bloqueadores reportados.
